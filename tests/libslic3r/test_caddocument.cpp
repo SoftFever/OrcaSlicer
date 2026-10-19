@@ -53,6 +53,7 @@
 #include <BRepAdaptor_Surface.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
+#include <BRepAlgoAPI_Common.hxx>
 #include <BRepGProp.hxx>
 #include <GProp_GProps.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
@@ -772,16 +773,9 @@ TEST_CASE("entity constraints: tangent/midpoint/symmetric/angle", "[CadDocument]
 
 TEST_CASE("imported text glyphs all extrude without failing (charset sweep)", "[CadDocument]")
 {
-    std::string font = resources_dir().empty()
-        ? std::string("resources/fonts/HarmonyOS_Sans_SC_Regular.ttf")
-        : resources_dir() + "/fonts/HarmonyOS_Sans_SC_Regular.ttf";
-    {
-        std::ifstream probe(font);
-        if (!probe.good()) {
-            SUCCEED("bundled font not reachable in this environment; covered live on :10");
-            return;
-        }
-    }
+    // The bundled font, from the source tree: PROFILES_DIR is <repo>/resources/profiles.
+    const std::string font = std::string(PROFILES_DIR) + "/../fonts/HarmonyOS_Sans_SC_Regular.ttf";
+    REQUIRE(std::ifstream(font).good());
 
     const std::string charset =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -2853,9 +2847,10 @@ TEST_CASE("datum coordinate system: non-perpendicular inputs produce orthonormal
     using Catch::Matchers::WithinAbs;
 
     CadDocument doc;
-    // Build a body so we have a face to reference for FaceAndDirection.
-    int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 20, 20, 10, "Box");
-    doc.add_extrude(sk, 10.0, false, BooleanMode::New, "BoxExt");
+    // A cylinder's end cap is bounded by one closed circular edge, which offers no in-plane
+    // direction, so the frame has to fall back on coordsys_x_hint.
+    int sk = doc.add_sketch(SketchShape::Circle, SketchPlane::XY(), 0, 0, 5.0, "Circle");
+    doc.add_extrude(sk, 10.0, false, BooleanMode::New, "Cyl");
     REQUIRE(doc.recompute());
     REQUIRE(doc.bodies.size() == 1);
     int n_faces = GeometryEngine::face_count(doc.bodies[0].shape);
@@ -2865,34 +2860,33 @@ TEST_CASE("datum coordinate system: non-perpendicular inputs produce orthonormal
         if (fn.z() > 0.9) { top_face = i; break; }
     }
     REQUIRE(top_face >= 0);
+    const Vec3d Z = GeometryEngine::face_normal_world(GeometryEngine::face_by_index(doc.bodies[0].shape, top_face));
 
     int cs = doc.add_coordsys(CoordSysType::PointWorld, Vec3d(0, 0, 0), "CS1");
     REQUIRE(cs >= 0);
     doc.features[cs].coordsys_type   = CoordSysType::FaceAndDirection;
     doc.features[cs].coordsys_body   = 0;
     doc.features[cs].coordsys_face   = top_face;
-    // Deliberately non-perpendicular X hint (NOT orthogonal to face normal ~+Z).
+    // Deliberately non-perpendicular X hint (NOT orthogonal to the face normal +Z).
     doc.features[cs].coordsys_x_hint = Vec3d(3.0, -1.0, 0.5);
 
     auto css = doc.resolve_datum_coordsys();
     REQUIRE(css.size() == 1);
     REQUIRE(css[0].error.empty());
 
-    Vec3d X = css[0].x, Y = css[0].y;
-    // Orthonormality: each axis has unit length
+    const Vec3d X = css[0].x, Y = css[0].y;
+    // X is the hint projected into the face plane.
+    const Vec3d expected_x = Vec3d(3.0, -1.0, 0.0).normalized();
+    CHECK_THAT(X.x(), WithinAbs(expected_x.x(), 1e-9));
+    CHECK_THAT(X.y(), WithinAbs(expected_x.y(), 1e-9));
+    CHECK_THAT(X.z(), WithinAbs(expected_x.z(), 1e-9));
+    // Orthonormal, with Z the face normal and the frame right-handed.
     CHECK_THAT(X.norm(), WithinAbs(1.0, 1e-9));
     CHECK_THAT(Y.norm(), WithinAbs(1.0, 1e-9));
-    // Pairwise dot products are ~0
-    CHECK_THAT(std::abs(X.dot(Y)), WithinAbs(0.0, 1e-9));
-    // Z = X x Y (derived), also unit and perpendicular
-    Vec3d Z = X.cross(Y);
-    CHECK_THAT(Z.norm(), WithinAbs(1.0, 1e-9));
-    CHECK_THAT(std::abs(X.dot(Z)), WithinAbs(0.0, 1e-9));
-    CHECK_THAT(std::abs(Y.dot(Z)), WithinAbs(0.0, 1e-9));
-    // Right-handedness: X x Y == Z
-    CHECK_THAT(Z.x(), WithinAbs((X.cross(Y)).x(), 1e-9));
-    CHECK_THAT(Z.y(), WithinAbs((X.cross(Y)).y(), 1e-9));
-    CHECK_THAT(Z.z(), WithinAbs((X.cross(Y)).z(), 1e-9));
+    CHECK_THAT(X.dot(Y), WithinAbs(0.0, 1e-9));
+    CHECK_THAT(X.dot(Z), WithinAbs(0.0, 1e-9));
+    CHECK_THAT(Y.dot(Z), WithinAbs(0.0, 1e-9));
+    CHECK_THAT(X.cross(Y).dot(Z), WithinAbs(1.0, 1e-9));
 }
 
 TEST_CASE("datum coordinate system: a face-only frame rotates with its body", "[CadDocument]")
@@ -3917,17 +3911,23 @@ TEST_CASE("Use/Convert Entities: construction references never become solid", "[
     }
     REQUIRE(top_face >= 0);
 
-    const size_t body_count_before = doc.bodies.size();
-    const double volume_before     = doc.body_mass_properties(0).volume;
-
     int target   = doc.add_sketch_entities({}, SketchPlane::XY(), "Use");
     int appended = doc.project_edges_into_sketch(target, 0, {}, top_face);
     REQUIRE(appended == 4);
+    doc.add_extrude(target, 5.0, false, BooleanMode::New, "UseExt");
 
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-    REQUIRE(doc.bodies.size() == body_count_before);
-    REQUIRE_THAT(doc.body_mass_properties(0).volume, WithinRel(volume_before, 1e-9));
+    SECTION("construction edges form no profile, so the extrude fails") {
+        REQUIRE_FALSE(doc.recompute());
+        REQUIRE_FALSE(doc.error.empty());
+    }
+    SECTION("the same edges as solid geometry extrude a 20x20x5 body") {
+        for (auto& e : doc.features[target].entities)
+            e.construction = false;
+        REQUIRE(doc.recompute());
+        REQUIRE(doc.error.empty());
+        REQUIRE(doc.bodies.size() == 2);
+        REQUIRE_THAT(doc.body_mass_properties(1).volume, WithinRel(20.0 * 20.0 * 5.0, 1e-6));
+    }
 }
 
 TEST_CASE("Use/Convert Entities: bad references return -1 and change nothing", "[CadDocument][project]")
@@ -4252,7 +4252,7 @@ TEST_CASE("a previous-format recipe is refused, not silently misread", "[CadDocu
     REQUIRE(doc.features.empty());   // nothing half-read was left behind
 }
 
-TEST_CASE("golden recipe v1 still deserialises", "[CadDocument]")
+TEST_CASE("a v4 recipe keeps every field value", "[CadDocument]")
 {
     using Catch::Matchers::WithinRel;
     using Catch::Matchers::WithinAbs;
@@ -4282,20 +4282,16 @@ TEST_CASE("golden recipe v1 still deserialises", "[CadDocument]")
     }
 
     CadDocument expected = make_golden_doc_v1();
-    // Scoped tightly: this advice is ONLY valid for a count mismatch. It must not be in
-    // scope for the field-value assertions below, where "regenerate the fixture" is the
-    // one thing you must never do -- regenerating after a reorder bakes the corrupted
-    // layout in as the new golden and permanently disarms this test.
     {
-        INFO("Feature count changed - did you add/remove features in make_golden_doc_v1()?");
-        INFO("If so: run libslic3r_tests \"[.regen]\" and re-run this test.");
+        INFO("Feature count changed - make_golden_doc_v1() must keep building exactly the tree "
+             "frozen in cad_recipe_v4.bin, so do not add or remove features there.");
         REQUIRE(features.size() == expected.features.size());
     }
 
     // A failure BELOW this point means the on-disk serialization format changed: some field
     // in CadFeature::save/load was reordered, retyped, or removed. Fields may only ever be
     // APPENDED at the end of both lists. Do NOT regenerate the fixture to make this pass --
-    // fix the field order instead. See scripts/CAD/run-kernel-tests.sh and the [.regen] case.
+    // fix the field order instead.
 
     // Field-by-field assertions against expected values.
     // Every field set to a distinctive non-default literal must be checked here.
@@ -4550,35 +4546,47 @@ TEST_CASE("golden recipe v1 still deserialises", "[CadDocument]")
         }
     }
 
-    // --- Layer 2: geometry check (optional — only if the document recomputes) ---
-    // Build expected document and try to recompute it.
-    // ponytail: the field-value layer above is the real tripwire;
-    // this layer is a bonus sanity check on the full recompute path.
+    // --- Layer 2: the production v4 load rebuilds the same geometry as the in-memory tree ---
+    // The golden tree is serialization coverage and does not recompute as a whole, so the
+    // features are switched on one at a time and any the in-memory tree cannot build are left
+    // off in both. Every step that builds must give the loaded tree the same bodies.
     CadDocument exp_doc = make_golden_doc_v1();
-    bool exp_ok = exp_doc.recompute();
-    if (!exp_ok) {
-        INFO("Expected document from make_golden_doc_v1() could not recompute "
-             "(complex feature tree). Field-value checks above are sufficient.");
+    // Fields appended after v4 are not in the file, so a v4 project reads them as defaults
+    // (a v4 thread, for one, is not major-nominal). The reference has to match that.
+    const CadFeature def;
+    for (CadFeature& f : exp_doc.features) {
+        f.thread_major_nominal = def.thread_major_nominal;
+        f.pattern_inclusive    = def.pattern_inclusive;
+        f.dressup_edges        = def.dressup_edges;
+        f.text_string          = def.text_string;
+        f.text_font            = def.text_font;
+        f.text_height          = def.text_height;
+        f.revolve_axis_entity  = def.revolve_axis_entity;
     }
-
     CadDocument doc;
-    bool ser_ok = doc.deserialize_recipe(blob);
-
-    if (exp_ok && ser_ok) {
-        REQUIRE(doc.error.empty());
+    doc.deserialize_recipe(blob);
+    REQUIRE(doc.features.size() == exp_doc.features.size());
+    for (CadFeature& f : exp_doc.features) f.enabled = false;
+    for (CadFeature& f : doc.features) f.enabled = false;
+    size_t built_steps = 0;
+    for (size_t i = 0; i < exp_doc.features.size(); ++i) {
+        exp_doc.features[i].enabled = doc.features[i].enabled = true;
+        if (!exp_doc.recompute()) {
+            exp_doc.features[i].enabled = doc.features[i].enabled = false;
+            continue;
+        }
+        INFO("after feature " << i << " (" << exp_doc.features[i].name << ")");
+        REQUIRE(doc.recompute());
         REQUIRE(doc.bodies.size() == exp_doc.bodies.size());
-        for (size_t i = 0; i < doc.bodies.size(); ++i) {
-            double v = double(SketchEngine::tessellate(doc.bodies[i].shape).volume());
-            double ev = double(SketchEngine::tessellate(exp_doc.bodies[i].shape).volume());
+        for (size_t b = 0; b < doc.bodies.size(); ++b) {
+            double v = double(SketchEngine::tessellate(doc.bodies[b].shape).volume());
+            double ev = double(SketchEngine::tessellate(exp_doc.bodies[b].shape).volume());
             REQUIRE_THAT(v, WithinRel(ev, 1e-6));
         }
-    } else {
-        INFO("The golden recipe fixture was loaded and field-value checks passed.");
-        INFO("Recompute on the deserialized or expected document failed — this is");
-        INFO("expected for the extended golden fixture (many feature types coexist");
-        INFO("purely for serialization coverage). The field-value tripwire above is");
-        INFO("the primary format check.");
+        ++built_steps;
     }
+    CHECK(built_steps > 0);
+    CHECK_FALSE(exp_doc.bodies.empty());
 }
 
 // --- Rib tests (M5b) ---
@@ -5781,8 +5789,9 @@ TEST_CASE("fastened mate with angle", "[CadDocument][mate]")
     REQUIRE(doc.recompute());
     REQUIRE(doc.error.empty());
 
-    int sk2 = doc.add_sketch(SketchShape::Circle, SketchPlane::XY(), 0, 0, 3, "Cyl");
-    doc.add_extrude(sk2, 10.0, false, BooleanMode::New, "CylExt");
+    // A 20x10 plate, so a quarter turn about the connector's Z swaps its X and Y extents.
+    int sk2 = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 20, 10, 0, "Plate");
+    doc.add_extrude(sk2, 10.0, false, BooleanMode::New, "PlateExt");
     REQUIRE(doc.recompute());
     REQUIRE(doc.error.empty());
 
@@ -5801,6 +5810,13 @@ TEST_CASE("fastened mate with angle", "[CadDocument][mate]")
     gp_Pnt com = props.CentreOfMass();
     REQUIRE_THAT(double(com.X()), WithinAbs(5.0, 1e-4));
     REQUIRE_THAT(double(com.Y()), WithinAbs(5.0, 1e-4));
+
+    Bnd_Box bb;
+    BRepBndLib::Add(doc.bodies[1].shape, bb);
+    double x0, y0, z0, x1, y1, z1;
+    bb.Get(x0, y0, z0, x1, y1, z1);
+    REQUIRE_THAT(x1 - x0, WithinAbs(10.0, 1e-3));
+    REQUIRE_THAT(y1 - y0, WithinAbs(20.0, 1e-3));
 }
 
 TEST_CASE("fastened mate with flip", "[CadDocument][mate]")
@@ -5823,7 +5839,9 @@ TEST_CASE("fastened mate with flip", "[CadDocument][mate]")
     REQUIRE(doc.recompute());
     REQUIRE(doc.error.empty());
 
-    int cs_moving = doc.add_coordsys(CoordSysType::PointWorld, Vec3d(0, 0, 5), "CS_Moving");
+    // The connector sits on the cylinder's base, so the flip decides which side of the
+    // fixed connector (z = 5) the 10 mm cylinder hangs: above it unflipped, below it flipped.
+    int cs_moving = doc.add_coordsys(CoordSysType::PointWorld, Vec3d(0, 0, 0), "CS_Moving");
     doc.features[cs_moving].coordsys_body = 1;
     REQUIRE(doc.recompute());
     REQUIRE(doc.error.empty());
@@ -5837,8 +5855,7 @@ TEST_CASE("fastened mate with flip", "[CadDocument][mate]")
     gp_Pnt com = props.CentreOfMass();
     REQUIRE_THAT(double(com.X()), WithinAbs(5.0, 1e-4));
     REQUIRE_THAT(double(com.Y()), WithinAbs(5.0, 1e-4));
-    // Flip opposes Z axes: for a symmetric cylinder this is invisible in centroid,
-    // but the mate executed cleanly and the body moved to the target connector.
+    REQUIRE_THAT(double(com.Z()), WithinAbs(5.0 - 10.0 / 2, 1e-4));
 }
 
 TEST_CASE("planar mate: normal distance becomes mate_offset", "[CadDocument][mate]")
@@ -6525,23 +6542,19 @@ TEST_CASE("fastened mate with flip on asymmetric body", "[CadDocument][mate]")
     REQUIRE(doc.recompute());
     REQUIRE(doc.error.empty());
 
-    // Fastened, NO flip
-    doc.add_mate(0, cs_fixed, cs_moving, 0.0, 0.0, false, "MateNoFlip");
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-    GProp_GProps nf_props;
-    BRepGProp::VolumeProperties(doc.bodies[1].shape, nf_props);
-    double nf_z = nf_props.CentreOfMass().Z();
-
-    doc.undo();
-
-    // Fastened, WITH flip
-    doc.add_mate(0, cs_fixed, cs_moving, 0.0, 0.0, true, "MateFlip");
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-    GProp_GProps f_props;
-    BRepGProp::VolumeProperties(doc.bodies[1].shape, f_props);
-    double f_z = f_props.CentreOfMass().Z();
+    // The same assembly mated once without and once with flip, each in its own copy.
+    auto mated_com_z = [&](bool flip) {
+        CadDocument d = doc;
+        d.add_mate(0, cs_fixed, cs_moving, 0.0, 0.0, flip, "Mate");
+        REQUIRE(d.recompute());
+        REQUIRE(d.error.empty());
+        REQUIRE(d.mate_conflicts.empty());
+        GProp_GProps props;
+        BRepGProp::VolumeProperties(d.bodies[1].shape, props);
+        return props.CentreOfMass().Z();
+    };
+    const double nf_z = mated_com_z(false);
+    const double f_z  = mated_com_z(true);
 
     // Flip changes the centroid Z for an asymmetric body
     REQUIRE_THAT(f_z, !WithinAbs(nf_z, 1e-4));
@@ -7324,12 +7337,21 @@ TEST_CASE("interference: sheet bodies are skipped", "[CadDocument][interference]
     CadDocument doc;
     int sk_a = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 20, 20, 0, "BoxA");
     doc.add_extrude(sk_a, 10.0, false, BooleanMode::New, "EA");
-    // A sheet passing straight through the solid: it has no volume, so no interference.
-    int sk_s = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 40, 40, 0, "Sheet");
+    // Four 10x5 walls standing inside the 20x20x10 solid: a sheet has no volume, so no interference.
+    int sk_s = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 10, 10, 0, "Sheet");
     doc.add_surface_extrude(sk_s, 5.0, "SE");
     REQUIRE(doc.recompute());
     REQUIRE(doc.bodies.size() == 2);
     REQUIRE(CadDocument::is_sheet_shape(doc.bodies[1].shape));
+
+    // The raw overlap of the walls with the solid does measure a volume, so only the sheet
+    // skip keeps it out of the report.
+    BRepAlgoAPI_Common common(doc.bodies[0].shape, doc.bodies[1].shape);
+    common.Build();
+    REQUIRE(common.IsDone());
+    GProp_GProps props;
+    BRepGProp::VolumeProperties(common.Shape(), props);
+    REQUIRE(std::abs(props.Mass()) > 1e-6);
 
     REQUIRE(doc.check_interference().empty());
 }
@@ -7540,9 +7562,8 @@ TEST_CASE("A cut that removes no material is an error, not a silent success", "[
         CHECK(doc.error.find("removed no material") != std::string::npos);
 
         // And the body is left as it was, not half-applied.
-        CadDocument again = box();
-        REQUIRE(again.recompute());
-        CHECK_THAT(again.body_mass_properties(0).volume,
+        REQUIRE(doc.bodies.size() == 1);
+        CHECK_THAT(doc.body_mass_properties(0).volume,
                    Catch::Matchers::WithinAbs(solid, 1e-6));
     }
 

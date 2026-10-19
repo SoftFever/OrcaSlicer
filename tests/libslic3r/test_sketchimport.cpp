@@ -5,7 +5,6 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "libslic3r/CAD/SketchImport.hpp"
-#include "libslic3r/Utils.hpp"   // resources_dir
 #include "test_utils.hpp"        // ScopedTemporaryFile
 
 #include <cstdlib>
@@ -78,18 +77,9 @@ TEST_CASE("transform_regions moves and scales independently", "[SketchImport]")
 
 TEST_CASE("text_to_regions vectorizes glyphs with counters", "[SketchImport]")
 {
-    // Locate the bundled font; resources_dir() may be unset under ctest, so
-    // fall back to a cwd-relative path (tests run from the repo root).
-    std::string font = resources_dir().empty()
-                           ? std::string("resources/fonts/HarmonyOS_Sans_SC_Regular.ttf")
-                           : resources_dir() + "/fonts/HarmonyOS_Sans_SC_Regular.ttf";
-    {
-        std::ifstream probe(font);
-        if (!probe.good()) {
-            SUCCEED("bundled font not reachable in this environment; covered live on :10");
-            return;
-        }
-    }
+    // The bundled font, from the source tree: PROFILES_DIR is <repo>/resources/profiles.
+    const std::string font = std::string(PROFILES_DIR) + "/../fonts/HarmonyOS_Sans_SC_Regular.ttf";
+    REQUIRE(std::ifstream(font).good());
 
     // Bad input is rejected without throwing.
     REQUIRE(text_to_regions("", 10.0, font).empty());

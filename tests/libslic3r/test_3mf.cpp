@@ -1055,18 +1055,19 @@ SCENARIO("Non-standard nozzle diameter survives .3mf save on a single-nozzle pri
     }
 }
 
-// A legacy / foreign project (no multi-nozzle metadata) must load crash-safe through the BBS
-// importer and must not fabricate a filament_volume_map.
-SCENARIO("Legacy project loads crash-safe via load_bbs_3mf", "[3mf][MultiNozzle]") {
-    GIVEN("a project without any multi-nozzle metadata") {
-        std::string path = std::string(TEST_DATA_DIR) + "/test_3mf/Geräte/Büchse.3mf";
-        Model                model;
-        DynamicPrintConfig   config;
-        ConfigSubstitutionContext ctxt{ ForwardCompatibilitySubstitutionRule::Enable };
-        PlateDataPtrs        plates;
-        std::vector<Preset*> project_presets;
-        bool   is_bbl_3mf = false, is_orca_3mf = false;
-        Semver file_version;
+// A project without multi-nozzle metadata must load through the BBS importer and must not
+// fabricate a filament_volume_map.
+SCENARIO("Projects without multi-nozzle metadata load without a per-filament volume map", "[3mf][MultiNozzle]") {
+    ConfigSubstitutionContext ctxt{ ForwardCompatibilitySubstitutionRule::Enable };
+    std::vector<Preset*>      project_presets;
+    bool   is_bbl_3mf = false, is_orca_3mf = false;
+    Semver file_version;
+
+    GIVEN("a legacy project with a bare model and no plate metadata") {
+        std::string        path = std::string(TEST_DATA_DIR) + "/test_3mf/Geräte/Büchse.3mf";
+        Model              model;
+        DynamicPrintConfig config;
+        PlateDataPtrs      plates;
 
         WHEN("loaded through the BBS importer") {
             bool loaded = false;
@@ -1074,10 +1075,32 @@ SCENARIO("Legacy project loads crash-safe via load_bbs_3mf", "[3mf][MultiNozzle]
                                                   &project_presets, &is_bbl_3mf, &is_orca_3mf,
                                                   &file_version, nullptr,
                                                   LoadStrategy::LoadModel | LoadStrategy::LoadConfig));
-            THEN("it does not crash and invents no per-filament volume map") {
-                for (PlateData* p : plates) {
-                    REQUIRE(p->config.option<ConfigOptionInts>("filament_volume_map") == nullptr);
-                }
+            THEN("the model loads") {
+                REQUIRE(loaded);
+                REQUIRE_FALSE(model.objects.empty());
+            }
+            release_PlateData_list(plates);
+        }
+    }
+
+    GIVEN("a project with plate metadata but no filament volume map") {
+        ScopedTemporaryFile temp(".3mf");
+        store_painted_cube(temp.string());
+        ScopedTemporaryDir backup_dir("orca_volume_map_dst");
+        Model              model;
+        model.set_backup_path(backup_dir.string());
+        DynamicPrintConfig config;
+        PlateDataPtrs      plates;
+
+        WHEN("loaded through the BBS importer") {
+            const bool loaded = load_bbs_3mf(temp.string().c_str(), &config, &ctxt, &model, &plates,
+                                             &project_presets, &is_bbl_3mf, &is_orca_3mf, &file_version,
+                                             nullptr, LoadStrategy::LoadModel | LoadStrategy::LoadConfig);
+            THEN("every plate loads without a per-filament volume map") {
+                REQUIRE(loaded);
+                REQUIRE_FALSE(plates.empty());
+                for (PlateData* p : plates)
+                    CHECK(p->config.option<ConfigOptionInts>("filament_volume_map") == nullptr);
             }
             release_PlateData_list(plates);
         }
@@ -2048,8 +2071,8 @@ SCENARIO("Published 3MF round-trips the extended material metadata", "[3mf]") {
                 REQUIRE(dst_model.model_info != nullptr);
                 REQUIRE(dst_model.model_info->metadata_items[ORCA_PUBLISHED_MATERIAL_TAG] == material_keys_json);
 
-                // The value must parse back with every extended field intact.
-                nlohmann::json entries = nlohmann::json::parse(material_keys_json);
+                // The loaded value must parse back with every extended field intact.
+                nlohmann::json entries = nlohmann::json::parse(dst_model.model_info->metadata_items[ORCA_PUBLISHED_MATERIAL_TAG]);
                 REQUIRE(entries.is_array());
                 REQUIRE(entries.size() == 1);
                 REQUIRE(entries[0]["full"].get<bool>() == true);

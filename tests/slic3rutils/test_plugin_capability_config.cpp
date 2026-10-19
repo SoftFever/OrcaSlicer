@@ -8,6 +8,7 @@
 #include <slic3r/plugin/PythonPluginInterface.hpp>
 
 #include <catch2/catch_test_macros.hpp>
+#include "catch2/catch_message.hpp"
 #include "plugin_test_utils.hpp"
 #include <pybind11/pytypes.h>
 #include <pybind11/eval.h>
@@ -17,6 +18,12 @@
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
 
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include <chrono>
+#include <fstream>
+#include <ios>
 #include <memory>
 #include <string>
 #include <pybind11/cast.h>
@@ -103,6 +110,72 @@ bool py_save_config(const py::object& cap, const json& value) { return cap.attr(
 PluginCapabilityId capability_id(PluginCapabilityType type, const char* name, const char* plugin_key)
 {
     return {type, name, plugin_key};
+}
+
+// restore_config_response looks the capability up in PluginManager, so the restore tests load a real
+// plugin rather than building a detached capability.
+const char* const RESTORE_PLUGIN_KEY = "Restore_Plugin";
+
+const char* const RESTORE_PLUGIN_SOURCE = R"PY(# /// script
+# requires-python = ">=3.12"
+#
+# [tool.orcaslicer.plugin]
+# name = "Restore Plugin"
+# description = "Restore defaults fixture"
+# author = "OrcaSlicer"
+# version = "1.0"
+# type = "script"
+# ///
+import orca
+
+class Target(orca.script.ScriptPluginCapabilityBase):
+    def get_name(self): return "Target"
+    def execute(self, ctx): return orca.ExecutionResult.success()
+    def get_default_config(self): return {"speed": 1}
+
+class Bystander(orca.script.ScriptPluginCapabilityBase):
+    def get_name(self): return "Bystander"
+    def execute(self, ctx): return orca.ExecutionResult.success()
+    def get_default_config(self): return {"speed": 2}
+
+# Loading seeds defaults through get_default_config and fails the plugin if it raises, so this one
+# answers the load and raises from then on.
+class Raising(orca.script.ScriptPluginCapabilityBase):
+    calls = 0
+    def get_name(self): return "Raising"
+    def execute(self, ctx): return orca.ExecutionResult.success()
+    def get_default_config(self):
+        Raising.calls += 1
+        if Raising.calls > 1:
+            raise RuntimeError("boom")
+        return {}
+
+@orca.plugin
+class RestorePackage(orca.base):
+    def register_capabilities(self):
+        orca.register_capability(Target)
+        orca.register_capability(Bystander)
+        orca.register_capability(Raising)
+)PY";
+
+// Writes the restore fixture into {data_dir}/orca_plugins and loads it. Call without holding the GIL:
+// the load runs on a worker thread.
+bool load_restore_plugin(const ScopedDataDir& data_dir_guard)
+{
+    const boost::filesystem::path plugin_dir = data_dir_guard.plugins_dir() / RESTORE_PLUGIN_KEY;
+    boost::filesystem::create_directories(plugin_dir);
+    {
+        std::ofstream out((plugin_dir / (std::string(RESTORE_PLUGIN_KEY) + ".py")).string(), std::ios::binary);
+        out << RESTORE_PLUGIN_SOURCE;
+    }
+
+    PluginManager& manager = PluginManager::instance();
+    manager.discover_plugins(/*async=*/false, /*clear=*/true);
+    manager.load_plugin(RESTORE_PLUGIN_KEY, /*skip_deps=*/true);
+    std::string error;
+    const bool  loaded = manager.wait_for_plugin_load(RESTORE_PLUGIN_KEY, std::chrono::seconds(120), error);
+    INFO("load error: " << error);
+    return loaded && error.empty();
 }
 
 } // namespace
@@ -357,26 +430,25 @@ TEST_CASE("Restoring defaults overwrites only the target capability", "[PluginCo
     ScopedPluginManager plugin_system; // declared first: destroyed last
     if (!plugin_system.initialized)
         SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
-    py::gil_scoped_acquire gil; // released before plugin_system's destructor shuts Python down
 
     ScopedDataDir data_dir_guard("plugin-config-py-restore");
     host_config().load();
+    REQUIRE(load_restore_plugin(data_dir_guard));
 
-    const std::string defaults_body = "    def get_name(self): return 'cap'\n"
-                                      "    def get_default_config(self): return {'speed': 1}\n";
-    py::object target   = make_capability("RestoreTargetCap", defaults_body, "plugin_a", "cap_a");
-    py::object bystander = make_capability("RestoreBystanderCap", defaults_body, "plugin_b", "cap_a");
-
+    const PluginCapabilityId target    = capability_id(PluginCapabilityType::Script, "Target", RESTORE_PLUGIN_KEY);
+    const PluginCapabilityId bystander = capability_id(PluginCapabilityType::Script, "Bystander", RESTORE_PLUGIN_KEY);
     const json edited = json{{"speed", 99}};
-    REQUIRE(py_save_config(target, edited));
-    REQUIRE(py_save_config(bystander, edited));
+    REQUIRE(host_config().store_capability_config(target, edited));
+    REQUIRE(host_config().store_capability_config(bystander, edited));
 
-    // What PluginsDialog::restore_capability_config does: ask the capability, store the answer.
-    auto iface = as_interface(target);
-    REQUIRE(host_config().store_capability_config(capability_id(PluginCapabilityType::Script, "cap_a", "plugin_a"), iface->get_default_config()));
+    const json response = PluginConfig::restore_config_response(target);
 
-    CHECK(host_config().get_config(capability_id(PluginCapabilityType::Script, "cap_a", "plugin_a"))->config == json{{"speed", 1}});
-    CHECK(host_config().get_config(capability_id(PluginCapabilityType::Script, "cap_a", "plugin_b"))->config == json{{"speed", 99}});
+    CHECK(response["ok"] == true);
+    CHECK(response["config"] == json{{"speed", 1}});
+    CHECK(host_config().get_config(target)->config == json{{"speed", 1}});
+    CHECK(host_config().get_config(bystander)->config == edited);
+
+    PluginManager::instance().unload_plugin(RESTORE_PLUGIN_KEY);
 }
 
 TEST_CASE("A raising get_default_config leaves the stored config untouched", "[PluginConfig][Python]")
@@ -384,24 +456,21 @@ TEST_CASE("A raising get_default_config leaves the stored config untouched", "[P
     ScopedPluginManager plugin_system; // declared first: destroyed last
     if (!plugin_system.initialized)
         SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
-    py::gil_scoped_acquire gil; // released before plugin_system's destructor shuts Python down
 
     ScopedDataDir data_dir_guard("plugin-config-py-restore-raise");
     host_config().load();
+    REQUIRE(load_restore_plugin(data_dir_guard));
 
-    py::object cap = make_capability("RaisingDefaultsCap",
-                                     "    def get_name(self): return 'cap_a'\n"
-                                     "    def get_default_config(self): raise RuntimeError('boom')\n",
-                                     "plugin_a", "cap_a");
+    const PluginCapabilityId raising = capability_id(PluginCapabilityType::Script, "Raising", RESTORE_PLUGIN_KEY);
+    REQUIRE(host_config().store_capability_config(raising, json{{"keep", "me"}}));
 
-    REQUIRE(py_save_config(cap, json{{"keep", "me"}}));
+    const json response = PluginConfig::restore_config_response(raising);
 
-    auto iface = as_interface(cap);
-    REQUIRE(iface);
-    CHECK_THROWS_AS(iface->get_default_config(), py::error_already_set);
+    CHECK(response["ok"] == false);
+    CHECK_FALSE(response["error"].get<std::string>().empty());
+    CHECK(host_config().get_config(raising)->config == json{{"keep", "me"}});
 
-    // The dialog stores nothing when the hook throws: a broken plugin must not wipe user settings.
-    CHECK(host_config().get_config(capability_id(PluginCapabilityType::Script, "cap_a", "plugin_a"))->config == json{{"keep", "me"}});
+    PluginManager::instance().unload_plugin(RESTORE_PLUGIN_KEY);
 }
 
 TEST_CASE("A raising config UI hook surfaces as an exception the host can catch", "[PluginConfig][Python]")

@@ -123,38 +123,49 @@ SCENARIO("Changing the number of solid shell layers does not make all surfaces i
 		config.set_deserialize_strict({
             { "top_shell_layers",           2 },
             { "bottom_shell_layers",        1 },
-            { "layer_height",               0.25 }, // get a known number of layers
+            // Shell counts alone decide which layers are solid.
+            { "top_shell_thickness",        0 },
+            { "bottom_shell_thickness",     0 },
+            { "sparse_infill_density",      "20%" },
+            { "layer_height",               0.25 }, // 80 layers: 0..79
             { "initial_layer_print_height", 0.25 }
 			});
         Slic3r::Print print;
         Slic3r::Model model;
         Slic3r::Test::init_print({cube(20)}, print, model, config);
-        // Precondition: Ensure that the model has 2 solid top layers (79, 78)
-        // and one solid bottom layer (0).
-		auto test_is_solid_infill = [&print](size_t obj_id, size_t layer_id) {
+        // True when the layer has fill surfaces and all of them are solid.
+		auto is_solid_infill = [&print](size_t obj_id, size_t layer_id) {
 		    const Layer &layer = *(print.objects().at(obj_id)->get_layer((int)layer_id));
-		    // iterate over all of the regions in the layer
-		    for (const LayerRegion *region : layer.regions()) {
-		        // for each region, iterate over the fill surfaces
-		        for (const Surface &surface : region->fill_surfaces.surfaces)
-		            CHECK(surface.is_solid());
-		    }
+		    bool has_fill = false;
+		    for (const LayerRegion *region : layer.regions())
+		        for (const Surface &surface : region->fill_surfaces.surfaces) {
+		            if (! surface.is_solid())
+		                return false;
+		            has_fill = true;
+		        }
+		    return has_fill;
 		};
         print.process();
-        test_is_solid_infill(0,  0); // should be solid
-        test_is_solid_infill(0, 79); // should be solid
-        test_is_solid_infill(0, 78); // should be solid
+        // Precondition: 2 solid top layers (79, 78) and one solid bottom layer (0).
+        REQUIRE(is_solid_infill(0,  0));
+        REQUIRE(is_solid_infill(0, 79));
+        REQUIRE(is_solid_infill(0, 78));
+        REQUIRE_FALSE(is_solid_infill(0, 77));
         WHEN("Model is re-sliced with top_shell_layers == 3") {
 			config.set("top_shell_layers", 3);
 			print.apply(model, config);
             print.process();
             THEN("Print object does not have 0 solid bottom layers.") {
-                test_is_solid_infill(0, 0);
+                CHECK(is_solid_infill(0, 0));
             }
             AND_THEN("Print object has 3 top solid layers") {
-                test_is_solid_infill(0, 79);
-                test_is_solid_infill(0, 78);
-                test_is_solid_infill(0, 77);
+                CHECK(is_solid_infill(0, 79));
+                CHECK(is_solid_infill(0, 78));
+                CHECK(is_solid_infill(0, 77));
+                CHECK_FALSE(is_solid_infill(0, 76));
+            }
+            AND_THEN("Middle layers keep sparse infill") {
+                CHECK_FALSE(is_solid_infill(0, 40));
             }
         }
     }
@@ -672,14 +683,18 @@ TEST_CASE("gcode_skip_config_block omits the resolved-settings comment block", "
 {
     const std::string gcode = slice({ cube(20) }, {
         { "gcode_skip_config_block", true },
-        { "gcode_comments",         true },
     });
     CHECK(gcode.find("; CONFIG_BLOCK_START")     == std::string::npos);
     CHECK(gcode.find("; CONFIG_BLOCK_END")       == std::string::npos);
     CHECK(gcode.find("; layer_height =")         == std::string::npos);
-    CHECK(gcode.find("; fill_density =")         == std::string::npos);
+    CHECK(gcode.find("; sparse_infill_density =") == std::string::npos);
     CHECK(gcode.find("; HEADER_BLOCK_START")     != std::string::npos);
     CHECK(gcode.find("; EXECUTABLE_BLOCK_START") != std::string::npos);
+
+    const std::string with_block = slice({ cube(20) }, { { "gcode_skip_config_block", false } });
+    CHECK(with_block.find("; CONFIG_BLOCK_START")      != std::string::npos);
+    CHECK(with_block.find("; layer_height =")          != std::string::npos);
+    CHECK(with_block.find("; sparse_infill_density =") != std::string::npos);
 }
 
 // Some firmwares only scan the last N lines of the file for "estimated printing time", so it

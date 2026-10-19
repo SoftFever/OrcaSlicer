@@ -75,11 +75,10 @@ SCENARIO("Config accessor functions perform as expected.", "[Config]") {
             }
         }
         WHEN("A boolean option is set to a string value representing something other than 0 or 1") {
-            THEN("A BadOptionTypeException exception is thrown.") {
+            config.set("gcode_comments", true);
+            THEN("A BadOptionTypeException exception is thrown and the value is unchanged.") {
                 REQUIRE_THROWS_AS(config.set("gcode_comments", "Z"), BadOptionTypeException);
-            }
-            AND_THEN("Value is unchanged.") {
-                REQUIRE(config.opt<ConfigOptionBool>("gcode_comments")->getBool() == false);
+                REQUIRE(config.opt<ConfigOptionBool>("gcode_comments")->getBool() == true);
             }
         }
         WHEN("A boolean option is set to an int value") {
@@ -117,12 +116,10 @@ SCENARIO("Config accessor functions perform as expected.", "[Config]") {
             }
         }
         WHEN("A numeric option is set to a non-numeric value.") {
-	    auto prev_value = config.opt<ConfigOptionFloat>("max_bridge_length")->getFloat();
-            THEN("A BadOptionTypeException exception is thrown.") {
+            config.set("max_bridge_length", 7.5);
+            THEN("A BadOptionValueException exception is thrown and the value does not change.") {
                 REQUIRE_THROWS_AS(config.set_deserialize_strict("max_bridge_length", "zzzz"), BadOptionValueException);
-            }
-            THEN("The value does not change.") {
-                REQUIRE(config.opt<ConfigOptionFloat>("max_bridge_length")->getFloat() == prev_value);
+                REQUIRE_THAT(config.opt<ConfigOptionFloat>("max_bridge_length")->getFloat(), Catch::Matchers::WithinAbs(7.5, 1e-9));
             }
         }
         WHEN("A string option is set through the string interface") {
@@ -198,7 +195,7 @@ SCENARIO("Config accessor functions perform as expected.", "[Config]") {
 	    }
         }
         WHEN("An invalid option is requested during set.") {
-            THEN("A BadOptionTypeException exception is thrown.") {
+            THEN("A UnknownOptionException exception is thrown.") {
                 REQUIRE_THROWS_AS(config.set("deadbeef_invalid_option", 1), UnknownOptionException);
                 REQUIRE_THROWS_AS(config.set("deadbeef_invalid_option", 1.0), UnknownOptionException);
                 REQUIRE_THROWS_AS(config.set("deadbeef_invalid_option", "1"), UnknownOptionException);

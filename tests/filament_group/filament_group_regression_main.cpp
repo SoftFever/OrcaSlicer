@@ -319,9 +319,18 @@ TEST_CASE("FilamentGroup property checks", "[filament_group][property]") {
         // build (config_b/config_c cases evaluate the full per-layer nozzle-aware reorder for every
         // candidate grouping; this is a guard against hangs, not a micro-perf gate).
         REQUIRE(result.elapsed_ms < 40000.0);
-        REQUIRE(result.flush_cost >= 0);
 
+        // Every case, feasible or not, must yield a usable grouping: each used filament is
+        // assigned to an existing nozzle.
         auto used_filaments = collect_sorted_used_filaments(tc.context.model_info.layer_filaments);
+        const auto &nozzle_list = tc.context.nozzle_info.nozzle_list;
+        for (unsigned int fil : used_filaments) {
+            INFO("Filament: " << fil);
+            REQUIRE(fil < result.filament_map.size());
+            CHECK(result.filament_map[fil] >= 0);
+            CHECK(result.filament_map[fil] < static_cast<int>(nozzle_list.size()));
+        }
+
         if (is_constraint_feasible(tc.context, used_filaments)) {
             if (!result.constraints_ok) {
                 for (auto& v : result.violations)

@@ -76,12 +76,12 @@ TEST_CASE("plugin latest version uses the authoritative catalog field", "[Plugin
 {
     PluginDescriptor descriptor;
     descriptor.version        = "1.3.0";
-    descriptor.latest_version = "1.3.0";
+    descriptor.latest_version = "1.4.0";
     PluginChangelog changelog;
     changelog.version = "1.2.0";
     descriptor.changelog.push_back(changelog);
 
-    CHECK(descriptor.latest_available_version() == "1.3.0");
+    CHECK(descriptor.latest_available_version() == "1.4.0");
 }
 
 TEST_CASE("plugin latest version falls back to the descriptor version", "[PluginDescriptor]")

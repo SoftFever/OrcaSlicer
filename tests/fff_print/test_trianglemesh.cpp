@@ -1,6 +1,8 @@
 #include <catch2/catch_all.hpp>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include "catch2/matchers/catch_matchers.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/TriangleMeshSlicer.hpp"
 #include "libslic3r/Point.hpp"
@@ -162,21 +164,29 @@ SCENARIO("Slice behavior", "[TriangleMesh]") {
         const std::vector<Vec3f> vertices {{0,0,0},{0,0,20},{0,5,0},{0,5,20},{50,0,0},{50,0,20},{15,5,0},{35,5,0},{15,20,0},{50,5,0},{35,20,0},{15,5,10},{50,5,20},{35,5,10},{35,20,10},{15,20,10}};
         const std::vector<Vec3i32> facets {{0,1,2},{2,1,3},{1,0,4},{5,1,4},{0,2,4},{4,2,6},{7,6,8},{4,6,7},{9,4,7},{7,8,10},{2,3,6},{11,3,12},{7,12,9},{13,12,7},{6,3,11},{11,12,13},{3,1,5},{12,3,5},{5,4,9},{12,5,9},{13,7,10},{14,13,10},{8,15,10},{10,15,14},{6,11,8},{8,11,15},{15,11,13},{14,15,13}};
 
-		auto cube = make_cube();
+		TriangleMesh mesh(vertices, facets);
+        // A 50x5x20 wall with a 20x15x10 block against it, so the block's top is at Z = 10.
+        const double wall_area       = 50. * 5.;
+        const double wall_block_area = wall_area + 20. * 15.;
+        const auto area_mm2 = [](const ExPolygons &slice) { return slice.at(0).area() * SCALING_FACTOR * SCALING_FACTOR; };
         WHEN(" a top tangent plane is sliced") {
-            // At Z = 10 we have a top horizontal surface.
-			std::vector<ExPolygons> slices = cube.slice({5.0, 10.0});
+			std::vector<ExPolygons> slices = mesh.slice({5.0, 10.0});
             THEN( "its area is included") {
-                REQUIRE(slices.at(0).at(0).area() > 0);
-                REQUIRE(slices.at(1).at(0).area() > 0);
+                REQUIRE(slices.at(0).size() == 1);
+                REQUIRE(slices.at(1).size() == 1);
+                CHECK_THAT(area_mm2(slices.at(0)), Catch::Matchers::WithinRel(wall_block_area, 1e-6));
+                CHECK_THAT(area_mm2(slices.at(1)), Catch::Matchers::WithinRel(wall_block_area, 1e-6));
             }
         }
         WHEN(" a model that has been transformed is sliced") {
-            cube.mirror_z();
-			std::vector<ExPolygons> slices = cube.slice({-5.0, -10.0});
-            THEN( "it is sliced properly (mirrored bottom plane area is included)") {
-                REQUIRE(slices.at(0).at(0).area() > 0);
-                REQUIRE(slices.at(1).at(0).area() > 0);
+            mesh.mirror_z();
+			std::vector<ExPolygons> slices = mesh.slice({-5.0, -10.0});
+            THEN( "it is sliced like the original, and the mirrored block's bottom plane is not part of it") {
+                REQUIRE(slices.at(0).size() == 1);
+                REQUIRE(slices.at(1).size() == 1);
+                CHECK_THAT(area_mm2(slices.at(0)), Catch::Matchers::WithinRel(wall_block_area, 1e-6));
+                // A triangle owns its top edge but not its bottom edge, so a bottom tangent plane is left out.
+                CHECK_THAT(area_mm2(slices.at(1)), Catch::Matchers::WithinRel(wall_area, 1e-6));
             }
         }
     }

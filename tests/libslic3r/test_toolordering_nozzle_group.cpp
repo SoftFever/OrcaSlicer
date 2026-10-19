@@ -60,9 +60,8 @@ std::vector<NozzleInfo> single_nozzle_per_extruder(int extruder_count)
 }
 } // namespace
 
-TEST_CASE("Multi-nozzle gate predicate mirrors BambuStudio", "[ToolOrdering][H2C]")
+TEST_CASE("Multi-nozzle options exist and default to one nozzle per extruder", "[ToolOrdering][H2C]")
 {
-    // The multi-nozzle gate: std::any_of(extruder_max_nozzle_count > 1).
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
 
     auto *opt = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
@@ -72,15 +71,11 @@ TEST_CASE("Multi-nozzle gate predicate mirrors BambuStudio", "[ToolOrdering][H2C
     // 3mf projects round-trip the per-extruder nozzle inventory (GUI producers wire it later).
     REQUIRE(config.option<ConfigOptionStrings>("extruder_nozzle_stats") != nullptr);
 
-    auto has_multiple_nozzle = [](const std::vector<int> &values) {
-        return std::any_of(values.begin(), values.end(), [](int v) { return v > 1; });
-    };
-
-    // Default for every existing printer: 1 nozzle per extruder => gate is closed.
-    REQUIRE_FALSE(has_multiple_nozzle(opt->values));
-
-    // Synthetic H2C-like machine: extruder 1 is a 6-nozzle cluster => gate opens.
-    REQUIRE(has_multiple_nozzle(std::vector<int>{1, 6}));
+    // Default for every existing printer: 1 nozzle per extruder, so the multi-nozzle gate
+    // (any extruder_max_nozzle_count > 1) stays closed.
+    REQUIRE_FALSE(opt->values.empty());
+    for (int count : opt->values)
+        CHECK(count == 1);
 }
 
 TEST_CASE("Single-nozzle grouping: every filament maps to its extruder nozzle", "[ToolOrdering][H2C]")

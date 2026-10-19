@@ -198,8 +198,11 @@ TEST_CASE("Voronoi missing edges - Alessandro gapfill 12707", "[Voronoi]")
     REQUIRE(intersecting_edges({ poly }).empty());
 
     Lines lines = to_lines(poly);
-    BoostVD vd;
-    construct_voronoi(lines.begin(), lines.end(), &vd);
+    VD vd;
+    vd.construct_voronoi(lines.begin(), lines.end());
+    // Orca's detector finds nothing wrong with this input, so no repair is needed.
+    CHECK(VD::detect_known_issues(vd, lines.begin(), lines.end()) == VD::IssueType::NO_ISSUE_DETECTED);
+    CHECK(vd.get_state() == VD::State::REPAIR_NOT_NEEDED);
 
 #ifdef VORONOI_DEBUG_OUT
     dump_voronoi_to_svg(debug_out_path("voronoi-lines.svg").c_str(),
@@ -305,9 +308,16 @@ TEST_CASE("Voronoi weirdness", "[Voronoi]")
     }
 #endif
 
-    BoostVD vd;
+    VD vd;
     Lines lines = to_lines(poly);
-    construct_voronoi(lines.begin(), lines.end(), &vd);
+    vd.construct_voronoi(lines.begin(), lines.end());
+    // Unrepaired, the diagram is missing a Voronoi vertex. construct_voronoi detects it and repairs it
+    // by rotating the input.
+    VD raw_vd;
+    raw_vd.construct_voronoi(lines.begin(), lines.end(), false);
+    CHECK(VD::detect_known_issues(raw_vd, lines.begin(), lines.end()) == VD::IssueType::MISSING_VORONOI_VERTEX);
+    CHECK(vd.get_state() == VD::State::REPAIR_SUCCESSFUL);
+    CHECK(vd.get_issue_type() == VD::IssueType::NO_ISSUE_DETECTED);
 
 #ifdef VORONOI_DEBUG_OUT
     dump_voronoi_to_svg(debug_out_path("voronoi-weirdness.svg").c_str(),
@@ -347,9 +357,8 @@ TEST_CASE("Voronoi division by zero 12903", "[Voronoi]")
 
 // https://svn.boost.org/trac10/ticket/12139
 // Funny sample from a dental industry?
-// Vojtech confirms this test fails and rightly so, because the input data contain self intersections.
-// This test is suppressed.
-TEST_CASE("Voronoi NaN coordinates 12139", "[Voronoi][.][!mayfail]")
+// The input data contain self intersections, so no valid Voronoi diagram can be built from it.
+TEST_CASE("Voronoi NaN coordinates 12139", "[Voronoi]")
 {
     Lines lines = {
         { {  260500,1564400 }, { 261040,1562960 } },
@@ -1327,8 +1336,12 @@ TEST_CASE("Voronoi NaN coordinates 12139", "[Voronoi][.][!mayfail]")
         }
 #endif
 
-    BoostVD vd;
-    construct_voronoi(lines.begin(), lines.end(), &vd);
+    VD vd;
+    vd.construct_voronoi(lines.begin(), lines.end());
+    // The input self-intersects, so rotation cannot repair the diagram. It must be reported as invalid,
+    // which is what MedialAxis::build checks before falling back to a morphological closing.
+    CHECK(vd.get_state() == VD::State::REPAIR_UNSUCCESSFUL);
+    CHECK_FALSE(vd.is_valid());
 
     for (const auto& edge : vd.edges())
         if (edge.is_finite()) {
@@ -1935,7 +1948,7 @@ TEST_CASE("Voronoi skeleton", "[VoronoiSkeleton]")
 }
 
 // Simple detection with complexity N^2 if there is any point in the input polygons that doesn't have Voronoi vertex.
-[[maybe_unused]] static bool has_missing_voronoi_vertices(const Polygons &polygons, const VD &vd)
+static bool has_missing_voronoi_vertices(const Polygons &polygons, const VD &vd)
 {
     auto are_equal = [](const VD::vertex_type v, const Point &p) { return (Vec2d(v.x(), v.y()) - p.cast<double>()).norm() <= SCALED_EPSILON; };
 
@@ -1957,7 +1970,7 @@ TEST_CASE("Voronoi skeleton", "[VoronoiSkeleton]")
 // into two parts. Even we add more points to the edge, and then for these points, the Voronoin vertex is also missing. An
 // infinity-edge passes through the missing Voronoi vertex. Therefore, this missing Voronoi vertex and edge can be reconstructed
 // using the intersection between the infinity-edge with the input polygon.
-// Rotation of the polygon solves this problem.
+// VoronoiDiagram::construct_voronoi repairs it by rotating the input.
 TEST_CASE("Voronoi missing vertex 1", "[VoronoiMissingVertex1]")
 {
     Polygon poly = {
@@ -1981,7 +1994,14 @@ TEST_CASE("Voronoi missing vertex 1", "[VoronoiMissingVertex1]")
     dump_voronoi_to_svg(debug_out_path("voronoi-missing-vertex1-out.svg").c_str(), vd, Points(), lines);
 #endif
 
-//    REQUIRE(!has_missing_voronoi_vertices({poly}, vd));
+    // Unrepaired, the diagram shows the defect. construct_voronoi detects it and repairs it by
+    // rotating the input.
+    VD raw_vd;
+    raw_vd.construct_voronoi(lines.begin(), lines.end(), false);
+    CHECK(has_missing_voronoi_vertices({poly}, raw_vd));
+    CHECK(vd.get_state() == VD::State::REPAIR_SUCCESSFUL);
+    CHECK(vd.get_issue_type() == VD::IssueType::NO_ISSUE_DETECTED);
+    CHECK_FALSE(has_missing_voronoi_vertices({poly}, vd));
 }
 
 // This case is composed of two square polygons (contour and hole), and again one of the edges is divided into two parts by a
@@ -1989,7 +2009,7 @@ TEST_CASE("Voronoi missing vertex 1", "[VoronoiMissingVertex1]")
 // that for this case, through the missing Voronoi vertex is passing a finite edge between two internal Voronoin vertices.
 // Therefore, this missing Voronoi vertex and edge can be reconstructed using the intersection between the finite edge with the
 // input polygon.
-// Rotation of the polygons solves this problem.
+// VoronoiDiagram::construct_voronoi repairs it by rotating the input.
 TEST_CASE("Voronoi missing vertex 2", "[VoronoiMissingVertex2]")
 {
     Polygons poly = {
@@ -2021,13 +2041,20 @@ TEST_CASE("Voronoi missing vertex 2", "[VoronoiMissingVertex2]")
     dump_voronoi_to_svg(debug_out_path("voronoi-missing-vertex2-out.svg").c_str(), vd, Points(), lines);
 #endif
 
-//    REQUIRE(!has_missing_voronoi_vertices(poly, vd));
+    // Unrepaired, the diagram shows the defect. construct_voronoi detects it and repairs it by
+    // rotating the input.
+    VD raw_vd;
+    raw_vd.construct_voronoi(lines.begin(), lines.end(), false);
+    CHECK(has_missing_voronoi_vertices(poly, raw_vd));
+    CHECK(vd.get_state() == VD::State::REPAIR_SUCCESSFUL);
+    CHECK(vd.get_issue_type() == VD::IssueType::NO_ISSUE_DETECTED);
+    CHECK_FALSE(has_missing_voronoi_vertices(poly, vd));
 }
 
 // This case is composed of two polygons, and again one of the edges is divided into two parts by a point that lies on this edge,
 // and for this point is Voronoi vertex missing. A difference between the previous cases and this case through the missing
 // Voronoi vertex is passing finite edge between one inner Voronoi vertex and one outer Voronoi vertex.
-// Rotating the polygon also help solve this problem.
+// VoronoiDiagram::construct_voronoi repairs it by rotating the input.
 TEST_CASE("Voronoi missing vertex 3", "[VoronoiMissingVertex3]")
 {
     Polygons poly = {
@@ -2055,20 +2082,27 @@ TEST_CASE("Voronoi missing vertex 3", "[VoronoiMissingVertex3]")
     //    polygons_rotate(poly, PI/180);
     //    polygons_rotate(poly, PI/6);
 
-    BoostVD vd;
+    VD    vd;
     Lines lines = to_lines(poly);
-    construct_voronoi(lines.begin(), lines.end(), &vd);
+    vd.construct_voronoi(lines.begin(), lines.end());
 #ifdef VORONOI_DEBUG_OUT
     dump_voronoi_to_svg(debug_out_path("voronoi-missing-vertex3-out.svg").c_str(), vd, Points(), lines);
 #endif
 
-//    REQUIRE(!has_missing_voronoi_vertices(poly, vd));
+    // Unrepaired, the diagram shows the defect. construct_voronoi detects it and repairs it by
+    // rotating the input.
+    VD raw_vd;
+    raw_vd.construct_voronoi(lines.begin(), lines.end(), false);
+    CHECK(has_missing_voronoi_vertices(poly, raw_vd));
+    CHECK(vd.get_state() == VD::State::REPAIR_SUCCESSFUL);
+    CHECK(vd.get_issue_type() == VD::IssueType::NO_ISSUE_DETECTED);
+    CHECK_FALSE(has_missing_voronoi_vertices(poly, vd));
 }
 
 // In this case, the Voronoi vertex (146873, -146873) is included twice.
 // Also, near to those duplicate Voronoi vertices is another Voronoi vertex (146872, -146872).
 // Rotating the polygon will help solve this problem, but then there arise three very close Voronoi vertices.
-// Rotating of the input polygon will help solve this problem.
+// VoronoiDiagram::construct_voronoi repairs it by rotating the input.
 TEST_CASE("Duplicate Voronoi vertices", "[Voronoi]")
 {
     Polygon poly = {
@@ -2095,7 +2129,7 @@ TEST_CASE("Duplicate Voronoi vertices", "[Voronoi]")
     dump_voronoi_to_svg(debug_out_path("voronoi-duplicate-vertices-out.svg").c_str(), vd, Points(), lines);
 #endif
 
-    [[maybe_unused]] auto has_duplicate_vertices = [](const VD &vd) -> bool {
+    auto has_duplicate_vertices = [](const VD &vd) -> bool {
         std::vector<Vec2d> vertices;
         for (const auto &vertex : vd.vertices())
             vertices.emplace_back(Vec2d(vertex.x(), vertex.y()));
@@ -2104,14 +2138,21 @@ TEST_CASE("Duplicate Voronoi vertices", "[Voronoi]")
         return std::unique(vertices.begin(), vertices.end()) != vertices.end();
     };
 
-//    REQUIRE(!has_duplicate_vertices(vd));
+    // Unrepaired, the diagram shows the defect. construct_voronoi detects it and repairs it by
+    // rotating the input.
+    VD raw_vd;
+    raw_vd.construct_voronoi(lines.begin(), lines.end(), false);
+    CHECK(has_duplicate_vertices(raw_vd));
+    CHECK(vd.get_state() == VD::State::REPAIR_SUCCESSFUL);
+    CHECK(vd.get_issue_type() == VD::IssueType::NO_ISSUE_DETECTED);
+    CHECK_FALSE(has_duplicate_vertices(vd));
 }
 
 // In this case, there are three very close Voronoi vertices like in the previous test case after rotation. There is also one
 // missing Voronoi vertex. One infinity-edge (after clip [(146872, -70146871), (146872, -146871)]) passes through this missing
 // Voronoi vertex. This infinite edge [(146872, -70146871), (146872, -146871)] and edge [(146873, -146873), (0, 0)] are intersecting.
 // They intersect probably because the three points are very close to each other, with a combination of the missing Voronoi vertex.
-// Rotating of the input polygon will help solve this problem.
+// VoronoiDiagram::construct_voronoi repairs it by rotating the input.
 TEST_CASE("Intersecting Voronoi edges", "[Voronoi]")
 {
     Polygon poly = {
@@ -2135,7 +2176,7 @@ TEST_CASE("Intersecting Voronoi edges", "[Voronoi]")
     dump_voronoi_to_svg(debug_out_path("voronoi-intersecting-edges-out.svg").c_str(), vd, Points(), lines);
 #endif
 
-    [[maybe_unused]] auto has_intersecting_edges = [](const Polygon &poly, const VD &vd) -> bool {
+    auto has_intersecting_edges = [](const Polygon &poly, const VD &vd) -> bool {
         BoundingBox  bbox         = get_extents(poly);
         const double bbox_dim_max = double(std::max(bbox.size().x(), bbox.size().y()));
 
@@ -2166,5 +2207,12 @@ TEST_CASE("Intersecting Voronoi edges", "[Voronoi]")
         return false;
     };
 
-//    REQUIRE(!has_intersecting_edges(poly, vd));
+    // Unrepaired, the diagram shows the defect. construct_voronoi detects it and repairs it by
+    // rotating the input.
+    VD raw_vd;
+    raw_vd.construct_voronoi(lines.begin(), lines.end(), false);
+    CHECK(has_intersecting_edges(poly, raw_vd));
+    CHECK(vd.get_state() == VD::State::REPAIR_SUCCESSFUL);
+    CHECK(vd.get_issue_type() == VD::IssueType::NO_ISSUE_DETECTED);
+    CHECK_FALSE(has_intersecting_edges(poly, vd));
 }

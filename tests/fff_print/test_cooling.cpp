@@ -1,6 +1,7 @@
 #include <catch2/catch_all.hpp>
 
 #include <catch2/catch_test_macros.hpp>
+#include "catch2/catch_message.hpp"
 #include "test_helpers.hpp"
 
 #include <algorithm>
@@ -17,15 +18,49 @@
 using namespace Slic3r;
 using namespace Slic3r::Test;
 
-// The fan is held off for the first close_fan_the_first_x_layers layers, so an explicit
-// fan-off command is emitted.
+// The fan stays off while printing the first close_fan_the_first_x_layers layers and runs afterwards.
 TEST_CASE("Fan is held off for the initial layers", "[Cooling]")
 {
+    const int fan_off_layers = 5;
     const std::string gcode = slice({ cube(20) }, {
-        { "cooling",                      true },
-        { "close_fan_the_first_x_layers", 5 },
+        { "close_fan_the_first_x_layers", fan_off_layers },
+        { "full_fan_speed_layer",         0 },
+        { "fan_min_speed",                50 },
+        { "fan_max_speed",                100 },
+        { "fan_cooling_layer_time",       1000 }, // every layer is short enough to run the fan
+        { "layer_height",                 0.2 },
+        { "initial_layer_print_height",   0.2 },
+        { "layer_change_gcode",           ";TEST_LAYER_CHANGE" },
     });
-    CHECK(gcode.find("M106 S0") != std::string::npos);
+
+    // Record, for each layer, whether any extrusion was printed with the part fan running.
+    std::vector<bool> extruded_with_fan;
+    int  layer    = -1;
+    bool fan_on   = false;
+    std::istringstream input(gcode);
+    std::string line;
+    while (std::getline(input, line)) {
+        if (line.rfind(";TEST_LAYER_CHANGE", 0) == 0) {
+            ++layer;
+            extruded_with_fan.push_back(false);
+        } else if (line.rfind("M107", 0) == 0) {
+            fan_on = false;
+        } else if (line.rfind("M106 ", 0) == 0 && line.find(" P") == std::string::npos) {
+            const size_t s = line.find(" S");
+            fan_on = s != std::string::npos && std::stod(line.substr(s + 2)) > 0.;
+        } else if (layer >= 0 && fan_on && line.rfind("G1 ", 0) == 0 && line.find(" E") != std::string::npos &&
+                   (line.find(" X") != std::string::npos || line.find(" Y") != std::string::npos)) {
+            extruded_with_fan[layer] = true;
+        }
+    }
+
+    // A 20 mm cube at 0.2 mm layers has 100 layers.
+    REQUIRE(extruded_with_fan.size() == 100);
+    for (int i = 0; i < fan_off_layers; ++i) {
+        CAPTURE(i);
+        CHECK_FALSE(extruded_with_fan[i]);
+    }
+    CHECK(extruded_with_fan[fan_off_layers]);
 }
 
 // The cooling pass resolves and strips its internal speed placeholders; none leak into
