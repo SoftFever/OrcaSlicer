@@ -12375,8 +12375,12 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
         return false;                                  // let drag orbit the camera
     }
 
+    // The shapes whose first two points can be had by one press-drag-release (the rest of a longer one is then clicked as usual).
     const bool two_point = m_mode == Mode::CornerRect || m_mode == Mode::CenterRect || m_mode == Mode::CenterCircle ||
-                           m_mode == Mode::TwoPointCircle || m_mode == Mode::Polygon;
+                           m_mode == Mode::TwoPointCircle || m_mode == Mode::Polygon || m_mode == Mode::Line ||
+                           m_mode == Mode::ObliqueRect || m_mode == Mode::RoundedRect || m_mode == Mode::ThreePointCircle ||
+                           m_mode == Mode::ThreePointArc || m_mode == Mode::CenterArc || m_mode == Mode::Slot ||
+                           m_mode == Mode::ArcSlot || m_mode == Mode::Ellipse || m_mode == Mode::EllipseArc;
     bool draw_drag = false;
     if (two_point) {
         if (evt.LeftDown()) { m_dr_n = int(m_points.size()); m_dr_x = evt.GetX(); m_dr_y = evt.GetY(); }

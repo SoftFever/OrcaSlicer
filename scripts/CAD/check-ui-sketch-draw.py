@@ -147,6 +147,23 @@ if len(mine) == 1:
     time.sleep(0.4)
     redo = [e for e in ents() if e["index"] == mine[0]["index"]]
     check(redo and abs(redo[0]["p1"][0] - after[0]) + abs(redo[0]["p1"][1] - after[1]) < 1e-6, "Ctrl+Shift+Z puts the drag back: %s" % (redo[0]["p1"] if redo else None))
+
+# Press-drag-release gives the first two points of every shape that has them; a longer shape is finished with clicks as usual.
+def drag_draw(key, extra=(), name=""):
+    n0 = len(ents())
+    call("ui.key", key=key)
+    call("ui.drag", **{"from": [cx - 300, cy - 200], "to": [cx - 160, cy - 160], "steps": 6})
+    time.sleep(0.5)
+    for q in extra:
+        call("ui.move", at=q); call("ui.click", at=q); time.sleep(0.5)
+    call("ui.key", key="Escape")
+    return len(ents()) - n0
+
+check(drag_draw("L") == 1, "Line: one press-drag-release makes one segment")
+check(drag_draw("R") == 4, "Rectangle: one press-drag-release makes the four sides")
+check(drag_draw("S", extra=[[cx - 230, cy - 120]]) > 0, "Slot: drag the centre line, click the width")
+check(drag_draw("E", extra=[[cx - 230, cy - 120]]) > 0, "Ellipse: drag the major axis, click the minor point")
+check(drag_draw("A", extra=[[cx - 230, cy - 120]]) > 0, "Arc: drag start-end, click the third point")
 call("sketch_cancel")
 print("ui sketch draw:", "PASS" if not fails else "%d FAIL" % len(fails))
 sys.exit(1 if fails else 0)
