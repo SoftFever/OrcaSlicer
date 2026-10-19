@@ -8,6 +8,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/read_until.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/filesystem.hpp>
@@ -93,7 +94,9 @@ using boost::asio::ip::tcp;
 class LoopbackServer
 {
 public:
-    enum class Mode { Ok, Unavailable, Silent };
+    // Session answers every request with the body given to set_session_body(), as the token endpoint
+    // does, after 200 ms so the client is still waiting when the test makes its next call.
+    enum class Mode { Ok, Unavailable, Silent, Session };
 
     struct Request
     {
@@ -115,6 +118,11 @@ public:
 
     std::string url() const { return "http://127.0.0.1:" + std::to_string(m_acceptor.local_endpoint().port()); }
     void        set_mode(Mode mode) { m_mode = mode; }
+    void        set_session_body(std::string body)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_session_body = std::move(body);
+    }
 
     bool wait_for_accepts(size_t count, std::chrono::milliseconds timeout)
     {
@@ -174,13 +182,31 @@ private:
             const Mode mode = m_mode;
             if (mode == Mode::Silent)
                 return;
-            const std::string_view response = mode == Mode::Ok ?
-                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 11\r\nConnection: close\r\n\r\n{\"ok\":true}" :
-                "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-            boost::asio::async_write(connection->socket, boost::asio::buffer(response),
-                                     [connection](boost::system::error_code, size_t) {
-                boost::system::error_code ignored;
-                connection->socket.shutdown(tcp::socket::shutdown_both, ignored);
+            auto response = std::make_shared<std::string>();
+            if (mode == Mode::Session) {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                *response = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " +
+                            std::to_string(m_session_body.size()) + "\r\nConnection: close\r\n\r\n" + m_session_body;
+            } else {
+                *response = mode == Mode::Ok ?
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 11\r\nConnection: close\r\n\r\n{\"ok\":true}" :
+                    "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+            }
+            auto write = [connection, response] {
+                boost::asio::async_write(connection->socket, boost::asio::buffer(*response),
+                                         [connection, response](boost::system::error_code, size_t) {
+                    boost::system::error_code ignored;
+                    connection->socket.shutdown(tcp::socket::shutdown_both, ignored);
+                });
+            };
+            if (mode != Mode::Session) {
+                write();
+                return;
+            }
+            auto timer = std::make_shared<boost::asio::steady_timer>(m_io, 200ms);
+            timer->async_wait([timer, write](boost::system::error_code ec) {
+                if (!ec)
+                    write();
             });
         });
     }
@@ -194,7 +220,33 @@ private:
     std::condition_variable                  m_cv;
     std::vector<Request>                     m_requests;
     std::vector<std::shared_ptr<Connection>> m_connections;
+    std::string                              m_session_body;
 };
+
+// A JWT whose only claim is an expiry an hour from now; the agent reads nothing else from it.
+std::string jwt_expiring_in_an_hour()
+{
+    const auto base64url = [](const std::string& in) {
+        static const char* chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+        std::string out;
+        unsigned    bits = 0;
+        int         count = 0;
+        for (unsigned char c : in) {
+            bits = (bits << 8) | c;
+            count += 8;
+            while (count >= 6) {
+                count -= 6;
+                out += chars[(bits >> count) & 0x3F];
+            }
+        }
+        if (count > 0)
+            out += chars[(bits << (6 - count)) & 0x3F];
+        return out;
+    };
+    const auto exp = std::chrono::duration_cast<std::chrono::seconds>(
+        (std::chrono::system_clock::now() + 1h).time_since_epoch()).count();
+    return base64url(R"({"alg":"none"})") + "." + base64url("{\"exp\":" + std::to_string(exp) + "}") + ".sig";
+}
 
 // Sets an environment variable for the lifetime of the guard and restores the previous value.
 class ScopedEnvVar
@@ -539,4 +591,25 @@ TEST_CASE_METHOD(HealthCheckFixture, "The health check does no token work", "[Or
     }
     CHECK(agent->is_user_login());
     CHECK(agent->get_access_token() == "test-token");
+}
+
+TEST_CASE_METHOD(HealthCheckFixture, "A token request made while start() refreshes waits for it instead of refreshing again", "[OrcaCloudServiceAgent]")
+{
+    // A session saved by a previous run: start() refreshes it on its own thread.
+    agent->persist_user_secret(nlohmann::json{{"refresh_token", "stored-refresh-token"}, {"user_id", "test-user-id"}}.dump());
+    const std::string access_token = jwt_expiring_in_an_hour();
+    server.set_session_body(nlohmann::json{{"access_token", access_token},
+                                           {"refresh_token", "rotated-refresh-token"},
+                                           {"user_id", "test-user-id"}}.dump());
+    server.set_mode(LoopbackServer::Mode::Session);
+
+    REQUIRE(agent->start() == BAMBU_NETWORK_SUCCESS);
+    CHECK(agent->ensure_token_fresh("test"));
+    CHECK(agent->get_access_token() == access_token);
+
+    size_t token_posts = 0;
+    for (const auto& request : server.requests())
+        if (boost::starts_with(request.request_line, "POST /auth/v1/token"))
+            ++token_posts;
+    CHECK(token_posts == 1);
 }

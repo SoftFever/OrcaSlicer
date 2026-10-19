@@ -1860,9 +1860,7 @@ RefreshResult OrcaCloudServiceAgent::refresh_now(const std::string& refresh_toke
     }
 
     auto worker = [this, refresh_token, reason]() {
-        refresh_owner.store(std::this_thread::get_id());
         RefreshResult r = refresh_session_with_token(refresh_token, reason);
-        refresh_owner.store(std::thread::id{});
         {
             std::lock_guard<std::mutex> lock(refresh_wait_mutex);
             refresh_running.store(false);
@@ -1930,8 +1928,6 @@ bool OrcaCloudServiceAgent::needs_refresh(std::chrono::seconds skew) const
 // Wait for a refresh running on another thread, e.g. the one start() runs.
 void OrcaCloudServiceAgent::wait_for_running_refresh()
 {
-    if (refresh_owner.load() == std::this_thread::get_id())
-        return; // we are that refresh
     std::unique_lock<std::mutex> lock(refresh_wait_mutex);
     // The refresh POST times out after 30 s.
     refresh_wait_cv.wait_for(lock, std::chrono::seconds(60), [this] { return !refresh_running.load(); });

@@ -487,7 +487,6 @@ private:
     mutable std::recursive_mutex state_mutex;
     std::thread refresh_thread;
     std::atomic_bool refresh_running{false};
-    std::atomic<std::thread::id> refresh_owner{};
     std::mutex refresh_wait_mutex;
     std::condition_variable refresh_wait_cv;
     std::thread health_check_thread;
