@@ -26,7 +26,6 @@
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
-#include <cstdlib>
 #include <fstream>
 #include <mutex>
 #include "slic3r/plugin/PythonPluginInterface.hpp"
@@ -1106,7 +1105,7 @@ TEST_CASE("SSL_CERT_FILE still overrides the bundled Python's default CA certifi
     // Existing but empty: Linux's CurlGlobalInit replaces an SSL_CERT_FILE that names a missing file.
     ScopedTemporaryFile empty_bundle(".pem");
     std::ofstream(empty_bundle.string()).close();
-    ::setenv("SSL_CERT_FILE", empty_bundle.string().c_str(), 1);
+    ScopedEnvVar ssl_cert_file{"SSL_CERT_FILE", empty_bundle.string()};
 
     ScopedPluginManager plugin_system;
     if (!plugin_system.initialized)
