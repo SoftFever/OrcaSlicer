@@ -229,6 +229,18 @@ rule about whose they are. The stack remembers a fingerprint of what it last wro
 match that fingerprint, and otherwise leaves them exactly as they are and says so with a chip, with
 a button that asks before replacing them. The panel never takes over something it was not given.
 
+### Saving one
+
+The .3mf stores a texture displacement layer as JSON with its image beside it, and a ChromaStack
+layer has two images rather than one: the picture it was solved from and the height map that came
+out. Both go in, and the stack itself - the bands, their filaments and transmission distances, the
+base, the dither, and the fingerprint of the swaps it wrote - goes in the JSON.
+
+The height map alone would not do. A project that kept only that reopens as a relief layer whose
+texture happens to be a staircase: it still prints, but it can never be solved again, and nothing on
+screen says why. A stack that comes back with no bands in it is treated as a relief layer on purpose,
+since that is what it is.
+
 ### Measuring a filament
 
 Transmission distance cannot be read off a spool and no filament preset ships one, so without a

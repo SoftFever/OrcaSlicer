@@ -366,8 +366,11 @@ struct TextureDisplacementLayer
     // panel turns colour off on a ChromaStack layer, since painting the relief in one filament per
     // triangle would hide the very stack the heights were solved against.
     bool                                        chroma_enabled = false;
-    ChromaStack                               chroma;
+    ChromaStack                                 chroma;
     std::shared_ptr<std::vector<unsigned char>> chroma_source;
+    // Where `chroma_source` sits inside the .3mf once the project has been saved, as `path_in_3mf` is
+    // for the height map. Empty until then.
+    std::string                                 chroma_source_in_3mf;
 
     bool empty() const { return !image_data || image_data->empty(); }
 
@@ -380,7 +383,7 @@ struct TextureDisplacementLayer
            static_cast<int>(blend_mode), midlevel, island_padding_mm, lscm_seam_edges, view_project_right,
            view_project_up, smoothing, edge_smoothing, edge_smoothing_amount, auto_connect_islands, island_groups,
            lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled, chroma_enabled, chroma,
-           source);
+           source, chroma_source_in_3mf);
     }
     template<class Archive> void load(Archive &ar)
     {
@@ -393,7 +396,7 @@ struct TextureDisplacementLayer
            tile_method_int, projection_method_int, lscm_seam_angle_deg, islands, blend_mode_int, midlevel,
            island_padding_mm, lscm_seam_edges, view_project_right, view_project_up, smoothing, edge_smoothing,
            edge_smoothing_amount, auto_connect_islands, island_groups, lscm_uv_overrides, view_project_projective,
-           view_project_matrix, color_enabled, chroma_enabled, chroma, source);
+           view_project_matrix, color_enabled, chroma_enabled, chroma, source, chroma_source_in_3mf);
         image_data        = blob.empty() ? nullptr : std::make_shared<std::vector<unsigned char>>(blob.begin(), blob.end());
         chroma_source   = source.empty() ? nullptr : std::make_shared<std::vector<unsigned char>>(source.begin(), source.end());
         tile_method       = static_cast<TextureTileMethod>(tile_method_int);

@@ -10,6 +10,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Color.hpp"
 #include "libslic3r/ChromaStack.hpp"
+#include "libslic3r/TextureDisplacement.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
 
 using namespace Slic3r;
@@ -554,4 +555,59 @@ TEST_CASE("A read-off step is a transmission distance", "[ChromaStack]")
     REQUIRE_THAT(chroma_td_from_step(12, 0.08f), WithinRel(9.6f, 1e-4f));
     REQUIRE_THAT(chroma_td_from_step(0, 0.08f), WithinAbs(0.f, 1e-6f));
     REQUIRE_THAT(chroma_td_from_step(5, 0.f), WithinAbs(0.f, 1e-6f));
+}
+
+TEST_CASE("A stack survives the project file", "[ChromaStack]")
+{
+    // The height map alone is not the feature: without the picture and the filaments a saved project
+    // reopens as a relief layer whose texture happens to be a staircase, and every colour it printed
+    // is gone. The .3mf writes the layers as JSON, so this is where that is decided.
+    std::vector<TextureDisplacementLayer> layers(1);
+    TextureDisplacementLayer             &l = layers.front();
+    l.slot           = 2;
+    l.chroma_enabled = true;
+    l.chroma_source_in_3mf = "Metadata/texture_displacement/1_2_source.png";
+    l.chroma.layer_height_mm = 0.08f;
+    l.chroma.base_layers     = 135;
+    l.chroma.base_auto       = false;
+    l.chroma.dither          = true;
+    l.chroma.applied_ranges  = 123456789ull;
+    l.chroma.bands = { band(filament(0, ColorRGB(0.78f, 0.27f, 0.17f), 10.f), 7),
+                       band(filament(3, ColorRGB(0.08f, 0.08f, 0.09f), 2.5f), 11) };
+    l.chroma.bands.front().filament.name = "Red ABS";
+
+    const TextureDisplacementOptions options;
+    std::vector<TextureDisplacementLayer> back;
+    TextureDisplacementOptions            back_options;
+    REQUIRE(texture_displacement_layers_from_json(texture_displacement_layers_to_json(layers, options), back,
+                                                  back_options));
+    REQUIRE(back.size() == 1);
+
+    const TextureDisplacementLayer &r = back.front();
+    REQUIRE(r.chroma_enabled);
+    REQUIRE(r.chroma_source_in_3mf == l.chroma_source_in_3mf);
+    REQUIRE(r.chroma.base_layers == 135);
+    REQUIRE_FALSE(r.chroma.base_auto);
+    REQUIRE(r.chroma.dither);
+    REQUIRE(r.chroma.applied_ranges == 123456789ull);
+    REQUIRE(r.chroma.bands.size() == 2);
+    REQUIRE(r.chroma.bands[0].filament.filament == 0);
+    REQUIRE(r.chroma.bands[0].filament.name == "Red ABS");
+    REQUIRE(r.chroma.bands[0].layers == 7);
+    REQUIRE_THAT(r.chroma.bands[0].filament.td_mm, WithinRel(10.f, 1e-4f));
+    REQUIRE(r.chroma.bands[1].filament.filament == 3);
+    // Colours come back as the bytes they are shown and printed as.
+    REQUIRE_THAT(r.chroma.bands[0].filament.color.r(), WithinAbs(0.78f, 2.f / 255.f));
+    REQUIRE_THAT(r.chroma.bands[1].filament.color.b(), WithinAbs(0.09f, 2.f / 255.f));
+
+    // The palette the reloaded stack reaches is the one it was saved with.
+    REQUIRE(chroma_palette(r.chroma).size() == chroma_palette(l.chroma).size());
+
+    // A relief layer carries none of it, and reads back as one.
+    std::vector<TextureDisplacementLayer> plain(1);
+    plain.front().slot = 0;
+    std::vector<TextureDisplacementLayer> plain_back;
+    REQUIRE(texture_displacement_layers_from_json(texture_displacement_layers_to_json(plain, options), plain_back,
+                                                  back_options));
+    REQUIRE_FALSE(plain_back.front().chroma_enabled);
 }

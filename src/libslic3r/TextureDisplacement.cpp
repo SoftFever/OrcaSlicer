@@ -5750,6 +5750,25 @@ void read_enum(const nlohmann::json &j, const char *k, int &out)
 
 } // namespace
 
+namespace {
+// A colour as three bytes, which is what it is on screen and in a filament preset: a float triple
+// would persist the hill climb's rounding and read back as a different colour than it printed.
+nlohmann::json color_to_json(const ColorRGB &c)
+{
+    return nlohmann::json::array({ int(c.r() * 255.f + 0.5f), int(c.g() * 255.f + 0.5f), int(c.b() * 255.f + 0.5f) });
+}
+ColorRGB color_from_json(const nlohmann::json &j, const ColorRGB &fallback)
+{
+    if (!j.is_array() || j.size() != 3)
+        return fallback;
+    for (const nlohmann::json &v : j)
+        if (!v.is_number())
+            return fallback;
+    return ColorRGB(uint8_t(std::clamp(int(j[0]), 0, 255)), uint8_t(std::clamp(int(j[1]), 0, 255)),
+                    uint8_t(std::clamp(int(j[2]), 0, 255)));
+}
+} // namespace
+
 std::string texture_displacement_layers_to_json(const std::vector<TextureDisplacementLayer> &layers,
                                                 const TextureDisplacementOptions            &options)
 {
@@ -5800,6 +5819,27 @@ std::string texture_displacement_layers_to_json(const std::vector<TextureDisplac
         j["projection_method"] = int(l.projection_method);
         j["blend_mode"]        = int(l.blend_mode);
         j["color_enabled"]     = l.color_enabled;
+
+        // ChromaStack. A layer whose height map was solved is not recoverable from the height map
+        // alone: without the picture and the stack it reopens as a relief layer whose texture happens
+        // to be a staircase, and every colour it was printing is gone.
+        if (l.chroma_enabled) {
+            nlohmann::json &c      = j["chroma"];
+            c["source_in_3mf"]     = l.chroma_source_in_3mf;
+            c["layer_height_mm"]   = l.chroma.layer_height_mm;
+            c["base_layers"]       = l.chroma.base_layers;
+            c["base_auto"]         = l.chroma.base_auto;
+            c["dither"]            = l.chroma.dither;
+            c["applied_ranges"]    = l.chroma.applied_ranges;
+            nlohmann::json &bands  = c["bands"];
+            bands                  = nlohmann::json::array();
+            for (const ChromaBand &band : l.chroma.bands)
+                bands.push_back(nlohmann::json{ { "filament", band.filament.filament },
+                                                { "name", band.filament.name },
+                                                { "td_mm", band.filament.td_mm },
+                                                { "color", color_to_json(band.filament.color) },
+                                                { "layers", band.layers } });
+        }
 
         j["lscm_seam_angle_deg"] = l.lscm_seam_angle_deg;
         j["island_padding_mm"]   = l.island_padding_mm;
@@ -5890,6 +5930,34 @@ bool texture_displacement_layers_from_json(const std::string                    
                 read(j, "name", l.name);
                 read(j, "path", l.path);
                 read(j, "path_in_3mf", l.path_in_3mf);
+
+                if (const auto c = j.find("chroma"); c != j.end() && c->is_object()) {
+                    l.chroma_enabled = true;
+                    read(*c, "source_in_3mf", l.chroma_source_in_3mf);
+                    read(*c, "layer_height_mm", l.chroma.layer_height_mm);
+                    read(*c, "base_layers", l.chroma.base_layers);
+                    read(*c, "base_auto", l.chroma.base_auto);
+                    read(*c, "dither", l.chroma.dither);
+                    read(*c, "applied_ranges", l.chroma.applied_ranges);
+                    if (const auto bands = c->find("bands"); bands != c->end() && bands->is_array())
+                        for (const nlohmann::json &b : *bands) {
+                            if (!b.is_object())
+                                continue;
+                            ChromaBand band;
+                            read(b, "filament", band.filament.filament);
+                            read(b, "name", band.filament.name);
+                            read(b, "td_mm", band.filament.td_mm);
+                            if (const auto col = b.find("color"); col != b.end())
+                                band.filament.color = color_from_json(*col, band.filament.color);
+                            read(b, "layers", band.layers);
+                            band.layers = std::max(1, band.layers);
+                            l.chroma.bands.push_back(band);
+                        }
+                    // A stack with no filaments in it cannot print or be edited back into shape, and
+                    // its height map is just a height map: let it be a relief layer.
+                    if (l.chroma.bands.empty())
+                        l.chroma_enabled = false;
+                }
 
                 read(j, "depth_mm", l.depth_mm);
                 read(j, "tiling_scale", l.tiling_scale);
