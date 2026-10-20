@@ -18,6 +18,8 @@
 #include "test_utils.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <map>
 #include <cstddef>
 #include <fstream>
 #include <initializer_list>
@@ -559,7 +561,7 @@ TEST_CASE("Each extrusion weighs its filament's density", "[GCodeProcessor]")
     CHECK_THAT((plate - light).dot(dense - light) / (dense - light).squaredNorm(), Catch::Matchers::WithinAbs(0.75, 0.01));
 }
 
-TEST_CASE("Cumulative filament usage per layer grows layer by layer and ends at each filament's total", "[GCodeProcessor]")
+TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer", "[GCodeProcessor]")
 {
     // Two cubes, one per filament, so the second filament's series has to line up with the first's.
     DynamicPrintConfig config = Test::multifilament_config(2, { { "skirt_loops", 0 }, { "brim_type", "no_brim" } });
@@ -571,46 +573,58 @@ TEST_CASE("Cumulative filament usage per layer grows layer by layer and ends at 
     Test::gcode(print, &result);
 
     const PrintEstimatedStatistics &stats = result.print_statistics;
-    REQUIRE(stats.total_volumes_per_extruder.size() == 2);
+    REQUIRE(stats.model_volumes_per_extruder.size() == 2);
     REQUIRE(stats.layer_volumes_per_extruder.size() == 2);
 
-    // Every filament has an entry for every layer, however late it was first used.
-    const size_t entries = stats.layer_volumes_per_extruder.begin()->second.size();
-    for (const auto &[filament_id, total] : stats.total_volumes_per_extruder) {
+    // The model volume of every filament in every layer, as the legend's Usage column counts it:
+    // what is not support or wipe tower.
+    std::map<size_t, std::map<unsigned int, double>> extruded;
+    for (const GCodeProcessorResult::MoveVertex &move : result.moves) {
+        if (move.type != EMoveType::Extrude || move.extrusion_role == erSupportMaterial || move.extrusion_role == erSupportMaterialInterface ||
+            move.extrusion_role == erSupportTransition || move.extrusion_role == erWipeTower)
+            continue;
+        extruded[move.extruder_id][move.layer_id] += double(move.mm3_per_mm) * double(move.travel_dist);
+    }
+
+    for (const auto &[filament_id, total] : stats.model_volumes_per_extruder) {
         DYNAMIC_SECTION("filament " << filament_id)
         {
             const auto series = stats.layer_volumes_per_extruder.find(filament_id);
             REQUIRE(series != stats.layer_volumes_per_extruder.end());
-            const std::vector<double> &layers = series->second;
+            const std::vector<double> &cumulative = series->second;
             // Entry 0 is what was extruded before the first layer, so there is one more than there are layers.
-            REQUIRE(layers.size() > 2);
-            CHECK(std::is_sorted(layers.begin(), layers.end()));
-            CHECK_THAT(layers.back(), Catch::Matchers::WithinRel(total, 1e-9));
-            CHECK(layers.front() < layers.back());
-            CHECK(layers.size() == entries);
+            REQUIRE(cumulative.size() > 2);
+            CHECK(std::is_sorted(cumulative.begin(), cumulative.end()));
+            CHECK_THAT(cumulative.back(), Catch::Matchers::WithinRel(total, 1e-9));
+            CHECK(cumulative.size() == stats.layer_volumes_per_extruder.begin()->second.size());
+
+            // Layers are given by MoveVertex::layer_id, and each holds what its moves extruded. The moves
+            // before the first layer change carry layer id 0 as well, but belong to entry 0 of the series.
+            const size_t layers = cumulative.size() - 1;
+            for (size_t layer_id = 0; layer_id < layers; ++layer_id) {
+                const auto layer = extruded[filament_id].find(unsigned(layer_id));
+                const double from_moves = (layer != extruded[filament_id].end() ? layer->second : 0.0) - (layer_id == 0 ? cumulative.front() : 0.0);
+                const std::optional<double> volume = stats.layers_volume(filament_id, layer_id, layer_id);
+                REQUIRE(volume.has_value());
+                CHECK_THAT(*volume, Catch::Matchers::WithinAbs(from_moves, std::max(1e-3, 1e-3 * std::abs(from_moves))));
+            }
+
+            // All the layers add up to the filament's total, apart from what came before the first layer, and
+            // splitting them anywhere gives two parts that add up to the same.
+            const std::optional<double> all = stats.layers_volume(filament_id, 0, layers - 1);
+            REQUIRE(all.has_value());
+            CHECK_THAT(*all, Catch::Matchers::WithinRel(total - cumulative.front(), 1e-9));
+            const size_t middle = (layers - 1) / 2;
+            const std::optional<double> lower = stats.layers_volume(filament_id, 0, middle);
+            const std::optional<double> upper = stats.layers_volume(filament_id, middle + 1, layers - 1);
+            REQUIRE(lower.has_value());
+            REQUIRE(upper.has_value());
+            CHECK_THAT(*lower + *upper, Catch::Matchers::WithinRel(*all, 1e-9));
+
+            // No series covers a layer past the last one or a range that runs backwards.
+            CHECK_FALSE(stats.layers_volume(filament_id, 0, layers).has_value());
+            CHECK_FALSE(stats.layers_volume(filament_id, middle + 1, middle).has_value());
         }
-    }
-
-    // A range of layers is the difference of two cumulative entries, so splitting the plate at any
-    // layer gives two parts that add up to the filament's total.
-    for (const auto &[filament_id, total] : stats.total_volumes_per_extruder) {
-        const size_t last = stats.layer_volumes_per_extruder.at(filament_id).size() - 1;
-        const std::optional<double> all = stats.layers_volume(filament_id, 0, last);
-        REQUIRE(all.has_value());
-        CHECK_THAT(*all, Catch::Matchers::WithinRel(total, 1e-9));
-
-        const size_t middle = last / 2;
-        const std::optional<double> lower = stats.layers_volume(filament_id, 0, middle);
-        const std::optional<double> upper = stats.layers_volume(filament_id, middle + 1, last);
-        REQUIRE(lower.has_value());
-        REQUIRE(upper.has_value());
-        CHECK_THAT(*lower + *upper, Catch::Matchers::WithinRel(total, 1e-9));
-        CHECK(*lower >= 0.);
-        CHECK(*upper >= 0.);
-
-        // No series covers a range past the last layer or one that runs backwards.
-        CHECK_FALSE(stats.layers_volume(filament_id, 0, last + 1).has_value());
-        CHECK_FALSE(stats.layers_volume(filament_id, middle + 1, middle).has_value());
     }
     CHECK_FALSE(stats.layers_volume(99, 0, 0).has_value());
 }

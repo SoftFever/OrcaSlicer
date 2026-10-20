@@ -2525,11 +2525,12 @@ void GCodeProcessor::UsedFilaments::process_total_volume_cache(GCodeProcessor* p
 
 void GCodeProcessor::UsedFilaments::record_layer(GCodeProcessor* processor)
 {
-    // Commit what the active filament has extruded so far, then snapshot every filament's total.
+    // Commit what the active filament has extruded so far, then snapshot every filament's model volume
+    // (what the legend's Usage column counts, without support, wipe tower and flush).
     // Called at each layer change and once at the end, so entry 0 is what was extruded before the
-    // first layer (purge line, priming) and the last entry is the plate total.
-    process_total_volume_cache(processor);
-    for (const auto& [filament_id, volume] : total_volumes_per_filament) {
+    // first layer (purge line, priming) and the last entry is the plate's model volume.
+    process_model_cache(processor);
+    for (const auto& [filament_id, volume] : model_volumes_per_filament) {
         std::vector<double>& layers = layer_volumes_per_filament[filament_id];
         // A filament first used after some layers were already recorded extruded nothing until now.
         layers.resize(layers_recorded, 0.0);

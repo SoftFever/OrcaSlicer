@@ -108,8 +108,9 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         std::map<size_t, double>                            wipe_tower_volumes_per_extruder;
         std::map<size_t, double>                            support_volumes_per_extruder;
         std::map<size_t, double>                            total_volumes_per_extruder;
-        // cumulative extruded volume per filament at the end of each layer; entry 0 is what was
-        // extruded before the first layer, the last entry equals total_volumes_per_extruder
+        // cumulative model volume per filament (without support, wipe tower and flush) at the end of
+        // each layer; entry 0 is what was extruded before the first layer, the last entry equals
+        // model_volumes_per_extruder
         std::map<size_t, std::vector<double>>               layer_volumes_per_extruder;
         //BBS: the flush amount of every filament
         std::map<size_t, double>                            flush_per_filament;
@@ -157,17 +158,17 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             total_seam_scarf_distance = 0.0f;
         }
 
-        // Volume of a filament extruded within the G-code layers first_layer..last_layer (inclusive,
-        // support, wipe tower and flush included), from layer_volumes_per_extruder. Entry k of that
-        // series is the cumulative volume at the end of layer k, so the range is the entry of its last
-        // layer minus the entry of the layer before its first. Empty when no series covers the range.
-        std::optional<double> layers_volume(size_t extruder_id, size_t first_layer, size_t last_layer) const
+        // Model volume of a filament extruded within the layers first_layer_id..last_layer_id (inclusive),
+        // given as MoveVertex::layer_id values. Entry 0 of the series is what was extruded before the
+        // first layer, so the layer with id k ends at entry k + 1: the range is the entry of its last
+        // layer minus the entry before its first. Empty when no series covers the range.
+        std::optional<double> layers_volume(size_t extruder_id, size_t first_layer_id, size_t last_layer_id) const
         {
             const auto series = layer_volumes_per_extruder.find(extruder_id);
-            if (series == layer_volumes_per_extruder.end() || first_layer > last_layer || last_layer >= series->second.size())
+            if (series == layer_volumes_per_extruder.end() || first_layer_id > last_layer_id || last_layer_id + 1 >= series->second.size())
                 return std::nullopt;
             const std::vector<double>& cumulative = series->second;
-            return cumulative[last_layer] - (first_layer > 0 ? cumulative[first_layer - 1] : 0.0);
+            return cumulative[last_layer_id + 1] - cumulative[first_layer_id];
         }
     };
 
@@ -851,7 +852,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             double total_volume_cache;
             std::map<size_t, double>total_volumes_per_filament;
 
-            // cumulative total per filament recorded at each layer change and at the end
+            // cumulative model volume per filament recorded at each layer change and at the end
             std::map<size_t, std::vector<double>> layer_volumes_per_filament;
             size_t layers_recorded{0};
 
