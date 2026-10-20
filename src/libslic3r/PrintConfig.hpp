@@ -1345,6 +1345,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_ironing_spacing))
     ((ConfigOptionFloat,               support_ironing_inset))
     ((ConfigOptionFloat,               support_ironing_direction))
+    ((ConfigOptionFloat,               support_ironing_speed))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
     ((ConfigOptionBool,                flush_into_objects))

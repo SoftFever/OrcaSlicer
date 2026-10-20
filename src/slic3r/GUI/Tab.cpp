@@ -3113,6 +3113,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_ironing_pattern", "support_settings_ironing#pattern");
         optgroup->append_single_option_line("support_ironing_flow", "support_settings_ironing#flow");
         optgroup->append_single_option_line("support_ironing_spacing", "support_settings_ironing#line-spacing");
+        optgroup->append_single_option_line("support_ironing_speed", "support_settings_ironing#speed");
         optgroup->append_single_option_line("support_ironing_inset", "support_settings_ironing#inset");
         optgroup->append_single_option_line("support_ironing_direction", "support_settings_ironing#direction");
 
