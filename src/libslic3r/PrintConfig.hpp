@@ -172,8 +172,8 @@ inline bool is_separable_infill_pattern(InfillPattern pattern)
 
 // Orca: Infill patterns laid out by an octree, which each connected body always gets of its own.
 inline bool is_octree_infill_pattern(InfillPattern pattern) { return pattern == ipAdaptiveCubic || pattern == ipSupportCubic; }
-// Orca: Infill patterns graded by the "tpms_adaptive" option.
-inline bool is_tpms_adaptive_pattern(InfillPattern pattern) { return pattern == ipGyroid || pattern == ipTpmsD || pattern == ipTpmsFK; }
+// Orca: Infill patterns graded by the "adaptive_infill_mode" option.
+inline bool is_adaptive_infill_pattern(InfillPattern pattern) { return pattern == ipGyroid || pattern == ipTpmsD || pattern == ipTpmsFK; }
 
 // Orca: Infill patterns that round their corners by the "sparse_infill_smooth_factor" option.
 // Grid, Triangles and Tri-hexagon only do so in their trapezoidal form, which is generated with more
@@ -279,8 +279,8 @@ enum class SurfaceFillOrder {
     Count,
 };
 
-// Orca: what the adaptive TPMS density follows: the 3D shape of the object, or its 2D sections normal to an axis.
-enum class TpmsAdaptiveMode {
+// Orca: what the adaptive infill density follows: the 3D shape of the object, or its 2D sections normal to an axis.
+enum class AdaptiveInfillMode {
     Disabled,
     DistanceWarp,
     SmoothBlend,
@@ -292,8 +292,8 @@ enum class TpmsAdaptiveMode {
     Count,
 };
 
-// Orca: how the adaptive TPMS density changes from the object surface to its deepest point.
-enum class TpmsAdaptiveGradient {
+// Orca: how the adaptive infill density changes from the object surface to its deepest point.
+enum class AdaptiveInfillGradient {
     Linear,
     Quadratic,
     Exponential,
@@ -816,8 +816,8 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ToolChangeOrderingType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PowerLossRecoveryMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SurfaceFillOrder)
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TpmsAdaptiveMode)
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TpmsAdaptiveGradient)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AdaptiveInfillMode)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AdaptiveInfillGradient)
 
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
@@ -1501,9 +1501,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Orca:
     ((ConfigOptionFloatOrPercent,                infill_combination_max_layer_height))
     ((ConfigOptionInt,                  fill_multiline))
-    ((ConfigOptionEnum<TpmsAdaptiveMode>, tpms_adaptive))
-    ((ConfigOptionPercent,              tpms_interior_density))
-    ((ConfigOptionEnum<TpmsAdaptiveGradient>, tpms_adaptive_gradient))
+    ((ConfigOptionEnum<AdaptiveInfillMode>, adaptive_infill_mode))
+    ((ConfigOptionPercent,              adaptive_infill_interior_density))
+    ((ConfigOptionEnum<AdaptiveInfillGradient>, adaptive_infill_gradient))
     ((ConfigOptionBool,                 gyroid_optimized))
     // Ironing options
     ((ConfigOptionEnum<IroningType>, ironing_type))
@@ -2130,6 +2130,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPercents,            filament_shrinkage_compensation_z))
     ((ConfigOptionBool,                gcode_label_objects))
     ((ConfigOptionBool,                exclude_object))
+    ((ConfigOptionFloat,               exclude_object_tolerance))
     ((ConfigOptionFloats,             grab_length))
     ((ConfigOptionBool,                gcode_comments))
     ((ConfigOptionInt,                 slow_down_layers))

@@ -5,6 +5,7 @@
 #include <ios>
 #include <libslic3r/LifecycleEvents.hpp>
 #include <memory>
+#include <slic3r/Utils/Http.hpp>
 #include <slic3r/Utils/NetworkAgentFactory.hpp>
 #include <slic3r/plugin/PluginDescriptor.hpp>
 #include <slic3r/plugin/PluginManager.hpp>
@@ -14,8 +15,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_message.hpp>
 #include "plugin_test_utils.hpp"
+#include "test_utils.hpp"
 
 #include <boost/filesystem.hpp>
+#include <pybind11/cast.h>
+#include <pybind11/gil.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
 
 #include <algorithm>
 #include <chrono>
@@ -615,8 +621,22 @@ TEST_CASE("Python module release removes package submodules and owned sys.path",
 
     // Ensure the next import executes the new submodule rather than reusing a stale package child.
     write_package("'new'");
-    boost::system::error_code ec;
-    fs::remove_all(package_root / "__pycache__", ec);
+    {
+        // The rewrite can keep the old mtime and size, so drop the bytecode wherever the
+        // interpreter caches it.
+        PythonGILState gil;
+        REQUIRE(gil);
+        PyObjectPtr util(PyImport_ImportModule("importlib.util"));
+        REQUIRE(util);
+        for (const char* file : {"__init__.py", "sub.py"}) {
+            PyObjectPtr source(PyUnicode_DecodeFSDefault((package_root / file).string().c_str()));
+            REQUIRE(source);
+            PyObjectPtr cached(PyObject_CallMethod(util.get(), "cache_from_source", "O", source.get()));
+            REQUIRE(cached);
+            boost::system::error_code ec;
+            fs::remove(fs::path(PyUnicode_AsUTF8(cached.get())), ec);
+        }
+    }
 
     paths.clear();
     modules.clear();
@@ -1054,3 +1074,43 @@ TEST_CASE("Unloading a plugin that is not loaded is a no-op", "[PluginLifecycle]
     CHECK(manager.unload_plugin("No_Such_Plugin"));
     CHECK_FALSE(manager.is_plugin_loaded("No_Such_Plugin"));
 }
+
+namespace {
+
+// CA certificates in the default client context, as a plugin's urllib or http.client request would
+// verify against.
+int default_context_ca_count()
+{
+    pybind11::gil_scoped_acquire gil;
+    const pybind11::dict stats = pybind11::module_::import("ssl").attr("create_default_context")().attr("cert_store_stats")();
+    return stats["x509_ca"].cast<int>();
+}
+
+} // namespace
+
+TEST_CASE("The bundled Python trusts the system CA certificates", "[PluginLifecycle][Python]")
+{
+    // The app runs this before plugins load; on Linux it is what points OpenSSL at the distro bundle.
+    Http::tls_global_init();
+    ScopedPluginManager plugin_system;
+    if (!plugin_system.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+
+    CHECK(default_context_ca_count() > 0);
+}
+
+#ifndef _WIN32 // Windows adds its system store whatever SSL_CERT_FILE names.
+TEST_CASE("SSL_CERT_FILE still overrides the bundled Python's default CA certificates", "[PluginLifecycle][Python]")
+{
+    // Existing but empty: Linux's CurlGlobalInit replaces an SSL_CERT_FILE that names a missing file.
+    ScopedTemporaryFile empty_bundle(".pem");
+    std::ofstream(empty_bundle.string()).close();
+    ScopedEnvVar ssl_cert_file{"SSL_CERT_FILE", empty_bundle.string()};
+
+    ScopedPluginManager plugin_system;
+    if (!plugin_system.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+
+    CHECK(default_context_ca_count() == 0);
+}
+#endif

@@ -62,7 +62,12 @@ public:
     // Depth in the hierarchy. External perimeter has depth = 0. An external perimeter could be both a contour and a hole.
     unsigned short                      depth;
     // ORCA: an external hole perimeter touching the next outer wall all around, with nothing between them.
+    // E.g. a 1mm tube wall with 0.5mm walls: 2 lines, the contour's outer wall and the hole's.
     bool                                is_thin_wall_hole = false;
+    // ORCA: an external hole perimeter with no room for an inner wall beside it, at most gap fill. Every thin wall
+    // hole is one, and so is e.g. a 1.5mm tube wall with 0.5mm walls: 3 lines, the two outer walls and gap fill
+    // between them. A 2mm tube wall has room for an inner wall a side and is not. Only set for Inner/Outer/Inner.
+    bool                                is_narrow_wall_hole = false;
     // Children contour, may be both CCW and CW oriented (outer contours or holes).
     std::vector<PerimeterGeneratorLoop> children;
 
@@ -572,7 +577,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 extrusion_coll.append(std::move(extrusion_loop));
                 // Orca: Reverse the order of paths for thin wall holes. We define thin wall hole as a hole with only one perimeter.
                 const bool thin_wall_hole = !pg_extrusion.is_contour && pg_extrusions.size() == 2;
-                if (thin_wall_hole && perimeter_generator.config->wall_sequence != WallSequence::OuterInner)
+                if (thin_wall_hole && perimeter_generator.config->wall_sequence != WallSequence::OuterInner &&
+                    !perimeter_generator.outer_walls_first_for_brim())
                     std::reverse(extrusion_coll.entities.begin(), extrusion_coll.entities.end());
             }
             else {
@@ -1690,13 +1696,24 @@ void PerimeterGenerator::process_classic()
 
                 last = std::move(offsets);
 
-                // ORCA: a thin wall hole has no room for gap fill or an inner wall anywhere beside its outer wall.
+                // ORCA: a thin wall hole has no room for gap fill or an inner wall anywhere beside its outer wall, a
+                // narrow wall hole none for an inner wall, the room the next loop is offset by below.
                 if (i == 0 && ! holes[0].empty()) {
-                    const float    room  = float(0.5 * (ext_perimeter_spacing2 + gap_fill_min_width));
-                    const Polygons reach = to_polygons(offset2_ex(last, -room, room + float(SCALED_EPSILON)));
-                    for (PerimeterGeneratorLoop &hole : holes[0])
-                        hole.is_thin_wall_hole = intersection_pl(Polylines{ hole.polygon.split_at_first_point() },
-                            ClipperUtils::clip_clipper_polygons_with_subject_bbox(reach, get_extents(hole.polygon).inflated(SCALED_EPSILON))).empty();
+                    auto reach = [&last](double room) {
+                        return to_polygons(offset2_ex(last, -float(room), float(room) + float(SCALED_EPSILON)));
+                    };
+                    auto out_of_reach = [](const Polygon &hole, const Polygons &reach) {
+                        return intersection_pl(Polylines{ hole.split_at_first_point() },
+                            ClipperUtils::clip_clipper_polygons_with_subject_bbox(reach, get_extents(hole).inflated(SCALED_EPSILON))).empty();
+                    };
+                    // Only Inner/Outer/Inner orders narrow wall holes apart.
+                    const bool     narrow_holes_ordered = this->config->wall_sequence == WallSequence::InnerOuterInner;
+                    const Polygons gap_fill_reach       = reach(0.5 * (ext_perimeter_spacing2 + gap_fill_min_width));
+                    const Polygons inner_wall_reach     = narrow_holes_ordered ? reach(ext_perimeter_spacing2 + min_spacing / 2.) : Polygons();
+                    for (PerimeterGeneratorLoop &hole : holes[0]) {
+                        hole.is_thin_wall_hole   = out_of_reach(hole.polygon, gap_fill_reach);
+                        hole.is_narrow_wall_hole = narrow_holes_ordered && out_of_reach(hole.polygon, inner_wall_reach);
+                    }
                 }
 
                 //BBS: refer to superslicer
@@ -1835,18 +1852,16 @@ void PerimeterGenerator::process_classic()
 
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
-            // TODO: add test for perimeter order
             bool is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
-            if (is_outer_wall_first ||
-                //BBS: always print outer wall first when there indeed has brim.
-                // btLeadingEdgeOnly is an outer brim too (a belt brim at the part's first contact).
-                (this->layer_id == 0 &&
-                    (this->object_config->brim_type == BrimType::btOuterOnly ||
-                     this->object_config->brim_type == BrimType::btLeadingEdgeOnly) &&
-                    this->object_config->brim_width.value > 0))
+            // Orca: a contour with only a narrow wall hole beside it has nothing to sandwich, and prints the hole first,
+            // then the contour, then the gap fill between them, as Arachne does.
+            const PerimeterGeneratorLoops &island_loops = contours.front();
+            const bool narrow_wall_hole_island = island_loops.size() == 1 && island_loops.front().children.size() == 1 &&
+                                                 island_loops.front().children.front().is_narrow_wall_hole;
+            if (is_outer_wall_first || this->outer_walls_first_for_brim())
                 entities.reverse();
             // Orca: sandwich mode. Apply after 1st layer.
-            else if ((this->config->wall_sequence == WallSequence::InnerOuterInner) && layer_id > 0){
+            else if ((this->config->wall_sequence == WallSequence::InnerOuterInner) && layer_id > 0 && !narrow_wall_hole_island){
                 entities.reverse(); // reverse all entities - order them from external to internal
                 if(entities.entities.size()>2){ // 3 walls minimum needed to do inner outer inner ordering
                     int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
@@ -2412,11 +2427,25 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderPerimetersByProximity(std
 
     // Function to reorder perimeters starting from a given reference index
     auto reorderFromReference = [&](int referenceIndex) {
-        std::unordered_set<int> firstLevelIndices;
-        firstLevelIndices.insert(referenceIndex);
-
-        // Find first level touching perimeters
-        std::vector<int> firstLevelTouchingIndices = findAllTouchingPerimeters(entities, firstLevelIndices, threshold_external, threshold_internal, 1);
+        // Find first level touching perimeters. The odd centre line of a wall too narrow for two inner walls is shared
+        // by the outer walls on both sides, so those join this island and are printed before it too, holes first.
+        std::vector<int> outerIndices{referenceIndex};
+        std::vector<int> firstLevelTouchingIndices;
+        for (size_t next = 0; next < outerIndices.size(); ++next)
+            for (int idx : findAllTouchingPerimeters(entities, {outerIndices[next]}, threshold_external, threshold_internal, 1)) {
+                if (std::find(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end(), idx) != firstLevelTouchingIndices.end())
+                    continue;
+                firstLevelTouchingIndices.push_back(idx);
+                if (!entities[idx].extrusion->is_odd)
+                    continue;
+                for (size_t i = 0; i < entities.size(); ++i)
+                    if (entities[i].extrusion->inset_idx == 0 && includedIndices.count(int(i)) == 0 &&
+                        std::find(outerIndices.begin(), outerIndices.end(), int(i)) == outerIndices.end() &&
+                        arachne_lines_touch(*entities[i].extrusion, *entities[idx].extrusion, double(threshold_external)))
+                        outerIndices.push_back(int(i));
+            }
+        std::stable_partition(outerIndices.begin(), outerIndices.end(),
+                              [&entities](int idx) { return entities[idx].extrusion->is_closed && !entities[idx].is_contour; });
         // Bring the largest first level perimeter to the front
         // The longest first neighbour is most likely the dominant proximate perimeter
         // hence printing it immediately after the external perimeter should speed things up
@@ -2427,8 +2456,10 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderPerimetersByProximity(std
             std::iter_swap(maxIt, firstLevelTouchingIndices.end() - 1);
         }
         // Insert first level perimeters into reordered list
-        reordered.push_back(entities[referenceIndex]);
-        includedIndices.insert(referenceIndex);
+        for (int idx : outerIndices) {
+            reordered.push_back(entities[idx]);
+            includedIndices.insert(idx);
+        }
 
         for (int idx : firstLevelTouchingIndices) {
             if (includedIndices.count(idx) == 0) {
@@ -2757,7 +2788,7 @@ void PerimeterGenerator::process_arachne()
         
         if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
         	is_outer_wall_first =
-            	this->config->wall_sequence == WallSequence::OuterInner;
+            	this->config->wall_sequence == WallSequence::OuterInner || this->outer_walls_first_for_brim();
         }
         if (is_outer_wall_first) {
             start_perimeter = 0;
@@ -3040,6 +3071,16 @@ ExPolygons PerimeterGenerator::printable_slices(const ExPolygons &slices) const
         min_width = print_config->spiral_mode ? std::min(min_width, min_feature_size) : min_feature_size;
     }
     return min_width > EPSILON ? opening_ex(slices, float(scale_(min_width / 2.))) : slices;
+}
+
+bool PerimeterGenerator::outer_walls_first_for_brim() const
+{
+    return layer_id == 0 && brim_puts_outer_walls_first(object_config->brim_type.value, object_config->brim_width.value);
+}
+
+bool brim_puts_outer_walls_first(BrimType brim_type, double brim_width)
+{
+    return brim_width > 0 && (brim_type == btOuterOnly || brim_type == btOuterAndInner || brim_type == btLeadingEdgeOnly);
 }
 
 std::vector<Polygons> PerimeterGenerator::generate_lower_polygons_series(float width)
