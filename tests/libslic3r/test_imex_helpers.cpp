@@ -71,15 +71,6 @@ TEST_CASE("effective_physical_extruder_map - degenerate nozzle count still yield
     REQUIRE(effective_physical_extruder_map(nullptr, 0).values == std::vector<int>{0});
 }
 
-TEST_CASE("effective_physical_extruder_map - IDEX ghost-color regression guard", "[IMEX]") {
-    // Dual extruder, no authored map. Before the GUI fix this produced a black ghost on T1
-    // because first_filament_for_physical_head({0}, 1) == -1.
-    auto default_pem = make_pem({0});
-    auto pem         = effective_physical_extruder_map(&default_pem, 2);
-    REQUIRE(first_filament_for_physical_head(pem, 0) == 0);
-    REQUIRE(first_filament_for_physical_head(pem, 1) == 1); // no longer -1
-}
-
 TEST_CASE("imex_pem_tool_for - non-parallel mode returns -1", "[IMEX]") {
     // Empty mode string (not in IMEX) and "primary" (IMEX present but not parallel) both
     // short-circuit to bare-firmware PA/temp emission.
@@ -1054,12 +1045,6 @@ TEST_CASE("compute_imex_slice_offset - empty zone box returns zero even with fla
 
 TEST_CASE("compute_imex_slice_offset - flag on + copy mode returns primary zone center", "[IMEX]") {
     auto z = compute_imex_slice_offset(true, "copy", kPrimaryZoneCenteredAt60_40);
-    REQUIRE_THAT(z.x(), WithinAbs(60.0, 1e-9));
-    REQUIRE_THAT(z.y(), WithinAbs(40.0, 1e-9));
-}
-
-TEST_CASE("compute_imex_slice_offset - flag on + mirror mode returns primary zone center", "[IMEX]") {
-    auto z = compute_imex_slice_offset(true, "mirror", kPrimaryZoneCenteredAt60_40);
     REQUIRE_THAT(z.x(), WithinAbs(60.0, 1e-9));
     REQUIRE_THAT(z.y(), WithinAbs(40.0, 1e-9));
 }

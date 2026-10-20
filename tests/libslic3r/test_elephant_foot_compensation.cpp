@@ -17,10 +17,6 @@ using namespace Slic3r;
 
 // #define TESTS_EXPORT_SVGS
 
-namespace Slic3r {
-	Points mittered_offset_path_scaled(const Points& contour, const std::vector<float>& deltas, double miter_limit);
-}
-
 static ExPolygon spirograph_gear_1mm()
 {
 	ExPolygon out;
@@ -478,33 +474,6 @@ SCENARIO("Elephant foot compensation", "[ElephantFoot]") {
             }
         }
 	}
-
-#if 0
-	GIVEN("Varying inner offset") {
-		ExPolygon input = spirograph_gear_1mm().simplify(SCALED_EPSILON).front();
-		ExPolygon output;
-		std::vector<float> deltas(input.contour.points.size(), scale_(1.));
-                // mittered_offset_path_scaled_points is commented out somewhere above
-		output.contour.points = Slic3r::mittered_offset_path_scaled_points(input.contour.points, deltas, 2.);
-#ifdef TESTS_EXPORT_SVGS
-		{
-			SVG svg(debug_out_path("elephant_foot_compensation_0.svg").c_str(), get_extents(output));
-			svg.draw(input, "blue");
-			svg.draw_outline(output, "black", coord_t(scale_(0.01)));
-		}
-#endif /* TESTS_EXPORT_SVGS */
-		for (size_t i = 0; i <= deltas.size() / 2; ++ i)
-			deltas[i] = deltas[deltas.size() - i - 1] = scale_(1.) * double(i) / (0.5 * double(deltas.size()));
-		output.contour.points = Slic3r::mittered_offset_path_scaled_points(input.contour.points, deltas, 2.);
-#ifdef TESTS_EXPORT_SVGS
-		{
-			SVG svg(debug_out_path("elephant_foot_compensation_varying.svg").c_str(), get_extents(output));
-			svg.draw(input, "blue");
-			svg.draw_outline(output, "black", coord_t(scale_(0.01)));
-		}
-#endif /* TESTS_EXPORT_SVGS */
-	}
-#endif
 
     GIVEN("Rectangle with a narrow part sticking out") {				
 		// Rectangle

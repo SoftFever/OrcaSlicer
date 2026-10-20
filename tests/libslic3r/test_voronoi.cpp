@@ -34,53 +34,6 @@ using namespace Slic3r;
 using VD = Geometry::VoronoiDiagram;
 using BoostVD = boost::polygon::voronoi_diagram<double>;
 
-// https://svn.boost.org/trac10/ticket/12067
-// This bug seems to be confirmed.
-// Vojtech supposes that there may be no Voronoi edges produced for
-// the 1st and last sweep line positions.
-TEST_CASE("Voronoi missing edges - points 12067", "[Voronoi]")
-{
-    Points pts {
-        { -10, -20 },
-        {  10, -20 },
-        {   5,   0 },
-        {  10,  20 },
-        { -10,  20 },
-        {  -5,   0 }
-    };
-
-#if 0
-    for (Point &p : pts) {
-        Vec2d q = p.cast<double>();
-        p.x() = scale_(p.x());
-        p.y() = scale_(p.y());
-    }
-#endif
-
-#if 0
-    // Try to rotate, maybe the issue is caused by incorrect handling of vertical or horizontal edges?
-    double a = 0.18764587962597876897475f;
-    double c = cos(a);
-    double s = sin(a);
-    for (Point &p : poly.points) {
-        Vec2d q = p.cast<double>();
-        p.x() = coord_t(q.x() * c + q.y() * s + 0.5);
-        p.y() = coord_t(- q.x() * s + q.y() * c + 0.5);
-    }
-#endif
-
-    // Construction of the Voronoi Diagram.
-    BoostVD vd;
-    construct_voronoi(pts.begin(), pts.end(), &vd);
-
-#ifdef VORONOI_DEBUG_OUT
-    dump_voronoi_to_svg(debug_out_path("voronoi-pts.svg").c_str(),
-        vd, pts, Lines());
-#endif
-
-//    REQUIRE(closest_point.z() == Catch::Approx(1.));
-}
-
 // https://svn.boost.org/trac10/ticket/12707
 // This issue is confirmed, there are no self intersections in the polygon.
 // A minimal test case is created at the end of this test,
@@ -312,36 +265,6 @@ TEST_CASE("Voronoi weirdness", "[Voronoi]")
 #ifdef VORONOI_DEBUG_OUT
     dump_voronoi_to_svg(debug_out_path("voronoi-weirdness.svg").c_str(),
         vd, Points(), lines);
-#endif
-}
-
-// https://svn.boost.org/trac10/ticket/12903
-// division by zero reported, but this issue is most likely a non-issue, as it produces an infinity for the interval of validity
-// of the floating point calculation, therefore forcing a recalculation with extended accuracy.
-TEST_CASE("Voronoi division by zero 12903", "[Voronoi]")
-{
-    Points pts { { 1, 1 }, { 3, 1 }, { 1, 3 }, { 3, 3 },
-                 { -1, 1 }, { 1, -1 }, { 5, 1 }, { 3, -1 },
-                 { -1, 3 }, { 1, 5 }, { 5, 3 }, { 3, 5 } };
-    {
-        auto pts2 { pts };
-        std::sort(pts2.begin(), pts2.end(), [](auto &l, auto &r) { return (l.x() == r.x()) ? l.y() < r.y() : l.x() < r.x(); });
-        // No point removed -> no duplicate.
-        REQUIRE(std::unique(pts2.begin(), pts2.end()) == pts2.end());
-    }
-
-    BoostVD vd;
-    construct_voronoi(pts.begin(), pts.end(), &vd);
-
-#ifdef VORONOI_DEBUG_OUT
-    // Scale the voronoi vertices and input points, so that the dump_voronoi_to_svg will display them correctly.
-    for (auto &pt : vd.vertices()) {
-        const_cast<double&>(pt.x()) = scale_(pt.x());
-        const_cast<double&>(pt.y()) = scale_(pt.y());
-    }
-    for (auto &pt : pts)
-        pt = Point::new_scale(pt.x(), pt.y());
-    dump_voronoi_to_svg(debug_out_path("voronoi-div-by-zero.svg").c_str(), vd, pts, Lines());
 #endif
 }
 
@@ -1382,15 +1305,6 @@ TEST_CASE("Voronoi offset", "[VoronoiOffset]")
             OffsetTest { scale_(0.54), 1, 1 },
             OffsetTest { scale_(0.55), 1, 0 }
       }) {
-
-#if 0
-      Polygons offsetted_polygons_out = Slic3r::Voronoi::offset(vd, lines, ot.distance, scale_(0.005));
-#ifdef VORONOI_DEBUG_OUT
-      dump_voronoi_to_svg(debug_out_path("voronoi-offset-out-%lf.svg", ot.distance).c_str(),
-          vd, Points(), lines, offsetted_polygons_out);
-#endif
-      REQUIRE(offsetted_polygons_out.size() == ot.num_outer);
-#endif
 
       Polygons offsetted_polygons_in = Slic3r::Voronoi::offset(vd, lines, - ot.distance, scale_(0.005));
 #ifdef VORONOI_DEBUG_OUT

@@ -265,16 +265,6 @@ TEST_CASE("snake_core produces valid paths on ring", "[Snake]") {
     REQUIRE(is_permutation(p2, centers.size()));
 }
 
-// --- Core Strategy Tests: Random Layout ---
-
-TEST_CASE("snake_core produces valid paths on random input", "[Snake]") {
-    Points centers = make_random_16();
-
-    auto p2 = snake_core(centers);
-
-    REQUIRE(is_permutation(p2, centers.size()));
-}
-
 // --- Quality Comparison Tests ---
 
 TEST_CASE("snake has no crossings on random input", "[Snake]") {

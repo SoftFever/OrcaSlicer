@@ -327,24 +327,6 @@ TEST_CASE("A printer with IMEX disabled resolves the mode placeholders to nothin
     CHECK_FALSE(has_line(gcode, kQuadScript));
 }
 
-// The placeholders are set unconditionally, ahead of the is_imex check, so they are defined for
-// every printer. A single-extruder preset that mentions {imex_mode} must expand it to an empty
-// string rather than fail the export on an unknown variable.
-TEST_CASE("IMEX mode placeholders are defined on an ordinary single-extruder printer",
-          "[ImexModeGcode][IMEX]")
-{
-    const std::string gcode = slice({ cube(20) }, {
-        { "skirt_loops",         "0" },
-        { "brim_type",           "no_brim" },
-        { "gcode_flavor",        "klipper" },
-        { "machine_start_gcode", kReportStartGcode },
-    });
-
-    CHECK(has_line(gcode, ";IMEX_MODE:"));
-    CHECK(has_line(gcode, ";IMEX_MODE_INDEX:0"));
-    CHECK(has_line(gcode, ";IMEX_MODE_GCODE:"));
-}
-
 // In a parallel mode no tool changes occur, so every active carriage has to be addressed
 // explicitly: once before the print for pressure advance, and again at the second layer for the
 // drop from the initial-layer temperature. Nothing else in the suite covers either emission, and

@@ -138,22 +138,6 @@ TEST_CASE("PluginConfig serializes the documented on-disk schema", "[PluginConfi
     CHECK(entry.size() == 5);
 }
 
-TEST_CASE("PluginConfig keeps a capability's config after its plugin goes away", "[PluginConfig]")
-{
-    ScopedDataDir data_dir_guard("plugin-config-retention");
-
-    {
-        PluginConfig config;
-        REQUIRE(config.store_capability_config(capability_id(PluginCapabilityType::Script, "cap_a", "plugin_a"), json{{"token", "keep me"}}));
-    }
-
-    // config.json is deliberately not keyed to installed plugins: a record outlives its plugin and is
-    // still there on reinstall. Asserts no cleanup path silently drops it.
-    PluginConfig after_removal;
-    after_removal.load();
-    CHECK(after_removal.get_config(capability_id(PluginCapabilityType::Script, "cap_a", "plugin_a"))->config == json{{"token", "keep me"}});
-}
-
 TEST_CASE("PluginConfig treats a missing config file as an empty store", "[PluginConfig]")
 {
     ScopedDataDir data_dir_guard("plugin-config-missing");

@@ -643,45 +643,6 @@ SCENARIO("update_non_diff_values_to_base_config keeps a project's changed values
     }
 }
 
-// SCENARIO("DynamicPrintConfig JSON serialization", "[Config]") {
-//     WHEN("DynamicPrintConfig is serialized and deserialized") {
-// 	auto now = std::chrono::high_resolution_clock::now();
-// 	auto timestamp = now.time_since_epoch().count();
-// 	std::stringstream ss;
-// 	ss << "catch_test_serialization_" << timestamp << ".json";
-// 	std::string filename = (fs::temp_directory_path() / ss.str()).string();
-
-// TODO: Finish making a unit test for JSON serialization
-//         FullPrintConfig full_print_config;
-//         DynamicPrintConfig cfg;
-//         cfg.apply(full_print_config, false);
-
-//         std::string serialized;
-//         try {
-//             std::ostringstream ss;
-//             cereal::BinaryOutputArchive oarchive(ss);
-//             oarchive(cfg);
-//             serialized = ss.str();
-//         } catch (const std::runtime_error & /* e */) {
-//             // e.what();
-//         }
-// 	CAPTURE(serialized.length());
-
-//         THEN("Config object contains ini file options.") {
-//             DynamicPrintConfig cfg2;
-//             try {
-//                 std::stringstream ss(serialized);
-//                 cereal::BinaryInputArchive iarchive(ss);
-//                 iarchive(cfg2);
-//             } catch (const std::runtime_error & /* e */) {
-//                 // e.what();
-//             }
-// 	    CAPTURE(cfg.diff_report(cfg2));
-//             REQUIRE(cfg == cfg2);
-//         }
-//     }
-// }
-
 TEST_CASE("save_to_json round-trips plugin capability references as strings", "[Config][plugins]") {
     ScopedTemporaryFile tmp(".json");
     const std::vector<std::string> refs = {

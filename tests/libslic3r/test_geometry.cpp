@@ -18,8 +18,6 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ShortestPath.hpp"
 
-//#include <random>
-//#include "libnest2d/tools/benchmark.h"
 #include "libslic3r/SVG.hpp"
 
 #include "../libnest2d/printer_parts.hpp"
@@ -604,73 +602,6 @@ TEST_CASE("Convex polygon intersection on two overlapping squares", "[Geometry][
 
     REQUIRE(is_inters == true);
 }
-
-//// Only for benchmarking
-//static Polygon gen_convex_poly(std::mt19937_64 &rg, size_t point_cnt)
-//{
-//    std::uniform_int_distribution<coord_t> dist(0, 100);
-
-//    Polygon out;
-//    out.points.reserve(point_cnt);
-
-//    coord_t tr = dist(rg) * 2 / SCALING_FACTOR;
-
-//    for (size_t i = 0; i < point_cnt; ++i)
-//        out.points.emplace_back(tr + dist(rg) / SCALING_FACTOR,
-//                                tr + dist(rg) / SCALING_FACTOR);
-
-//    return Geometry::convex_hull(out.points);
-//}
-//TEST_CASE("Convex polygon intersection test on random polygons", "[Geometry]") {
-//    constexpr size_t TEST_CNT = 1000;
-//    constexpr size_t POINT_CNT = 1000;
-
-//    auto seed = std::random_device{}();
-////    unsigned long seed = 2525634386;
-//    std::mt19937_64 rg{seed};
-//    Benchmark bench;
-
-//    auto tests = reserve_vector<std::pair<Polygon, Polygon>>(TEST_CNT);
-//    auto results = reserve_vector<bool>(TEST_CNT);
-//    auto expects = reserve_vector<bool>(TEST_CNT);
-
-//    for (size_t i = 0; i < TEST_CNT; ++i) {
-//        tests.emplace_back(gen_convex_poly(rg, POINT_CNT), gen_convex_poly(rg, POINT_CNT));
-//    }
-
-//    bench.start();
-//    for (const auto &test : tests)
-//        results.emplace_back(Geometry::convex_polygons_intersect(test.first, test.second));
-//    bench.stop();
-
-//    std::cout << "Test time: " << bench.getElapsedSec() << std::endl;
-
-//    bench.start();
-//    for (const auto &test : tests)
-//        expects.emplace_back(!intersection(test.first, test.second).empty());
-//    bench.stop();
-
-//    std::cout << "Clipper time: " << bench.getElapsedSec() << std::endl;
-
-//    REQUIRE(results.size() == expects.size());
-
-//    auto seedstr = std::to_string(seed);
-//    for (size_t i = 0; i < results.size(); ++i) {
-//        // std::cout << expects[i] << " ";
-
-//        if (results[i] != expects[i]) {
-//            SVG svg{std::string("fail_seed") + seedstr + "_" + std::to_string(i) + ".svg"};
-//            svg.draw(tests[i].first, "blue");
-//            svg.draw(tests[i].second, "green");
-//            svg.Close();
-
-//            // std::cout << std::endl;
-//        }
-//        REQUIRE(results[i] == expects[i]);
-//    }
-//    std::cout << std::endl;
-
-//}
 
 struct Pair
 {

@@ -44,17 +44,6 @@ SCENARIO("Reading an STL file", "[stl]") {
 				REQUIRE(is_approx(model.objects.front()->volumes.front()->mesh().size(), Vec3d(20, 20, 20)));
 			}
 		}
-#if 0
-		// ASCII STLs ending with just carriage returns are not supported. These were used by the old Macs, while the Unix based MacOS uses LFs as any other Unix.
-		WHEN("line endings CR") {
-			Slic3r::Model model;
-			THEN("load should succeed") {
-				REQUIRE(Slic3r::load_stl(stl_path("ASCII/20mmbox-CR.stl").c_str(), &model));
-				REQUIRE(is_approx(model.objects.front()->volumes.front()->mesh().size(), Vec3d(20, 20, 20)));
-			}
-		}
-
-#endif
 		WHEN("nonstandard STL file (text after ending tags, invalid normals, for example infinities)") {
 			Slic3r::Model model;
 			THEN("load should succeed") {

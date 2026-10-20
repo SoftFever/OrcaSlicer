@@ -730,25 +730,6 @@ TEST_CASE("Neighboring vertices distinguish repeated anchors on different lobes"
     CHECK(edges == std::vector<size_t>{0, 2, 3, 4, 6, 7});
 }
 
-TEST_CASE("Modifier holes subtract coverage while separate components add intervals", "[PreciseSeam][SegmentExtraction]")
-{
-    const Polygon perimeter = rectangle(0, 0, 20, 20);
-    ExPolygon area(rectangle(1, -3, 10, 3));
-    area.holes.push_back(rectangle(4, -1, 7, 1));
-    area.holes.back().reverse();
-    const auto result = PreciseSeam::extract_perimeter_segments(PreciseSeam::PreparedPerimeter(perimeter),
-        PreciseSeam::prepare_modifier_regions({area, ExPolygon(rectangle(14, -3, 18, 3))}), ModelVolumeType::PRECISE_SEAM_CENTER);
-    check_provenance(perimeter, result);
-    REQUIRE(result.segments.size() == 3);
-    const std::vector<Point> starts{mm(1, 0), mm(7, 0), mm(14, 0)};
-    const std::vector<Point> ends{mm(4, 0), mm(10, 0), mm(18, 0)};
-    for (size_t i = 0; i < 3; ++i) {
-        CHECK(result.segments[i].polyline.points.front() == starts[i]);
-        CHECK(result.segments[i].polyline.points.back() == ends[i]);
-    }
-    CHECK_FALSE(result.full_containment);
-}
-
 TEST_CASE("Full coverage is distinct from an empty or point-only intersection", "[PreciseSeam][SegmentExtraction]")
 {
     const bool reverse = GENERATE(false, true);

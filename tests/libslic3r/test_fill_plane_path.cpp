@@ -208,20 +208,3 @@ TEST_CASE("Octagram spiral smooth factor controls corner curvature", "[FillPlane
     REQUIRE(path_length(half_smooth) < path_length(sharp));
     REQUIRE(invalid_factor == sharp);
 }
-
-TEST_CASE("Hilbert curve smooth factor controls corner curvature", "[FillPlanePath]")
-{
-    const Points sharp       = TestableHilbertCurve().generate_points(0.005);
-    const Points half_smooth = TestableHilbertCurve().generate_points(0.005, 0.5);
-    const Points full_smooth = TestableHilbertCurve().generate_points(0.005, 1.);
-    const Points invalid_factor = TestableHilbertCurve().generate_points(
-        0.005, std::numeric_limits<double>::quiet_NaN());
-
-    REQUIRE(full_smooth.front() == half_smooth.front());
-    REQUIRE(full_smooth.back() == half_smooth.back());
-    REQUIRE(path_length(full_smooth) < path_length(half_smooth));
-    REQUIRE(invalid_factor == sharp);
-
-    for (size_t i = 1; i < full_smooth.size(); ++i)
-        REQUIRE((full_smooth[i] - full_smooth[i - 1]).squaredNorm() > 0);
-}

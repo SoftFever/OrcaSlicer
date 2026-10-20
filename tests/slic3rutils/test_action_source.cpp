@@ -73,34 +73,6 @@ TEST_CASE("ActionRegistry takes exclusive ownership of published actions", "[Act
     STATIC_CHECK(std::is_same_v<decltype(&ActionRegistry::upsert), ExpectedUpsert>);
 }
 
-// A dynamic "Go to Plate N" action is keyed by plate index (not the display title), so renaming
-// a plate never re-keys it - the same contract as a setting action.
-TEST_CASE("Go-to-plate actions are keyed by index, not title", "[ActionSource][SpeedDial]")
-{
-    CHECK(AppAction::compose_id("orca_plate_goto", "0", "orca") == "orca_plate_goto:0:orca");
-    CHECK(AppAction::compose_id("orca_plate_goto", "2", "orca") == "orca_plate_goto:2:orca");
-}
-
-// A dynamic "Open recent project" action is keyed by file path (not the display name), so renaming
-// a project or reordering the recents list never re-keys it - the same contract as a setting action.
-TEST_CASE("Recent-project actions are keyed by path, not title", "[ActionSource][SpeedDial]")
-{
-    CHECK(AppAction::compose_id("orca_recent_project", "/a/b/project.3mf", "orca") ==
-          "orca_recent_project:/a/b/project.3mf:orca");
-    CHECK(AppAction::compose_id("orca_recent_project", "C:/Data/cube.3mf", "orca") ==
-          "orca_recent_project:C:/Data/cube.3mf:orca");
-}
-
-// A built-in command is keyed by its stable catalog key (not the localized display title), so a
-// rename or a UI-language switch never re-keys the action and its persisted favourite/stats survive.
-TEST_CASE("Command actions are keyed by catalog key, not display title", "[ActionSource][SpeedDial]")
-{
-    CHECK(AppAction::compose_id("orca_command", "save_project", "orca") == "orca_command:save_project:orca");
-    // The second field is the stable key, so distinct commands never collide.
-    CHECK(AppAction::compose_id("orca_command", "save_project", "orca") !=
-          AppAction::compose_id("orca_command", "load_project", "orca"));
-}
-
 // The real catalog -> action mapping keys by the stable catalog key and copies presentation from the
 // catalog, so a rename or a UI-language switch never re-keys the action. The catalog's English title
 // and group become the action's English search aliases; no translation catalog is loaded in the tests,

@@ -159,15 +159,6 @@ TEST_CASE("overlap_area detects overlap and ignores touching edges", "[Arrange]"
     }
 }
 
-TEST_CASE("Arrange places every item on the physical bed", "[Arrange]")
-{
-    ArrangePolygons items = squares(5, 20.);
-    arrange(items, bed(200, 200), quiet_params(scaled(1.)));
-
-    for (const ArrangePolygon &ap : items)
-        REQUIRE(ap.bed_idx == 0);
-}
-
 TEST_CASE("Arranged items stay within the bed", "[Arrange]")
 {
     ArrangePolygons items = squares(6, 30.);

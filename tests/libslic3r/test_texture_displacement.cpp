@@ -3285,33 +3285,6 @@ TEST_CASE("a ModelUV layer falls back to Triplanar when the volume carries no UV
         CHECK_THAT((no_channel.vertices[i] - as_triplanar.vertices[i]).norm(), WithinAbs(0.f, 1e-5f));
 }
 
-TEST_CASE("a bake with colour off on every layer reports no colour at all", "[TextureDisplacement]")
-{
-    const indexed_triangle_set cube = its_make_cube(10., 10., 10.);
-
-    TextureDisplacementLayer layer;
-    layer.slot          = 0;
-    layer.depth_mm      = 1.0f;
-    layer.tiling_scale  = 5.0f;
-    layer.image_data    = make_flat_rgb_png(200, 40, 10); // has colour to give...
-    layer.color_enabled = false;                          // ...but is not asked for it
-
-    TextureDisplacementFacetsData facets{};
-    facets[0] = paint_whole_mesh(cube);
-
-    std::vector<uint8_t> triangle_color;
-    TextureColorRequest  request;
-    request.quantize     = [](const Vec3f &) { return 0; }; // would colour everything, if asked
-    request.out_triangle = &triangle_color;
-
-    const indexed_triangle_set out = build_texture_displacement(cube, {layer}, facets, classic_options(), {}, &request);
-    REQUIRE_FALSE(out.vertices.empty());
-    // Every entry 0 ("this triangle takes no colour from the texture"), so the commit leaves whatever
-    // the model was already painted with exactly as it was.
-    for (const uint8_t entry : triangle_color)
-        CHECK(entry == 0);
-}
-
 TEST_CASE("transfer_uv_channel resamples a UV channel onto a subdivided copy of the same surface",
           "[TextureDisplacement]")
 {

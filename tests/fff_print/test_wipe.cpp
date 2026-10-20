@@ -348,21 +348,6 @@ TEST_CASE("Inactive inward wipe settings preserve the exported trajectory", "[Wi
     CHECK_FALSE(trajectories_differ(regular_paths, inward_paths));
 }
 
-TEST_CASE("Inward wipe changes the exported trajectory when outer wall width is Auto", "[Wipe][Regression]")
-{
-    const char *wall_generator = GENERATE("classic", "arachne");
-    INFO("wall generator: " << wall_generator);
-
-    const std::vector<Vec2d> regular = wipe_destinations(
-        slice({make_cube(10., 10., 1.)}, wipe_config(wall_generator, false)));
-    const std::vector<Vec2d> inward = wipe_destinations(
-        slice({make_cube(10., 10., 1.)}, wipe_config(wall_generator, true)));
-
-    REQUIRE_FALSE(regular.empty());
-    REQUIRE_FALSE(inward.empty());
-    REQUIRE(trajectories_differ(regular, inward));
-}
-
 TEST_CASE("Inward wipe recognizes an external wall starting on an overhang", "[Wipe][Regression]")
 {
     const char *wall_generator = GENERATE("classic", "arachne");

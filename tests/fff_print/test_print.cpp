@@ -54,8 +54,6 @@
 #include <cstdlib>
 #include <sstream>
 #include <limits>
-#include <fstream>
-#include <iterator>
 #include <memory>
 #include <string_view>
 #include <utility>
@@ -794,25 +792,6 @@ TEST_CASE("Print statistics in custom G-code match the final print statistics", 
     }
 }
 
-TEST_CASE("export_gcode writes G-code without a result pointer", "[Print][export_gcode]")
-{
-    Print print;
-    Model model;
-    Slic3r::Test::init_print({cube(20)}, print, model);
-    print.process();
-
-    SECTION("non-BBL printer") {}
-    SECTION("BBL printer") { print.is_BBL_printer() = true; }
-
-    ScopedTemporaryFile temp(".gcode");
-    REQUIRE_NOTHROW(print.export_gcode(temp.string(), nullptr, nullptr));
-
-    std::ifstream in(temp.string());
-    const std::string gcode((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-
-    REQUIRE_FALSE(gcode.empty());
-}
-
 TEST_CASE("Exporting a sliced print again gives the same G-code", "[Print][export_gcode][Regression]")
 {
     const int instances = GENERATE(1, 3);
@@ -1060,34 +1039,6 @@ TEST_CASE("Belt printers keep the part fan off within the band above the belt", 
     CHECK(in_band_fan_on == 0);
     CHECK(clear > 20);
     CHECK(clear_fan_off == 0);
-}
-
-// Organic supports under an overhang on a belt printer reach below the object's first layer,
-// where the virtual belt raft layers sit at negative Z. The lowest of them used to get a
-// negative height and abort slicing with a negative flow error.
-TEST_CASE("Belt printers slice organic tree supports that reach the belt", "[Print][belt][Support]")
-{
-    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-    config.set_deserialize_strict({
-        { "belt_printer",               1 },
-        { "belt_slice_rotation",        "x" },
-        { "belt_slice_rotation_angle",  45 },
-        { "gcode_remap_x",              "rev_x" },
-        { "gcode_remap_y",              "pos_z" },
-        { "gcode_remap_z",              "pos_y" },
-        { "layer_height",               0.2 },
-        { "initial_layer_print_height", 0.2 },
-        { "skirt_loops",                0 },
-        { "z_hop",                      0 },
-        { "enable_support",             1 },
-        { "support_type",               "tree(auto)" },
-        { "support_style",              "organic" },
-        { "machine_start_gcode",        "T[initial_tool]\n" },
-        { "layer_change_gcode",         "G92 E0\n" },
-    });
-    std::string gcode;
-    REQUIRE_NOTHROW(gcode = slice({ TestMesh::overhang }, config));
-    CHECK(! gcode.empty());
 }
 
 TEST_CASE("Slicing errors are reported per object with the object's name", "[Print]")

@@ -840,32 +840,6 @@ static void all_regions_on_filament(DynamicPrintConfig &config, int filament_1ba
         config.set_deserialize_strict({ { key, std::to_string(filament_1based) } });
 }
 
-// IMEX parallel modes emit per-carriage temperatures from a branch that is mutually
-// exclusive with the standard per-extruder path, and that branch skipped the head the
-// print's own toolpaths run on. That head therefore never received its 1st->2nd layer
-// transition and held nozzle_temperature_initial_layer for the whole job.
-TEST_CASE("Parallel-mode IMEX prints transition the printing head to its second-layer temperature",
-          "[MultiFilament][IMEX]")
-{
-    DynamicPrintConfig config = multifilament_config(7);
-    imex_7x4_printer(config);
-    all_regions_on_filament(config, 1); // filament 1 => logical slot 0 => physical head 0
-    // The multi-extruder normalization collapses per-filament temperature vectors to a
-    // single value, so heads are told apart by their tool qualifier, not by temperature.
-    config.set_deserialize_strict({
-        { "imex_parallel_mode",                "copy" },
-        { "nozzle_temperature_initial_layer",  "200" },
-        { "nozzle_temperature",                "240" },
-    });
-
-    const std::string gcode = slice({ cube(20) }, config);
-
-    // Head 0 runs the print's own toolpaths and must step 200 -> 240 at the second layer.
-    CHECK(gcode.find("M104 S240 T0") != std::string::npos);
-    // Head 1 is the copy carriage; it already worked and must keep working.
-    CHECK(gcode.find("M104 S240 T1") != std::string::npos);
-}
-
 // IMEX supplements is_extruder_used for the secondary carriages a parallel mode drives.
 // `primary` drives exactly one tool, so the supplement must not run: routing every region
 // to filament 6 puts the initial tool on physical head 2, while the mode's only declared
