@@ -505,6 +505,28 @@ TEST_CASE("A project whose components reference themselves fails to load", "[3mf
     REQUIRE_FALSE(loaded);
 }
 
+TEST_CASE("A project in the 2.4.x layout keeps auto drop off from its build item", "[3mf][Regression]")
+{
+    // 2.4.x wrote auto_drop on the build item and left it off the object, so the object is re-laid out here.
+    ScopedTemporaryFile temp(".3mf");
+    {
+        Model        model;
+        ModelObject* object = model.add_object();
+        object->add_volume(make_cube(10., 10., 10.));
+        object->add_instance();
+        object->auto_drop = false;
+        store_project(model, temp.string(), SaveStrategy::Zip64 | SaveStrategy::Silence);
+    }
+    REQUIRE(replace_in_3mf_entry(temp.string(), "model_settings.config", " auto_drop=\"0\"", ""));
+    REQUIRE(replace_in_3mf_entry(temp.string(), "3dmodel.model", "printable=\"1\"/>", "printable=\"1\" auto_drop=\"0\"/>"));
+
+    ScopedTemporaryDir backup_dir("orca_auto_drop_dst");
+    Model              model;
+    REQUIRE(load_project(temp.string(), model, backup_dir));
+    REQUIRE(model.objects.size() == 1);
+    CHECK_FALSE(model.objects.front()->auto_drop);
+}
+
 TEST_CASE("An object loads up to the component reference budget and fails past it", "[3mf][Regression]")
 {
     // The importer queues at most 100000 component references per object. Every reference besides the
