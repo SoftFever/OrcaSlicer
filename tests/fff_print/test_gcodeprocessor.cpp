@@ -628,3 +628,55 @@ TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer
     }
     CHECK_FALSE(stats.layers_volume(99, 0, 0).has_value());
 }
+
+TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusions of each layer", "[GCodeProcessor]")
+{
+    // An overhang that needs support and a cube in the other filament, with a prime tower between them.
+    DynamicPrintConfig config = Test::multifilament_config(2, { { "enable_support", 1 }, { "enable_prime_tower", 1 }, { "skirt_loops", 0 }, { "brim_type", "no_brim" } });
+    const std::vector<std::vector<ConfigBase::SetDeserializeItem>> overrides{ { { "extruder", 1 } }, { { "extruder", 2 } } };
+    Print print;
+    Model model;
+    Test::init_print({ Test::mesh(Test::TestMesh::overhang), Test::cube(20) }, print, model, config, &overrides);
+    GCodeProcessorResult result;
+    Test::gcode(print, &result);
+
+    const PrintEstimatedStatistics &stats = result.print_statistics;
+    REQUIRE_FALSE(stats.layer_support_volumes_per_extruder.empty());
+
+    using Kind = PrintEstimatedStatistics::LayerVolumeKind;
+    const auto is_support = [](ExtrusionRole role) {
+        return role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition;
+    };
+    const auto check = [&](Kind kind, const std::map<size_t, std::vector<double>> &all_series, const std::map<size_t, double> &totals) {
+        for (const auto &[filament_id, cumulative] : all_series) {
+            DYNAMIC_SECTION("filament " << filament_id)
+            {
+                REQUIRE(cumulative.size() > 2);
+                CHECK(std::is_sorted(cumulative.begin(), cumulative.end()));
+                CHECK(cumulative.size() == stats.layer_volumes_per_extruder.begin()->second.size());
+                const auto total = totals.find(filament_id);
+                REQUIRE(total != totals.end());
+                CHECK_THAT(cumulative.back(), Catch::Matchers::WithinRel(total->second, 1e-6));
+
+                std::map<unsigned int, double> extruded;
+                for (const GCodeProcessorResult::MoveVertex &move : result.moves) {
+                    if (move.type != EMoveType::Extrude || move.extruder_id != filament_id)
+                        continue;
+                    const bool wanted = kind == Kind::Support ? is_support(move.extrusion_role) : move.extrusion_role == erWipeTower;
+                    if (wanted)
+                        extruded[move.layer_id] += double(move.mm3_per_mm) * double(move.travel_dist);
+                }
+                const size_t layers = cumulative.size() - 1;
+                for (size_t layer_id = 0; layer_id < layers; ++layer_id) {
+                    const auto layer = extruded.find(unsigned(layer_id));
+                    const double from_moves = (layer != extruded.end() ? layer->second : 0.0) - (layer_id == 0 ? cumulative.front() : 0.0);
+                    const std::optional<double> volume = stats.layers_volume(filament_id, layer_id, layer_id, kind);
+                    REQUIRE(volume.has_value());
+                    CHECK_THAT(*volume, Catch::Matchers::WithinAbs(from_moves, std::max(1e-3, 1e-3 * std::abs(from_moves))));
+                }
+            }
+        }
+    };
+    check(Kind::Support, stats.layer_support_volumes_per_extruder, stats.support_volumes_per_extruder);
+    check(Kind::WipeTower, stats.layer_wipe_tower_volumes_per_extruder, stats.wipe_tower_volumes_per_extruder);
+}
