@@ -13,6 +13,7 @@
 
 #include "GUI_App.hpp"
 #include "I18N.hpp"
+#include "slic3r/Utils/BBLPrinterAgent.hpp"
 
 using json = nlohmann::json;
 
@@ -51,7 +52,11 @@ FilamentColorCodeQuery::~FilamentColorCodeQuery()
 
 FilamentColorCodes* FilamentColorCodeQuery::GetFilaInfoMap(const wxString& fila_id) const
 {
-    const auto& iter = m_fila_id2colors_map->find(fila_id);
+    // The color codes are keyed by Bambu's filament ids. Callers holding Orca's id only get it
+    // translated when the Bambu agent is live, so translate here for every other agent.
+    auto iter = m_fila_id2colors_map->find(fila_id);
+    if (iter == m_fila_id2colors_map->end())
+        iter = m_fila_id2colors_map->find(wxString::FromUTF8(BBLPrinterAgent::bambu_filament_id(fila_id.ToStdString(wxConvUTF8))));
     return (iter != m_fila_id2colors_map->end()) ? iter->second : nullptr;
 }
 
