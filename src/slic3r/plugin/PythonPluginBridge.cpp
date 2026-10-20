@@ -636,7 +636,7 @@ void install_python_thread_audit_shim()
                 const std::string plugin_key  = PluginAuditManager::instance().current_plugin();
                 if (plugin_key.empty()) {
                     // Not called from a plugin: preserve the stock implementation untouched.
-                    return original(function, args, kwargs);
+                    return kwargs.is_none() ? original(function, args) : original(function, args, kwargs);
                 }
                 const std::string capability = PluginAuditManager::instance().current_capability();
 
@@ -648,7 +648,7 @@ void install_python_thread_audit_shim()
                             throw py::error_already_set();
                         return py::reinterpret_steal<py::object>(result);
                     });
-                return original(guarded, args, kwargs);
+                return kwargs.is_none() ? original(guarded, args) : original(guarded, args, kwargs);
             },
             py::arg("function"), py::arg("args"), py::arg("kwargs") = py::none());
 
