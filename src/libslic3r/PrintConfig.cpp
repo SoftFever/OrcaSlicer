@@ -3839,7 +3839,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("G1 (arc)"));
     def->enum_labels.push_back(L("G2 (quintic)"));
     def->enum_labels.push_back(L("G3 (septic)"));
-    def->mode = comAdvanced;
+    def->mode = comExpert;
     def->set_default_value(new ConfigOptionEnum<InfillSmoothCurve>(InfillSmoothCurve::Quintic));
 
     def = this->add("top_surface_acceleration", coFloats);
