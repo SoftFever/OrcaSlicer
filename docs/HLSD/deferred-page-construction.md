@@ -114,6 +114,9 @@ current-configuration explanation. Dependency rules supply complete translated
 messages describing their prerequisites; compound rules can choose the message for
 the failed prerequisite. The same recorded text reaches tooltips and search results.
 
+Filament setting overrides record retraction-length dependency restrictions separately
+from override selection. Leaving an override unchecked does not add a restriction reason.
+
 The object table's settings form owns a separate registry because it builds option
 groups outside a Tab. Its dependency callbacks retain their reasons and refresh
 both input and native label tooltips. Rebuilding the form or reevaluating dependencies

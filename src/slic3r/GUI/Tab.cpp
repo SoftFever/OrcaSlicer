@@ -4527,10 +4527,12 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
 
     const bool have_retract_length = dynamic_cast<ConfigOptionVectorBase *>(m_config->option("filament_retraction_length"))->is_nil(extruder_idx) ||
                                      m_config->opt_float("filament_retraction_length", extruder_idx) > 0;
+    const wxString retraction_reason = _L("Set the filament retraction length above zero, or use the printer's value, to edit this setting.");
 
     for (const std::string& opt_key : opt_keys)
     {
-        bool is_checked = opt_key=="filament_retraction_length" ? true : have_retract_length;
+        const bool dependency_enabled = opt_key == "filament_retraction_length" || have_retract_length;
+        bool is_checked = dependency_enabled;
         m_overrides_options[opt_key]->Enable(is_checked);
 
         is_checked &= !dynamic_cast<ConfigOptionVectorBase*>(m_config->option(opt_key))->is_nil(extruder_idx);
@@ -4565,6 +4567,10 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
 
             field->toggle(is_checked);
         }
+
+        // An unchecked override is intentional; only dependency restrictions need an explanation.
+        m_option_state_registry.set_enabled(opt_key, dependency_enabled, retraction_reason);
+        update_option_tooltip(field, m_option_state_registry.description(opt_key));
     }
 
     // Handle ironing overrides
