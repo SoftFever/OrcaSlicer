@@ -4,6 +4,7 @@
 #include "OrderingStrategies.hpp"
 #include "../Geometry.hpp"
 #include "../ShortestPath.hpp"
+#include "libslic3r/KDTreeIndirect.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/libslic3r.h"
@@ -54,47 +55,78 @@ bool tsp_2opt_improve(std::vector<size_t>& path, const Points& centers, int max_
     };
     std::vector<double> elsq = recompute_edges_sq();
 
+    // Reversing path[i+1..j] replaces edges (a, b) = (path[i], path[i+1]) and (c, d) = (path[j], path[j+1]) with
+    // (a, c) and (b, d). That can only shorten the cycle if a new edge is shorter than the old one it pairs with:
+    // |ac| < |ab| or |bd| < |cd|. Rather than test every pair, each pass finds those pairs with radius queries
+    // around a and d, which keeps a pass near linear on tours of thousands of nodes. It still applies the move a
+    // full scan would: the largest gain, and the lowest (i, j) among equal gains.
+    auto coordinate_fn = [&centers](size_t idx, size_t dimension) -> double { return double(centers[idx](dimension)); };
+    KDTreeIndirect<2, double, decltype(coordinate_fn)> kdtree(coordinate_fn, path);
+    // Position of each node in the path.
+    std::vector<size_t> pos(centers.size());
+    for (size_t k = 0; k < pn; ++k)
+        pos[path[k]] = k;
+
+    // Calls fn(node) for the nodes of the tour within sqrt(radius_sq) of center. The search radius is padded so that
+    // rounding cannot leave out a node the gain test accepts; that test makes the exact cut.
+    auto visit_within = [&](const Vec2d& center, double radius_sq, auto&& fn) {
+        const double search_sq = radius_sq * (1. + 1e-9) + 1.;
+        auto visitor = [&](size_t idx, size_t dimension) {
+            if ((centers[idx].cast<double>() - center).squaredNorm() < search_sq)
+                fn(idx);
+            return kdtree.descent_mask(center[dimension], search_sq, idx, dimension);
+        };
+        kdtree.visit(visitor);
+    };
+
+    size_t best_i = pn, best_j = pn;
+    double best_gain = 0;
+    auto consider = [&](size_t i, size_t j) {
+        // Skip the swap that would reverse the entire cycle (removes both
+        // edges (0,1) and (pn-1,0), equivalent to traversing the cycle backwards).
+        if (j < i + 2 || (i == 0 && j == pn - 1)) return;
+
+        const Vec2d& pi   = centers[path[i]].cast<double>();
+        const Vec2d& p_in = centers[path[i + 1]].cast<double>();
+        const Vec2d& pj   = centers[path[j]].cast<double>();
+        const Vec2d& p_jn = centers[path[(j + 1) % pn]].cast<double>();
+
+        // Early rejection using squared distances (avoids 2 sqrt calls).
+        double new_a_sq = (pj - pi).squaredNorm();
+        double new_b_sq = (p_jn - p_in).squaredNorm();
+        if (new_a_sq >= elsq[i] && new_b_sq >= elsq[j]) return;
+
+        double new_a = std::sqrt(new_a_sq);
+        double new_b = std::sqrt(new_b_sq);
+        double gain = el[i] + el[j] - new_a - new_b;
+
+        if (gain > best_gain || (gain == best_gain && best_i != pn && std::make_pair(i, j) < std::make_pair(best_i, best_j))) {
+            best_gain = gain;
+            best_i = i; best_j = j;
+        }
+    };
+
     bool improved = false;
     for (int pass = 0; max_passes <= 0 || pass < max_passes; ++pass) {
-        size_t best_i = pn, best_j = pn;
-        double best_gain = 0;
+        best_i = pn; best_j = pn;
+        best_gain = 0;
 
-        for (size_t i = 0; i < pn; ++i) {
-            const Vec2d& pi   = centers[path[i]].cast<double>();
-            const Vec2d& p_in = centers[path[(i + 1) % pn]].cast<double>();
-            double d_i = el[i];
-            double d_i_sq = elsq[i];
-
-            for (size_t j = i + 2; j < pn; ++j) {
-                size_t j_next = (j + 1) % pn;
-                // Skip the swap that would reverse the entire cycle (removes both
-                // edges (0,1) and (pn-1,0), equivalent to traversing the cycle backwards).
-                if (i == 0 && j_next == 0) continue;
-
-                const Vec2d& pj   = centers[path[j]].cast<double>();
-                const Vec2d& p_jn = centers[path[j_next]].cast<double>();
-                double d_j = el[j];
-
-                // Early rejection using squared distances (avoids 2 sqrt calls).
-                double new_a_sq = (pj - pi).squaredNorm();
-                double new_b_sq = (p_jn - p_in).squaredNorm();
-                if (new_a_sq >= d_i_sq && new_b_sq >= elsq[j]) continue;
-
-                double new_a = std::sqrt(new_a_sq);
-                double new_b = std::sqrt(new_b_sq);
-                double gain = d_i + d_j - new_a - new_b;
-
-                if (gain > best_gain) {
-                    best_gain = gain;
-                    best_i = i; best_j = j;
-                }
-            }
-        }
+        // |ac| < |ab|: c lies within the length of the edge leaving a.
+        for (size_t i = 0; i + 2 < pn; ++i)
+            visit_within(centers[path[i]].cast<double>(), elsq[i], [&](size_t c) { consider(i, pos[c]); });
+        // |bd| < |cd|: b lies within the length of the edge entering d.
+        for (size_t j = 2; j < pn; ++j)
+            visit_within(centers[path[(j + 1) % pn]].cast<double>(), elsq[j], [&](size_t b) {
+                if (pos[b] > 0)
+                    consider(pos[b] - 1, j);
+            });
 
         if (best_i == pn) break;
         improved = true;
         // Reverse the best swap segment
         std::reverse(path.begin() + best_i + 1, path.begin() + best_j + 1);
+        for (size_t k = best_i + 1; k <= best_j; ++k)
+            pos[path[k]] = k;
 
         // Recompute edge lengths after reversal
         el = recompute_edges();

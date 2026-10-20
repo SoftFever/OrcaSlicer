@@ -21,8 +21,8 @@ namespace Slic3r {
 
 // --- Path improvement (operate on index vectors into `centers`) ---
 
-// 2-opt improvement: reverses segments that reduce total cycle path length.
-// Returns true if any improvement was made.
+// 2-opt improvement: reverses segments that reduce total cycle path length. Each of up to max_passes passes
+// (unlimited if max_passes <= 0) applies the move that shortens the cycle most. Returns true if any improvement was made.
 bool tsp_2opt_improve(std::vector<size_t>& path, const Points& centers, int max_passes = 10);
 
 // Crossing removal: reverse each pair of intersecting edges whose reversal shortens the cycle by more

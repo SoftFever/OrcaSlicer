@@ -21,6 +21,7 @@
 #include "libslic3r/ShortestPath.hpp"
 
 #include <algorithm>
+#include <numeric>
 #include <random>
 #include <unordered_set>
 #include <numeric>
@@ -75,6 +76,52 @@ static size_t count_shortening_crossings(const std::vector<size_t>& path, const 
         }
     }
     return count;
+}
+
+// Exhaustive best-improvement 2-opt: each pass tests every pair of edges and applies the move with the largest
+// gain, the first (i, j) on a tie. tsp_2opt_improve must make the same moves.
+static bool exhaustive_2opt(std::vector<size_t>& path, const Points& centers, int max_passes)
+{
+    size_t pn = path.size();
+    if (pn <= 2) return false;
+    std::vector<double> el(pn), elsq(pn);
+    auto recompute = [&]() {
+        for (size_t i = 0; i < pn; ++i) {
+            el[i]   = (centers[path[i]].cast<double>() - centers[path[(i + 1) % pn]].cast<double>()).norm();
+            elsq[i] = (centers[path[i]].cast<double>() - centers[path[(i + 1) % pn]].cast<double>()).squaredNorm();
+        }
+    };
+    recompute();
+    bool improved = false;
+    for (int pass = 0; max_passes <= 0 || pass < max_passes; ++pass) {
+        size_t best_i = pn, best_j = pn;
+        double best_gain = 0;
+        for (size_t i = 0; i < pn; ++i) {
+            const Vec2d pi   = centers[path[i]].cast<double>();
+            const Vec2d p_in = centers[path[(i + 1) % pn]].cast<double>();
+            for (size_t j = i + 2; j < pn; ++j) {
+                size_t j_next = (j + 1) % pn;
+                if (i == 0 && j_next == 0) continue;
+                const Vec2d pj   = centers[path[j]].cast<double>();
+                const Vec2d p_jn = centers[path[j_next]].cast<double>();
+                double new_a_sq = (pj - pi).squaredNorm();
+                double new_b_sq = (p_jn - p_in).squaredNorm();
+                if (new_a_sq >= elsq[i] && new_b_sq >= elsq[j]) continue;
+                double new_a = std::sqrt(new_a_sq);
+                double new_b = std::sqrt(new_b_sq);
+                double gain = el[i] + el[j] - new_a - new_b;
+                if (gain > best_gain) {
+                    best_gain = gain;
+                    best_i = i; best_j = j;
+                }
+            }
+        }
+        if (best_i == pn) break;
+        improved = true;
+        std::reverse(path.begin() + best_i + 1, path.begin() + best_j + 1);
+        recompute();
+    }
+    return improved;
 }
 
 static bool is_permutation(const std::vector<size_t>& path, size_t n)
@@ -146,6 +193,42 @@ TEST_CASE("tsp_2opt_improve reduces path length", "[TSPPostProcessing]") {
 
     REQUIRE(is_permutation(path, centers.size()));
     CHECK(after <= before);
+}
+
+TEST_CASE("tsp_2opt_improve makes the same moves as an exhaustive best-improvement scan", "[TSPPostProcessing]") {
+    // 300 points in a 170000-unit square: random on a 1000-unit grid like island centroids snapped to 1 mm (many
+    // share a position or a line), random at full resolution, or a 20 x 15 lattice with a 1000-unit pitch, whose
+    // congruent cells give many moves exactly the same gain. The coordinates are small enough that every squared
+    // distance is an exact double, so both implementations compute bit-identical gains even where the compiler
+    // fuses multiply-adds. The tour is either the nearest-neighbour tour the island ordering starts from, or the
+    // input order, whose long edges make every radius query large. Both the default pass cap and an uncapped run
+    // to a 2-opt local optimum are compared.
+    enum class Layout { Snapped, Fine, Lattice };
+    const Layout layout  = GENERATE(Layout::Snapped, Layout::Fine, Layout::Lattice);
+    const bool nn_tour   = GENERATE(true, false);
+    const int max_passes = GENERATE(10, 0);
+    std::mt19937 rng(GENERATE(1u, 2u));
+    Points centers;
+    for (int i = 0; i < 300; ++i) {
+        if (layout == Layout::Lattice) {
+            centers.emplace_back(coord_t(i % 20) * 1000, coord_t(i / 20) * 1000);
+        } else {
+            const coord_t x = layout == Layout::Snapped ? coord_t(rng() % 171) * 1000 : coord_t(rng() % 170001);
+            const coord_t y = layout == Layout::Snapped ? coord_t(rng() % 171) * 1000 : coord_t(rng() % 170001);
+            centers.emplace_back(x, y);
+        }
+    }
+    std::vector<size_t> path(centers.size());
+    if (nn_tour)
+        path = chain_points(centers);
+    else
+        std::iota(path.begin(), path.end(), size_t(0));
+
+    std::vector<size_t> expected = path;
+    REQUIRE(exhaustive_2opt(expected, centers, max_passes));
+
+    CHECK(tsp_2opt_improve(path, centers, max_passes));
+    CHECK(path == expected);
 }
 
 TEST_CASE("tsp_remove_crossings eliminates crossings", "[TSPPostProcessing]") {
