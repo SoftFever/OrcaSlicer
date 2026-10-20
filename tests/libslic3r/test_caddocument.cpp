@@ -1237,6 +1237,16 @@ TEST_CASE("pattern replicates a body linearly and circularly", "[CadDocument]")
         bad.add_pattern(false, 3, 20, 0, 0, -1, "NoBody");
         REQUIRE_FALSE(bad.recompute());
     }
+
+    // An absurd count is refused up front instead of fusing copies until the window freezes.
+    {
+        CadDocument huge;
+        int sk = huge.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 10, 10, 5, "Box");
+        huge.add_extrude(sk, 10.0, false, BooleanMode::New, "E");
+        huge.add_pattern(false, 100000, 20, 0, 0, -1, "TooMany");
+        REQUIRE_FALSE(huge.recompute());
+        REQUIRE(huge.error.find("500") != std::string::npos);
+    }
 }
 
 TEST_CASE("pattern-on-curve: copies land on a line and bbox spans the curve length", "[CadDocument][pattern]")

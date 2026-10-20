@@ -3317,6 +3317,7 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
             if (!have_body) throw std::runtime_error(_u8L("pattern needs a body"));
             const SketchEntity& gc = gs.entities[f.pattern_curve_entity];
             const int n = std::max(1, f.pattern_count);
+            if (n > 500) throw std::runtime_error(_u8L("pattern: at most 500 instances"));
             const TopoDS_Shape seed = result;
             Vec3d p0 = gs.plane.to_world(sample_entity_2d(gc, 0.0));
             for (int i = 1; i < n; ++i) {
@@ -3338,6 +3339,7 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         // plane origin (so a seed offset from the origin orbits the axis).
         if (!have_body) throw std::runtime_error(_u8L("pattern needs a body"));
         const int n = std::max(1, f.pattern_count);
+        if (n > 500) throw std::runtime_error(_u8L("pattern: at most 500 instances"));
         const TopoDS_Shape seed = result;
         for (int i = 1; i < n; ++i) {
             gp_Trsf trsf;

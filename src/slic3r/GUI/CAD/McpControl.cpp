@@ -27,7 +27,15 @@
 #include <algorithm>
 #include <utility>
 #include <atomic>
+#include <mutex>
 #include <set>
+#ifdef __linux__
+#include <execinfo.h>   // backtrace: the UI thread's stack when it stops answering
+#include <fcntl.h>
+#include <pthread.h>
+#include <signal.h>
+#include <sys/syscall.h>
+#endif
 
 #include <nlohmann/json.hpp>
 #include <boost/log/trivial.hpp>
@@ -39,6 +47,7 @@
 #include <wx/dcscreen.h>
 #include <wx/evtloop.h>
 #include <wx/textctrl.h>
+#include <wx/timer.h>
 #include <wx/utils.h>
 #include <map>
 #include <type_traits>
@@ -579,7 +588,7 @@ json describe_tools_core()
                  {"params", json::array()}},
             json{{"name", "redo"}, {"summary", "Redo the last undone change."},
                  {"params", json::array()}},
-            json{{"name", "batch"}, {"summary", "Run several tool calls in one turn. Stops at the first error and (rollback=true) restores the features and variables it started with. Sketch-session calls are not rolled back, so commit sketches inside the batch."},
+            json{{"name", "batch"}, {"summary", "Run several tool calls in one turn. Stops at the first error, or when time_budget_s (default 30) is used up, and (rollback=true) restores the features and variables it started with. Sketch-session calls are not rolled back, so commit sketches inside the batch."},
                  {"params", json::array({
                      json{{"name", "commands"}, {"type", "array"}, {"description", "[{command: <tool name>, params: {...}}, ...], at most 10000"}},
                      json{{"name", "rollback"}, {"type", "boolean"}, {"default", true}},
@@ -3563,6 +3572,8 @@ json action_inspect_design(DesignPanel* panel, const json& params)
     return out;
 }
 
+void inflight_step(const std::string& step);   // the watchdog block below
+
 // {commands:[{command, params}, ...], rollback:true, verbose:true}. Runs the calls in order on the main thread,
 // stops at the first refusal or error and (rollback) restores the features and variables it started with.
 // ponytail: the restore is a copy, not an undo walk, so it is exact even past the 200-step undo cap, but the undo
@@ -3581,13 +3592,19 @@ json action_batch(DesignPanel* panel, const json& params)
     const auto saved_variables = doc.variables;
     const size_t undo_at_start = doc.undo_depth();
     json results = json::array(), failed;
+    const auto t_start = std::chrono::steady_clock::now();
+    const double budget_s = params.value("time_budget_s", 30.0);   // the window is frozen while a batch runs: bound it
     for (size_t i = 0; i < cmds.size() && failed.is_null(); ++i) {
         const json& c = cmds[i];
         const std::string name = c.is_object() ? c.value("command", c.value("method", std::string())) : std::string();
         const json p = (c.is_object() && c.contains("params")) ? c["params"] : json::object();
         std::string err;
         json r;
-        if (name.empty() || name == "batch") err = "each entry needs a 'command' (and a batch cannot nest)";
+        inflight_step(std::to_string(i + 1) + "/" + std::to_string(cmds.size()) + " " + name);
+        if (i > 0 && std::chrono::duration<double>(std::chrono::steady_clock::now() - t_start).count() > budget_s)
+            err = "time budget of " + std::to_string(int(budget_s)) + " s used up (the UI is frozen while a batch runs); "
+                  + std::to_string(cmds.size() - i) + " commands were not run: send them in a new batch, or pass a larger time_budget_s";
+        else if (name.empty() || name == "batch") err = "each entry needs a 'command' (and a batch cannot nest)";
         else if (!(err = refuse_reason(panel, name, p)).empty()) {}
         else {
             try { r = call_method(panel, name, p); }
@@ -3758,6 +3775,144 @@ std::string refuse_reason(DesignPanel* panel, const std::string& method, const j
     return panel->mcp_busy(sketchish, why) ? "Design tab busy: " + why : std::string();
 }
 
+// ---- is the UI thread still answering, and what was it doing? --------------------------------------------------------
+// Every MCP method runs on the UI thread, so a slow one freezes the window. GNOME offers "Wait / Force Quit" after about 5 s,
+// and the kill that follows leaves no log line, no core and no kernel message. So each call is logged with its duration, the
+// call in flight is remembered (a batch names the command it is on), and a watchdog thread says what was running when the
+// UI stopped answering, with the thread's kernel state and, on Linux, its stack. The watchdog makes no wx calls: it only
+// reads a clock that a timer on the UI thread keeps fresh.
+struct InFlight {
+    std::mutex m;
+    std::string method, step;
+    std::chrono::steady_clock::time_point since;
+};
+InFlight g_inflight;
+std::atomic<int64_t> g_ui_alive_ms{0};   // last time the UI thread's timer fired
+
+int64_t steady_ms()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+void inflight_step(const std::string& step)
+{
+    std::lock_guard<std::mutex> l(g_inflight.m);
+    g_inflight.step = step;
+}
+
+// handle_on_main() with the call remembered while it runs and logged when it ends (slow ones as a warning).
+std::string handle_on_main(const std::string& method, const json& params, const json& id);
+std::string timed_handle(const std::string& method, const json& params, const json& id)
+{
+    struct Scope {
+        explicit Scope(const std::string& m) {
+            std::lock_guard<std::mutex> l(g_inflight.m);
+            g_inflight.method = m; g_inflight.step.clear(); g_inflight.since = std::chrono::steady_clock::now();
+        }
+        ~Scope() {
+            std::lock_guard<std::mutex> l(g_inflight.m);
+            g_inflight.method.clear(); g_inflight.step.clear();
+        }
+    } scope(method);
+    const auto t0 = std::chrono::steady_clock::now();
+    std::string reply = handle_on_main(method, params, id);
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+    std::string what = method;
+    if (method == "batch" && params.is_object() && params.contains("commands") && params["commands"].is_array())
+        what += " (" + std::to_string(params["commands"].size()) + " commands)";
+    if (ms >= 2000) BOOST_LOG_TRIVIAL(warning) << "MCP: " << what << " took " << ms << " ms on the UI thread (" << reply.size() << " bytes)";
+    else            BOOST_LOG_TRIVIAL(info)    << "MCP: " << what << " " << ms << " ms (" << reply.size() << " bytes)";
+    return reply;
+}
+
+#ifdef __linux__
+long      g_main_tid = 0;
+pthread_t g_main_pthread{};
+int       g_stall_fd = -1;
+int       g_stall_sig = 0;
+// Async-signal-safe enough for a diagnostic: backtrace() is primed once at install time so it does not allocate here.
+void stall_stack_handler(int) { void* f[40]; const int n = backtrace(f, 40); if (g_stall_fd >= 0) backtrace_symbols_fd(f, n, g_stall_fd); }
+
+std::string proc_text(const std::string& path)
+{
+    std::ifstream in(path);
+    std::string t;
+    std::getline(in, t);
+    return t;
+}
+#endif
+
+class UiBeat : public wxTimer {
+public:
+    void Notify() override { g_ui_alive_ms = steady_ms(); }
+};
+
+void ui_watchdog()
+{
+    bool reported = false;
+    int64_t next_report = 0, worst = 0;
+    for (;;) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        const int64_t now = steady_ms(), silent = now - g_ui_alive_ms.load();
+        if (silent < 5000) {
+            if (reported) BOOST_LOG_TRIVIAL(warning) << "UI: the main thread answers again (it was silent for about " << worst / 1000 << " s)";
+            reported = false; worst = 0;
+            continue;
+        }
+        worst = std::max(worst, silent);
+        if (reported && now < next_report) continue;
+        std::string what = "no MCP call in flight";
+        {
+            std::lock_guard<std::mutex> l(g_inflight.m);
+            if (!g_inflight.method.empty())
+                what = "MCP call in flight: " + g_inflight.method + (g_inflight.step.empty() ? "" : " [" + g_inflight.step + "]")
+                     + ", running for " + std::to_string(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - g_inflight.since).count()) + " s";
+        }
+        std::string kernel;
+#ifdef __linux__
+        const std::string tid = std::to_string(g_main_tid);
+        const std::string stat = proc_text("/proc/self/task/" + tid + "/stat");
+        const size_t rp = stat.rfind(')');
+        kernel = "; main thread state " + (rp != std::string::npos && rp + 2 < stat.size() ? std::string(1, stat[rp + 2]) : std::string("?"))
+               + " (R running, S/D waiting), waiting in " + proc_text("/proc/self/task/" + tid + "/wchan");
+#endif
+        BOOST_LOG_TRIVIAL(warning) << "UI: the main thread has not answered for " << silent / 1000 << " s; " << what << kernel;
+#ifdef __linux__
+        if (!reported && g_stall_fd >= 0 && g_stall_sig > 0) {   // the stack, once per stall
+            const off_t from = ::lseek(g_stall_fd, 0, SEEK_END);
+            ::pthread_kill(g_main_pthread, g_stall_sig);
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            char buf[4096];
+            const ssize_t n = from >= 0 ? ::pread(g_stall_fd, buf, sizeof(buf) - 1, from) : -1;
+            if (n > 0) { buf[n] = 0; BOOST_LOG_TRIVIAL(warning) << "UI: main thread stack (resolve with addr2line -f -C -e orca-slicer):\n" << buf; }
+            else       BOOST_LOG_TRIVIAL(warning) << "UI: the main thread did not run the stack handler (blocked in the kernel or with signals masked)";
+        }
+#endif
+        reported = true; next_report = now + 30000;
+    }
+}
+
+// Called once, on the UI thread.
+void install_ui_watchdog()
+{
+    g_ui_alive_ms = steady_ms();
+    (new UiBeat)->Start(1000);   // leaked on purpose: it lives as long as the application
+#ifdef __linux__
+    g_main_tid = long(::syscall(SYS_gettid));
+    g_main_pthread = ::pthread_self();
+    g_stall_sig = SIGRTMIN + 4;   // glibc keeps the first few real-time signals for itself
+    const std::string path = "/tmp/orca-cad-stall-" + std::to_string(::getpid()) + ".txt";
+    g_stall_fd = ::open(path.c_str(), O_RDWR | O_CREAT | O_APPEND | O_CLOEXEC, 0600);
+    void* prime[1]; (void) ::backtrace(prime, 1);
+    struct sigaction sa{};
+    sa.sa_handler = stall_stack_handler;
+    sa.sa_flags = SA_RESTART;
+    ::sigemptyset(&sa.sa_mask);
+    if (g_stall_fd < 0 || ::sigaction(g_stall_sig, &sa, nullptr) != 0) g_stall_sig = 0;
+#endif
+    std::thread(ui_watchdog).detach();
+}
+
 // Dispatch one parsed request ON THE MAIN THREAD. Returns a JSON-RPC reply string.
 std::string handle_on_main(const std::string& method, const json& params, const json& id)
 {
@@ -3911,7 +4066,7 @@ std::string dispatch_once(const std::string& method, const json& params, const j
         int queued = 0;
         if (!state->compare_exchange_strong(queued, 1)) return;   // abandoned by a timeout
         try {
-            prom->set_value(handle_on_main(method, params, id));
+            prom->set_value(timed_handle(method, params, id));
         } catch (const std::exception& ex) {
             prom->set_value(rpc_error(id, -32000, std::string("internal error: ") + ex.what()));
         } catch (...) {
@@ -4056,6 +4211,7 @@ void start_mcp_control_if_enabled()
     static bool started = false;
     if (started) return;
     started = true;
+    install_ui_watchdog();
     std::thread(server_thread, path).detach();
 }
 
