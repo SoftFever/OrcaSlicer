@@ -212,9 +212,11 @@ private:
     // The G-code layer id (GCodeProcessorResult::MoveVertex::layer_id) of each viewer layer, in the
     // viewer's layer numbering; empty when the two numberings could not be matched.
     std::vector<unsigned int> m_layer_gcode_ids;
-    // Volume of a filament extruded within the viewer layers currently shown (support, wipe tower
-    // and flush included), from the cumulative per-layer series; nullopt when there is none.
-    std::optional<double> visible_layers_volume(size_t extruder_id) const;
+    // Volume of an extruder (model, support or wipe tower) within the layers shown on the vertical
+    // slider, from the cumulative per-layer series; nullopt when there is none.
+    std::optional<double> visible_layers_volume(size_t extruder_id, PrintEstimatedStatistics::LayerVolumeKind kind) const;
+    // Estimated time of the layers shown on the vertical slider
+    std::optional<float> visible_layers_time() const;
     //BBS: save m_gcode_result as well
     const GCodeProcessorResult* m_gcode_result;
     std::array<unsigned int, static_cast<size_t>(EMoveType::Count)> m_move_type_counts{};
