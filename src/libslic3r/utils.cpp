@@ -1744,9 +1744,7 @@ std::string format_diameter_to_str(double diameter, int precision)
     return oss.str();
 }
 
-// Returns platform-specific string to be used as log output or parsed in SysInfoDialog.
-// The latter parses the string with (semi)colons as separators, it should look about as
-// "desc1: value1; desc2: value2" or similar (spaces should not matter).
+// Returns platform-specific string to be used as log output.
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
@@ -1950,7 +1948,7 @@ void copy_directory_recursively(const boost::filesystem::path& source,
             if (cfr != CopyFileResult::SUCCESS) {
                 BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
                 throw Slic3r::CriticalException(Slic3r::format(
-                    ("Copying directory %1% to %2% failed: %3%"),
+                    _u8L("Copying directory %1% to %2% failed: %3%"),
                     source, target, error_message));
             }
         }

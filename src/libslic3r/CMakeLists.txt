@@ -265,6 +265,8 @@ set(lisbslic3r_sources
     GCode/FanMover.hpp
     GCode/GCodeProcessor.cpp
     GCode/GCodeProcessor.hpp
+    GCode/GCodeStatistics.cpp
+    GCode/GCodeStatistics.hpp
     GCode/ElegooGCodeProcessorHelper.cpp
     GCode.hpp
     GCode/PchipInterpolatorHelper.cpp
@@ -421,6 +423,54 @@ set(lisbslic3r_sources
     MaterialType.hpp
     PrintConfig.cpp
     PrintConfig.hpp
+    PrintConfigDef_Internal_PresetPlumbing.cpp
+    PrintConfigDef_Internal_PrintSequence.cpp
+    PrintConfigDef_Internal_FeatureFlags.cpp
+    PrintConfigDef_Internal_Compatibility.cpp
+    PrintConfigDef_Internal_ExtruderVariants.cpp
+    PrintConfigDef_Internal_FilamentProperties.cpp
+    PrintConfigDef_Internal_FilamentMap.cpp
+    PrintConfigDef_Internal_WipeFlush.cpp
+    PrintConfigDef_Internal_Fans.cpp
+    PrintConfigDef_Internal_FilamentChange.cpp
+    PrintConfigDef_Internal_FilamentMix.cpp
+    PrintConfigDef_Internal_SupportExtras.cpp
+    PrintConfigDef_Internal_FaultDetection.cpp
+    PrintConfigDef_Internal_Calibration.cpp
+    PrintConfigDef_Internal_PrimeVolume.cpp
+    PrintConfigDef_Internal_MachineKinematics.cpp
+    PrintConfigDef_Internal_Retraction.cpp
+    PrintConfigDef_Internal_Travel.cpp
+    PrintConfigDef_Internal_ExtruderIdentity.cpp
+    PrintConfigDef_Internal_ImexAndTimelapse.cpp
+    PrintConfigDef_Internal_AmsDrying.cpp
+    PrintConfigDef_Internal_HotendTiming.cpp
+    PrintConfigDef_Printer_MotionAbility.cpp
+    PrintConfigDef_Filament_Notes.cpp
+    PrintConfigDef_Printer_Notes.cpp
+    PrintConfigDef_Process_Dependencies.cpp
+    PrintConfigDef_FilamentOverrides.cpp
+    PrintConfigDef_Process_Quality.cpp
+    PrintConfigDef_Filament_Filament.cpp
+    PrintConfigDef_Prepare_PlateSettings.cpp
+    PrintConfigDef_Printer_MachineGCode.cpp
+    PrintConfigDef_Process_Strength.cpp
+    PrintConfigDef_Filament_Cooling.cpp
+    PrintConfigDef_Process_Speed.cpp
+    PrintConfigDef_Process_Others.cpp
+    PrintConfigDef_Filament_Dependencies.cpp
+    PrintConfigDef_Process_Support.cpp
+    PrintConfigDef_Filament_Advanced.cpp
+    PrintConfigDef_Printer_BasicInformation.cpp
+    PrintConfigDef_Printer_Extruder.cpp
+    PrintConfigDef_Printer_Multimaterial.cpp
+    PrintConfigDef_Filament_Multimaterial.cpp
+    PrintConfigDef_Process_Multimaterial.cpp
+    PrintConfigDef.cpp
+    DynamicPrintConfig.cpp
+    CLIPrintConfig.cpp
+    SlicingStatesConfig.cpp
+    PrintStatisticsConfig.cpp
     Print.cpp
     Print.hpp
     PrintObject.cpp
@@ -625,6 +675,7 @@ add_library(libslic3r_cgal STATIC
     CutSurface.hpp CutSurface.cpp
     IntersectionPoints.hpp IntersectionPoints.cpp
     MeshBoolean.hpp MeshBoolean.cpp
+    MeshRepair.hpp MeshRepair.cpp
     TryCatchSignal.hpp TryCatchSignal.cpp
     Triangulation.hpp Triangulation.cpp
 )
@@ -652,7 +703,9 @@ if (IS_CLANG_CL)
     target_compile_options(libslic3r_cgal PRIVATE -Wno-overriding-option)
 endif ()
 
-target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} admesh libigl mcut boost_libs)
+# Lets CGAL algorithms given CGAL::Parallel_if_available_tag run on TBB.
+target_compile_definitions(libslic3r_cgal PRIVATE CGAL_LINKED_WITH_TBB)
+target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} admesh libigl mcut boost_libs TBB::tbb)
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)

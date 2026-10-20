@@ -9,10 +9,13 @@
 #include <boost/filesystem/directory.hpp>
 #include <boost/filesystem/file_status.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include "PluginAuditManager.hpp"
 #include "PythonInterpreter.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/format.hpp"
 
 #include <exception>
 #include <miniz.h>
@@ -93,7 +96,7 @@ bool resolve_allowed_plugin_root(const PluginDescriptor& descriptor,
 
     const fs::path plugin_root = resolve_plugin_root_from_descriptor(descriptor);
     if (plugin_root.empty()) {
-        error = "Plugin folder could not be determined.";
+        error = _u8L("Plugin folder could not be determined.");
         return false;
     }
 
@@ -104,7 +107,7 @@ bool resolve_allowed_plugin_root(const PluginDescriptor& descriptor,
         resolved_root = fs::absolute(plugin_root, ec);
     }
     if (ec || resolved_root.empty()) {
-        error = "Failed to resolve plugin folder: " + plugin_root.string();
+        error = GUI::format(_u8L("Failed to resolve plugin folder: %1%"), plugin_root.string());
         return false;
     }
 
@@ -123,7 +126,8 @@ bool delete_plugin_root(const boost::filesystem::path& resolved_root, const std:
     boost::system::error_code ec;
     const auto removed_count = fs::remove_all(resolved_root, ec);
     if (ec) {
-        error = "Failed to delete plugin folder " + resolved_root.string() + ": " + ec.message();
+        // TRN %1% is a folder path, %2% the system error message.
+        error = GUI::format(_u8L("Failed to delete plugin folder %1%: %2%"), resolved_root.string(), ec.message());
         return false;
     }
 
@@ -1204,7 +1208,7 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
     namespace fs = boost::filesystem;
 
     if (!fs::exists(plugin_dir) || !fs::is_directory(plugin_dir)) {
-        error = "Plugin directory does not exist: " + plugin_dir.string();
+        error = GUI::format(_u8L("Plugin directory does not exist: %1%"), plugin_dir.string());
         return {};
     }
 
@@ -1220,15 +1224,17 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
         const fs::path ext = it->path().extension();
         if (ext == ".py") {
             if (!py_entry.empty()) {
-                error = "Plugin directory contains multiple .py files: " + py_entry.filename().string() +
-                        " and " + it->path().filename().string();
+                // TRN %1% and %2% are file names.
+                error = GUI::format(_u8L("Plugin directory contains multiple .py files: %1% and %2%"),
+                                    py_entry.filename().string(), it->path().filename().string());
                 return {};
             }
             py_entry = it->path();
         } else if (ext == ".whl") {
             if (!whl_entry.empty()) {
-                error = "Plugin directory contains multiple .whl files: " + whl_entry.filename().string() +
-                        " and " + it->path().filename().string();
+                // TRN %1% and %2% are file names.
+                error = GUI::format(_u8L("Plugin directory contains multiple .whl files: %1% and %2%"),
+                                    whl_entry.filename().string(), it->path().filename().string());
                 return {};
             }
             whl_entry = it->path();
@@ -1236,7 +1242,7 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
     }
 
     if (!py_entry.empty() && !whl_entry.empty()) {
-        error = "Plugin directory contains both .py and .whl entry files";
+        error = _u8L("Plugin directory contains both .py and .whl entry files");
         return {};
     }
 
@@ -1246,8 +1252,80 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
     if (!whl_entry.empty())
         return whl_entry;
 
-    error = "Plugin directory does not contain a .py or .whl entry file";
+    error = _u8L("Plugin directory does not contain a .py or .whl entry file");
     return {};
+}
+
+std::vector<std::string> collect_resource_texture_files(const std::string& dir,
+                                                        const std::string& plugin_root,
+                                                        std::string& error)
+{
+    namespace fs = boost::filesystem;
+
+    // Picker sanity bound, not a security control: the popup draws every entry in its grid.
+    constexpr size_t kMaxResourceTextureFiles = 64;
+
+    std::vector<std::string> files;
+    error.clear();
+
+    if (dir.empty()) {
+        error = _u8L("Resource texture directory is not set");
+        return files;
+    }
+    if (plugin_root.empty()) {
+        error = _u8L("Plugin folder could not be determined.");
+        return files;
+    }
+
+    boost::system::error_code ec;
+    const fs::path resolved_dir = fs::weakly_canonical(fs::path(dir), ec);
+    if (ec) {
+        error = _u8L("Resource texture directory could not be resolved");
+        return files;
+    }
+
+    if (!fs::is_directory(resolved_dir, ec) || ec) {
+        error = _u8L("Resource texture path is not a directory");
+        return files;
+    }
+
+    const fs::path resolved_root = fs::weakly_canonical(fs::path(plugin_root), ec);
+    if (ec) {
+        error = _u8L("Plugin folder could not be resolved");
+        return files;
+    }
+
+    if (!is_inside_allowed_root(resolved_dir, resolved_root)) {
+        error = _u8L("Resource texture directory is outside the plugin folder");
+        return files;
+    }
+
+    for (fs::directory_iterator it(resolved_dir, ec), end; it != end && !ec; it.increment(ec)) {
+        const fs::path& path = it->path();
+
+        if (!fs::is_regular_file(path, ec) || ec)
+            continue;
+
+        std::string ext = path.extension().string();
+        boost::algorithm::to_lower(ext);
+        if (ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".bmp")
+            continue;
+
+        // Re-check per file: a symlink inside the pack must not resolve outside it.
+        if (!is_inside_allowed_root(path, resolved_root))
+            continue;
+
+        files.push_back(path.string());
+        if (files.size() >= kMaxResourceTextureFiles)
+            break;
+    }
+
+    if (ec) {
+        error = _u8L("Resource texture directory could not be read");
+        return {};
+    }
+
+    return files;
 }
 
 } // namespace Slic3r

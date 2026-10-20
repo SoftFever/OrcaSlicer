@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" type="text/css" href="../include/swiper/swiper-bundle.min.css" />
 <script type="text/javascript" src="../include/swiper/swiper-bundle.min.js"></script>
-<script type="text/javascript" src="../data/text.js"></script>		
+<script type="text/javascript" src="../include/i18n.js"></script>		
 	
 <script type="text/javascript" src="js/home.js"></script>
 <script type="text/javascript" src="js/home-calibration-button.js"></script>
@@ -34,7 +34,7 @@
 				<span id="UserName" class="AccountName"></span>
 				<span class="AccountSecondary">Orca Cloud</span>
 			</span>
-			<span class="AccountSignIn trans" tid="t26">Login</span>
+			<span class="AccountSignIn" data-i18n="login">Login</span>
 			<svg class="AccountChevron" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 				<path d="M3 4.75L6 7.75L9 4.75" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
 			</svg>
@@ -47,7 +47,7 @@
 				<svg class="SectionChevron" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 					<path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 				</svg>
-				<span class="SectionLabel trans" tid="orca6">Bambu Cloud</span>
+				<span class="SectionLabel">Bambu Cloud</span>
 				<span id="BambuStatusDot"></span>
 			</div>
 
@@ -59,16 +59,16 @@
 					</span>
 					<span class="AccountText">
 						<span id="BambuUserName" class="AccountName"></span>
-						<span class="AccountSecondary trans" tid="orca8">Not signed in</span>
+						<span class="AccountSecondary" data-i18n="not_signed_in">Not signed in</span>
 					</span>
-					<span class="AccountSignIn trans" tid="t26">Login</span>
+					<span class="AccountSignIn" data-i18n="login">Login</span>
 					<svg class="AccountChevron" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 						<path d="M3 4.75L6 7.75L9 4.75" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
 					</svg>
 				</div>
 
 				<div id="NoPluginTip">
-					<div id="NoPluginText"><a class="RedFont trans" tid="t76">Network plugin not detected. Click </a><a Class="LinkBtn trans" onClick="BeginDownloadNetworkPlugin()" tid="t77">here</a><a class="RedFont trans" tid="t78"> to install it.</a></div>
+					<div id="NoPluginText" class="RedFont"><a class="LinkBtn" onClick="BeginDownloadNetworkPlugin()"></a></div>
 				</div>
 			</div>
 		</div>
@@ -80,7 +80,7 @@
 			<div id="AccountMenuHandle" role="presentation"></div>
 			<div id="AccountMenuLogout" role="menuitem" tabindex="0" onClick="OnAccountMenuLogout()">
 				<span id="AccountMenuLogoutIcon"></span>
-				<span class="trans" tid="t50">Log out</span>
+				<span data-i18n="log_out">Log Out</span>
 			</div>
 		</div>
 
@@ -89,18 +89,11 @@
 	<div id="BtnArea">
 	    <div menu="recent" class="BtnItem BtnItemSelected" onClick="GotoMenu('recent')">
 			<div class="BtnIcon "><img class="LeftIcon" src="img/i2.png" /></div>
-			<div class="trans" tid="t28">recent</div> 
+			<div data-i18n="recent">Recent</div> 
 		</div>
-	    <div class="BtnItem BtnShortcut" onClick="OpenUrlInLocalBrowser('https://cloud.orcaslicer.com')">
+	    <div class="BtnItem BtnShortcut" onClick="GotoCloud()">
 			<div class="BtnIcon "><img class="ShortcutBrandIcon" src="../image/logo.png" /></div>
-			<div class="ShortcutTextRow">
-				<div>OrcaCloud</div>
-				<svg class="ShortcutMark" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-					<path d="M6 3.5H3.5C2.95 3.5 2.5 3.95 2.5 4.5V12.5C2.5 13.05 2.95 13.5 3.5 13.5H11.5C12.05 13.5 12.5 13.05 12.5 12.5V10" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-					<path d="M8.5 3.5H13.5V8.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-					<path d="M13.5 3.5L7 10" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-				</svg>
-			</div>
+			<div>OrcaCloud</div>
 		</div>
 
 	</div>
@@ -120,22 +113,22 @@
 		<div class="MenuItem" onClick="OnClickNewProject()">
 			<div class="MenuIcon"><img src="img/i4.png"></div>
 			<div>
-				<div class="trans TextS1" tid="t31">new project</div>
-				<div class="MenuDesc trans"  tid="t32">create new project</div>
+				<div class="TextS1" data-i18n="new_project">New Project</div>
+				<div class="MenuDesc" data-i18n="create_new_project">Create new project</div>
 			</div>
 		</div>
 		<div class="MenuItem" onClick="OnClickOpenProject()">
 			<div class="MenuIcon"><img src="img/i5.png"></div>
 			<div>
-				<div class="trans TextS1" tid="t33">open project</div>
+				<div class="TextS1" data-i18n="open_project">Open Project</div>
 				<div class="MenuDesc">3mf</div>
 			</div>
 		</div>		
 		<div class="MenuItem" id="cali_menu_trigger" onClick="OnClickCalibration()">
 			<div class="MenuIcon"><img src="../../images/calib_sf.svg"></div>
 			<div>
-				<div class="trans TextS1" tid="t127">new calibration</div>
-				<div class="MenuDesc trans" tid="t128">tune your printer</div>
+				<div class="TextS1" data-i18n="new_calibration">New Calibration</div>
+				<div class="MenuDesc" data-i18n="tune_your_printer">Tune your printer</div>
 			</div>
 		</div>
 	</div>
@@ -146,89 +139,89 @@
 	     Each row carries its own CalibKind ordinal in onClick, so the grouping is presentational
 	     only and cannot affect dispatch. -->
 	<div id="cali_context_menu">
-		<div class="CaliMenuTitle trans" tid="t129">Recommended order</div>
-		<div class="CaliGroupHeader trans" tid="t151">Per printer</div>
+		<div class="CaliMenuTitle" data-i18n="recommended_test_order">Recommended Test Order</div>
+		<div class="CaliGroupHeader" data-i18n="per_printer">Per printer</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(5)">
 			<div class="CaliItemIcon"><img src="../../images/param_precision.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t140">Cornering</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t159">corners look rounded or wavy</span></div>
-				<div class="CaliItemDesc trans" tid="t141">Measures speed lost at sharp direction changes.</div>
+				<div class="CaliItemName" data-i18n="cali_cornering">Cornering</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_cornering_when">corners look rounded or wavy</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_cornering_desc">Measures speed lost at sharp direction changes.</div>
 			</div>
 		</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(6)">
 			<div class="CaliItemIcon"><img src="../../images/param_resonance_avoidance.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t142">Input shaping frequency</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t160">once per printer</span></div>
-				<div class="CaliItemDesc trans" tid="t143">Finds the machine's resonant frequency so input shaping can cancel ringing.</div>
+				<div class="CaliItemName" data-i18n="cali_input_shaping_frequency">Input shaping frequency</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_input_shaping_frequency_when">once per printer</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_input_shaping_frequency_desc">Finds the machine's resonant frequency so input shaping can cancel ringing.</div>
 			</div>
 		</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(7)">
 			<div class="CaliItemIcon"><img src="../../images/param_resonance_avoidance.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t144">Input shaping damping</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t161">after the frequency is set</span></div>
-				<div class="CaliItemDesc trans" tid="t145">Tunes how hard that ringing gets cancelled.</div>
+				<div class="CaliItemName" data-i18n="cali_input_shaping_damping">Input shaping damping</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_input_shaping_damping_when">after the frequency is set</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_input_shaping_damping_desc">Tunes how hard that ringing gets cancelled.</div>
 			</div>
 		</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(8)">
 			<div class="CaliItemIcon"><img src="../../images/param_speed.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t146">VFA</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t162">fast prints look rough on the surface</span></div>
-				<div class="CaliItemDesc trans" tid="t147">Measures vertical fine artifacts left by high-speed moves.</div>
+				<div class="CaliItemName" data-i18n="cali_vfa">VFA</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_vfa_when">fast prints look rough on the surface</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_vfa_desc">Measures vertical fine artifacts left by high-speed moves.</div>
 			</div>
 		</div>
-		<div class="CaliGroupHeader CaliGroupHeaderSep trans" tid="t152">Per filament</div>
+		<div class="CaliGroupHeader CaliGroupHeaderSep" data-i18n="per_filament">Per filament</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(0)">
 			<div class="CaliItemIcon"><img src="../../images/param_temperature.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t130">Temperature</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t154">corners blob or detail is stringy</span></div>
-				<div class="CaliItemDesc trans" tid="t131">Finds the best nozzle temperature for this filament.</div>
+				<div class="CaliItemName" data-i18n="cali_temperature">Temperature</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_temperature_when">corners blob or detail is stringy</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_temperature_desc">Finds the best nozzle temperature for this filament.</div>
 			</div>
 		</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(1)">
 			<div class="CaliItemIcon"><img src="../../images/param_volumetric_speed.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t132">Max volumetric speed</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t155">before raising speed limits</span></div>
-				<div class="CaliItemDesc trans" tid="t133">Finds the fastest the hotend can melt without starving.</div>
+				<div class="CaliItemName" data-i18n="cali_max_volumetric_speed">Max volumetric speed</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_max_volumetric_speed_when">before raising speed limits</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_max_volumetric_speed_desc">Finds the fastest the hotend can melt without starving.</div>
 			</div>
 		</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(2)">
 			<div class="CaliItemIcon"><img src="../../images/param_flow_ratio_and_pressure_advance.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t134">Pressure advance</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t156">after changing extruder, filament or temps</span></div>
-				<div class="CaliItemDesc trans" tid="t135">Tunes how far the nozzle moves ahead of its own pressure.</div>
+				<div class="CaliItemName" data-i18n="cali_pressure_advance">Pressure advance</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_pressure_advance_when">after changing extruder, filament or temps</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_pressure_advance_desc">Tunes how far the nozzle moves ahead of its own pressure.</div>
 			</div>
 		</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(3)">
 			<div class="CaliItemIcon"><img src="../../images/param_flow_ratio_and_pressure_advance.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t136">Flow ratio</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t157">for thin or inconsistent extrusion</span></div>
-				<div class="CaliItemDesc trans" tid="t137">Measures how much material really lands on the build plate.</div>
+				<div class="CaliItemName" data-i18n="cali_flow_ratio">Flow ratio</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_flow_ratio_when">for thin or inconsistent extrusion</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_flow_ratio_desc">Measures how much material really lands on the build plate.</div>
 			</div>
 		</div>
 		<div class="CaliItem" onClick="OnSelectCalibrationTest(4)">
 			<div class="CaliItemIcon"><img src="../../images/param_retraction.svg"></div>
 			<div class="CaliItemText">
-				<div class="CaliItemName trans" tid="t138">Retraction</div>
-				<div class="CaliItemWhen"><span class="CaliWhenLabel trans" tid="t153">When:</span> <span class="CaliWhenText trans" tid="t158">stringing issues</span></div>
-				<div class="CaliItemDesc trans" tid="t139">Finds the shortest retraction that still stops ooze during travel.</div>
+				<div class="CaliItemName" data-i18n="cali_retraction">Retraction</div>
+				<div class="CaliItemWhen"><span class="CaliWhenLabel" data-i18n="when_label">When:</span> <span class="CaliWhenText" data-i18n="cali_retraction_when">stringing issues</span></div>
+				<div class="CaliItemDesc" data-i18n="cali_retraction_desc">Finds the shortest retraction that still stops ooze during travel.</div>
 			</div>
 		</div>
-		<div class="CaliMenuFooter trans" tid="t148" onClick="OnClickCalibrationGuide()">calibration guide</div>
+		<div class="CaliMenuFooter" data-i18n="calibration_guide" onClick="OnClickCalibrationGuide()">Calibration guide</div>
 	</div>
 
 	<div id="DebugText"></div>	
 	<div id="RecentFileArea">
 		<div id="RecentTitleBlock">
-		    <div id="RecentTitle" class="Content-Title trans TextS1" tid="t35">recent open</div>
-			<div id="RecentClearAllBtn" class="ButtonStyleRegular ButtonTypeWindow trans" tid="t12" onClick="OnDeleteAllRecentFiles()">Clear all</div>
+		    <div id="RecentTitle" class="Content-Title TextS1" data-i18n="recently_opened">Recently opened</div>
+			<div id="RecentClearAllBtn" class="ButtonStyleRegular ButtonTypeWindow" onClick="OnDeleteAllRecentFiles()" data-i18n="clear_all">Clear all</div>
 		</div>
 		<div id="FileList">
 <!--		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
@@ -311,11 +304,11 @@
 	<div id="recnet_context_menu">
 		<div id="CT_Delete_Bar" class="CT_Item" onClick="OnDeleteRecentFile()">
 			<div class="CT_Icon CT_Delete"></div>
-			<div class="CT_Text trans" tid="t88">clear</div>
+			<div class="CT_Text" data-i18n="remove">Remove</div>
 		</div>
 		<div id="CT_Folder_Bar" class="CT_Item " onClick="OnExploreRecentFile()" >
 			<div class="CT_Icon CT_Explore"></div>
-			<div class="CT_Text trans" tid="t89">open in explorer </div>
+			<div class="CT_Text" data-i18n="open_containing_folder">Open Containing Folder</div>
 		</div>				
     </div>
 	
