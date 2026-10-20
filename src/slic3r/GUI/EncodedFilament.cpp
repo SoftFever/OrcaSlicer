@@ -1,6 +1,7 @@
 #include "EncodedFilament.hpp"
 #include "libslic3r/Utils.hpp"
 #include <fstream>
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <cassert>
 #include <nlohmann/json.hpp>
@@ -23,10 +24,19 @@ static wxString _ColourToString(const wxColour& color)
     return wxString::Format("#%02X%02X%02X%02X", color.Red(), color.Green(), color.Blue(), color.Alpha());
 }
 
+// A vendor installed from its preset cache (<vendor>.opc) has no system/BBL
+// directory in the data dir, so fall back to the copy shipped with the app.
+static std::string filament_color_codes_path()
+{
+    const std::string relative_path = "/BBL/filament/filaments_color_codes.json";
+    const std::string installed     = data_dir() + "/system" + relative_path;
+    return boost::filesystem::exists(installed) ? installed : resources_dir() + "/profiles" + relative_path;
+}
+
 FilamentColorCodeQuery::FilamentColorCodeQuery()
 {
     m_fila_id2colors_map = new std::unordered_map<wxString, FilamentColorCodes*>;
-    m_fila_path = data_dir() + "/system/BBL/filament/filaments_color_codes.json";
+    m_fila_path = filament_color_codes_path();
     LoadFromLocal();
 }
 
