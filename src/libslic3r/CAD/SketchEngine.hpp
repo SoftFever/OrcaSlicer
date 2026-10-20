@@ -12,6 +12,7 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Face.hxx>
 #include <cmath>
+#include <ios>
 #include <locale>
 #include <sstream>
 #include <string>

@@ -15,6 +15,7 @@
 #include <vector>
 #include <cstddef>
 #include <memory>
+#include <utility>
 #include "libslic3r/Point.hpp"
 #include <TopAbs_ShapeEnum.hxx>
 #include <GeomAbs_SurfaceType.hxx>

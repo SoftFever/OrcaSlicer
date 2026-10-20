@@ -29,6 +29,7 @@
 #include <atomic>
 #include <mutex>
 #include <deque>
+#include <cstdio>   // SEEK_END
 #include <set>
 #ifdef __linux__
 #include <execinfo.h>   // backtrace: the UI thread's stack when it stops answering
