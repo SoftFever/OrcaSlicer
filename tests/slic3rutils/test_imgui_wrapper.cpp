@@ -104,6 +104,18 @@ void draw_modal()
         ImGui::EndPopup();
 }
 
+void draw_dropdown(bool open)
+{
+    ImGui::Begin("window");
+    if (open)
+        ImGui::OpenPopup("dropdown");
+    if (ImGui::BeginPopup("dropdown")) {
+        ImGui::Text("item");
+        ImGui::EndPopup();
+    }
+    ImGui::End();
+}
+
 wxKeyEvent key_event(wxEventType type, int key_code, int modifiers = wxMOD_NONE)
 {
     wxKeyEvent evt(type);
@@ -208,6 +220,31 @@ TEST_CASE("ImGui owns the whole keyboard under a modal or in an active InputText
         draw_modal();
     });
     CHECK(f.imgui.owns_keyboard());
+}
+
+TEST_CASE("an open dropdown owns the whole keyboard until it is closed", "[ImGuiWrapper]")
+{
+    ImGuiFrames f;
+    f.frame([] { draw_dropdown(true); });
+    CHECK(f.imgui.popup_open());
+    CHECK(f.imgui.owns_keyboard());
+
+    f.imgui.close_top_popup();
+    f.frame([] { draw_dropdown(false); });
+    CHECK_FALSE(f.imgui.popup_open());
+    CHECK_FALSE(f.imgui.owns_keyboard());
+}
+
+TEST_CASE("closing the top popup leaves a modal open", "[ImGuiWrapper]")
+{
+    ImGuiFrames f;
+    f.frame([] {
+        ImGui::OpenPopup("modal");
+        draw_modal();
+    });
+    f.imgui.close_top_popup();
+    f.frame([] { draw_modal(); });
+    CHECK(f.imgui.modal_popup_open());
 }
 
 TEST_CASE("a held slider owns no key although ImGui wants the keyboard", "[ImGuiWrapper]")

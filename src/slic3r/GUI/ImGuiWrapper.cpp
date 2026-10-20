@@ -2143,14 +2143,35 @@ bool ImGuiWrapper::text_input_active() const
     return g.WithinFrameScope ? g.IO.WantTextInput : g.WantTextInputNextFrame == 1;
 }
 
+// A popup stays on the popup stack while its canvas is hidden, so it counts only if the last finished frame
+// drew it, which NewFrame() moves from Active to WasActive.
+static bool drawn_last_frame(const ImGuiWindow* popup)
+{
+    return popup != nullptr && (ImGui::GetCurrentContext()->WithinFrameScope ? popup->WasActive : popup->Active);
+}
+
 bool ImGuiWrapper::modal_popup_open() const
 {
-    // A modal stays on the popup stack while its canvas is hidden, so it counts only if the last finished
-    // frame drew it, which NewFrame() moves from Active to WasActive.
-    const ImGuiWindow* modal = ImGui::GetTopMostPopupModal();
-    if (modal == nullptr)
-        return false;
-    return ImGui::GetCurrentContext()->WithinFrameScope ? modal->WasActive : modal->Active;
+    return drawn_last_frame(ImGui::GetTopMostPopupModal());
+}
+
+bool ImGuiWrapper::popup_open() const
+{
+    const ImVector<ImGuiPopupData>& stack = ImGui::GetCurrentContext()->OpenPopupStack;
+    return std::any_of(stack.begin(), stack.end(), [](const ImGuiPopupData& popup) { return drawn_last_frame(popup.Window); });
+}
+
+void ImGuiWrapper::close_top_popup()
+{
+    const ImVector<ImGuiPopupData>& stack = ImGui::GetCurrentContext()->OpenPopupStack;
+    for (int level = stack.Size - 1; level >= 0; --level) {
+        const ImGuiWindow* popup = stack[level].Window;
+        if (!drawn_last_frame(popup))
+            continue;
+        if ((popup->Flags & ImGuiWindowFlags_Modal) == 0)
+            ImGui::ClosePopupToLevel(level, true);
+        return;
+    }
 }
 
 bool ImGuiWrapper::owns_key(const KeyChord& chord) const
@@ -2160,7 +2181,7 @@ bool ImGuiWrapper::owns_key(const KeyChord& chord) const
 
 bool ImGuiWrapper::owns_keyboard() const
 {
-    return modal_popup_open() || text_input_active();
+    return popup_open() || text_input_active();
 }
 
 bool ImGuiWrapper::claim_key_event(const wxKeyEvent& evt)

@@ -228,9 +228,13 @@ public:
     bool text_input_active() const;
     // True while an ImGui modal popup is on screen.
     bool modal_popup_open() const;
+    // True while any ImGui popup is on screen, modal or not.
+    bool popup_open() const;
+    // Closes the topmost popup on screen unless it is a modal, which handles Esc itself.
+    void close_top_popup();
     // True for every key while a modal is open, and for text-editing keys while an InputText is active.
     bool owns_key(const KeyChord& chord) const;
-    // True while a modal is open or an InputText is active.
+    // True while a popup is open or an InputText is active.
     bool owns_keyboard() const;
     // Returns owns_keyboard() as of the key's key-down, so its repeats, char event and release get the
     // same answer. Call it once per event.

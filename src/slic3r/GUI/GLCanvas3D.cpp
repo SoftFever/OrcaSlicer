@@ -4314,6 +4314,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
         key_released(keyCode);
     const bool alt_wheel_released = evt.GetEventType() == wxEVT_KEY_UP && keyCode == WXK_ALT && std::exchange(m_alt_wheel_used, false);
 
+    // ImGui closes a popup on Esc only through keyboard navigation, which is off.
+    if (imgui_claimed && evt.GetEventType() == wxEVT_KEY_DOWN && keyCode == WXK_ESCAPE)
+        imgui->close_top_popup();
     if (imgui->update_key_data(evt) || imgui_claimed)
         render();
     if (!imgui_claimed)

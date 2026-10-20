@@ -63,9 +63,12 @@ next frame starts, and is called only when the focus is on a visible canvas from
 
 The `Plater`, `Preview` and `Painting` shortcuts act on the 3D view, so they run only while
 the 3D view has the keyboard. `GLCanvas3D` feeds every key event to ImGui and asks
-`ImGuiWrapper::claim_key_event()` whether to act on it as well. While an ImGui modal is open
-or an ImGui InputText is active, ImGui claims every key, as a focused sidebar text field
-keeps every key from the canvas. A held slider or button claims none, so the shortcuts keep
+`ImGuiWrapper::claim_key_event()` whether to act on it as well. While an ImGui popup (a
+dropdown, a menu or a modal) is open or an ImGui InputText is active, ImGui claims every key,
+as a focused sidebar text field or an open native dropdown keeps every key from the canvas.
+Esc then closes the topmost dropdown or menu, since this ImGui closes popups on Esc only
+through keyboard navigation, which is off; a modal handles Esc itself. A second Esc reaches
+the canvas once nothing claims it. A held slider or button claims none, so the shortcuts keep
 working while one is dragged. One side handles a key from its key-down to its release. Its
 repeats, its char event and its release follow the key-down's decision even when a field or
 modal opens or closes in between, so a key never both runs a shortcut and types, and a
