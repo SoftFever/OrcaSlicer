@@ -3827,11 +3827,10 @@ void TabPrintPlate::update_mixed_filament_seq_state()
     auto &proj_cfg  = m_preset_bundle->project_config;
     auto *opt       = proj_cfg.option<ConfigOptionBools>("filament_is_mixed");
     bool  has_mixed = opt && has_any_mixed_filament(opt->values);
+    const wxString mixed_filament_order_reason = _L("Custom filament print order is unavailable while the plate contains mixed-color filaments.");
 
-    toggle_option("first_layer_sequence_choice", !has_mixed, -1,
-        _L("Custom filament print order is unavailable while the plate contains mixed-color filaments."));
-    toggle_option("other_layers_sequence_choice", !has_mixed, -1,
-        _L("Custom filament print order is unavailable while the plate contains mixed-color filaments."));
+    toggle_option("first_layer_sequence_choice", !has_mixed, -1, mixed_filament_order_reason);
+    toggle_option("other_layers_sequence_choice", !has_mixed, -1, mixed_filament_order_reason);
 }
 
 void TabPrintModel::on_value_change(const std::string& opt_id, const boost::any& value)
@@ -5071,10 +5070,11 @@ void TabFilament::toggle_options()
 
         if (support_air_filtration) {
             bool activate_air_filtration = m_config->opt_bool("activate_air_filtration", 0);
-            toggle_option("activate_air_filtration_during_print", activate_air_filtration, -1, _L("Activate air filtration to edit this setting."));
+            const wxString air_filtration_reason = _L("Activate air filtration to edit this setting.");
+            toggle_option("activate_air_filtration_during_print", activate_air_filtration, -1, air_filtration_reason);
             toggle_option("during_print_exhaust_fan_speed", activate_air_filtration && m_config->opt_bool("activate_air_filtration_during_print", 0), -1,
                 _L("Activate air filtration and enable it during printing to edit the exhaust fan speed."));
-            toggle_option("activate_air_filtration_on_completion", activate_air_filtration, -1, _L("Activate air filtration to edit this setting."));
+            toggle_option("activate_air_filtration_on_completion", activate_air_filtration, -1, air_filtration_reason);
             toggle_option("complete_print_exhaust_fan_speed", activate_air_filtration && m_config->opt_bool("activate_air_filtration_on_completion", 0), -1,
                 _L("Activate air filtration and enable it on completion to edit the exhaust fan speed."));
         }
@@ -5082,7 +5082,8 @@ void TabFilament::toggle_options()
     if (m_active_page->title() == L("Filament"))
     {
         bool pa = m_config->opt_bool("enable_pressure_advance", variant_index);
-        toggle_option("pressure_advance", pa, 256 + variant_index, _L("Enable pressure advance to use this setting."));
+        const wxString pressure_advance_reason = _L("Enable pressure advance to use this setting.");
+        toggle_option("pressure_advance", pa, 256 + variant_index, pressure_advance_reason);
 
         //Orca: Enable the plates that should be visible when multi bed support is enabled or a BBL printer is selected; otherwise, enable only the plate visible for the selected bed type.
         DynamicConfig& proj_cfg               = m_preset_bundle->project_config;
@@ -5111,15 +5112,13 @@ void TabFilament::toggle_options()
         // Orca: adaptive pressure advance and calibration model
         // If PA is not enabled, disable adaptive pressure advance and hide the model section
         // If adaptive PA is not enabled, hide the adaptive PA model section
-        toggle_option("adaptive_pressure_advance", pa, 0, _L("Enable pressure advance to use this setting."));
-        toggle_option("adaptive_pressure_advance_overhangs", pa, 0, _L("Enable pressure advance to use this setting."));
+        toggle_option("adaptive_pressure_advance", pa, 0, pressure_advance_reason);
+        toggle_option("adaptive_pressure_advance_overhangs", pa, 0, pressure_advance_reason);
         bool has_adaptive_pa = m_config->opt_bool("adaptive_pressure_advance", variant_index);
-        toggle_line("adaptive_pressure_advance_overhangs", has_adaptive_pa && pa, 0,
-            _L("Enable pressure advance and adaptive pressure advance to use this setting."));
-        toggle_line("adaptive_pressure_advance_model", has_adaptive_pa && pa, 0,
-            _L("Enable pressure advance and adaptive pressure advance to use this setting."));
-        toggle_line("adaptive_pressure_advance_bridges", has_adaptive_pa && pa, 0,
-            _L("Enable pressure advance and adaptive pressure advance to use this setting."));
+        const wxString adaptive_pressure_advance_reason = _L("Enable pressure advance and adaptive pressure advance to use this setting.");
+        toggle_line("adaptive_pressure_advance_overhangs", has_adaptive_pa && pa, 0, adaptive_pressure_advance_reason);
+        toggle_line("adaptive_pressure_advance_model", has_adaptive_pa && pa, 0, adaptive_pressure_advance_reason);
+        toggle_line("adaptive_pressure_advance_bridges", has_adaptive_pa && pa, 0, adaptive_pressure_advance_reason);
 
         bool is_pellet_printer = printer_cfg.opt_bool("pellet_modded_printer");
         toggle_line("pellet_flow_coefficient", is_pellet_printer, -1, _L("Enable the pellet printer option in the printer profile to use this setting."));
@@ -5139,15 +5138,17 @@ void TabFilament::toggle_options()
 
     if (m_active_page->title() == L("Multimaterial")) {
         // Orca: hide specific settings for BBL printers
-        toggle_option("filament_minimal_purge_on_wipe_tower", !is_BBL_printer, 256 + variant_index, _L("This setting is unavailable for Bambu Lab printers."));
+        const wxString bambu_printer_reason = _L("This setting is unavailable for Bambu Lab printers.");
+        toggle_option("filament_minimal_purge_on_wipe_tower", !is_BBL_printer, 256 + variant_index, bambu_printer_reason);
         for (auto el : {"filament_loading_speed_start", "filament_loading_speed",
                         "filament_unloading_speed_start", "filament_unloading_speed", "filament_toolchange_delay", "filament_cooling_moves",
                         "filament_cooling_initial_speed", "filament_cooling_final_speed"})
-            toggle_option(el, !is_BBL_printer, -1, _L("This setting is unavailable for Bambu Lab printers."));
+            toggle_option(el, !is_BBL_printer, -1, bambu_printer_reason);
 
         bool multitool_ramming = m_config->opt_bool("filament_multitool_ramming", variant_index);
-        toggle_option("filament_multitool_ramming_volume", multitool_ramming, 256 + variant_index, _L("Enable multitool ramming to edit this setting."));
-        toggle_option("filament_multitool_ramming_flow", multitool_ramming, 256 + variant_index, _L("Enable multitool ramming to edit this setting."));
+        const wxString multitool_ramming_reason = _L("Enable multitool ramming to edit this setting.");
+        toggle_option("filament_multitool_ramming_volume", multitool_ramming, 256 + variant_index, multitool_ramming_reason);
+        toggle_option("filament_multitool_ramming_flow", multitool_ramming, 256 + variant_index, multitool_ramming_reason);
 
         bool is_BBL_multi_extruder = is_BBL_printer && printer_cfg.option<ConfigOptionFloats>("nozzle_diameter")->size() > 1;
         toggle_line("long_retractions_when_ec", is_BBL_multi_extruder, 256 + variant_index,
@@ -6626,15 +6627,17 @@ void TabPrinter::toggle_options()
 
         // Belt printer: show belt-specific settings only when belt_printer is enabled.
         bool is_belt = m_config->opt_bool("belt_printer");
+        const wxString belt_plate_tilt_reason = _L("Build plate tilt is derived from the belt tilt on belt printers.");
         // update_fff() derives build_plate_tilt_{x,y} from the belt tilt on a belt
         // printer, so an edit here would be overwritten; keep them read-only there.
-        toggle_option("build_plate_tilt_x", !is_belt, -1, _L("Build plate tilt is derived from the belt tilt on belt printers."));
-        toggle_option("build_plate_tilt_y", !is_belt, -1, _L("Build plate tilt is derived from the belt tilt on belt printers."));
+        toggle_option("build_plate_tilt_x", !is_belt, -1, belt_plate_tilt_reason);
+        toggle_option("build_plate_tilt_y", !is_belt, -1, belt_plate_tilt_reason);
         bool expert_or_above = (m_mode >= comExpert);
-        toggle_line("belt_printer_infinite_y", is_belt, -1, _L("Enable belt printer mode to use this setting."));
+        const wxString belt_printer_reason = _L("Enable belt printer mode to use this setting.");
+        toggle_line("belt_printer_infinite_y", is_belt, -1, belt_printer_reason);
         // Belt tilt: the sole mesh-side belt transform (visible by default in belt mode).
-        toggle_line("belt_slice_rotation_angle", is_belt, -1, _L("Enable belt printer mode to use this setting."));
-        toggle_line("belt_slice_rotation", is_belt, -1, _L("Enable belt printer mode to use this setting."));
+        toggle_line("belt_slice_rotation_angle", is_belt, -1, belt_printer_reason);
+        toggle_line("belt_slice_rotation", is_belt, -1, belt_printer_reason);
 
         // Remap, back-transform, and global mesh-transforms toggles are gated by belt
         // mode here; finer mode-based visibility is handled by each option's
@@ -6642,7 +6645,7 @@ void TabPrinter::toggle_options()
         // printer profile sets it once for its kinematics, and a wrong value sends
         // the gantry outside the machine.
         for (auto el : {"gcode_remap_x", "gcode_remap_y", "gcode_remap_z"})
-            toggle_line(el, is_belt, -1, _L("Enable belt printer mode to use this setting."));
+            toggle_line(el, is_belt, -1, belt_printer_reason);
 
         // Rotation is the only mesh-side belt transform.  Gray out its angle when no
         // rotation axis is selected.
@@ -6659,7 +6662,7 @@ void TabPrinter::toggle_options()
             _L("Enable belt printer mode, select Expert or Developer settings visibility, and decouple the machine frame tilt to edit its angle."));
 
 
-        toggle_line("belt_support_floor_offset", is_belt, -1, _L("Enable belt printer mode to use this setting."));
+        toggle_line("belt_support_floor_offset", is_belt, -1, belt_printer_reason);
         const bool support_parallel_printheads = printer_cfg.opt_bool("support_parallel_printheads");
         toggle_line("parallel_printheads_count", support_parallel_printheads, -1, _L("Enable support for parallel printheads to edit their count."));
 
@@ -6726,13 +6729,14 @@ void TabPrinter::toggle_options()
 
         // IDEX/IQEX: show carriage config options only when is_imex is enabled
         bool is_imex = m_config->opt_bool("is_imex");
+        const wxString imex_reason = _L("Enable IDEX/IQEX printer mode to use this setting.");
         for (auto el : {"imex_gantry_count", "imex_tools_per_gantry",
                         "imex_nozzle_clearance_x", "imex_nozzle_clearance_y",
                         "imex_carriage_margin"})
-            toggle_option(el, is_imex, -1, _L("Enable IDEX/IQEX printer mode to use this setting."));
-        toggle_option("imex_tool_layout", is_imex, -1, _L("Enable IDEX/IQEX printer mode to use this setting."));
-        toggle_option("imex_viz_theme",   is_imex, -1, _L("Enable IDEX/IQEX printer mode to use this setting."));
-        toggle_option("imex_firmware_managed_zones", is_imex, -1, _L("Enable IDEX/IQEX printer mode to use this setting."));
+            toggle_option(el, is_imex, -1, imex_reason);
+        toggle_option("imex_tool_layout", is_imex, -1, imex_reason);
+        toggle_option("imex_viz_theme",   is_imex, -1, imex_reason);
+        toggle_option("imex_firmware_managed_zones", is_imex, -1, imex_reason);
         if (m_imex_modes_ctrl) m_imex_modes_ctrl->set_applicable(is_imex);
 
         // IDEX/IQEX: the tool_layout dropdown carries 4 corner values
@@ -6782,10 +6786,9 @@ void TabPrinter::toggle_options()
         // using a Type 2 wipe tower. SEMM already always travels to the tower as part of the purge,
         // so the option is irrelevant there.
         const size_t extruders_count = m_config->option<ConfigOptionFloats>("nozzle_diameter")->size();
-        toggle_option("tool_change_on_wipe_tower", !bSEMM && supports_wipe_tower_2 && extruders_count > 1, -1,
-            _L("Use multiple extruders with wipe tower Type 2 on a non-Bambu printer and disable single extruder multimaterial mode."));
-        toggle_option("wait_for_temp_on_wipe_tower", !bSEMM && supports_wipe_tower_2 && extruders_count > 1, -1,
-            _L("Use multiple extruders with wipe tower Type 2 on a non-Bambu printer and disable single extruder multimaterial mode."));
+        const wxString tool_change_tower_reason = _L("Use multiple extruders with wipe tower Type 2 on a non-Bambu printer and disable single extruder multimaterial mode.");
+        toggle_option("tool_change_on_wipe_tower", !bSEMM && supports_wipe_tower_2 && extruders_count > 1, -1, tool_change_tower_reason);
+        toggle_option("wait_for_temp_on_wipe_tower", !bSEMM && supports_wipe_tower_2 && extruders_count > 1, -1, tool_change_tower_reason);
     }
     if (m_active_page->title() == L("Extruder") && m_extruders_count > 0)
     {
@@ -6795,17 +6798,19 @@ void TabPrinter::toggle_options()
         const size_t extruder = std::min<size_t>(size_t(get_current_active_extruder()), m_extruders_count - 1);
         const int    variant_index = extruder_variant_index(int(extruder));
         bool have_retract_length = m_config->opt_float("retraction_length", variant_index) > 0;
+        const wxString retraction_reason = _L("Set retraction length above zero or enable firmware retraction to use this setting.");
 
-        toggle_option("extruder_printable_area", false, i, _L("The extruder printable area and height are fixed by the printer profile."));          // disable
+        const wxString extruder_geometry_reason = _L("The extruder printable area and height are fixed by the printer profile.");
+        toggle_option("extruder_printable_area", false, i, extruder_geometry_reason);          // disable
+        const wxString dual_extruder_reason = _L("This setting is shown for printers with exactly two extruders.");
         toggle_line("extruder_printable_area", m_preset_bundle->get_printer_extruder_count() == 2, i,
-            _L("This setting is shown for printers with exactly two extruders."));  //hide
+            dual_extruder_reason);  //hide
         const bool per_extruder_exclusions =
             m_config->opt_enum<BedExcludeVolumeMode>("bed_exclude_volume_mode") == BedExcludeVolumeMode::PerExtruder;
-        toggle_line("extruder_bed_exclude_volumes", m_preset_bundle->get_printer_extruder_count() > 1 && per_extruder_exclusions, i, 
+        toggle_line("extruder_bed_exclude_volumes", m_preset_bundle->get_printer_extruder_count() > 1 && per_extruder_exclusions, i,
             _L("Select per-extruder collision volumes on a printer with multiple extruders to edit this setting."));
-        toggle_option("extruder_printable_height", false, i, _L("The extruder printable area and height are fixed by the printer profile."));
-        toggle_line("extruder_printable_height", m_preset_bundle->get_printer_extruder_count() == 2, i,
-            _L("This setting is shown for printers with exactly two extruders."));
+        toggle_option("extruder_printable_height", false, i, extruder_geometry_reason);
+        toggle_line("extruder_printable_height", m_preset_bundle->get_printer_extruder_count() == 2, i, dual_extruder_reason);
 
         // when using firmware retraction, firmware decides retraction length
         bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
@@ -6813,15 +6818,14 @@ void TabPrinter::toggle_options()
 
         // user can customize travel length if we have retraction length or we"re using
         // firmware retraction
-        toggle_option("retraction_minimum_travel", have_retract_length || use_firmware_retraction, i,
-            _L("Set retraction length above zero or enable firmware retraction to use this setting."));
+        toggle_option("retraction_minimum_travel", have_retract_length || use_firmware_retraction, i, retraction_reason);
 
         // user can customize other retraction options if retraction is enabled
         //BBS
         bool retraction = have_retract_length || use_firmware_retraction;
         std::vector<std::string> vec = {"z_hop", "retract_when_changing_layer"};
         for (auto el : vec)
-            toggle_option(el, retraction, i, _L("Set retraction length above zero or enable firmware retraction to use this setting."));
+            toggle_option(el, retraction, i, retraction_reason);
 
         // retract lift above / below + enforce only applies if using retract lift
         vec.resize(0);
@@ -6898,22 +6902,23 @@ void TabPrinter::toggle_options()
         // Orca: use booleans to avoid repeated comparisons with enum values
         const bool gcf_is_marlin_legacy = gcf == GCodeFlavor::gcfMarlinLegacy;
         const bool gcf_is_marlin_firmware = gcf == GCodeFlavor::gcfMarlinFirmware;
+        const wxString marlin_firmware_reason = _L("This setting requires the Marlin firmware G-code flavor.");
         const bool gcf_is_klipper = gcf == GCodeFlavor::gcfKlipper;
         const bool gcf_is_reprap_firmware = gcf == GCodeFlavor::gcfRepRapFirmware;
 
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field   = silent_mode ? 2 : 1;
+        const wxString travel_acceleration_reason = _L("Travel acceleration limits are unavailable for the Marlin legacy and Klipper G-code flavors.");
         for (int i = 0; i < max_field; ++i)
-            toggle_option("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, i,
-                _L("Travel acceleration limits are unavailable for the Marlin legacy and Klipper G-code flavors."));
-        toggle_line("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, -1,
-            _L("Travel acceleration limits are unavailable for the Marlin legacy and Klipper G-code flavors."));
+            toggle_option("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, i, travel_acceleration_reason);
+        toggle_line("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, -1, travel_acceleration_reason);
         for (int i = 0; i < max_field; ++i)
-            toggle_option("machine_max_junction_deviation", gcf_is_marlin_firmware, i, _L("This setting requires the Marlin firmware G-code flavor."));
-        toggle_line("machine_max_junction_deviation", gcf_is_marlin_firmware, -1, _L("This setting requires the Marlin firmware G-code flavor."));
+            toggle_option("machine_max_junction_deviation", gcf_is_marlin_firmware, i, marlin_firmware_reason);
+        toggle_line("machine_max_junction_deviation", gcf_is_marlin_firmware, -1, marlin_firmware_reason);
 
         // Check if junction deviation value is non-zero and firmware is Marlin
         bool enable_jerk = !gcf_is_marlin_firmware;
+        const wxString junction_deviation_jerk_reason = _L("Jerk limits are unavailable while Marlin uses nonzero junction deviation.");
         if (gcf_is_marlin_firmware) {
             const auto *junction_deviation = m_config->option<ConfigOptionFloats>("machine_max_junction_deviation");
             if (junction_deviation != nullptr) {
@@ -6924,10 +6929,10 @@ void TabPrinter::toggle_options()
             }
         }
         for (int i = 0; i < max_field; ++i) {
-            toggle_option("machine_max_jerk_x", enable_jerk, i, _L("Jerk limits are unavailable while Marlin uses nonzero junction deviation."));
-            toggle_option("machine_max_jerk_y", enable_jerk, i, _L("Jerk limits are unavailable while Marlin uses nonzero junction deviation."));
-            toggle_option("machine_max_jerk_z", enable_jerk, i, _L("Jerk limits are unavailable while Marlin uses nonzero junction deviation."));
-            toggle_option("machine_max_jerk_e", enable_jerk, i, _L("Jerk limits are unavailable while Marlin uses nonzero junction deviation."));
+            toggle_option("machine_max_jerk_x", enable_jerk, i, junction_deviation_jerk_reason);
+            toggle_option("machine_max_jerk_y", enable_jerk, i, junction_deviation_jerk_reason);
+            toggle_option("machine_max_jerk_z", enable_jerk, i, junction_deviation_jerk_reason);
+            toggle_option("machine_max_jerk_e", enable_jerk, i, junction_deviation_jerk_reason);
         }
 
         bool emittable_limits = gcf_is_marlin_legacy || gcf_is_marlin_firmware || gcf_is_reprap_firmware;
@@ -6935,8 +6940,9 @@ void TabPrinter::toggle_options()
             _L("Emitting machine limits requires the Marlin legacy, Marlin or RepRapFirmware G-code flavor."));
 
         bool resonance_avoidance = m_config->opt_bool("resonance_avoidance");
-        toggle_option("min_resonance_avoidance_speed", resonance_avoidance, -1, _L("Enable resonance avoidance to edit its speed range."));
-        toggle_option("max_resonance_avoidance_speed", resonance_avoidance, -1, _L("Enable resonance avoidance to edit its speed range."));
+        const wxString resonance_avoidance_reason = _L("Enable resonance avoidance to edit its speed range.");
+        toggle_option("min_resonance_avoidance_speed", resonance_avoidance, -1, resonance_avoidance_reason);
+        toggle_option("max_resonance_avoidance_speed", resonance_avoidance, -1, resonance_avoidance_reason);
 
         bool input_shaping_compatible = gcf_is_marlin_firmware || gcf_is_reprap_firmware;
 
@@ -6948,13 +6954,13 @@ void TabPrinter::toggle_options()
             bool emit_machine_limits_to_gcode = m_config->opt_bool("emit_machine_limits_to_gcode");
             toggle_option("input_shaping_emit", emit_machine_limits_to_gcode, -1, _L("Enable emitting machine limits to G-code to emit input shaping settings."));
             bool input_shaping_emit = emit_machine_limits_to_gcode && m_config->opt_bool("input_shaping_emit");
-            toggle_option("input_shaping_type", input_shaping_emit, -1, _L("Enable emitting machine limits and input shaping to G-code to edit this setting."));
-            toggle_option("input_shaping_freq_x", input_shaping_emit, -1, _L("Enable emitting machine limits and input shaping to G-code to edit this setting."));
-            toggle_option("input_shaping_freq_y", input_shaping_emit && !gcf_is_reprap_firmware, -1,
-                _L("Enable emitting machine limits and input shaping to G-code with the Marlin firmware G-code flavor to edit separate Y-axis values."));
-            toggle_option("input_shaping_damp_x", input_shaping_emit, -1, _L("Enable emitting machine limits and input shaping to G-code to edit this setting."));
-            toggle_option("input_shaping_damp_y", input_shaping_emit && !gcf_is_reprap_firmware, -1,
-                _L("Enable emitting machine limits and input shaping to G-code with the Marlin firmware G-code flavor to edit separate Y-axis values."));
+            const wxString input_shaping_reason = _L("Enable emitting machine limits and input shaping to G-code to edit this setting.");
+            toggle_option("input_shaping_type", input_shaping_emit, -1, input_shaping_reason);
+            toggle_option("input_shaping_freq_x", input_shaping_emit, -1, input_shaping_reason);
+            const wxString input_shaping_y_reason = _L("Enable emitting machine limits and input shaping to G-code with the Marlin firmware G-code flavor to edit separate Y-axis values.");
+            toggle_option("input_shaping_freq_y", input_shaping_emit && !gcf_is_reprap_firmware, -1, input_shaping_y_reason);
+            toggle_option("input_shaping_damp_x", input_shaping_emit, -1, input_shaping_reason);
+            toggle_option("input_shaping_damp_y", input_shaping_emit && !gcf_is_reprap_firmware, -1, input_shaping_y_reason);
         }
 
     }
