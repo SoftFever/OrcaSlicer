@@ -6,7 +6,9 @@
 #include <cassert>
 #include <nlohmann/json.hpp>
 #include <wx/string.h>
+#include <wx/strconv.h>
 #include <wx/colour.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 #include <utility>
