@@ -6909,12 +6909,11 @@ void TabPrinter::toggle_options()
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field   = silent_mode ? 2 : 1;
         const wxString travel_acceleration_reason = _L("Travel acceleration limits are unavailable for the Marlin legacy and Klipper G-code flavors.");
+        // Keep unsupported motion limits visible so their disabled tooltips explain the firmware requirement.
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, i, travel_acceleration_reason);
-        toggle_line("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, -1, travel_acceleration_reason);
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_junction_deviation", gcf_is_marlin_firmware, i, marlin_firmware_reason);
-        toggle_line("machine_max_junction_deviation", gcf_is_marlin_firmware, -1, marlin_firmware_reason);
 
         // Check if junction deviation value is non-zero and firmware is Marlin
         bool enable_jerk = !gcf_is_marlin_firmware;
