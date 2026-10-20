@@ -8439,6 +8439,12 @@ void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::strin
     optgroup->append_line(line);
 }
 
+static void toggle_compatible_condition(Tab& tab, const std::string& key, bool enabled)
+{
+    tab.toggle_option(key, enabled, -1,
+        _L("Select \"All\" to edit the compatibility condition instead of using an explicit profile list."));
+}
+
 // Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
 wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
@@ -8467,7 +8473,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
         // All printers have been made compatible with this preset.
         if (state)
             this->load_key_value(deps.key_list, std::vector<std::string> {});
-        this->get_field(deps.key_condition)->toggle(state);
+        toggle_compatible_condition(*this, deps.key_condition, state);
         this->update_changed_ui();
     };
 
@@ -9355,7 +9361,7 @@ void Tab::compatible_widget_reload(PresetDependencies &deps)
     has_any ? deps.btn->Enable() : deps.btn->Disable();
     deps.checkbox->SetValue(! has_any);
 
-    field->toggle(! has_any);
+    toggle_compatible_condition(*this, deps.key_condition, !has_any);
 }
 
 void Tab::set_tooltips_text()

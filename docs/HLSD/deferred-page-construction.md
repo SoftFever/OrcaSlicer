@@ -116,6 +116,8 @@ the failed prerequisite. The same recorded text reaches tooltips and search resu
 
 Filament setting overrides record retraction-length dependency restrictions separately
 from override selection. Leaving an override unchecked does not add a restriction reason.
+Compatibility condition fields explain that the "All" checkbox must be selected before
+editing a condition; both checkbox changes and reloads refresh the restriction.
 
 The object table's settings form owns a separate registry because it builds option
 groups outside a Tab. Its dependency callbacks retain their reasons and refresh
