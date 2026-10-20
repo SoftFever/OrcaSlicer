@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <iterator>
 #include <cassert>
+#include <optional>
 #include <vector>
 
 namespace Slic3r {
@@ -341,6 +342,10 @@ namespace ClipperUtils {
         std::vector<size_t> members;
     };
     [[nodiscard]] std::vector<ExPolygonsTile> tile_expolygons(const ExPolygons &expolygons, size_t per_tile);
+
+    // A grid point strictly inside the polygon, or none if the polygon is at most a few units thick everywhere.
+    // Decides on which side of another path a path lies when every one of its vertices touches that path.
+    [[nodiscard]] std::optional<Point> interior_point(const Polygon &polygon);
 
     }
 
