@@ -3002,7 +3002,8 @@ void GUI_App::init_plugin_gui_wiring()
     };
 
     // why: a newly loaded plugin only adds a selectable agent
-    // refresh the dropdown and leave the live agent alone
+    // refresh the dropdown and leave the live agent alone, unless the selected preset was
+    // waiting for this agent: plugins load after the startup preset is applied
     auto refresh_printer_agent_dropdown_after_load = [](const std::string&)
     {
         if (!wxTheApp)
@@ -3014,8 +3015,11 @@ void GUI_App::init_plugin_gui_wiring()
 
         app->CallAfter([app]
         {
-            if (!app->is_closing())
-                app->refresh_printer_agent_dropdown();
+            if (app->is_closing())
+                return;
+
+            app->switch_printer_agent_if_pending();
+            app->refresh_printer_agent_dropdown();
         });
     };
 
@@ -3059,16 +3063,8 @@ void GUI_App::init_plugin_gui_wiring()
     plugin_mgr.subscribe_on_unload_callback(switch_printer_agent_after_unload);
     plugin_mgr.subscribe_on_capability_load_callback(
         [refresh_plugins_dialog, refresh_printer_agent_dropdown_after_load](const PluginCapabilityId& capability) {
-            if (capability.type == PluginCapabilityType::PrinterConnection) {
+            if (capability.type == PluginCapabilityType::PrinterConnection)
                 NetworkAgentFactory::register_python_printer_agent(capability.plugin_key, capability.name);
-                // why: plugins load after the startup preset is applied, so the agent that preset
-                // selects may only become available now
-                if (wxTheApp && !wxGetApp().is_closing())
-                    wxGetApp().CallAfter([] {
-                        if (!wxGetApp().is_closing())
-                            wxGetApp().switch_printer_agent_if_pending();
-                    });
-            }
             refresh_plugins_dialog();
             refresh_printer_agent_dropdown_after_load(capability.plugin_key);
             // A newly loaded capability may satisfy a missing-plugin notification; re-validate the
