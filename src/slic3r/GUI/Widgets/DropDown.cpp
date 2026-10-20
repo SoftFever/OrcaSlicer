@@ -48,6 +48,12 @@ public:
     SearchableDropDownList(wxWindow* parent, const std::vector<DropDown::Item>& items)
         : wxVListBox(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), source(items) {}
     wxCoord OnMeasureItem(size_t) const override { return FromDIP(32); }
+    std::pair<int, int> actionColumn(size_t row) const
+    {
+        const auto& icon = source[matches[row]].action_icon;
+        const int right = GetClientSize().x;
+        return {icon.IsOk() ? std::max(0, right - int(icon.GetScaledWidth()) - FromDIP(16)) : right, right};
+    }
     void OnDrawItem(wxDC& dc, const wxRect& rect, size_t row) const override
     {
         const auto& item = source[matches[row]];
@@ -64,8 +70,12 @@ public:
         wxString label = item.text;
         if (!item.alias.empty() && item.alias != item.text) label += separator + item.alias;
         if (!item.group_label.empty()) label += separator + item.group_label;
-        label = wxControl::Ellipsize(label, dc, wxELLIPSIZE_END, std::max(1, rect.GetRight() - x - FromDIP(8)));
+        const auto column = actionColumn(row);
+        label = wxControl::Ellipsize(label, dc, wxELLIPSIZE_END, std::max(1, column.first - x - FromDIP(8)));
         dc.DrawText(label, x, rect.y + (rect.height - dc.GetCharHeight()) / 2);
+        if (item.action_icon.IsOk())
+            dc.DrawBitmap(item.action_icon, column.second - item.action_icon.GetScaledWidth() - FromDIP(8),
+                          rect.y + (rect.height - item.action_icon.GetScaledHeight()) / 2, true);
     }
 };
 
@@ -90,6 +100,13 @@ void DropDown::EnableSearch()
     search_list->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) {
         int row = search_list->VirtualHitTest(event.GetPosition().y);
         if (row < 0 || row >= int(search_list->matches.size())) { event.Skip(); return; }
+        const auto column = search_list->actionColumn(row);
+        if (event.GetX() >= column.first && event.GetX() < column.second) {
+            // The filtered row is not the preset index. Notify without accepting or dismissing;
+            // the action handler may refresh the icons and rebuild the filtered list.
+            sendDropDownActionEvent(search_list->matches[row]);
+            return;
+        }
         search_list->SetSelection(row);
         acceptSearch();
     });
