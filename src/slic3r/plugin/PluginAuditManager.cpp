@@ -353,16 +353,18 @@ void PluginAuditManager::add_denied_filename(const std::string& filename)
 std::vector<std::string> PluginAuditManager::default_denied_filenames()
 {
     // AppConfig::config_path() picks .conf vs .ini on the USE_JSON_CONFIG ifdef and the app key
-    // on its mode, and is a non-static member we cannot call without an instance.  Denying all
+    // on its mode, and is a non-static member we cannot call without an instance. Denying all
     // four names is cheaper and more robust than replicating that; the two unused names cost one
-    // string comparison each.  Single-sourced here so install_hook() and the tests seed from the
-    // same list and cannot drift apart.
+    // string comparison each. Keep the plugin install-state sidecar here too: it controls which
+    // packages load on startup and must remain host-managed. Single-sourced so install_hook() and
+    // the tests seed from the same list and cannot drift apart.
     return {
         SLIC3R_APP_KEY ".conf",
         GCODEVIEWER_APP_KEY ".conf",
         SLIC3R_APP_KEY ".ini",
         GCODEVIEWER_APP_KEY ".ini",
         secret_constants::USER_SECRET_FILENAME,
+        ".install_state.json",
     };
 }
 
@@ -1283,8 +1285,9 @@ void PluginAuditManager::install_hook()
     // "cert" denied-path keyword seeded below.
     add_global_allowed_root(resources_dir(), /*allow_write=*/false);
 
-    // The user's app config and cloud credentials live directly inside data_dir(), so the
-    // root just granted would otherwise expose them to any plugin.  Deny them by name.
+    // The user's app config and cloud credentials live directly inside data_dir(), and plugin
+    // install state lives beneath it, so the root just granted would otherwise expose them to
+    // plugins. Deny them by name.
     //
     // Seeded here rather than by each secret's owner because install_hook() runs during lazy
     // interpreter init and therefore provably precedes any plugin bytecode, whereas

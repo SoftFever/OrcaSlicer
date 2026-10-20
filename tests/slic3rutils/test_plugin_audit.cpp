@@ -69,7 +69,7 @@ void seed_denied_keywords()
 
 } // namespace
 
-TEST_CASE("Plugin audit denies app config and token filenames anywhere", "[audit]")
+TEST_CASE("Plugin audit denies host-managed filenames anywhere", "[audit]")
 {
     seed_denied_names();
     const PluginAuditManager& mgr = PluginAuditManager::instance();
@@ -81,6 +81,7 @@ TEST_CASE("Plugin audit denies app config and token filenames anywhere", "[audit
         CHECK(mgr.is_denied_filename(fs::path(SLIC3R_APP_KEY ".ini")));
         CHECK(mgr.is_denied_filename(fs::path(GCODEVIEWER_APP_KEY ".ini")));
         CHECK(mgr.is_denied_filename(fs::path(secret_constants::USER_SECRET_FILENAME)));
+        CHECK(mgr.is_denied_filename(fs::path(".install_state.json")));
     }
 
     SECTION("companions holding the same secrets are denied by the prefix rule")
@@ -136,6 +137,7 @@ TEST_CASE("Plugin audit deny beats allowed roots", "[audit]")
 
     const fs::path conf  = fs::path(data_dir()) / (SLIC3R_APP_KEY ".conf");
     const fs::path token = fs::path(data_dir()) / secret_constants::USER_SECRET_FILENAME;
+    const fs::path install_state = fs::path(data_dir()) / "plugins" / "example" / ".install_state.json";
 
     SECTION("a non-denied file inside the allowed root is writable (root really grants writes)")
     {
@@ -174,6 +176,17 @@ TEST_CASE("Plugin audit deny beats allowed roots", "[audit]")
     {
         AuditDecision decision = mgr.check_open((token.string() + ".tmp"), "w");
         CHECK_FALSE(decision.allowed);
+    }
+
+    SECTION("plugin install state is blocked for reads and writes despite the allowed root")
+    {
+        AuditDecision read_decision = mgr.check_open(install_state.string(), "r");
+        CHECK_FALSE(read_decision.allowed);
+        CHECK(read_decision.reason == "denied filename");
+
+        AuditDecision write_decision = mgr.check_open(install_state.string(), "w");
+        CHECK_FALSE(write_decision.allowed);
+        CHECK(write_decision.reason == "denied filename");
     }
 
     SECTION("a traversal path resolving to the config is blocked")
