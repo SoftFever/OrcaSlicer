@@ -73,7 +73,14 @@ bool QidiPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSyncMode 
     // 3. Fetch slot info and build AmsTrayData directly
     std::vector<AmsTrayData> trays;
     int                      box_count = 0;
-    if (!fetch_slot_info(device_info.base_url, device_info.api_key, dict, series_id, trays, box_count, error)) {
+    bool                     slots_ok  = false;
+    try {
+        slots_ok = fetch_slot_info(device_info.base_url, device_info.api_key, dict, series_id, trays, box_count, error);
+    } catch (const nlohmann::json::exception& e) {
+        // A slot value of an unexpected type fails the sync instead of escaping to the UI
+        error = e.what();
+    }
+    if (!slots_ok) {
         BOOST_LOG_TRIVIAL(warning) << "QidiPrinterAgent::fetch_filament_info: Failed to fetch slot info: " << error;
         return false;
     }
