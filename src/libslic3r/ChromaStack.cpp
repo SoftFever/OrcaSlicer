@@ -87,6 +87,16 @@ int ChromaStack::total_layers() const { return std::max(0, base_layers) + relief
 
 float ChromaStack::depth_mm() const { return float(relief_layers()) * layer_height_mm; }
 
+float chroma_layer_density(float td_mm, float layer_height_mm)
+{
+    if (layer_height_mm <= 0.f)
+        return 0.f;
+    // The depth at which this filament hides what is behind it, turned into the e-folding length of
+    // its absorption; see CHROMA_TD_OPAQUE_FRACTION.
+    const float efold = CHROMA_TD_OPAQUE_FRACTION * std::clamp(td_mm, TD_MIN_MM, TD_MAX_MM) / OPAQUE_EFOLDS;
+    return layer_height_mm / efold;
+}
+
 std::vector<ColorRGB> chroma_palette(const ChromaStack &stack)
 {
     const int total = stack.total_layers();
@@ -117,12 +127,8 @@ std::vector<ColorRGB> chroma_palette(const ChromaStack &stack)
     store(0, acc);
 
     for (int k = 1; k <= total; ++k) {
-        const ChromaFilament &f  = *per_layer[size_t(k - 1)];
-        const float             td = std::clamp(f.td_mm, TD_MIN_MM, TD_MAX_MM);
-        // The depth at which this filament hides what is behind it, turned into the e-folding length
-        // of its absorption; see CHROMA_TD_OPAQUE_FRACTION.
-        const float efold = CHROMA_TD_OPAQUE_FRACTION * td / OPAQUE_EFOLDS;
-        const float t     = std::exp(-stack.layer_height_mm / efold);
+        const ChromaFilament &f = *per_layer[size_t(k - 1)];
+        const float           t = std::exp(-chroma_layer_density(f.td_mm, stack.layer_height_mm));
         const std::array<float, 3> own{ srgb_to_linear(f.color.r()), srgb_to_linear(f.color.g()),
                                         srgb_to_linear(f.color.b()) };
         for (int c = 0; c < 3; ++c)

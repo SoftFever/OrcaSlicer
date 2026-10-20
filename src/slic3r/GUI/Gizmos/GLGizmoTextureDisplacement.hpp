@@ -562,10 +562,6 @@ private:
     // The surface the overlay was built from. The mesh alone: the colours are not in it, so a change
     // to the stack costs a palette upload rather than a mesh rebuild.
     size_t  m_chroma_color_key = 0;
-    // The stack's colours, one texel per printed layer, and what they were built from. A texture
-    // because a uniform array cannot hold a base of several hundred layers.
-    std::unique_ptr<GLTexture> m_chroma_palette_tex;
-    size_t                     m_chroma_palette_key = 0;
     bool                       m_show_chroma_colors = true;
 
     // What the last solve of each slot reported, for the panel. Not saved: it is a property of the

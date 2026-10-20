@@ -167,18 +167,32 @@ expressed as the per-triangle filament assignment the 3D scene paints with, and 
 the ordinary view to draw. They exist in two places: the sliced preview, which shows the filament
 bands as they print, and an overlay the gizmo draws over whatever surface is on screen.
 
-That overlay is a shader, `resources/shaders/*/chromastack.*`, and it reads the colour from each
-fragment's own **print Z** rather than from the height map or from anything in the mesh. A filament
-swap happens at one Z across the whole plate, so the layer a point sits in is what decides its
-colour whatever the picture says. Two things follow. A band edge lands exactly on the layer boundary
-however coarse the triangles are - a per-triangle colouring puts it wherever the mesh happens to
-have an edge. And it keeps working after a bake, when the relief is real geometry, the paint has
-been cleared and the height map is attached to nothing on screen; the overlay is built from the live
-preview's displaced mesh before a bake and from the volume's own mesh after one.
+That overlay is a shader, `resources/shaders/*/chromastack.*`, and it composites the stack itself,
+per fragment, with the same Beer-Lambert absorption the solve used. `chroma_layer_density()` is the
+one place the relation between a transmission distance, a layer height and an absorption lives, so
+the two cannot drift apart: the palette and the shader both ask it.
 
-The stack's colours reach the shader as a texture of one texel per printed layer, because a base can
-be several hundred layers and no uniform array holds that. The mesh carries nothing about the stack,
-so editing the stack costs a palette upload rather than a mesh rebuild.
+It walks bands rather than layers, which is exact rather than a shortcut - a run of n layers of one
+filament passes `exp(-n d)` whether it is composited in one step or n - so a stack of sixteen bands
+costs sixteen iterations however many hundreds of layers it has. The base goes into the bottom band,
+being the filament it prints in.
+
+Compositing there rather than reading a table is not the same picture computed a harder way. A table
+indexed by height holds the answer for one geometry, a column seen straight down, and the two places
+that is not true are exactly where a print is looked at:
+
+- **At a grazing angle** the light leaving the surface crosses each layer along the view ray rather
+  than straight up. It passes through more filament, and the colour deepens. The shader measures that
+  path against the stacking axis in eye space and lengthens the absorption by it, clamped, since a ray
+  running along the layers passes through no stack at all.
+- **A wall is not a column seen through.** It is the cut side of the layers at that height, backed by
+  more of the same filament, so it shows that band's own colour rather than the composite - which is
+  why the side of a ChromaStack print is a set of stripes while its top is a picture. The shader
+  blends between the two by how far the surface faces the stacking axis.
+
+A band edge still lands exactly on the layer boundary however coarse the triangles are, and it all
+still works after a bake, when the relief is real geometry and the height map is attached to nothing
+on screen: the colour comes from the fragment's own height, and the mesh carries none of it.
 
 On top of the colour the shader tries to look like printed plastic, because a flat shaded colour
 reads as a rendering and the whole point of the overlay is judging a print:

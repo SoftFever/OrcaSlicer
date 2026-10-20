@@ -1967,9 +1967,8 @@ void GLGizmoTextureDisplacement::rebuild_chroma_colors(const TextureDisplacement
 {
     const ModelObject *mo = m_c->selection_info()->model_object();
     const ModelVolume *mv = texture_volume();
-    const auto         drop = [this]() {
+    const auto drop = [this]() {
         m_chroma_color_model.reset();
-        m_chroma_palette_tex.reset();
         m_chroma_color_key = 0;
     };
     if (mo == nullptr || mv == nullptr || mo->instances.empty() || layer.chroma.bands.empty())
@@ -1995,46 +1994,6 @@ void GLGizmoTextureDisplacement::rebuild_chroma_colors(const TextureDisplacement
         m_chroma_color_key = key;
     }
 
-    // The palette as a texture, one texel per printed layer. A uniform array would not do: the base
-    // alone can be several hundred layers on a tall part.
-    size_t     pkey = 0;
-    const auto pmix = [&pkey](size_t v) { pkey = pkey * 1099511628211ull + v + 0x9e3779b9ull; };
-    pmix(std::hash<float>{}(layer.chroma.layer_height_mm));
-    pmix(size_t(layer.chroma.base_layers));
-    for (const ChromaBand &band : layer.chroma.bands) {
-        pmix(size_t(band.layers));
-        pmix(size_t(band.filament.filament + 1));
-        pmix(std::hash<float>{}(band.filament.color.r() + 2.f * band.filament.color.g() + 3.f * band.filament.color.b()));
-        pmix(std::hash<float>{}(band.filament.td_mm));
-    }
-    if (pkey == m_chroma_palette_key && m_chroma_palette_tex)
-        return;
-
-    const std::vector<ColorRGB> palette = chroma_palette(layer.chroma);
-    if (palette.size() < 2) {
-        m_chroma_palette_tex.reset();
-        m_chroma_palette_key = 0;
-        return;
-    }
-    // Entry 0 is the sentinel "nothing printed yet" colour; the texture holds the printed layers, so
-    // texel i is layer i + 1, which is what the shader's 1-based level indexes.
-    const size_t               count = palette.size() - 1;
-    std::vector<unsigned char> rgba(count * 4);
-    for (size_t i = 0; i < count; ++i) {
-        const ColorRGB &c = palette[i + 1];
-        rgba[i * 4]       = uint8_t(std::lround(c.r() * 255.f));
-        rgba[i * 4 + 1]   = uint8_t(std::lround(c.g() * 255.f));
-        rgba[i * 4 + 2]   = uint8_t(std::lround(c.b() * 255.f));
-        rgba[i * 4 + 3]   = 255;
-    }
-    auto tex = std::make_unique<GLTexture>();
-    if (!tex->load_from_raw_data(std::move(rgba), (unsigned int) count, 1u, false, /* use_mipmaps */ false)) {
-        m_chroma_palette_tex.reset();
-        m_chroma_palette_key = 0;
-        return;
-    }
-    m_chroma_palette_tex = std::move(tex);
-    m_chroma_palette_key = pkey;
 }
 
 bool GLGizmoTextureDisplacement::render_chroma_colors(const TextureDisplacementLayer &layer)
@@ -2044,7 +2003,7 @@ bool GLGizmoTextureDisplacement::render_chroma_colors(const TextureDisplacementL
     const ModelVolume *mv     = texture_volume();
     GLShaderProgram   *shader = wxGetApp().get_shader("chromastack");
     if (mo == nullptr || mv == nullptr || shader == nullptr || !m_chroma_color_model.is_initialized() ||
-        !m_chroma_palette_tex || m_chroma_palette_tex->get_width() <= 0)
+        layer.chroma.bands.empty())
         return false;
 
     const Selection   &selection    = m_parent.get_selection();
@@ -2066,21 +2025,30 @@ bool GLGizmoTextureDisplacement::render_chroma_colors(const TextureDisplacementL
 
     shader->set_uniform("base_z", float(mo->instance_bounding_box(inst, false).min.z()));
     shader->set_uniform("layer_height", std::max(1e-3f, layer.chroma.layer_height_mm));
-    shader->set_uniform("palette_size", float(m_chroma_palette_tex->get_width()));
+
+    // The stack itself, for the shader to composite per fragment. The base goes into the bottom band,
+    // which is the filament it prints in and which the model treats as opaque anyway.
+    const int count = std::min(int(layer.chroma.bands.size()), int(CHROMA_MAX_BANDS));
+    shader->set_uniform("band_count", count);
+    shader->set_uniform("total_layers", float(layer.chroma.total_layers()));
+    for (int i = 0; i < count; ++i) {
+        const ChromaBand &band = layer.chroma.bands[size_t(i)];
+        const std::string idx  = "[" + std::to_string(i) + "]";
+        shader->set_uniform(("band_color" + idx).c_str(), band.filament.color);
+        shader->set_uniform(("band_density" + idx).c_str(),
+                            chroma_layer_density(band.filament.td_mm, layer.chroma.layer_height_mm));
+        shader->set_uniform(("band_layers" + idx).c_str(),
+                            float(band.layers + (i == 0 ? std::max(0, layer.chroma.base_layers) : 0)));
+    }
+    // The direction the stack is built along, in eye space: what the view ray's path through it is
+    // measured against, and the whole reason this is composited here rather than looked up.
+    const Vec3d axis = view_matrix.matrix().block(0, 0, 3, 3) * Vec3d(0., 0., 1.);
+    shader->set_uniform("stack_axis", Vec3f(axis.normalized().cast<float>()));
     // How translucent the print reads, from the filament on top - the one the light has to get through
     // before any of the stack below it shows. An opaque stack must not glow at its edges.
     const float td = std::clamp(layer.chroma.bands.back().filament.td_mm, 0.5f, 12.f);
     shader->set_uniform("translucency", std::clamp((td - 1.f) / 7.f, 0.f, 1.f));
     shader->set_uniform("alpha", 1.f);
-    shader->set_uniform("palette", 0);
-    glsafe(::glActiveTexture(GL_TEXTURE0));
-    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint) m_chroma_palette_tex->get_id()));
-    // Clamped and linear: the shader slides the lookup off the texel centres on purpose once a pixel
-    // covers more than a layer, and it is that filtering which keeps the bands from flickering.
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
     // Pulled forward and without depth writes, as the painted-colour overlay is: this is the same
     // surface as whatever is underneath it, so without the offset the two fight for the depth test.
@@ -2090,7 +2058,6 @@ bool GLGizmoTextureDisplacement::render_chroma_colors(const TextureDisplacementL
     m_chroma_color_model.render();
     glsafe(::glDepthMask(GL_TRUE));
     glsafe(::glDisable(GL_POLYGON_OFFSET_FILL));
-    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
     shader->stop_using();
     return true;
 }

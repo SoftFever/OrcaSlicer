@@ -162,6 +162,15 @@ struct ChromaStack
     template<class Archive> void serialize(Archive &ar) { ar(bands, layer_height_mm, base_layers, dither, base_auto, applied_ranges); }
 };
 
+// The optical depth of one layer of a filament: how much of what is behind it that layer takes out,
+// as the exponent of Beer-Lambert absorption. A layer passes exp(-density) of the light from under it,
+// and a run of n layers passes exp(-n * density), which is what makes the whole model per-band rather
+// than per-layer arithmetic.
+//
+// The one place the relation between a TD, a layer height and an absorption lives, so the palette and
+// the preview's shader cannot drift apart: both ask here.
+float chroma_layer_density(float td_mm, float layer_height_mm);
+
 // The colour the stack shows at every column height: entry k is a column of exactly k printed
 // layers, so the vector has total_layers() + 1 entries.
 //

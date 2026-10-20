@@ -611,3 +611,32 @@ TEST_CASE("A stack survives the project file", "[ChromaStack]")
                                                   back_options));
     REQUIRE_FALSE(plain_back.front().chroma_enabled);
 }
+
+TEST_CASE("A layer's optical depth is what both the palette and the shader absorb by", "[ChromaStack]")
+{
+    // The shader composites the stack itself rather than reading a table, so it needs the same number
+    // the palette absorbs by. One function owns the relation between a TD, a layer height and an
+    // absorption, and this is what keeps the preview and the solve from drifting apart.
+    const float density = chroma_layer_density(4.f, 0.08f);
+    REQUIRE(density > 0.f);
+
+    // One layer of it over an opaque white, by hand, is what the palette's second entry holds.
+    ChromaStack stack;
+    stack.layer_height_mm = 0.08f;
+    stack.base_layers     = 0;
+    stack.bands           = { band(WHITE_OPAQUE, 1), band(filament(5, ColorRGB(0.f, 0.f, 0.f), 4.f), 4) };
+    const std::vector<ColorRGB> palette = chroma_palette(stack);
+    REQUIRE(palette.size() == 6);
+
+    const float t = std::exp(-density);
+    auto s2l = [](float c) { return c <= 0.04045f ? c / 12.92f : std::pow((c + 0.055f) / 1.055f, 2.4f); };
+    auto l2s = [](float v) { return v <= 0.0031308f ? v * 12.92f : 1.055f * std::pow(v, 1.f / 2.4f) - 0.055f; };
+    // White under one layer of black: (1 - t) * 0 + t * white, in linear light.
+    REQUIRE_THAT(palette[2].r(), WithinAbs(l2s(t * s2l(1.f)), 2.f / 255.f));
+
+    // Four layers of it is the same as one layer four times, which is why a band can be one step.
+    REQUIRE_THAT(palette[5].r(), WithinAbs(l2s(std::pow(t, 4.f) * s2l(1.f)), 2.f / 255.f));
+    // A thicker layer of the same filament takes out more.
+    REQUIRE(chroma_layer_density(4.f, 0.2f) > density);
+    REQUIRE_THAT(chroma_layer_density(4.f, 0.f), WithinAbs(0.f, 1e-6f));
+}
