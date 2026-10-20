@@ -30,6 +30,8 @@
 #include <boost/filesystem/path.hpp>
 #include <chrono>
 #include <optional>
+#include <boost/filesystem/operations.hpp>
+#include <libslic3r/Utils.hpp>
 #include <boost/log/trivial.hpp>          // the offer/atlas join check reports on the log
 #include <wx/aui/framemanager.h>
 #include <wx/longlong.h>

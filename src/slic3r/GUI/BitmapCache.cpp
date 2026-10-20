@@ -21,6 +21,7 @@
 #include "libslic3r/LocalesUtils.hpp"
 #include <cstring>
 #include <fstream>
+#include <ios>
 #include <iterator>
 #include "CAD/FcIconTint.hpp"
 #include <vector>

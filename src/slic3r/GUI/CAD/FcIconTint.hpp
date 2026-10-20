@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <string>
 
 namespace Slic3r { namespace GUI {
