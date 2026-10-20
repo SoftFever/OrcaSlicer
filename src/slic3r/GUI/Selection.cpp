@@ -1496,7 +1496,7 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 }
 
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
-void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
+void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d& bed_center)
 {
     auto fit = [this](double s, Vec3d offset) {
         if (s <= 0.0 || s == 1.0)
@@ -1526,7 +1526,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         //wxGetApp().obj_manipul()->set_dirty();
     };
 
-    auto fit_rectangle = [this, fit](const BuildVolume& volume) {
+    auto fit_rectangle = [this, fit, &bed_center](const BuildVolume& volume) {
         const BoundingBoxf3 print_volume = volume.bounding_volume();
         const Vec3d print_volume_size = print_volume.size();
 
@@ -1538,10 +1538,10 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         const double sz = (box_size.z() != 0.0) ? print_volume_size.z() / box_size.z() : 0.0;
 
         if (sx != 0.0 && sy != 0.0 && sz != 0.0)
-            fit(std::min(sx, std::min(sy, sz)), print_volume.center() - get_bounding_box().center());
+            fit(std::min(sx, std::min(sy, sz)), Vec3d(bed_center.x(), bed_center.y(), print_volume.center().z()) - get_bounding_box().center());
     };
 
-    auto fit_circle = [this, fit](const BuildVolume& volume) {
+    auto fit_circle = [this, fit, &bed_center](const BuildVolume& volume) {
         const Geometry::Circled& print_circle = volume.circle();
         double print_circle_radius = unscale<double>(print_circle.radius);
 
@@ -1572,7 +1572,9 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         const double s = std::min(print_circle_radius / circle_radius, volume.printable_height() / max_z);
         const Vec3d sel_center = get_bounding_box().center();
         const Vec3d offset = s * (Vec3d(unscale<double>(circle.center.x()), unscale<double>(circle.center.y()), 0.5 * max_z) - sel_center);
-        const Vec3d print_center = { unscale<double>(print_circle.center.x()), unscale<double>(print_circle.center.y()), 0.5 * volume.printable_height() };
+        // The active plate's bed is the same circle, moved by its centre.
+        const Vec3d plate_shift = Vec3d(bed_center.x() - volume.bed_center().x(), bed_center.y() - volume.bed_center().y(), 0.);
+        const Vec3d print_center = Vec3d(unscale<double>(print_circle.center.x()), unscale<double>(print_circle.center.y()), 0.5 * volume.printable_height()) + plate_shift;
         fit(s, print_center - (sel_center + offset));
     };
 
