@@ -1916,6 +1916,10 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         for (const PrintObject *print_object : m_objects)
             if (std::string key = find_non_finite_option(print_object->config()); !key.empty())
                 return invalid_value(key, print_object->model_object());
+        // Per-region settings such as the flow ratios of the walls and surfaces live in the regions
+        for (size_t idx = 0; idx < this->num_print_regions(); ++idx)
+            if (std::string key = find_non_finite_option(this->get_print_region(idx).config()); !key.empty())
+                return invalid_value(key, nullptr);
     }
 
     // IDEX/IQEX: block multi-color in non-primary parallel modes when the active
