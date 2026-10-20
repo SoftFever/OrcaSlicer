@@ -2173,9 +2173,14 @@ bool ImGuiWrapper::owns_key(const KeyChord& chord) const
     return modal_popup_open() || (chord.edits_text() && text_input_active());
 }
 
+bool ImGuiWrapper::item_held() const
+{
+    return ImGui::GetIO().MouseDown[0] && ImGui::GetActiveID() != 0;
+}
+
 bool ImGuiWrapper::owns_keyboard() const
 {
-    return popup_open() || text_input_active();
+    return popup_open() || item_held() || text_input_active();
 }
 
 bool ImGuiWrapper::claim_key_event(const wxKeyEvent& evt)

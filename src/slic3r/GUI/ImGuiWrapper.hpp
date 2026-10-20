@@ -234,7 +234,9 @@ public:
     void close_top_popup();
     // True for every key while a modal is open, and for text-editing keys while an InputText is active.
     bool owns_key(const KeyChord& chord) const;
-    // True while a popup is open or an InputText is active.
+    // True while the left mouse button holds an ImGui item, such as a slider being dragged.
+    bool item_held() const;
+    // True while a popup is open, an item is held or an InputText is active.
     bool owns_keyboard() const;
     // Returns owns_keyboard() as of the key's key-down, so its repeats, char event and release get the
     // same answer. Call it once per event.

@@ -68,8 +68,9 @@ dropdown, a menu or a modal) is open or an ImGui InputText is active, ImGui clai
 as a focused sidebar text field or an open native dropdown keeps every key from the canvas.
 Esc then closes the topmost dropdown or menu, since this ImGui closes popups on Esc only
 through keyboard navigation, which is off; a modal handles Esc itself. A second Esc reaches
-the canvas once nothing claims it. A held slider or button claims none, so the shortcuts keep
-working while one is dragged. One side handles a key from its key-down to its release. Its
+the canvas once nothing claims it. A slider or button held with the mouse also claims every
+key until it is released, since a shortcut that switches the view or closes the tool would
+leave the drag behind. One side handles a key from its key-down to its release. Its
 repeats, its char event and its release follow the key-down's decision even when a field or
 modal opens or closes in between, so a key never both runs a shortcut and types, and a
 keyboard move of the selection always sees the release of the key that started it.

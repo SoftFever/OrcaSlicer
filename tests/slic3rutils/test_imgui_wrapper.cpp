@@ -262,18 +262,19 @@ TEST_CASE("closing the top popup leaves a modal open", "[ImGuiWrapper]")
     CHECK(f.imgui.modal_popup_open());
 }
 
-TEST_CASE("a held slider owns no key although ImGui wants the keyboard", "[ImGuiWrapper]")
+TEST_CASE("a held slider owns the keyboard but not the keys Global shortcuts use", "[ImGuiWrapper]")
 {
     ImGuiFrames f;
     f.mouse(ImVec2(0, 0), false);
+    CHECK_FALSE(f.imgui.item_held());
     f.mouse(f.slider_center, true);
-
-    ImGui::NewFrame();
-    CHECK(f.imgui.want_keyboard());
-    CHECK_FALSE(f.imgui.owns_keyboard());
+    CHECK(f.imgui.item_held());
+    CHECK(f.imgui.owns_keyboard());
     CHECK_FALSE(f.imgui.owns_key(KeyChord{ 'M' }));
     CHECK_FALSE(f.imgui.owns_key(KeyChord{ WXK_LEFT }));
-    ImGui::EndFrame();
+
+    f.mouse(f.slider_center, false);
+    CHECK_FALSE(f.imgui.owns_keyboard());
 }
 
 TEST_CASE("a slider typed into once is not a text field when dragged", "[ImGuiWrapper][Regression]")
@@ -291,7 +292,7 @@ TEST_CASE("a slider typed into once is not a text field when dragged", "[ImGuiWr
     f.mouse(f.slider_center, true);
     REQUIRE(ImGui::GetInputTextState(ImGui::GetActiveID()) != nullptr);
     CHECK_FALSE(f.imgui.text_input_active());
-    CHECK_FALSE(f.imgui.owns_keyboard());
+    CHECK_FALSE(f.imgui.owns_key(KeyChord{ 'M' }));
 }
 
 TEST_CASE("a key's char event gets its key-down's answer", "[ImGuiWrapper]")
