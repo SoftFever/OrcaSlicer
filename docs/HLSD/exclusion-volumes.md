@@ -63,7 +63,7 @@ imply ownership by a particular filament. Automatic 3D previews are limited to
 nearby object height to avoid obscuring the workspace.
 
 **View → Show all collision volumes** displays each volume over its complete
-resolved Z range, including on an empty bed. Its default shortcut is Ctrl+Shift+V
-(Command+Shift+V on macOS), configurable through Orca's shortcut settings. The
+resolved Z range, including on an empty bed. Its default shortcut is Ctrl+Shift+K
+(Command+Shift+K on macOS), configurable through Orca's shortcut settings. The
 application remembers this display preference independently of printer presets;
 it changes neither collision checking nor slicing results.
