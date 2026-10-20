@@ -119,12 +119,18 @@ const std::vector<std::string> filament_extruder_override_keys = {
 };
 
 // Some filament override parameters are generated from filament_extruder_override_keys,
-// while filament_retract_length_nc is defined separately. Keep the generator list
-// unchanged and use this helper for behavior checks that need the full override set.
+// while filament_retract_length_nc and the ironing overrides are defined separately.
+// Keep the generator list unchanged and use this helper for behavior checks that need
+// the full override set. A nil in one of these keys means the override is disabled, so
+// child presets store and load it verbatim instead of treating nil as "inherit".
 bool is_filament_extruder_override_key(const std::string &opt_key)
 {
     return std::find(filament_extruder_override_keys.begin(), filament_extruder_override_keys.end(), opt_key) != filament_extruder_override_keys.end() ||
-           opt_key == "filament_retract_length_nc";
+           opt_key == "filament_retract_length_nc" ||
+           opt_key == "filament_ironing_flow" ||
+           opt_key == "filament_ironing_spacing" ||
+           opt_key == "filament_ironing_inset" ||
+           opt_key == "filament_ironing_speed";
 }
 
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
@@ -12272,7 +12278,8 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
                     opt_src->set(opt_target);
                 }
                 else
-                    opt_vec_src->set_only_diff(opt_vec_dest, variant_index, stride);
+                    // An override's nil means "disabled" and is the child's value; every other nil column inherits.
+                    opt_vec_src->set_only_diff(opt_vec_dest, variant_index, stride, is_filament_extruder_override_key(opt));
             }
         }
     }

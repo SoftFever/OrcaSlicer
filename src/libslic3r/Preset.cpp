@@ -797,7 +797,7 @@ bool Preset::save(DynamicPrintConfig* parent_config)
         {
             ConfigOption *opt_src = config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
-            if (opt_dst->is_scalar() || !(opt_dst->nullable()))
+            if (opt_dst->is_scalar() || !(opt_dst->nullable()) || is_filament_extruder_override_key(option))
                 opt_dst->set(opt_src);
             else {
                 ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
@@ -2132,7 +2132,7 @@ Preset* PresetCollection::get_preset_differed_for_save(Preset& preset)
         {
             ConfigOption *opt_src = preset.config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
-            if (opt_dst->is_scalar() || !(opt_dst->nullable()))
+            if (opt_dst->is_scalar() || !(opt_dst->nullable()) || is_filament_extruder_override_key(option))
                 opt_dst->set(opt_src);
             else {
                 ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
@@ -2199,9 +2199,12 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
         // option's non-nil default (e.g. filament_retract_before_wipe -> 100%), silently
         // resurrecting an override the user turned off. See GitHub issue on Retract Before Wipe.
         if (m_type == Preset::TYPE_FILAMENT) {
-            for (const std::string& opt_key : filament_extruder_override_keys) {
-                if (key_values.count(opt_key))
-                    continue; // already carried by the diff
+            for (const std::string& opt_key : preset.config.keys()) {
+                if (!is_filament_extruder_override_key(opt_key) || key_values.count(opt_key))
+                    continue; // not an override, or already carried by the diff
+                const ConfigOptionDef *def = print_config_def.get(opt_key);
+                if (def == nullptr || !def->default_value || def->default_value->is_nil())
+                    continue; // the option's default is nil too, so an absent key cannot come back as a value
                 const auto* opt_vec = dynamic_cast<const ConfigOptionVectorBase*>(preset.config.option(opt_key));
                 if (opt_vec == nullptr)
                     continue;
