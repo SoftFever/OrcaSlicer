@@ -15,18 +15,6 @@
 
 namespace Slic3r {
 
-// The budget is per area of infill. The curves of a pattern grow with the distance between its lines, and a curve
-// flattened to a fixed chord times sagitta takes a vertex about every cbrt(radius) along it, so a path laid at the
-// density may take a vertex about every cbrt(0.176 mm^2 * distance): 1.2 mm at 5% and 0.55 mm at 50% density with
-// 0.45 mm lines. A pattern laying more path per area gets fewer vertices per mm of it.
-double smoothed_infill_vertex_density(const double spacing, const double density, const double path_per_area)
-{
-    if (spacing <= 0. || density <= 0. || path_per_area <= 0.)
-        return 0.;
-    const double distance = spacing / density;
-    return 0.728 / (distance * std::cbrt(0.068 * distance)) / path_per_area;
-}
-
 // Turns sharper than this are left untouched: both ends of the curve replacing such a corner nearly
 // coincide, so the corner would be rounded into a degenerate loop instead of a hairpin.
 static constexpr const double min_smoothed_turn_cosine = -0.9;
@@ -34,6 +22,9 @@ static constexpr const double min_smoothed_turn_cosine = -0.9;
 // Spacing of the control points of the Bezier corner curves along each leg, as a fraction of the reach.
 static constexpr const double quintic_spacing = 0.3;
 static constexpr const double septic_spacing  = 0.2;
+
+// Bounds the vertices of a corner whatever the tolerance.
+static constexpr const size_t max_corner_vertices = 256;
 
 // The control points of the corner curve in a frame where the incoming leg runs along +x into the corner at
 // the origin and the outgoing leg leaves it turning left. At each end, the first three control points are
@@ -75,23 +66,6 @@ static Vec2d bezier_point(const std::vector<Vec2d> &control, const double t)
     return work.front();
 }
 
-// The step of direction between the vertices of a corner whose curve peaks at the given curvature. A planner
-// limits a junction turning by the step to v^2 = deviation * acceleration * cos(step / 2) / (1 - cos(step / 2)),
-// and the curve allows v^2 = acceleration / curvature: the step is as coarse as reaches the speed of the curve.
-// It is never finer than lets every vertex stand out of the chord of its neighbours by the tolerance, as
-// simplifying the path to the tolerance would drop such a vertex again. Without a junction deviation, the
-// polygon keeps within the tolerance of the curve.
-static double vertex_step(const double curvature, const CornerSmoothing &smoothing)
-{
-    const double tolerance = smoothing.tolerance > 0. && std::isfinite(smoothing.tolerance) ? smoothing.tolerance : EPSILON;
-    const double kept      = std::sqrt(2. * curvature * tolerance);
-    if (smoothing.junction_deviation > 0.) {
-        const double ratio = 1. / (curvature * smoothing.junction_deviation);
-        return std::max(kept, 2. * std::acos(ratio / (1. + ratio)));
-    }
-    return std::sqrt(8. * curvature * tolerance);
-}
-
 double CornerSmoother::peak_curvature_by_reach(const double cosine)
 {
     if (cosine == m_cached_curvature_cosine)
@@ -116,35 +90,30 @@ double CornerSmoother::peak_curvature_by_reach(const double cosine)
     return peak;
 }
 
-const std::vector<Vec2d> &CornerSmoother::corner_vertices(const double reach, const double cosine, const size_t count)
+double CornerSmoother::tangent_polygon(const double reach, const double cosine, const size_t count, std::vector<Vec2d> &vertices) const
 {
-    // Corners of the same size, turn and vertex count are congruent. An infill path walks over the very same
-    // corner over and over again, the Hilbert curve over a single one.
-    if (count == m_cached_count && reach == m_cached_reach && cosine == m_cached_cosine)
-        return m_cached_vertices;
-
     const double turn     = std::acos(std::clamp(cosine, -1., 1.));
     const double sine     = std::sin(turn);
     const Vec2d  outgoing(cosine, sine);
 
-    // The lines tangent to the curve at equal steps of direction, both legs included. Each vertex of the
-    // rounded corner is where two consecutive ones cross, so each turns by the same step.
+    // The lines tangent to the curve at equal steps of direction, both legs included, and halfway between them.
+    // Each vertex of the rounded corner is where two consecutive steps cross, so each turns by the same step.
     std::vector<std::pair<Vec2d, Vec2d>> tangents;
-    tangents.reserve(count + 1);
+    tangents.reserve(2 * count + 1);
     tangents.emplace_back(Vec2d(-reach, 0.), Vec2d(1., 0.));
     if (m_smoothing.curve == InfillSmoothCurve::Arc) {
         const double radius = reach / std::tan(0.5 * turn);
         const Vec2d  center(-reach, radius);
-        for (size_t i = 1; i < count; ++i) {
-            const double angle = turn * double(i) / double(count);
+        for (size_t i = 1; i < 2 * count; ++i) {
+            const double angle = 0.5 * turn * double(i) / double(count);
             tangents.emplace_back(center + radius * Vec2d(std::sin(angle), -std::cos(angle)), Vec2d(std::cos(angle), std::sin(angle)));
         }
     } else {
         const std::vector<Vec2d> control = bezier_control_points(m_smoothing.curve, reach, outgoing);
         double                   from    = 0.;
-        for (size_t i = 1; i < count; ++i) {
+        for (size_t i = 1; i < 2 * count; ++i) {
             // The direction of the tangent grows monotonically along the curve.
-            const double angle = turn * double(i) / double(count);
+            const double angle = 0.5 * turn * double(i) / double(count);
             double       low = from, high = 1.;
             for (int iteration = 0; iteration < 48; ++iteration) {
                 const double middle  = 0.5 * (low + high);
@@ -161,19 +130,47 @@ const std::vector<Vec2d> &CornerSmoother::corner_vertices(const double reach, co
     }
     tangents.emplace_back(reach * outgoing, outgoing);
 
-    m_cached_vertices.clear();
-    m_cached_vertices.reserve(count);
+    vertices.clear();
+    vertices.reserve(count);
+    double deviation = 0.;
     for (size_t i = 0; i < count; ++i) {
-        const auto &[point, direction]           = tangents[i];
-        const auto &[next_point, next_direction] = tangents[i + 1];
+        const auto &[point, direction]           = tangents[2 * i];
+        const auto &[next_point, next_direction] = tangents[2 * i + 2];
         const Vec2d vertex = point + (cross2(next_point - point, next_direction) / cross2(direction, next_direction)) * direction;
+        // The curve passes closest to the vertex about where it heads halfway between the two tangents.
+        deviation = std::max(deviation, (vertex - tangents[2 * i + 1].first).norm());
         // In the (incoming, outgoing) basis, which is not orthonormal for turns other than a right angle.
         const double along_outgoing = vertex.y() / sine;
-        m_cached_vertices.emplace_back(vertex.x() - along_outgoing * cosine, along_outgoing);
+        vertices.emplace_back(vertex.x() - along_outgoing * cosine, along_outgoing);
     }
+    return deviation;
+}
+
+const std::vector<Vec2d> &CornerSmoother::corner_vertices(const double reach, const double cosine)
+{
+    // Corners of the same size and turn are congruent. An infill path walks over the very same corner over and
+    // over again, the Hilbert curve over a single one.
+    if (reach == m_cached_reach && cosine == m_cached_cosine)
+        return m_cached_vertices;
     m_cached_reach  = reach;
     m_cached_cosine = cosine;
-    m_cached_count  = count;
+    m_cached_vertices.clear();
+
+    const double tolerance = m_smoothing.tolerance > 0. && std::isfinite(m_smoothing.tolerance) ? m_smoothing.tolerance : EPSILON;
+    const double turn      = std::acos(std::clamp(cosine, -1., 1.));
+    const double curvature = peak_curvature_by_reach(cosine) / reach;
+    // Simplifying the path to the tolerance drops a vertex standing out of the chord of its neighbours by less,
+    // which the sharpest vertex of the curve does at finer steps than this.
+    const size_t most  = size_t(std::min(double(max_corner_vertices), turn / std::sqrt(2. * curvature * tolerance)));
+    // The count an arc of the peak curvature takes; the flatter parts of a Bezier curve may need more.
+    size_t       count = std::min(most, size_t(std::ceil(turn / std::sqrt(8. * curvature * tolerance) - EPSILON)));
+    while (count > 1) {
+        const double deviation = tangent_polygon(reach, cosine, count, m_cached_vertices);
+        if (deviation <= tolerance || count >= most)
+            break;
+        // The deviation falls about with the square of the count.
+        count = std::min(most, std::max(count + 1, size_t(std::ceil(double(count) * std::sqrt(deviation / tolerance)))));
+    }
     return m_cached_vertices;
 }
 
@@ -221,32 +218,12 @@ void CornerSmoother::round_corner(const Vec2d &previous, const Vec2d &corner, co
     if (m_max_corner_distance > 0.)
         reach = std::min(reach, m_max_corner_distance);
 
-    const double turn  = std::acos(std::clamp(cosine, -1., 1.));
-    const double shape = peak_curvature_by_reach(cosine);
-    size_t       count = size_t(std::ceil(turn / vertex_step(shape / reach, m_smoothing) - EPSILON));
-    // The vertices a rounded corner adds to its own, out of what the half of each leg it owns allows. What a corner
-    // leaves of it goes on to the next ones, so that corners whose own share falls short of a curve take turns.
-    const bool   budgeted = m_smoothing.max_vertex_density > 0.;
-    const double extra    = budgeted ? m_extra_vertices + m_smoothing.max_vertex_density * 0.5 * (incoming_length + outgoing_length) - 1. : 0.;
-    if (budgeted && extra + 1. < double(count)) {
-        count = size_t(std::max(0., std::floor(extra + 1.)));
-        // Too few vertices for the whole curve: tighten it to the radius at which they are as fast as the curve,
-        // so the corner is still quicker than a sharp one instead of a long slow polygon.
-        if (count > 1 && m_smoothing.junction_deviation > 0.) {
-            const double step   = turn / double(count);
-            const double radius = std::max(8. * m_smoothing.junction_deviation, 2. * m_smoothing.tolerance) / (step * step);
-            reach               = std::min(reach, radius * shape);
-        }
-    }
-    const bool rounded = count > 1 && (!m_corner_filter || m_corner_filter(corner - reach * incoming, corner + reach * outgoing));
-    if (budgeted)
-        m_extra_vertices = std::max(0., extra - (rounded ? double(count - 1) : 0.));
-    if (!rounded) {
+    const std::vector<Vec2d> &vertices = corner_vertices(reach, cosine);
+    if (vertices.empty() || (m_corner_filter && !m_corner_filter(corner - reach * incoming, corner + reach * outgoing))) {
         m_corner_points.emplace_back(corner);
         return;
     }
 
-    const std::vector<Vec2d> &vertices = corner_vertices(reach, cosine, count);
     m_corner_points.reserve(vertices.size());
     for (const Vec2d &vertex : vertices)
         m_corner_points.emplace_back(corner + vertex.x() * incoming + vertex.y() * outgoing);

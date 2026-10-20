@@ -398,13 +398,12 @@ void Fill3DHoneycomb::_fill_surface_single(
                layersPerSlice);
 
     // move pattern in place
-    // Orca: round the corners of the octahedral wave. The layers where the wave degenerates to a
-    // straight line have no corner to round. The grid carries the multiline copies already.
-    const CornerSmoothing smoothing = this->corner_smoothing(params, polylines, 1);
     for (Polyline &pl : polylines){
       pl.translate(bb.min);
       pl.simplify(5 * spacing); // simplify to 5x line width
-      smooth_polyline_corners(pl, smoothing);
+      // Orca: round the corners of the octahedral wave. The layers where the wave degenerates to a
+      // straight line have no corner to round.
+      smooth_polyline_corners(pl, params.corner_smoothing());
     }
 
     // Note: multiline fill adjustment is carried out in this code,

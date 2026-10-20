@@ -39,42 +39,26 @@ of direction: every vertex turns by the same angle, which spends each vertex
 where the planner needs it. Uniform steps of the curve parameter put vertices
 where the curve is nearly straight and leave the sharpest turn in the middle.
 
-The number of vertices is the smaller of two counts:
+The number of vertices follows the G-code resolution (`resolution`), as the rest
+of the G-code does: it is the fewest that keep the polygon within the resolution
+of its curve. The arc of the curve's peak curvature gives the first count, which
+the flatter parts of a Bézier curve may raise. The count is never so high that a
+vertex stands out of the chord of its neighbours by less than the resolution, as
+`LayerRegion::simplify_*` simplifies the infill to it afterwards and would drop
+that vertex again.
 
-- **What the printer needs.** The step at which a junction allows the speed the
-  curve allows at its peak curvature, from the junction deviation the infill is
-  planned with (`infill_junction_deviation()` in `Fill.cpp`: Klipper's from the
-  square corner velocity and the infill acceleration, Marlin 2's from the machine
-  limits). The step is never finer than lets each vertex stand out of the chord
-  of its neighbours by the G-code resolution, as `LayerRegion::simplify_*` would
-  drop it again. Without a junction deviation, the polygon keeps within the
-  resolution of the curve.
-- **The G-code budget.** Rounded corners may take a number of vertices per area
-  of infill (`smoothed_infill_vertex_density()`). The curves of a pattern grow
-  with the distance between its lines, and a curve flattened to a fixed chord
-  times sagitta takes a vertex about every cbrt(radius) along it, so a path laid
-  at the density may take a vertex about every cbrt(0.176 mm² × distance): 1.2 mm
-  at 5% and 0.55 mm at 50% density with 0.45 mm lines. Each fill divides the
-  budget by the path it prints per area (`Fill::corner_smoothing()`), so a
-  pattern laying more path gets fewer vertices per mm. A corner owns half of each
-  leg; what it leaves of its budget goes on to the next corners of the path, so
-  corners whose own share is short of two vertices take turns.
-
-When the budget is the smaller count, the curve is tightened to the radius at
-which its vertices are as fast as the curve, `max(8 × deviation, 2 ×
-resolution) / step²`. A few vertices spread over a large curve are slower than
-the sharp corner: every vertex is a slowdown and the short moves between them
-leave no room to accelerate.
+The vertices depend on the geometry and the resolution only, not on the printer.
+A finer resolution splits a corner into more and gentler turns, which a planner
+takes faster, for a larger G-code file.
 
 ## Constraints
 
-- Rounding must not inflate the G-code where corners are dense. Splitting every
-  corner as finely as the junction deviation asks would take several times the
-  G-code of the sharp path there; with the budget, Honeycomb takes about twice
-  and Hilbert Curve three times the G-code of its sharp path at 100%.
+- At 100% every corner gets the largest curve its legs allow: the factor sets
+  the shape of the corners, not their speed. A large curve split into few
+  vertices can print slower than the sharp corner, as every vertex is a slowdown
+  and the short moves between them leave no room to accelerate.
 - With the factor at 0 the paths are unchanged, and the fills keep their order of
   operations, so that rounding to the integer grid does not move a point.
 - The plane-path fills (Hilbert Curve, Octagram Spiral) produce their path point
   by point in units of the line distance, so `CornerSmoother` takes points one
-  at a time, and their budget follows from their density, which they lay
-  exactly.
+  at a time, with the resolution in the same units.

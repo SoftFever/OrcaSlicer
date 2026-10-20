@@ -21,37 +21,15 @@ inline double sanitize_smooth_factor(double smooth_factor)
     return std::isfinite(smooth_factor) ? std::clamp(smooth_factor, 0., 1.) : 0.;
 }
 
-// Orca: The most vertices per mm of path the rounded corners of a sparse infill of the given line spacing (mm) and
-// density (fraction) may take, for a pattern printing the given length of path per area (1/mm). It bounds the G-code
-// rounding adds where corners are dense.
-double smoothed_infill_vertex_density(double spacing, double density, double path_per_area);
-
-// Orca: How the corners of an infill path are rounded. Lengths are in the units of the points the smoother
-// is fed, densities per one of those units.
+// Orca: How the corners of an infill path are rounded. The tolerance is in the units of the points the smoother is fed.
 struct CornerSmoothing
 {
     // Fraction of the shorter adjoining leg a curve may reach along it, relative to half of that leg.
     double            factor { 0. };
     InfillSmoothCurve curve { InfillSmoothCurve::Quintic };
-    // The G-code resolution: a rounded corner deviates from its curve by up to it, and its vertices stand out
-    // of the path by at least it, so that simplifying the path to it keeps them.
+    // The G-code resolution: a rounded corner keeps within it of its curve, and its vertices stand out of the
+    // path by at least it, so that simplifying the path to it keeps them.
     double            tolerance { 0. };
-    // The junction deviation the machine plans with, or 0 if it does not plan by one. A corner is split
-    // into vertices that turn little enough for its junctions to be as fast as the curve allows, and no finer.
-    double            junction_deviation { 0. };
-    // The most vertices a corner may become per unit of the path around it, 0 for no limit. It bounds the
-    // G-code a rounded path takes.
-    double            max_vertex_density { 0. };
-
-    // The same smoothing for points scaled by the given factor.
-    CornerSmoothing scaled(double scale) const
-    {
-        CornerSmoothing out = *this;
-        out.tolerance *= scale;
-        out.junction_deviation *= scale;
-        out.max_vertex_density /= scale;
-        return out;
-    }
 };
 
 // Decides whether a corner may be replaced by the curve that leaves the path at `from` and rejoins it
@@ -112,8 +90,7 @@ public:
             emit_corner(m_window[0], m_window[1], m_window[2], emit);
         if (m_held > 1)
             emit(m_window[m_held - 1]);
-        m_held           = 0;
-        m_extra_vertices = 0.;
+        m_held = 0;
     }
 
 private:
@@ -131,9 +108,12 @@ private:
     void round_corner(const Vec2d &previous, const Vec2d &corner, const Vec2d &next);
     // The peak curvature of the corner curve times its reach, which depends on the turn only.
     double peak_curvature_by_reach(double cosine);
-    // The vertices of the rounded corner in the (incoming, outgoing) basis of the corner, relative to it.
-    // Cached, as an infill path repeats the same corner over and over again.
-    const std::vector<Vec2d> &corner_vertices(double reach, double cosine, size_t count);
+    // The vertices of the rounded corner in the (incoming, outgoing) basis of the corner, relative to it, none if
+    // the sharp corner keeps within the tolerance of the curve. Cached, as an infill path repeats the same corner
+    // over and over again.
+    const std::vector<Vec2d> &corner_vertices(double reach, double cosine);
+    // The polygon of `count` vertices, and how far it strays from the curve.
+    double tangent_polygon(double reach, double cosine, size_t count, std::vector<Vec2d> &vertices) const;
 
     const CornerSmoothing m_smoothing;
     // Fraction of the shorter adjoining leg consumed on each side of a corner. Half of a leg is the
@@ -142,13 +122,10 @@ private:
     const double       m_max_corner_distance;
     const CornerFilter m_corner_filter;
     std::vector<Vec2d> m_corner_points;
-    // The vertices the corners rounded so far left of the budget of the path.
-    double             m_extra_vertices { 0. };
 
     std::vector<Vec2d> m_cached_vertices;
     double             m_cached_reach { 0. };
     double             m_cached_cosine { 2. };
-    size_t             m_cached_count { 0 };
     double             m_cached_curvature { 0. };
     double             m_cached_curvature_cosine { 2. };
 
@@ -170,7 +147,7 @@ void smooth_polylines_corners(Polylines &polylines, const CornerSmoothing &smoot
 void smooth_polygons_corners(Polygons &polygons, const CornerSmoothing &smoothing, double max_corner_distance = 0.,
                              const CornerFilter &corner_filter = {});
 
-// The G2 curve rounded to the given chordal tolerance, with no machine or density limit.
+// The G2 curve, flattened to the given tolerance.
 inline void smooth_polyline_corners(Polyline &polyline, double smooth_factor, double tolerance)
 {
     smooth_polyline_corners(polyline, CornerSmoothing{smooth_factor, InfillSmoothCurve::Quintic, tolerance});

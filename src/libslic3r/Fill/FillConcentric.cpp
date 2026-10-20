@@ -73,8 +73,7 @@ void FillConcentric::_fill_surface_single(
         }
         return true;
     };
-    smooth_polygons_corners(loops, this->corner_smoothing(params, double(params.multiline) * total_length(loops), expolygon.area()),
-                            0.5 * distance, corner_stays_inside);
+    smooth_polygons_corners(loops, params.corner_smoothing(), 0.5 * distance, corner_stays_inside);
 
     // generate paths from the outermost to the innermost, to avoid
     // adhesion problems of the first central tiny loops

@@ -3828,9 +3828,10 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Sparse infill smooth curve");
     def->category = L("Strength");
     def->tooltip = L("The curve that rounds the sparse infill corners, named by how smoothly it joins the straight lines.\n"
-                     "G1: a circular arc. The fastest through the turn, but its curvature starts at once at both ends.\n"
+                     "G1: a circular arc, whose curvature starts at once at both ends. It takes the fewest moves, for a smaller "
+                     "G-code file but a slower infill.\n"
                      "G2: the curvature grows from zero, so the toolhead eases into the turn.\n"
-                     "G3: the rate of the curvature also starts from zero. The smoothest, and slightly slower.");
+                     "G3: the rate of the curvature also starts from zero. The smoothest.");
     def->enum_keys_map = &ConfigOptionEnum<InfillSmoothCurve>::get_enum_values();
     def->enum_values.push_back("g1");
     def->enum_values.push_back("g2");

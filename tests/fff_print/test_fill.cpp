@@ -1102,10 +1102,9 @@ TEST_CASE("Honeycomb infill rounds its cell corners with the smooth factor", "[F
     REQUIRE(!sharp.empty());
     REQUIRE(smooth.size() == sharp.size());
     REQUIRE(point_count(smooth) > point_count(sharp));
-    // The cell corners turn by 60 degrees; smoothing splits each of them into gentler turns, at least two of
-    // 30 degrees where the vertex budget of a short leg at the end of a path allows no more.
+    // The cell corners turn by 60 degrees; smoothing replaces them by gentle curves.
     REQUIRE(sharpest_turn_cosine(sharp) < 0.6);
-    REQUIRE(sharpest_turn_cosine(smooth) > 0.86);
+    REQUIRE(sharpest_turn_cosine(smooth) > 0.9);
 }
 
 // Point count, number of turns sharper than 25 degrees and length of the sparse infill of a print.
@@ -1113,9 +1112,6 @@ TEST_CASE("Honeycomb infill rounds its cell corners with the smooth factor", "[F
 struct SparseInfillShape {
     size_t point_count { 0 };
     size_t sharp_turns { 0 };
-    // Sum of the squared turns in radians. A planner slows down at a vertex by how much it turns, and splitting
-    // a turn into m equal ones divides its share by m.
-    double turn_energy { 0. };
     size_t path_count { 0 };
     double length { 0. };
     // Digest of every point in the order it is printed. The counts above all survive the same
@@ -1141,12 +1137,9 @@ static SparseInfillShape sparse_infill_shape(const Print &print)
         for (size_t i = 1; i + 1 < pts.size(); ++i) {
             const Vec2d incoming = (pts[i] - pts[i - 1]).head<2>().cast<double>();
             const Vec2d outgoing = (pts[i + 1] - pts[i]).head<2>().cast<double>();
-            if (incoming.squaredNorm() > 0. && outgoing.squaredNorm() > 0.) {
-                const double cosine = std::clamp(incoming.normalized().dot(outgoing.normalized()), -1., 1.);
-                if (cosine < 0.9)
-                    ++shape.sharp_turns;
-                shape.turn_energy += sqr(std::acos(cosine));
-            }
+            if (incoming.squaredNorm() > 0. && outgoing.squaredNorm() > 0. &&
+                incoming.normalized().dot(outgoing.normalized()) < 0.9)
+                ++shape.sharp_turns;
         }
     };
 
@@ -1211,7 +1204,7 @@ TEST_CASE("Lightning infill rounds the turns of its branches with the smooth fac
     // The branch turns are replaced by curves, which cut the corners off and take more points to
     // describe. The turns where two branches are joined into one path stay sharp.
     REQUIRE(smooth.point_count > sharp.point_count);
-    REQUIRE(smooth.turn_energy < sharp.turn_energy);
+    REQUIRE(smooth.sharp_turns < sharp.sharp_turns);
     REQUIRE(smooth.length < sharp.length);
 }
 
@@ -1232,7 +1225,7 @@ TEST_CASE("Concentric infill rounds its loops with the smooth factor", "[Fill]")
 
     REQUIRE(sharp.point_count > 0);
     REQUIRE(smooth.point_count > sharp.point_count);
-    REQUIRE(smooth.turn_energy < sharp.turn_energy);
+    REQUIRE(smooth.sharp_turns < sharp.sharp_turns);
     REQUIRE(smooth.length < sharp.length);
 }
 
@@ -1253,7 +1246,7 @@ TEST_CASE("Cross hatch infill rounds its transition layers with the smooth facto
 
     REQUIRE(sharp.point_count > 0);
     REQUIRE(smooth.point_count > sharp.point_count);
-    REQUIRE(smooth.turn_energy < sharp.turn_energy);
+    REQUIRE(smooth.sharp_turns < sharp.sharp_turns);
     REQUIRE(smooth.length < sharp.length);
 }
 
@@ -1275,7 +1268,7 @@ TEST_CASE("Trapezoidal grid infill rounds its corners only with more than one li
 
     REQUIRE(sharp.point_count > 0);
     REQUIRE(smooth.point_count > sharp.point_count);
-    REQUIRE(smooth.turn_energy < sharp.turn_energy);
+    REQUIRE(smooth.sharp_turns < sharp.sharp_turns);
     REQUIRE(smooth.length < sharp.length);
 
     // A single line per infill wall is the plain crossing line grid, which has no corner of its own.
@@ -1641,7 +1634,7 @@ TEST_CASE("3D honeycomb infill rounds its octahedral waves with the smooth facto
 
     REQUIRE(sharp.point_count > 0);
     REQUIRE(smooth.point_count > sharp.point_count);
-    REQUIRE(smooth.turn_energy < sharp.turn_energy);
+    REQUIRE(smooth.sharp_turns < sharp.sharp_turns);
     REQUIRE(smooth.length < sharp.length);
 }
 
@@ -1718,7 +1711,6 @@ TEST_CASE("Smoothing multiline lightning infill keeps its outlines connected", "
             sum.path_count += shape.path_count;
             sum.point_count += shape.point_count;
             sum.sharp_turns += shape.sharp_turns;
-            sum.turn_energy += shape.turn_energy;
         }
         return sum;
     };
@@ -1732,9 +1724,9 @@ TEST_CASE("Smoothing multiline lightning infill keeps its outlines connected", "
     // joined into one path, so a few loops more or less are a larger share of the count.
     const size_t allowed_extra = sharp.path_count / 10; // 10%
     REQUIRE(smooth.path_count <= sharp.path_count + allowed_extra);
-    // The branches are still rounded. Their outlines run farther from them than the capped curves reach, so
-    // the inside of an outline keeps its corner and the outline does not turn any less.
+    // The outlines are still rounded.
     REQUIRE(smooth.point_count > sharp.point_count);
+    REQUIRE(smooth.sharp_turns < sharp.sharp_turns);
 }
 
 TEST_CASE("Sparse plane-path anchors match the printed infill", "[Fill][InternalBridge][Regression]")

@@ -11,6 +11,7 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "libslic3r/Fill/FillCornerSmoothing.hpp"
+#include "libslic3r/Line.hpp"
 #include "libslic3r/Polyline.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/libslic3r.h"
@@ -44,6 +45,15 @@ double departure_before_corner(const Polyline &polyline)
         if (point.y() == 0)
             departure = std::max(departure, unscale<double>(point.x()));
     return 10. - departure;
+}
+
+// The distance from a point to the nearest edge of a path.
+double distance_to(const Polyline &polyline, const Point &point)
+{
+    double distance = std::numeric_limits<double>::max();
+    for (size_t i = 1; i < polyline.size(); ++i)
+        distance = std::min(distance, Line(polyline[i - 1], polyline[i]).distance_to(point));
+    return distance;
 }
 
 const double tolerance = scaled<double>(0.0125);
@@ -232,36 +242,20 @@ TEST_CASE("Corner smoothing turns by the same angle at every vertex of a corner"
     }
 }
 
-TEST_CASE("Corner smoothing splits a corner no finer than the junction deviation needs", "[FillCornerSmoothing]")
+TEST_CASE("Corner smoothing keeps within the resolution of its curve", "[FillCornerSmoothing]")
 {
-    // A planner allowing more junction deviation reaches the speed of the curve with coarser turns.
-    auto vertices = [](double junction_deviation) {
-        Polyline smooth = asymmetric_corner();
-        smooth_polyline_corners(smooth, CornerSmoothing{ 1., InfillSmoothCurve::Quintic, tolerance, scaled<double>(junction_deviation) });
-        return smooth.size() - 2;
-    };
-    REQUIRE(vertices(0.05) < vertices(0.02));
-    REQUIRE(vertices(0.02) >= 2);
-    // No finer than simplifying the path to the tolerance keeps, however small the junction deviation is.
-    REQUIRE(vertices(0.0001) == vertices(0.000001));
-}
-
-TEST_CASE("Corner smoothing keeps to the vertex budget of the path", "[FillCornerSmoothing]")
-{
-    // Two 1mm legs, so the corner owns 1mm of path.
-    const Polyline sharp{ Point::new_scale(0., 0.), Point::new_scale(1., 0.), Point::new_scale(1., 1.) };
-    auto smooth = [&sharp](double density, double junction_deviation) {
-        Polyline out = sharp;
-        smooth_polyline_corners(out, CornerSmoothing{ 1., InfillSmoothCurve::Quintic, tolerance,
-                                                      scaled<double>(junction_deviation), density / scaled<double>(1.) });
-        return out;
-    };
-    // A budget of 3 vertices per mm splits the corner into 3 vertices instead of the many it needs.
-    REQUIRE(smooth(0., 0.003).size() > 5);
-    REQUIRE(smooth(3., 0.003).size() == 5);
-    // Too few vertices for the whole curve: the corner is tightened so they are as fast as the curve.
-    const Polyline tight = smooth(3., 0.003);
-    REQUIRE(tight[1].x() > smooth(3., 0.)[1].x());
-    // A budget of less than two vertices leaves the corner sharp.
-    REQUIRE(smooth(1.5, 0.003) == sharp);
+    for (const InfillSmoothCurve curve : { InfillSmoothCurve::Arc, InfillSmoothCurve::Quintic, InfillSmoothCurve::Septic }) {
+        // The curve itself, up to 0.2 microns.
+        Polyline fine = asymmetric_corner();
+        smooth_polyline_corners(fine, CornerSmoothing{ 1., curve, scaled<double>(0.0002) });
+        auto vertices = [curve, &fine](double resolution) {
+            Polyline smooth = asymmetric_corner();
+            smooth_polyline_corners(smooth, CornerSmoothing{ 1., curve, scaled<double>(resolution) });
+            for (const Point &point : smooth.points)
+                REQUIRE(distance_to(fine, point) <= scaled<double>(resolution + 0.0002));
+            return smooth.size() - 2;
+        };
+        // A coarser resolution takes fewer vertices.
+        REQUIRE(vertices(0.05) < vertices(0.0125));
+    }
 }

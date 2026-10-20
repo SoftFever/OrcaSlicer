@@ -117,10 +117,6 @@ void FillPlanePath::_fill_surface_single(
     expolygon.translate(-shift.x(), -shift.y());
     bounding_box.translate(-shift.x(), -shift.y());
 
-    // Orca: the path is laid at the distance between lines, which sets the vertices its rounded corners may take.
-    FillParams path_params = params;
-    path_params.smooth_vertex_density = smoothed_infill_vertex_density(this->spacing, params.density, params.density / this->spacing);
-
     Polyline polyline;
     {
         auto distance_between_lines = scaled<double>(this->spacing) * params.multiline / params.density;
@@ -133,12 +129,12 @@ void FillPlanePath::_fill_surface_single(
             // Filling in a bounding box over the whole object, clip generated polyline against the snug bounding box.
             snug_bounding_box.translate(-shift.x(), -shift.y());
             InfillPolylineClipper output(snug_bounding_box, distance_between_lines);
-            this->generate(min_x, min_y, max_x, max_y, resolution, path_params, output);
+            this->generate(min_x, min_y, max_x, max_y, resolution, params, output);
             polyline.points = std::move(output.result());
         } else {
             // Filling in a snug bounding box, no need to clip.
             InfillPolylineOutput output(distance_between_lines);
-            this->generate(min_x, min_y, max_x, max_y, resolution, path_params, output);
+            this->generate(min_x, min_y, max_x, max_y, resolution, params, output);
             polyline.points = std::move(output.result());
         }
     }
@@ -347,7 +343,7 @@ template<typename GenerateFn>
 static void generate_path(InfillPolylineOutput &output, const FillParams &params, const double resolution, GenerateFn generate)
 {
     // The path runs in units of the line spacing, as the resolution passed in does.
-    const CornerSmoothing smoothing = params.corner_smoothing().scaled(resolution / scaled<double>(params.resolution));
+    const CornerSmoothing smoothing{ params.smooth_factor, params.smooth_curve, resolution };
     auto run = [&smoothing, &generate](auto &out) {
         if (sanitize_smooth_factor(smoothing.factor) == 0.) {
             generate(out);

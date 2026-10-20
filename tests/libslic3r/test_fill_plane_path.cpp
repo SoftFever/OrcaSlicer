@@ -185,11 +185,9 @@ TEST_CASE("Octagram spiral smoothing rounds the turns of the spiral", "[FillPlan
     REQUIRE(smooth.size() > sharp.size());
     REQUIRE(smooth.front() == sharp.front());
     REQUIRE(smooth.back() == sharp.back());
-    // The spiral alternates between 90 and 135 degree turns; both are split into gentler ones, and into
-    // gentle ones at a fine resolution.
+    // The spiral alternates between 90 and 135 degree turns; both are rounded into gentle ones.
     REQUIRE(sharpest_turn_cosine(sharp) < -0.7);
-    REQUIRE(sharpest_turn_cosine(smooth) > 0.);
-    REQUIRE(sharpest_turn_cosine(TestableOctagramSpiral().generate_points(0.0005, 1.)) > 0.9);
+    REQUIRE(sharpest_turn_cosine(smooth) > 0.9);
 
     for (size_t i = 1; i < smooth.size(); ++i)
         REQUIRE((smooth[i] - smooth[i - 1]).cast<double>().squaredNorm() > 0.);
