@@ -474,17 +474,14 @@ void Selection::add_curr_plate()
     if (!m_valid)
         return;
 
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_plate(wxGetApp().plater()->get_partplate_list().get_curr_plate_index());
+    if (volume_idxs.empty())
+        return;
+
     wxGetApp().plater()->take_snapshot(std::string("Selection-Add Curr Plate All!"));
     m_mode = Instance;
     clear();
-
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-        if (plate && plate->contain_instance_totally(obj_idx, 0)) {
-            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
-            do_add_volumes(volume_idxs);
-        }
-    }
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -511,20 +508,14 @@ void Selection::remove_curr_plate()
     if (!m_valid)
         return;
 
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    if (plate->empty())
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_plate(wxGetApp().plater()->get_partplate_list().get_curr_plate_index());
+    if (volume_idxs.empty())
         return;
 
     wxGetApp().plater()->take_snapshot(std::string("Selection-Delete Curr Plate All"));
     m_mode = Instance;
     clear();
-
-    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-        if (plate && plate->contain_instance(obj_idx, 0)) {
-            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
-            do_add_volumes(volume_idxs);
-        }
-    }
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -2264,6 +2255,27 @@ std::vector<unsigned int> Selection::get_volume_idxs_from_volume(unsigned int ob
         {
             if (((int)instance_idx != -1) && (v->instance_idx() == (int)instance_idx))
                 idxs.push_back(i);
+        }
+    }
+
+    return idxs;
+}
+
+std::vector<unsigned int> Selection::get_volume_idxs_from_plate(const int plate_idx) const
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+    std::vector<unsigned int> idxs;
+    if (!plate)
+        return idxs;
+
+    for (int obj_idx = 0; obj_idx < (int)m_model->objects.size(); obj_idx++) {
+        const ModelObject* obj = m_model->objects[obj_idx];
+        for (int inst_idx = 0; inst_idx < (int)obj->instances.size(); inst_idx++) {
+            // on this plate or overlapping it in some way (fully inside, oversized or partly outside)
+            if (plate->contain_instance(obj_idx, inst_idx) || plate->intersect_instance(obj_idx, inst_idx)) {
+                std::vector<unsigned int> inst_idxs = get_volume_idxs_from_instance(obj_idx, inst_idx);
+                idxs.insert(idxs.end(), inst_idxs.begin(), inst_idxs.end());
+            }
         }
     }
 
