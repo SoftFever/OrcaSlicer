@@ -25,6 +25,18 @@ struct SketchSolveResult {
     std::vector<int> skipped;
 };
 
+// While one of these is alive on a thread, solves skip the search for WHICH constraints conflict. That search is most of the
+// cost of a solve that fails, or that finds a redundant (consistent) set, and a caller that only asks "did it solve?" throws
+// the answer away: inferring relations on a drawn rectangle tried one redundant batch per add, ~100 ms each.
+struct SketchSolveNoBad {
+    SketchSolveNoBad();
+    ~SketchSolveNoBad();
+    SketchSolveNoBad(const SketchSolveNoBad&) = delete;
+    SketchSolveNoBad& operator=(const SketchSolveNoBad&) = delete;
+private:
+    bool m_prev;
+};
+
 // Solve `constraints` over `entities` in place (writes solved coordinates back into the
 // entities; arc angles are reflowed preserving sweep direction). No-op success when
 // `constraints` is empty.

@@ -1,3 +1,4 @@
+#include "slic3r/GUI/CAD/DesignPanel.hpp"   // PhaseLog
 #include "slic3r/GUI/CAD/DesignSketchTool.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -958,9 +959,10 @@ void DesignSketchTool::resolve_live_drag(int dragged_ei, SketchPointRole dragged
                                                              : SketchPointRole::P0;
             cons.push_back(fix);
         }
-        const SketchSolveResult r = (dragged_ei >= 0)
+        SketchSolveResult r;
+        { PhaseLog t("sketch.resolve_live solve"); r = (dragged_ei >= 0)
             ? sketch_solve_drag(m_entities, cons, dragged_ei, dragged_role)
-            : sketch_solve(m_entities, cons);
+            : sketch_solve(m_entities, cons); }
         m_dof      = r.dof;
         m_solve_ok = r.ok;
         // Constraints the solver had to leave out (no representation for the part they name)
@@ -991,7 +993,8 @@ void DesignSketchTool::resolve_live_drag(int dragged_ei, SketchPointRole dragged
         m_dof = -1; m_solve_ok = true;
         m_bad_dims.clear();
     }
-    refresh_entity_free();
+    // The per-entity "still free" probe (N+1 solves) is only drawn, so it runs in render(), once per change of topology:
+    // done here it cost ~30 ms after every constraint a script added.
     if (on_solve_state) on_solve_state(m_dof, m_solve_ok, has);
     announce_loop_defects();
 }
@@ -2768,7 +2771,9 @@ bool DesignSketchTool::try_add_constraints(const std::vector<SketchEntityConstra
     if (cands.empty()) return true;
     const size_t mark = m_constraints.size();
     for (const auto& c : cands) m_constraints.push_back(c);
-    if (solve_sketch_entities(m_entities, m_constraints)) {
+    bool solved;
+    { PhaseLog t("sketch.try_add solve"); solved = solve_sketch_entities(m_entities, m_constraints); }
+    if (solved) {
         resolve_live();                         // refresh dof / solve state, or dof() reports the sketch before this batch
         if (on_constraints_changed) on_constraints_changed();
         return true;
@@ -10342,6 +10347,7 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
         (m_autoedit_dim_idx >= 0 && m_autoedit_dim_idx < int(m_autoedit_dims.size()))
             ? &m_autoedit_dims[m_autoedit_dim_idx].hi : nullptr;
     std::vector<Vec2d> point_markers, sel_point_markers;
+    refresh_entity_free();   // blue/black colouring below; keyed on the topology, so a drag frame does not repeat it
     for (size_t i = 0; i < m_entities.size(); ++i) {
         const SketchEntity& e = m_entities[i];
         const bool selected =
@@ -11001,8 +11007,8 @@ int DesignSketchTool::add_entities_scripted(const std::vector<SketchEntity>& ent
     // common point up to 0.0021 mm away, because welding is TRANSITIVE and three vertices near
     // the origin chained into one. Exactly-equal endpoints still weld, which is what keeps a
     // scripted profile closed — a ring's last point IS its first point.
-    if (infer) infer_auto_constraints(base, 0.0, 0.0);
-    resolve_live();
+    if (infer) { PhaseLog t("sketch.infer_auto_constraints"); infer_auto_constraints(base, 0.0, 0.0); }
+    { PhaseLog t("sketch.resolve_live (add)"); resolve_live(); }
     // A scripted add is not a drawn gesture, and draw-then-edit must not fire for it. The render
     // pass arms that on a jump in the entity count (see the m_autoedit_seen block in render()),
     // so a bulk load made while a creation tool is armed selected the last scripted entity and

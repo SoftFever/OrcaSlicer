@@ -28,6 +28,7 @@
 #include <utility>
 #include <atomic>
 #include <mutex>
+#include <deque>
 #include <set>
 #ifdef __linux__
 #include <execinfo.h>   // backtrace: the UI thread's stack when it stops answering
@@ -1971,10 +1972,13 @@ json action_sketch_add(DesignPanel* panel, const json& params)
     } else {
         throw std::runtime_error("sketch_add needs 'entities', a single 'type', or 'rect'");
     }
-    const int base = t.add_entities_scripted(ents, params.value("infer", true));
+    int base;
+    { PhaseLog p("sketch_add.add_entities"); base = t.add_entities_scripted(ents, params.value("infer", true)); }
     panel->mcp_viewport()->request_repaint();
+    int dof;
+    { PhaseLog p("sketch_add.dof"); dof = t.dof(); }
     return json{{"ok", base >= 0}, {"first_index", base}, {"added", int(ents.size())},
-                {"entities", int(t.entities().size())}, {"dof", t.dof()}};
+                {"entities", int(t.entities().size())}, {"dof", dof}};
 }
 
 json action_sketch_select(DesignPanel* panel, const json& params)
@@ -2908,7 +2912,7 @@ json action_sketch_constrain(DesignPanel* panel, const json& params)
     int added = 0;
     if (atomic) {
         if (!rejected.empty()) { /* a malformed entry: add nothing */ }
-        else if (t.try_add_constraints(defs)) added = int(defs.size());
+        else if ([&] { PhaseLog p("sketch_constrain.try_add"); return t.try_add_constraints(defs); }()) added = int(defs.size());
         else { json why; const std::string text = solver_why(t, defs, &why);
                why["index"] = -1; why["error"] = text + " (atomic: none of the " + std::to_string(defs.size()) + " were added; atomic:false keeps the consistent ones)";
                rejected.push_back(why); }
@@ -2920,7 +2924,9 @@ json action_sketch_constrain(DesignPanel* panel, const json& params)
         }
     }
     panel->mcp_viewport()->request_repaint();
-    return json{{"ok", rejected.empty()}, {"added", added}, {"rejected", rejected}, {"dof", t.dof()}, {"solved", t.solve_ok()},
+    int dof_now;
+    { PhaseLog p("sketch_constrain.dof"); dof_now = t.dof(); }
+    return json{{"ok", rejected.empty()}, {"added", added}, {"rejected", rejected}, {"dof", dof_now}, {"solved", t.solve_ok()},
                 {"error", rejected.empty() ? std::string() : std::string("some constraints were rejected; see 'rejected'")}};
 }
 
@@ -3855,6 +3861,38 @@ public:
     void Notify() override { g_ui_alive_ms = steady_ms(); }
 };
 
+// MCP work for the UI thread goes through this FIFO, one call per timer tick, instead of one wxApp::CallAfter per call.
+// wx drains its whole pending-event list before it returns to the GTK main loop, and a client (or four) that sends the next
+// call as soon as it has the last reply refills that list as fast as it empties: timers, repaints and the user's keys and
+// mouse then wait for as long as the flood lasts, and the window is "not responding". A tick per call leaves the loop a turn
+// in between, at a cost of about a millisecond a call.
+class MainPump : public wxTimer {
+public:
+    void post(std::function<void()> f)
+    {
+        bool kick;
+        { std::lock_guard<std::mutex> l(m_m); m_q.push_back(std::move(f)); kick = !m_armed; m_armed = true; }
+        if (kick) wxGetApp().CallAfter([this] { StartOnce(1); });   // a wxTimer is started on the UI thread
+    }
+    void Notify() override
+    {
+        std::function<void()> f;
+        bool more;
+        {
+            std::lock_guard<std::mutex> l(m_m);
+            if (m_q.empty()) { m_armed = false; return; }
+            f = std::move(m_q.front()); m_q.pop_front(); more = !m_q.empty(); if (!more) m_armed = false;
+        }
+        if (more) StartOnce(1);
+        f();
+    }
+private:
+    std::mutex m_m;
+    std::deque<std::function<void()>> m_q;
+    bool m_armed{false};   // a tick is already scheduled
+};
+MainPump* g_main_pump = nullptr;   // created on the UI thread by install_ui_watchdog()
+
 void ui_watchdog()
 {
     bool reported = false;
@@ -3905,6 +3943,7 @@ void install_ui_watchdog()
 {
     g_ui_alive_ms = steady_ms();
     (new UiBeat)->Start(1000);   // leaked on purpose: it lives as long as the application
+    g_main_pump = new MainPump;  // likewise
 #ifdef __linux__
     g_main_tid = long(::syscall(SYS_gettid));
     g_main_pthread = ::pthread_self();
@@ -4070,7 +4109,7 @@ std::string dispatch_once(const std::string& method, const json& params, const j
     // handler of its own, so an escaping exception is std::terminate — the socket would
     // become a way for any client to kill the application. handle_on_main() catches what
     // it knows about; this catches what it does not, and still answers the caller.
-    wxGetApp().CallAfter([prom, state, method, params, id]() {
+    auto run = [prom, state, method, params, id]() {
         int queued = 0;
         if (!state->compare_exchange_strong(queued, 1)) return;   // abandoned by a timeout
         try {
@@ -4080,7 +4119,9 @@ std::string dispatch_once(const std::string& method, const json& params, const j
         } catch (...) {
             prom->set_value(rpc_error(id, -32000, "internal error: unknown exception"));
         }
-    });
+    };
+    if (g_main_pump != nullptr) g_main_pump->post(std::move(run));   // one call per event-loop turn
+    else                        wxGetApp().CallAfter(std::move(run));
     if (fut.wait_for(std::chrono::seconds(15)) != std::future_status::ready) {
         int queued = 0;
         if (state->compare_exchange_strong(queued, 2))

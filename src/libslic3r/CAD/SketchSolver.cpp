@@ -64,6 +64,10 @@ inline int role_idx(Role r) { return int(r); }
 
 } // namespace
 
+static thread_local bool g_skip_bad = false;
+SketchSolveNoBad::SketchSolveNoBad() : m_prev(g_skip_bad) { g_skip_bad = true; }
+SketchSolveNoBad::~SketchSolveNoBad() { g_skip_bad = m_prev; }
+
 static SketchSolveResult solve_system(std::vector<SketchEntity>& entities,
                                       const std::vector<SketchEntityConstraintDef>& constraints,
                                       int dragged_ei, Role dragged_role)
@@ -448,7 +452,7 @@ static SketchSolveResult solve_system(std::vector<SketchEntity>& entities,
     std::vector<Slvs_hConstraint> failed(b.cons.size() + 1, 0);
     sys.failed = failed.data();
     sys.faileds = int(failed.size());
-    sys.calculateFaileds = 1;
+    sys.calculateFaileds = g_skip_bad ? 0 : 1;
 
     // Drag pin: feed the dragged point's two params into sys.dragged[] so the solver
     // favours keeping that point at the cursor and re-solves the rest around it.

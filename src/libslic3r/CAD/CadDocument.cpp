@@ -714,6 +714,7 @@ bool solve_sketch_entities(std::vector<SketchEntity>& entities,
 {
     // Delegated to the vendored SolveSpace solver (SketchSolver / libslvs): full
     // constraint set, real DoF + over-constrained detection.
+    SketchSolveNoBad no_bad;   // a yes/no answer: do not search for the conflicting constraints
     return sketch_solve(entities, constraints).ok;
 }
 
