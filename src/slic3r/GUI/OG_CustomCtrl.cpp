@@ -20,6 +20,7 @@
 #include <wx/dc.h>
 #include <wx/colour.h>
 #include <cstddef>
+#include <string>
 #include <wx/settings.h>
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include "slic3r/GUI/GUI.hpp"
@@ -391,7 +392,8 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
             tooltip += line.og_line.label_tooltip;
             if (m_option_state_registry) {
                 for (const Option& option : line.og_line.get_options()) {
-                    wxString reason = m_option_state_registry->description(option.opt.opt_key);
+                    const std::string& key = option.opt.opt_key.empty() ? option.opt_id : option.opt.opt_key;
+                    wxString reason = m_option_state_registry->description(key);
                     if (!reason.empty()) {
                         if (!availability.empty())
                             availability += "\n\n";
