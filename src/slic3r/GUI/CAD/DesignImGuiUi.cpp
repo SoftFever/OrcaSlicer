@@ -312,7 +312,7 @@ static ImTextureID svg_texture(const std::string& key, const std::vector<std::st
             const float ox = (N - img->width * sc) * 0.5f, oy = (N - img->height * sc) * 0.5f;   // centre non-square art
             nsvgRasterize(rast, img, ox, oy, sc, px.data(), N, N, N * 4);
             nsvgDeleteRasterizer(rast);
-            if (n.rfind("fc_", 0) == 0) monochrome_fc_rgba(px.data(), size_t(N) * N, dark);   // Orca's one icon grey, not FreeCAD's hues
+            decolorize_rgba(px.data(), size_t(N) * N, dark);   // one family of greys: FreeCAD's hues and Orca's green arrows alike
             GLint  last = 0;
             GLuint id   = 0;
             glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last));
@@ -360,6 +360,11 @@ static std::string fit_label(const std::string& s, float maxw)
     return t + "..";
 }
 
+}
+
+void* design_icon_texture(const std::string& name)
+{
+    return (void*) svg_texture(std::string("icon:") + name, { name });
 }
 
 void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_left, float inset_top)
@@ -487,7 +492,7 @@ void DesignTopBar::render(ImGuiWrapper& imgui, float scale, float inset_left)
     if (m_tabs.empty()) m_tabs = build_ribbon_table();
     const float  em  = imgui.get_style_scaling();
     const ImVec2 ds  = ImGui::GetIO().DisplaySize;
-    const float  isz = 22.f * em;   // the icons' size
+    const float  isz = 33.f * em;   // the icons' size
     using VerbState  = DesignRibbonOverlay::VerbState;
 
     ImGuiWrapper::push_common_window_style(scale);
@@ -507,7 +512,7 @@ void DesignTopBar::render(ImGuiWrapper& imgui, float scale, float inset_left)
     const float fp_x   = style.FramePadding.x;
     const float btn_w  = isz + 2.f * fp_x;
     const float btn_h  = isz + 2.f * style.FramePadding.y;
-    const float arr_w  = 8.f * em;
+    const float arr_w  = 12.f * em;
     const float win_w  = std::max(ds.x - inset_left, 100.f);
     const float pad    = style.WindowPadding.x;
     const float y0     = ImGui::GetCursorPosY();
@@ -682,6 +687,55 @@ void DesignTopBar::render(ImGuiWrapper& imgui, float scale, float inset_left)
     m_height = ImGui::GetWindowHeight();
     imgui.end();
     ImGui::PopStyleVar(4);
+    theme.reset();
+    ImGuiWrapper::pop_common_window_style();
+}
+
+// ---- sidebar -----------------------------------------------------------------------------------------
+void DesignSidebarOverlay::render(ImGuiWrapper& imgui, float scale, float inset_top)
+{
+    m_hovered = false;
+    const float  em = imgui.get_style_scaling();
+    const ImVec2 ds = ImGui::GetIO().DisplaySize;
+    const float  w  = std::clamp(width_px * em, 200.f * em, std::max(ds.x * 0.7f, 240.f * em));
+    m_drawn_w = w;
+    const float h = std::max(ds.y - inset_top, 100.f);
+
+    ImGuiWrapper::push_common_window_style(scale);
+    auto theme = std::make_unique<ThemeScope>();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,    ImVec2(8.f * em, 6.f * em));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,      ImVec2(6.f * em, 4.f * em));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,     ImVec2(5.f * em, 3.f * em));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize,  0.f);
+    ImGui::SetNextWindowPos(ImVec2(0.f, inset_top), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Always);
+    imgui.begin(std::string("##design_sidebar"),
+                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
+    ImGui::SetWindowFontScale(std::min(1.f, ribbon_font_scale() * 1.2f));   // the panel's text, a little larger than the bars'
+    m_hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+    if (draw) draw();
+    imgui.end();
+
+    // The edge: drag it to resize.
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));   // the sidebar's padding would push the button out of this 7 em window
+    ImGui::SetNextWindowPos(ImVec2(w - 3.f * em, inset_top), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(7.f * em, h), ImGuiCond_Always);
+    imgui.begin(std::string("##design_sidebar_edge"),
+                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+    ImGui::InvisibleButton("##edge", ImVec2(7.f * em, h));
+    if (ImGui::IsItemHovered() || ImGui::IsItemActive()) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+    if (ImGui::IsItemActive()) {
+        width_px = std::clamp(ImGui::GetIO().MousePos.x / std::max(em, 0.1f), 240.f, 900.f);
+        m_dragging = true;
+    } else if (m_dragging) {
+        m_dragging = false;
+        if (on_width) on_width(width_px);
+    }
+    imgui.end();
+    ImGui::PopStyleVar(6);
     theme.reset();
     ImGuiWrapper::pop_common_window_style();
 }

@@ -227,16 +227,21 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
             if (m_other_menu.is_open()) m_canvas->set_as_dirty();
         }
         if (m_palette.is_open()) m_canvas->set_as_dirty();   // keep frames coming: the box takes focus on the frame AFTER it opens
-        if (m_topbar_on) {   // the document actions, the toolbox and Confirm / Cancel; clear of the corner collapse button
-            m_topbar.render(imgui, m_canvas->get_scale(), 34.f * em);
+        float left = 34.f * em;   // clear of the corner collapse button
+        if (m_sidebar_on) {       // the left panel, full height; the bars start at its edge
+            m_sidebar.render(imgui, m_canvas->get_scale(), 0.f);
+            left = m_sidebar.drawn_width();
+        }
+        if (m_topbar_on) {   // the document actions, the toolbox and Confirm / Cancel
+            m_topbar.render(imgui, m_canvas->get_scale(), left);
             top = m_topbar.height();
         }
         if (m_ribbon_on) {
-            m_ribbon.render(imgui, m_canvas->get_scale(), 34.f * em, top);
+            m_ribbon.render(imgui, m_canvas->get_scale(), left, top);
             top += m_ribbon.height();
         }
         if (m_tree_overlay_on)
-            m_tree_overlay.render(imgui, m_canvas->get_scale(), 0.f, std::max(top, 0.f) + 34.f * em * ((m_ribbon_on || m_topbar_on) ? 0.f : 1.f));
+            m_tree_overlay.render(imgui, m_canvas->get_scale(), m_sidebar_on ? left : 0.f, std::max(top, 0.f) + 34.f * em * ((m_ribbon_on || m_topbar_on) ? 0.f : 1.f));
         render_select_panel(std::max(top, 0.f) + (m_topbar_on ? 8.f : 34.f) * em);
     };
 

@@ -2546,7 +2546,8 @@ json action_ui_option(DesignPanel* panel, const json& params)
     if (name == "imgui_ribbon") { panel->mcp_set_imgui_ribbon(on); return json{{"ok", true}, {"imgui_ribbon", on}}; }
     if (name == "imgui_menu")   { panel->mcp_set_imgui_menu(on);   return json{{"ok", true}, {"imgui_menu", on}}; }
     if (name == "imgui_topbar") { panel->mcp_set_imgui_topbar(on); return json{{"ok", true}, {"imgui_topbar", on}}; }
-    throw std::runtime_error("unknown ui option: " + name + " (imgui_tree, imgui_ribbon, imgui_menu, imgui_topbar)");
+    if (name == "imgui_sidebar") { panel->mcp_set_imgui_sidebar(on); return json{{"ok", true}, {"imgui_sidebar", on}}; }
+    throw std::runtime_error("unknown ui option: " + name + " (imgui_tree, imgui_ribbon, imgui_menu, imgui_topbar, imgui_sidebar)");
 }
 
 json action_plane(DesignPanel* panel, const json& params)

@@ -188,6 +188,11 @@ void DesignRowList::Rescale()
 
 void DesignRowList::begin_rename(int row)
 {
+    if (on_begin_rename && row >= 0 && row < int(m_rows.size())) {
+        const Row& r = m_rows[size_t(row)];
+        if (on_begin_rename(row, r.edit_text.IsEmpty() ? r.label : r.edit_text))
+            return;
+    }
     CallAfter([this, row] { open_editor(row); });
 }
 

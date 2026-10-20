@@ -852,6 +852,7 @@ if (SLIC3R_CAD)
         GUI/CAD/DesignImGuiUi.hpp
         GUI/CAD/DesignRibbonTable.hpp
         GUI/CAD/DesignRowList.cpp
+        GUI/CAD/DesignSidebarMirror.cpp
         GUI/CAD/DesignRowList.hpp
         GUI/CAD/DesignTextDialog.cpp
         GUI/CAD/DesignTextDialog.hpp

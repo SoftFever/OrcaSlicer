@@ -1819,6 +1819,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
     auto card_header = [this](wxWindow* card, const char* icon, const wxString& title, wxStaticText*& out) -> wxSizer* {
         auto* h  = new wxBoxSizer(wxHORIZONTAL);
         auto* ic = new wxStaticBitmap(card, wxID_ANY, create_scaled_bitmap(icon, card, 18));
+        m_ctl_icon[ic] = icon;
         m_icon_refresh.push_back([ic, card, name = std::string(icon)] {
             ic->SetBitmap(create_scaled_bitmap(name, card, 18)); });
         out = new wxStaticText(card, wxID_ANY, title);
@@ -4726,6 +4727,8 @@ DesignPanel::DesignPanel(wxWindow* parent)
     // floats. A click arrives inside the canvas's mouse handler, so the relayout waits for it.
     m_viewport->set_sidebar_collapse(
         [this] {
+            if (m_imgui_sidebar)   // the ImGui sidebar has its own collapse arrow; only a collapsed one needs the canvas button
+                return m_sidebar_collapsed ? CollapseSide::Left : CollapseSide::None;
             const wxAuiPaneInfo& sidebar = m_aui.GetPane(m_form);
             if (!sidebar.IsOk() || sidebar.IsFloating())
                 return CollapseSide::None;
@@ -8016,6 +8019,8 @@ void DesignPanel::on_tab_shown()
         if (want != m_imgui_ribbon) set_imgui_ribbon(want);
         const bool top = cfg->get("design_imgui_topbar").empty() ? true : cfg->get_bool("design_imgui_topbar");   // on unless a profile chose the wx row
         if (top != m_imgui_topbar) set_imgui_topbar(top);
+        const bool side = cfg->get("design_imgui_sidebar").empty() ? true : cfg->get_bool("design_imgui_sidebar");   // likewise the left panel
+        if (side != m_imgui_sidebar) set_imgui_sidebar(side);
     }
     m_imgui_menu = wxGetApp().app_config->get_bool("design_imgui_menu");
     if (show_clock.Time() > 100)   // a slow first show is what users report; the usual one is not news
@@ -8196,7 +8201,8 @@ void DesignPanel::collapse_sidebar(bool collapse)
 void DesignPanel::update_sidebar_pane(bool force_update)
 {
     wxAuiPaneInfo& sidebar = m_aui.GetPane(m_form);
-    const bool     show    = !m_sidebar_collapsed && m_laid_out && (sidebar.IsDocked() || IsShownOnScreen());
+    const bool     show    = !m_imgui_sidebar && !m_sidebar_collapsed && m_laid_out && (sidebar.IsDocked() || IsShownOnScreen());
+    if (m_viewport != nullptr) m_viewport->set_sidebar_overlay(m_imgui_sidebar && !m_sidebar_collapsed && m_laid_out);
     if (sidebar.IsOk() && sidebar.IsShown() != show) {
         sidebar.Show(show);
         force_update = true;
@@ -12768,6 +12774,31 @@ void DesignPanel::set_imgui_topbar(bool on)
         m_toolbar->Show(!on);
         if (wxWindow* p = m_toolbar->GetParent()) p->Layout();
     }
+}
+
+void DesignPanel::set_imgui_sidebar(bool on)
+{
+    m_imgui_sidebar = on;
+    AppConfig* cfg = wxGetApp().app_config;
+    cfg->set_bool("design_imgui_sidebar", on);
+    if (m_viewport) {
+        DesignSidebarOverlay& sb = m_viewport->sidebar_overlay();
+        sb.draw = [this] { draw_sidebar_imgui(); };
+        const std::string w = cfg->get("design_sidebar_width");
+        if (!w.empty()) sb.width_px = float(std::clamp(std::atof(w.c_str()), 240.0, 900.0));
+        sb.on_width = [cfg](float px) { cfg->set("design_sidebar_width", wxString::Format("%.0f", px).ToStdString()); };
+        if (on && m_imgui_tree) set_imgui_tree(false);   // the floating tree is this panel's tree: one of them
+        for (DesignRowList* l : {m_tree, m_parts}) {     // a rename opens in ImGui, not in the hidden wx list
+            if (l == nullptr) continue;
+            l->on_begin_rename = [this, l](int row, const wxString& text) {
+                if (!m_imgui_sidebar) return false;
+                m_sb_rename_list = l; m_sb_rename_row = row; m_sb_rename_text = text.utf8_string(); m_sb_rename_focus = true;
+                if (m_viewport) m_viewport->request_repaint();
+                return true;
+            };
+        }
+    }
+    update_sidebar_pane(true);   // hides the wx pane (or shows it again) and shows the overlay
 }
 
 void DesignPanel::set_imgui_tree(bool on)

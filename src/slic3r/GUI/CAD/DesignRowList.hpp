@@ -61,6 +61,8 @@ public:
     // the owner re-selects the row it keeps, which notifies.
     void set_rows(std::vector<Row> rows);
     int  selection() const { return GetSelection(); }
+    const std::vector<Row>& rows() const { return m_rows; }   // for a second view of the same list (the ImGui sidebar)
+    bool selectable() const { return m_selectable; }
     // Select `row` (wxNOT_FOUND clears) and call on_select if that changed the selection.
     void select(int row);
     void unselect() { select(wxNOT_FOUND); }
@@ -83,6 +85,9 @@ public:
     // The editor committed `name` for `row`, trimmed and never empty (an empty commit cancels).
     // Runs after the editor's own events have finished, so the owner may rebuild the rows here.
     std::function<void(int row, const wxString& name)> on_rename;
+    // A second view of this list (the ImGui sidebar) can take a rename over: it gets the row and the text the editor would open
+    // with, and returns true when it has. False (or unset) = the list's own in-place editor.
+    std::function<bool(int row, const wxString& text)> on_begin_rename;
 
     bool AcceptsFocus() const override { return m_selectable && wxVListBox::AcceptsFocus(); }
 

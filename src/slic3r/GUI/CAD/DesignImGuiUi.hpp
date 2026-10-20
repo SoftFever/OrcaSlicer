@@ -136,6 +136,30 @@ private:
     float  m_height{0.f};
 };
 
+// ---- sidebar --------------------------------------------------------------------------------------------
+// An icon by name (resources/images/<name>.svg), decolorized like the bars' icons: an ImTextureID, or null when the app ships
+// no such file. For the code that draws the panel's own controls.
+void* design_icon_texture(const std::string& name);
+
+// The left panel as an ImGui window at the canvas's left edge, full height, its edge draggable. It draws nothing itself: the
+// owner's `draw` fills it (DesignPanel mirrors its wx form there).
+class DesignSidebarOverlay
+{
+public:
+    std::function<void()>      draw;
+    std::function<void(float)> on_width;   // the edge was dragged: the new width, in px at 100% scaling
+    float                      width_px{440.f};
+
+    void  render(ImGuiWrapper& imgui, float scale, float inset_top);
+    float drawn_width() const { return m_drawn_w; }   // screen px, as drawn last
+    bool  hovered() const { return m_hovered; }
+
+private:
+    bool   m_hovered{false};
+    float  m_drawn_w{0.f};
+    bool   m_dragging{false};
+};
+
 // ---- right-click offer menu as an ImGui popup (item 3) ----------------------------------------------
 // The same rows the wx offer builds (flat rows first, then one submenu per family), as plain data.
 struct OfferNode {

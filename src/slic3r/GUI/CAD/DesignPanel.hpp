@@ -73,6 +73,8 @@ class DesignCanvas;
 // Design (CAD) tab: a sketch-first, Onshape-style form-driven CAD panel.
 // Sketch and Extrude are independent tools: the user creates a Sketch first,
 // then selects it and Extrudes to produce a solid.
+struct SidebarCtx;   // DesignSidebarMirror.cpp
+
 class DesignPanel : public wxPanel, public LazyInstance<DesignPanel>
 {
 public:
@@ -99,6 +101,7 @@ public:
     void         mcp_set_imgui_tree(bool on) { set_imgui_tree(on); }
     void         mcp_set_imgui_ribbon(bool on) { set_imgui_ribbon(on); }
     void         mcp_set_imgui_topbar(bool on) { set_imgui_topbar(on); }
+    void         mcp_set_imgui_sidebar(bool on) { set_imgui_sidebar(on); }
     void         mcp_set_imgui_menu(bool on);
     CadDocument& mcp_doc()        { return m_doc; }            // live document (read + mutate)
     void         mcp_after_change() { after_tree_edit(true); } // refresh tree + viewport + status
@@ -639,6 +642,19 @@ private:
     // The row above the viewport (document actions, toolbox, Commit, Confirm / Cancel) drawn on the canvas with ImGui; the wx
     // row hides while it is on. Off = the wx row, as before.
     void              set_imgui_topbar(bool on);
+    // The left panel drawn with ImGui at the canvas's left edge: a view over this panel's wx form, which stays alive (hidden) as
+    // the model, so every handler runs as before (DesignSidebarMirror.cpp). Off = the wx pane, as before.
+    void              set_imgui_sidebar(bool on);
+    void              draw_sidebar_imgui();
+    void              mirror_sizer(wxSizer* s, SidebarCtx& cx);
+    void              mirror_item(wxSizerItem* it, SidebarCtx& cx, float width);
+    void              mirror_window(wxWindow* w, SidebarCtx& cx, float width);
+    bool              m_imgui_sidebar{false};
+    DesignRowList*    m_sb_rename_list{nullptr};   // a row being renamed in the ImGui view
+    int               m_sb_rename_row{-1};
+    std::string       m_sb_rename_text;
+    bool              m_sb_rename_focus{false};
+    std::map<const wxWindow*, std::string> m_ctl_icon;   // icon name of a wxStaticBitmap, for the ImGui view
     bool              m_imgui_topbar{false};
     bool              action_bar_active() const;   // a tool or mode is open: the Confirm / Cancel pair shows
     // Is this verb usable right now, and if not why: ONE rule for the ribbon, the palette and the offer.

@@ -413,8 +413,8 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     ::nsvgDeleteRasterizer(rast);
     ::nsvgDelete(image);
 
-    if (bitmap_name.rfind("fc_", 0) == 0)   // FreeCAD's coloured icons, redrawn in Orca's one icon grey
-        monochrome_fc_rgba(data.data(), size_t(n_pixels), dark_mode);
+    if (bitmap_name.rfind("fc_", 0) == 0)   // FreeCAD's coloured icons: hue removed, shading kept
+        decolorize_rgba(data.data(), size_t(n_pixels), dark_mode);
 
     return this->insert_raw_rgba(bitmap_key, width, height, data.data(), grayscale);
 }
