@@ -1495,7 +1495,7 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 }
 
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
-void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d& bed_center)
+void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d& bed_center, const BoundingBoxf3& print_volume)
 {
     auto fit = [this](double s, Vec3d offset) {
         if (s <= 0.0 || s == 1.0)
@@ -1525,8 +1525,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d
         //wxGetApp().obj_manipul()->set_dirty();
     };
 
-    auto fit_rectangle = [this, fit, &bed_center](const BuildVolume& volume) {
-        const BoundingBoxf3 print_volume = volume.bounding_volume();
+    auto fit_rectangle = [this, fit, &print_volume]() {
         const Vec3d print_volume_size = print_volume.size();
 
         // adds 1/100th of a mm on all sides to avoid false out of print volume detections due to floating-point roundings
@@ -1537,7 +1536,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d
         const double sz = (box_size.z() != 0.0) ? print_volume_size.z() / box_size.z() : 0.0;
 
         if (sx != 0.0 && sy != 0.0 && sz != 0.0)
-            fit(std::min(sx, std::min(sy, sz)), Vec3d(bed_center.x(), bed_center.y(), print_volume.center().z()) - get_bounding_box().center());
+            fit(std::min(sx, std::min(sy, sz)), print_volume.center() - get_bounding_box().center());
     };
 
     auto fit_circle = [this, fit, &bed_center](const BuildVolume& volume) {
@@ -1582,7 +1581,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d
 
     switch (volume.type())
     {
-    case BuildVolume_Type::Rectangle: { fit_rectangle(volume); break; }
+    case BuildVolume_Type::Rectangle: { fit_rectangle(); break; }
     case BuildVolume_Type::Circle:    { fit_circle(volume); break; }
     default: { break; }
     }

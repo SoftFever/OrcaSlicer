@@ -11040,7 +11040,11 @@ void Plater::priv::scale_selection_to_fit_print_volume()
     PartPlate*    plate      = this->partplate_list.get_curr_plate();
     const Vec3d   bed_center = plate != nullptr ? plate->get_center_origin() :
                                                   Vec3d(volume.bed_center().x(), volume.bed_center().y(), 0.);
-    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(volume, Vec2d(bed_center.x(), bed_center.y()));
+    // On a multi-nozzle printer each nozzle reaches only part of the bed, so a model fitted
+    // to the bed can still exceed a nozzle's printable range. Fit into the volume every
+    // nozzle shares, which is also the area Arrange places items in.
+    const BoundingBoxf3 print_volume = plate != nullptr ? plate->get_build_volume(true) : volume.bounding_volume();
+    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(volume, Vec2d(bed_center.x(), bed_center.y()), print_volume);
 #else
     this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(*config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
