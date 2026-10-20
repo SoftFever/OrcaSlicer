@@ -51,6 +51,7 @@
 #include <boost/spirit/home/karma.hpp>
 #include <deque>
 #include <boost/filesystem/directory.hpp>
+#include <boost/system/errc.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -987,6 +988,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             MetadataList metadata;
             VolumeMetadataList volumes;
+            std::optional<bool> auto_drop;
         };
 
         struct CutObjectInfo
@@ -1206,6 +1208,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //IdToGeometryMap m_orig_geometries; // backup & restore
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
+        std::set<int>   m_items_auto_drop_off; // object ids with a build item auto_drop="0" (2.4.x layout)
         IdToCutObjectInfoMap       m_cut_object_infos;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
         IdToLayerConfigRangesMap m_layer_config_ranges;
@@ -1367,7 +1370,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _handle_start_text_configuration(const char** attributes, unsigned int num_attributes);
         bool _handle_start_shape_configuration(const char **attributes, unsigned int num_attributes);
 
-        bool _create_object_instance(std::string const & path, int object_id, const Transform3d& transform, const bool printable, const bool auto_drop, unsigned int recur_counter);
+        bool _create_object_instance(std::string const & path, int object_id, const Transform3d& transform, const bool printable, unsigned int recur_counter);
 
         void _apply_transform(ModelInstance& instance, const Transform3d& transform);
 
@@ -1461,6 +1464,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_objects.clear();
         m_instances.clear();
         m_objects_metadata.clear();
+        m_items_auto_drop_off.clear();
         m_curr_metadata_name.clear();
         m_curr_characters.clear();
 
@@ -1500,6 +1504,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_curr_config.object_id = -1;
         m_curr_config.volume_id = -1;
         m_objects_metadata.clear();
+        m_items_auto_drop_off.clear();
         m_layer_heights_profiles.clear();
         m_layer_config_ranges.clear();
         m_brim_ear_points.clear();
@@ -2255,9 +2260,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             ObjectMetadata::VolumeMetadataList volumes;
             ObjectMetadata::VolumeMetadataList* volumes_ptr = nullptr;
 
+            // 2.4.x stored auto_drop on build items, shared by all instances of an object; any "off" wins
+            const bool legacy_auto_drop = !m_items_auto_drop_off.count(object.first.second);
+
             IdToMetadataMap::iterator obj_metadata = m_objects_metadata.find(object.first.second);
             if (obj_metadata != m_objects_metadata.end()) {
                 // config data has been found, this model was saved using slic3r pe
+
+                model_object->auto_drop = obj_metadata->second.auto_drop.value_or(legacy_auto_drop);
 
                 // apply object's name and config data
                 for (const Metadata& metadata : obj_metadata->second.metadata) {
@@ -2275,6 +2285,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             else {
                 // config data not found, this model was not saved using slic3r pe
+                model_object->auto_drop = legacy_auto_drop;
 
                 // add the entire geometry as the single volume to generate
                 //volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() - 1);
@@ -4117,9 +4128,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string path = bbs_get_attribute_value_string(attributes, num_attributes, PPATH_ATTR);
         Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
         int printable = bbs_get_attribute_value_bool(attributes, num_attributes, PRINTABLE_ATTR);
-        int auto_drop = bbs_get_attribute_value_bool(attributes, num_attributes, AUTO_DROP_ATTR);
-
-        return !m_load_model || _create_object_instance(path, object_id, transform, printable, auto_drop, 1);
+        if (const char* auto_drop = bbs_get_attribute_value_charptr(attributes, num_attributes, AUTO_DROP_ATTR); auto_drop != nullptr && !::atoi(auto_drop))
+            m_items_auto_drop_off.insert(object_id);
+        return !m_load_model || _create_object_instance(path, object_id, transform, printable, 1);
     }
 
     bool _BBS_3MF_Importer::_handle_end_item()
@@ -4347,7 +4358,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Importer::_create_object_instance(std::string const & path, int object_id, const Transform3d& transform, const bool printable, const bool auto_drop, unsigned int recur_counter)
+    bool _BBS_3MF_Importer::_create_object_instance(std::string const & path, int object_id, const Transform3d& transform, const bool printable, unsigned int recur_counter)
     {
         static const unsigned int MAX_RECURSIONS = 10;
 
@@ -4384,7 +4395,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
             }
             instance->printable = printable;
-            instance->auto_drop = auto_drop;    
 
             m_instances.emplace_back(instance, transform);
 
@@ -4417,7 +4427,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
             }
             instance->printable = printable;
-            instance->auto_drop = auto_drop;    
 
             m_instances.emplace_back(instance, transform);
         }
@@ -4488,7 +4497,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Added because of github #3435, currently not used by PrusaSlicer
         // int instances_count_id = bbs_get_attribute_value_int(attributes, num_attributes, INSTANCESCOUNT_ATTR);
 
-        m_objects_metadata.insert({ object_id, ObjectMetadata() });
+        ObjectMetadata metadata;
+        if (bbs_get_attribute_value_charptr(attributes, num_attributes, AUTO_DROP_ATTR) != nullptr)
+            metadata.auto_drop = bbs_get_attribute_value_bool(attributes, num_attributes, AUTO_DROP_ATTR);
+        m_objects_metadata.insert({ object_id, std::move(metadata) });
         m_curr_config.object_id = object_id;
         return true;
     }
@@ -6164,14 +6176,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             unsigned int id;
             Transform3d transform;
             bool printable;
-            bool auto_drop;
 
-            BuildItem(std::string const & path, unsigned int id, const Transform3d& transform, const bool printable, const bool auto_drop)
+            BuildItem(std::string const & path, unsigned int id, const Transform3d& transform, const bool printable)
                 : path(path)
                 , id(id)
                 , transform(transform)
                 , printable(printable)
-                , auto_drop(auto_drop)
             {
             }
         };
@@ -6262,7 +6272,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                                 std::vector<std::string> const &targets = {},
                                                 std::vector<std::string> const &types   = {},
                                                 PackingTemporaryData            data    = PackingTemporaryData(),
-                                                int export_plate_idx = -1) const;
+                                                int                             export_plate_idx = -1,
+                                                bool                            plate_thumbnail_written = false,
+                                                bool                            plate_small_thumbnail_written = false) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, ObjectToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, ObjectData const &object_data) const;
         void _add_object_components_to_stream(std::stringstream &stream, ObjectData const &object_data) const;
@@ -6472,6 +6484,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",top&&pick thumbnails, count %1%")%top_thumbnail_data.size();
 
         //BBS: add thumbnail for each plate
+        //ORCA: the relationships file points at plate 1's thumbnail for a whole-project export,
+        //      otherwise at the exported plate's. Track whether that thumbnail was written.
+        const size_t rels_plate_idx = (export_plate_idx < 0) ? 0 : static_cast<size_t>(export_plate_idx);
+        bool rels_thumbnail_written = false;
+        bool rels_small_thumbnail_written = false;
         if (!m_skip_static) {
             std::vector<bool> thumbnail_status(plate_data_list.size(), false);
             std::vector<bool> no_light_thumbnail_status(plate_data_list.size(), false);
@@ -6520,6 +6537,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",add thumbnail %1%'s data into 3mf")%(index+1);
                     thumbnail_status[index] = true;
+                    if (static_cast<size_t>(index) == rels_plate_idx) {
+                        //ORCA: this call also writes the _small companion
+                        rels_thumbnail_written       = true;
+                        rels_small_thumbnail_written = true;
+                    }
                 }
             }
 
@@ -6530,7 +6552,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     }
 
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(",add no light thumbnail %1%'s data into 3mf") % (index + 1);
-                    thumbnail_status[index] = true;
+                    no_light_thumbnail_status[index] = true;
                 }
             }
             // Adds the file Metadata/top_i.png and Metadata/pick_i.png
@@ -6566,6 +6588,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add thumbnail %1% from file %2% failed\n") % (i+1) %plate_data->thumbnail_file;
                         return false;
                     }
+                    //ORCA: copied from file, so there is no _small companion for this plate
+                    if (static_cast<size_t>(i) == rels_plate_idx)
+                        rels_thumbnail_written = true;
                 }
 
                 if (!no_light_thumbnail_status[i] && !plate_data->no_light_thumbnail_file.empty() && (boost::filesystem::exists(plate_data->no_light_thumbnail_file))){
@@ -6860,7 +6885,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Adds relationships file ("_rels/.rels").
         // The content of this file is the same for each OrcaSlicer 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
-        if (!_add_relationships_file_to_archive(archive, {}, {}, {}, temp_data, export_plate_idx)) {
+        if (!_add_relationships_file_to_archive(archive, {}, {}, {}, temp_data, export_plate_idx, rels_thumbnail_written, rels_small_thumbnail_written)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", _add_relationships_file_to_archive failed\n");
             return false;
         }
@@ -7035,7 +7060,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     }
 
     bool _BBS_3MF_Exporter::_add_relationships_file_to_archive(
-        mz_zip_archive &archive, std::string const &from, std::vector<std::string> const &targets, std::vector<std::string> const &types, PackingTemporaryData data, int export_plate_idx) const
+        mz_zip_archive &archive, std::string const &from, std::vector<std::string> const &targets, std::vector<std::string> const &types, PackingTemporaryData data, int export_plate_idx,
+        bool plate_thumbnail_written, bool plate_small_thumbnail_written) const
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -7046,7 +7072,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (export_plate_idx < 0) {
                 //use cover image if have
                 if (data._3mf_thumbnail.empty()) {
-                    stream << " <Relationship Target=\"/Metadata/plate_1.png"
+                    // ORCA: only reference the plate thumbnail if it was written
+                    if (plate_thumbnail_written)
+                        stream << " <Relationship Target=\"/Metadata/plate_1.png"
                                << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
                 } else {
                     stream << " <Relationship Target=\"/" << xml_escape(data._3mf_thumbnail)
@@ -7054,22 +7082,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
 
                 if (data._3mf_printer_thumbnail_middle.empty()) {
-                    stream << " <Relationship Target=\"/Metadata/plate_1.png"
-                           << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
+                    if (plate_thumbnail_written)
+                        stream << " <Relationship Target=\"/Metadata/plate_1.png"
+                               << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
                 } else {
                     stream << " <Relationship Target=\"/" << xml_escape(data._3mf_printer_thumbnail_middle)
                            << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
                 }
 
                 if (data._3mf_printer_thumbnail_small.empty()) {
-                    stream << "<Relationship Target=\"/Metadata/plate_1_small.png"
-                           << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
+                    if (plate_small_thumbnail_written)
+                        stream << "<Relationship Target=\"/Metadata/plate_1_small.png"
+                               << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
                 } else {
                     stream << " <Relationship Target=\"/" << xml_escape(data._3mf_printer_thumbnail_small)
                            << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
                 }
             }
-            else {
+            else if (plate_thumbnail_written) {
                 //always use plate thumbnails
                 std::string thumbnail_file_str = (boost::format("Metadata/plate_%1%.png") % (export_plate_idx + 1)).str();
                 stream << " <Relationship Target=\"/" << xml_escape(thumbnail_file_str)
@@ -7079,9 +7109,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << " <Relationship Target=\"/" << xml_escape(thumbnail_file_str)
                    << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
 
-                thumbnail_file_str = (boost::format("Metadata/plate_%1%_small.png") % (export_plate_idx + 1)).str();
-                stream << " <Relationship Target=\"/" << xml_escape(thumbnail_file_str)
-                   << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
+                if (plate_small_thumbnail_written) {
+                    thumbnail_file_str = (boost::format("Metadata/plate_%1%_small.png") % (export_plate_idx + 1)).str();
+                    stream << " <Relationship Target=\"/" << xml_escape(thumbnail_file_str)
+                       << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
+                }
             }
         }
         else if (targets.empty()) {
@@ -7390,7 +7422,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     // instance_id is just a 1 indexed index in build_items.
                     //assert(m_skip_static || curr_id == build_items.size() + 1);
 
-                    build_items.emplace_back("", object_it->second.object_id, t, instance->printable, instance->auto_drop);
+                    build_items.emplace_back("", object_it->second.object_id, t, instance->printable);
                     count++;
                 }
 
@@ -7840,8 +7872,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "\" " << PPATH_ATTR << "=\"" << xml_escape(item.path);
             stream << "\" " << TRANSFORM_ATTR << "=\"";
             add_transformation(stream, item.transform);
-            stream << "\" " << PRINTABLE_ATTR << "=\"" << item.printable;
-            stream << "\" " << AUTO_DROP_ATTR << "=\"" << item.auto_drop << "\"/>\n";
+            stream << "\" " << PRINTABLE_ATTR << "=\"" << item.printable << "\"/>\n";
         }
 
         stream << " </" << BUILD_TAG << ">\n";
@@ -8278,7 +8309,8 @@ bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archiv
             if (obj != nullptr) {
                 // Output of instances count added because of github #3435, currently not used by PrusaSlicer
                 //stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
-                stream << "  <" << OBJECT_TAG << " " << ID_ATTR << "=\"" << object_data.object_id << "\">\n";
+                stream << "  <" << OBJECT_TAG << " " << ID_ATTR << "=\"" << object_data.object_id
+                       << "\" " << AUTO_DROP_ATTR << "=\"" << obj->auto_drop << "\">\n";
 
                 // stores object's name
                 if (!obj->name.empty())
@@ -9031,6 +9063,16 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%\n") % src_gcode_file % gcode_in_3mf;
         }
     });
+    for (const PlateData *plate_data : plate_data_list2) {
+        if (plate_data->statistics.empty())
+            continue;
+        const std::string statistics_in_3mf = (boost::format(STATISTICS_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+        if (!mz_zip_writer_add_mem(&archive, statistics_in_3mf.c_str(), plate_data->statistics.data(), plate_data->statistics.size(),
+                                   MZ_DEFAULT_COMPRESSION)) {
+            add_error("Unable to add statistics file to archive");
+            result = false;
+        }
+    }
     return result;
 }
 
@@ -9755,10 +9797,13 @@ bool has_restore_data(std::string & path, std::string& origin)
         origin = "<lock>";
         return false;
     }
-    if (boost::filesystem::exists(path + "/lock.txt")) {
+    // ORCA: the caller removes this directory unless origin is "<lock>", so every way of
+    //       failing to establish the backup's state has to claim the lock instead.
+    boost::system::error_code ec;
+    if (boost::filesystem::exists(path + "/lock.txt", ec)) {
         std::string pid;
-        load_string_file(path + "/lock.txt", pid);
         try {
+            load_string_file(path + "/lock.txt", pid);
             if (get_process_name(boost::lexical_cast<int>(pid)) ==
                 get_process_name(0)) {
                 origin = "<lock>";
@@ -9766,14 +9811,22 @@ bool has_restore_data(std::string & path, std::string& origin)
             }
         }
         catch (...) {
+            origin = "<lock>";
             return false;
         }
     }
     std::string file3mf = path + "/.3mf";
-    if (!boost::filesystem::exists(file3mf))
+    if (!boost::filesystem::exists(file3mf, ec)) {
+        // ORCA: a .3mf that is simply absent is a spent backup and stays collectable. A probe
+        //       that could not look must not be: ec reports ENOENT/ENOTDIR for "not there" as
+        //       well, so only a different error means the answer is unknown.
+        if (ec && ec != boost::system::errc::no_such_file_or_directory &&
+                  ec != boost::system::errc::not_a_directory)
+            origin = "<lock>";
         return false;
+    }
     try {
-        if (boost::filesystem::exists(path + "/origin.txt"))
+        if (boost::filesystem::exists(path + "/origin.txt", ec))
             load_string_file(path + "/origin.txt", origin);
     }
     catch (...) {
@@ -10067,7 +10120,7 @@ bool to_xml(std::stringstream &stream, const EmbossShape::SvgFile &svg, const Mo
     assert(file_data != nullptr);
     if (file_data == nullptr && !svg.path.empty()) file_data = read_from_disk(svg.path);
     if (file_data == nullptr) {
-        BOOST_LOG_TRIVIAL(warning) << "Can't write svg file no filedata";
+        BOOST_LOG_TRIVIAL(warning) << "Can't write SVG file no filedata";
         return false;
     }
     const std::string &file_data_str = *file_data; 
@@ -10083,7 +10136,7 @@ void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume 
     stream << "   <" << SHAPE_TAG << " ";
     if (es.svg_file.has_value())
         if (!to_xml(stream, *es.svg_file, volume, archive, export_full_path)) {
-            BOOST_LOG_TRIVIAL(warning) << "Can't write svg file defiden embossed shape into 3mf";
+            BOOST_LOG_TRIVIAL(warning) << "Can't write SVG file defiden embossed shape into 3mf";
         }
 
     stream << SHAPE_SCALE_ATTR << "=\"" << es.scale << "\" ";

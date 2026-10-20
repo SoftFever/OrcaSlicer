@@ -91,12 +91,12 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
 
         struct Mode
         {
-            float time;
+            double time;
             float prepare_time;
             std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> custom_gcode_times;
 
             void reset() {
-                time = 0.0f;
+                time = 0.0;
                 prepare_time = 0.0f;
                 custom_gcode_times.clear();
                 custom_gcode_times.shrink_to_fit();
@@ -298,6 +298,9 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             BoundingBoxf3    box;
             // Of an object, whether it is an assembly.
             bool assembly{ false };
+            // Of an object instance, its model object's name and its index among that object's instances.
+            std::string name;
+            int         instance{ -1 };
 
             Sum  total() const { return printed_up_to_layer.empty() ? Sum{} : printed_up_to_layer.back(); }
             void add(const Sum &sum, const BoundingBoxf3 &extent, size_t layer);
@@ -598,6 +601,12 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             Print_Time_Minute_Placeholder,
             Print_Time_Sec_Placeholder,
             Used_Filament_Length_Placeholder,
+            Normal_Print_Time_Placeholder,
+            Silent_Print_Time_Placeholder,
+            Total_Weight_Placeholder,
+            Total_Cost_Placeholder,
+            Total_Wipe_Tower_Cost_Placeholder,
+            Total_Wipe_Tower_Filament_Placeholder,
         };
 
         static const std::string& reserved_tag(ETags tag) { return s_IsBBLPrinter ? Reserved_Tags[static_cast<unsigned char>(tag)] : Reserved_Tags_compatible[static_cast<unsigned char>(tag)]; }
@@ -694,6 +703,12 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             float acceleration{ 0.0f }; // mm/s^2
             float max_entry_speed{ 0.0f }; // mm/s
             float safe_feedrate{ 0.0f }; // mm/s
+            float junction_deviation{ 0.0f };
+            float max_mcr_entry_speed_sqr{ 0.0f };
+            float mcr_delta_v2{ 0.0f };
+            // Peak cruise speed squared in effect when this block was planned. Only set on a block
+            // that can accelerate; the delayed blocks after it are seeded from its value.
+            float peak_cruise_v2{ 0.0f };
             Flags flags;
             FeedrateProfile feedrate_profile;
             Trapezoid trapezoid;
@@ -773,6 +788,11 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             // hard limit for the travel acceleration, to which the firmware will clamp.
             float max_travel_acceleration; // mm/s^2
             float extrude_factor_override_percentage;
+            bool klipper{ false };
+            float minimum_cruise_ratio{ 0.5f };
+            float requested_accel_to_decel{ -1.0f };
+            float klipper_junction_flush{ 1.0f };
+            bool klipper_queue_priming{ true };
             // We accumulate total print time in doubles to reduce the loss of precision
             // while adding big floating numbers with small float numbers.
             double time; // s
@@ -808,6 +828,8 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
 
             // Merge adjacent buffer entries that target the same move type.
             static AdditionalBuffer merge_adjacent_additional_time_blocks(const AdditionalBuffer& buffer);
+
+            size_t plan_klipper(bool lazy);
 
             // additional_time is attributed to the first block matching target_move_type
             // (EMoveType::Noop matches any block, i.e. the first processed block).
@@ -1280,6 +1302,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         bool m_detect_layer_based_on_tag {false};
         int m_seams_count;
         bool m_measure_g29_time {false};
+        bool m_g29_time_added {false};
         bool m_single_extruder_multi_material;
         float m_preheat_time;
         int m_preheat_steps;
@@ -1373,7 +1396,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         void process_buffer(const std::string& buffer);
         void finalize(bool post_process);
 
-        float get_time(PrintEstimatedStatistics::ETimeMode mode) const;
+        double get_time(PrintEstimatedStatistics::ETimeMode mode) const;
         float get_prepare_time(PrintEstimatedStatistics::ETimeMode mode) const;
         std::string get_time_dhm(PrintEstimatedStatistics::ETimeMode mode) const;
         std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(PrintEstimatedStatistics::ETimeMode mode, bool include_remaining) const;

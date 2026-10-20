@@ -104,6 +104,8 @@ struct PluginPermissions
     std::vector<std::string> network_socket;
     std::vector<std::string> process;
     std::vector<std::string> threading;
+    // Grants for audit events that expose no target, keyed "<category>:<event>" (e.g. "Socket:socket.__new__").
+    std::vector<std::string> events;
 };
 
 struct PluginInstallState {
@@ -175,6 +177,12 @@ bool read_wheel_plugin_metadata(const boost::filesystem::path& whl_path, PluginD
 // Ignores __whl_extracted__ and hidden files/dirs.
 // Returns the path to the entry file, or an empty path with error set if zero or multiple candidates.
 boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::path& plugin_dir, std::string& error);
+
+// Validated non-recursive .png/.jpg/.jpeg/.bmp files directly inside `dir`, every one contained in
+// `plugin_root`. Empty with `error` set on failure.
+std::vector<std::string> collect_resource_texture_files(const std::string& dir,
+                                                        const std::string& plugin_root,
+                                                        std::string& error);
 
 // Canonical writer: emits the .install_state.json schema for the given state.
 bool write_install_state(const boost::filesystem::path& plugin_dir, const PluginInstallState& state);

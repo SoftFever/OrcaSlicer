@@ -10,6 +10,11 @@
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "ColorDecomposeDialog.hpp"
+#include "ColorPickerDialog.hpp"
+#include "libslic3r/Color.hpp"
+#include <optional>
+#include <variant>
+#include <wx/weakref.h>
 #include "ColorDecomposeSupport.hpp"
 #include "Widgets/StateColor.hpp"
 #include "Widgets/StaticLine.hpp"
@@ -32,9 +37,7 @@
 #include <mutex>
 #include <wx/button.h>
 #include <wx/colour.h>
-#include <wx/colordlg.h>
 #include <wx/dc.h>
-#include <wx/colourdata.h>
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
 #include <wx/dialog.h>
@@ -509,30 +512,6 @@ static wxString auto_mix_mode_label(TextureAutoMixMode mode)
                                              _L("One-click RYBW auto-mix");
 }
 
-static wxPoint constrained_dialog_position(wxWindow* anchor, const wxSize& dialog_size)
-{
-    if (!anchor)
-        return wxDefaultPosition;
-
-    wxSize size = dialog_size;
-    if (size.x <= 0 || size.y <= 0)
-        size = wxSize(anchor->FromDIP(450), anchor->FromDIP(350));
-
-    wxPoint pos = anchor->ClientToScreen(wxPoint(0, anchor->GetSize().y));
-    wxRect display_rect;
-    int display_idx = wxDisplay::GetFromPoint(pos);
-    if (display_idx != wxNOT_FOUND)
-        display_rect = wxDisplay(display_idx).GetClientArea();
-    else
-        display_rect = wxDisplay().GetClientArea();
-
-    pos.x = std::clamp(pos.x, display_rect.GetLeft(),
-                       std::max(display_rect.GetLeft(), display_rect.GetRight() - size.x));
-    pos.y = std::clamp(pos.y, display_rect.GetTop(),
-                       std::max(display_rect.GetTop(), display_rect.GetBottom() - size.y));
-    return pos;
-}
-
 // ============================================================
 // FilamentSelectPopup
 // ============================================================
@@ -633,7 +612,9 @@ public:
         decompose_label->SetCursor(wxCursor(add_enabled ? wxCURSOR_HAND : wxCURSOR_ARROW));
         if (!add_enabled)
             add_label->SetToolTip(wxString::Format(
-                _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+                _L_PLURAL("The project supports up to %d filament. Extra filaments will be discarded.",
+                          "The project supports up to %d filaments. Extra filaments will be discarded.",
+                          (int)EnforcerBlockerType::ExtruderMax),
                 (int)EnforcerBlockerType::ExtruderMax));
         decompose_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
             if (m_can_add_filament && !m_can_add_filament())
@@ -651,24 +632,22 @@ public:
             auto on_add_filament = m_on_add_filament;
             wxWindow* popup_parent = GetParent();
             wxWindow* color_anchor = m_dialog_anchor ? m_dialog_anchor : popup_parent;
+            wxWeakRef<FilamentSelectPopup> popup(this);
             m_closing_from_action = true;
-            Dismiss();
-            wxColourData cd;
-            cd.SetChooseFull(true);
-            wxColourDialog dlg(popup_parent, &cd);
-            auto move_color_dialog = [&dlg, color_anchor]() {
-                dlg.Move(constrained_dialog_position(color_anchor, dlg.GetBestSize()));
-            };
-            dlg.Bind(wxEVT_SHOW, [move_color_dialog](wxShowEvent& e) mutable {
-                e.Skip();
-                if (e.IsShown())
-                    move_color_dialog();
-            });
-            move_color_dialog();
-            if (dlg.ShowModal() == wxID_OK) {
-                wxColour clr = dlg.GetColourData().GetColour();
-                if (on_add_filament) on_add_filament(clr);
+            std::optional<wxColour> selected;
+            {
+                // Capture the stable mapping row before the transient popup is dismissed.
+                ColorPickerDialog dlg(popup_parent, ColorRGBA(0.f, 0.f, 0.f, 1.f), {}, false, color_anchor);
+                if (popup) popup->Dismiss();
+                // Dismissal can delete the popup. Only copied locals are used below.
+                if (dlg.ShowModal() == wxID_OK && dlg.selection()) {
+                    const auto& color = std::get<ColorRGBA>(*dlg.selection());
+                    selected = wxColour(static_cast<unsigned char>(std::lround(color.r() * 255.f)),
+                                        static_cast<unsigned char>(std::lround(color.g() * 255.f)),
+                                        static_cast<unsigned char>(std::lround(color.b() * 255.f)));
+                }
             }
+            if (selected && on_add_filament) on_add_filament(*selected);
         });
 
         m_content->SetSizer(outer);
@@ -2324,7 +2303,9 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
 {
     m_drop_warning_label = new wxStaticText(this, wxID_ANY,
         wxString::Format(
-            _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+            _L_PLURAL("The project supports up to %d filament. Extra filaments will be discarded.",
+                      "The project supports up to %d filaments. Extra filaments will be discarded.",
+                      (int)max_filament_count()),
             (int)max_filament_count()));
     m_drop_warning_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#FF6F00")));
     m_drop_warning_label->SetFont(texture_import_section_title_font(this));

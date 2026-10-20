@@ -4,6 +4,7 @@
 #include "WipeTower.hpp"
 #include "WipeTower2.hpp"
 #include "../Config.hpp"
+#include "../FilamentMixer.hpp"
 #include "../PrintConfig.hpp"
 #include "../libslic3r.h"
 
@@ -74,10 +75,19 @@ Polygon estimate_wipe_tower_first_layer_outline(const ConfigBase &config, WipeTo
     return WipeTower2::cone_base_polygon(width, depth, height, cone ? cone_angle->getFloat() : 0.);
 }
 
-WipeTowerFootprint estimate_wipe_tower_footprint(const ConfigBase &config, WipeTowerType tower_type, const std::vector<unsigned int> &filament_ids, double layer_height, double max_object_height)
+WipeTowerFootprint estimate_wipe_tower_footprint(const ConfigBase &config, WipeTowerType tower_type, const std::vector<unsigned int> &filament_slots, double layer_height, double max_object_height)
 {
     WipeTowerFootprint footprint;
     footprint.height = max_object_height;
+    // A mixed slot is virtual: the tool ordering resolves it to one of its physical components
+    // on every layer, with or without colour sublayers, so the tower only ever purges those.
+    // Validation passes the slots as Print::extruders() lists them; the GUI and CLI placement
+    // expand them beforehand, which repeating here leaves unchanged.
+    std::vector<unsigned int> filament_ids = filament_slots;
+    const auto *is_mixed_opt   = dynamic_cast<const ConfigOptionBools *>(option_of(config, "filament_is_mixed"));
+    const auto *components_opt = dynamic_cast<const ConfigOptionStrings *>(option_of(config, "filament_mixed_components"));
+    if (is_mixed_opt != nullptr && components_opt != nullptr && has_any_mixed_filament(is_mixed_opt->values))
+        filament_ids = expand_mixed_filaments(filament_slots, is_mixed_opt->values, components_opt->values);
     const size_t filaments_cnt = filament_ids.size();
     if (filaments_cnt == 0 || layer_height < EPSILON)
         return footprint;

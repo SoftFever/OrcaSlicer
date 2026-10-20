@@ -1008,7 +1008,7 @@ public:
 
     /*rendering related functions*/
     void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
-    void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false, bool show_grid = true, bool hide_chrome = false);
+    void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false, bool show_grid = true, bool hide_chrome = false, bool hide_inactive = false);
     void set_render_option(bool bedtype_texture, bool plate_settings);
     void set_render_cali(bool value = true) { render_cali_logo = value; }
     void render_hover_tooltip() const;
@@ -1070,7 +1070,7 @@ public:
     /* load/store releted functions, with_gcode = true and plate_idx = -1, export all gcode
     * if with_gcode = true and specify plate_idx, export plate_idx gcode only
     */
-    int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info = true, int plate_idx = -1);
+    int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info = true, int plate_idx = -1, bool with_statistics = false);
     int load_from_3mf_structure(PlateDataPtrs& plate_data_list, int filament_count = 1);
     //load gcode files
     int load_gcode_files();
