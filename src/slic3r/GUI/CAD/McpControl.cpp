@@ -431,7 +431,7 @@ json describe_tools_core()
                      json{{"name", "closed"}, {"type", "boolean"}, {"default", false}}})}},
             json{{"name", "new_document"}, {"summary", "Clear every feature (undoable). For test rigs that need a known starting document."},
                  {"params", json::array()}},
-            json{{"name", "ui_option"}, {"summary", "Switch a Design UI option: imgui_tree = draw the feature tree on the canvas (ImGui) instead of the side panel; imgui_ribbon = draw the tool ribbon on the canvas instead of the wx toolbar groups; imgui_menu = the right-click offer as an ImGui popup."},
+            json{{"name", "ui_option"}, {"summary", "Switch a Design UI option: imgui_tree = draw the feature tree on the canvas (ImGui) instead of the side panel; imgui_ribbon = draw the tool ribbon on the canvas instead of the wx toolbar groups; imgui_menu = the right-click offer as an ImGui popup; imgui_topbar = the row above the viewport (document actions, toolbox, Commit, Confirm/Cancel) drawn on the canvas instead of the wx row."},
                  {"params", json::array({
                      json{{"name", "name"},  {"type", "string"}, {"enum", json::array({"imgui_tree", "imgui_ribbon", "imgui_menu"})}},
                      json{{"name", "value"}, {"type", "boolean"}, {"default", false}}})}},
@@ -2545,7 +2545,8 @@ json action_ui_option(DesignPanel* panel, const json& params)
     if (name == "imgui_tree")   { panel->mcp_set_imgui_tree(on);   return json{{"ok", true}, {"imgui_tree", on}}; }
     if (name == "imgui_ribbon") { panel->mcp_set_imgui_ribbon(on); return json{{"ok", true}, {"imgui_ribbon", on}}; }
     if (name == "imgui_menu")   { panel->mcp_set_imgui_menu(on);   return json{{"ok", true}, {"imgui_menu", on}}; }
-    throw std::runtime_error("unknown ui option: " + name + " (imgui_tree, imgui_ribbon, imgui_menu)");
+    if (name == "imgui_topbar") { panel->mcp_set_imgui_topbar(on); return json{{"ok", true}, {"imgui_topbar", on}}; }
+    throw std::runtime_error("unknown ui option: " + name + " (imgui_tree, imgui_ribbon, imgui_menu, imgui_topbar)");
 }
 
 json action_plane(DesignPanel* panel, const json& params)

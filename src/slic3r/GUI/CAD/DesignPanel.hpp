@@ -98,6 +98,7 @@ public:
     // perceive the SAME kernel the GUI uses. Called only on the wx main thread.
     void         mcp_set_imgui_tree(bool on) { set_imgui_tree(on); }
     void         mcp_set_imgui_ribbon(bool on) { set_imgui_ribbon(on); }
+    void         mcp_set_imgui_topbar(bool on) { set_imgui_topbar(on); }
     void         mcp_set_imgui_menu(bool on);
     CadDocument& mcp_doc()        { return m_doc; }            // live document (read + mutate)
     void         mcp_after_change() { after_tree_edit(true); } // refresh tree + viewport + status
@@ -635,6 +636,11 @@ private:
     // The ribbon (tabs -> groups -> tools) drawn on the canvas; the wx toolbar's tool groups hide
     // while it is on (its Confirm/Cancel bar and document buttons stay).
     void              set_imgui_ribbon(bool on);
+    // The row above the viewport (document actions, toolbox, Commit, Confirm / Cancel) drawn on the canvas with ImGui; the wx
+    // row hides while it is on. Off = the wx row, as before.
+    void              set_imgui_topbar(bool on);
+    bool              m_imgui_topbar{false};
+    bool              action_bar_active() const;   // a tool or mode is open: the Confirm / Cancel pair shows
     // Is this verb usable right now, and if not why: ONE rule for the ribbon, the palette and the offer.
     DesignRibbonOverlay::VerbState verb_state(const struct OfferVerb& v) const;
     void              wire_palette();   // the Ctrl+K command box: items, runner, recents

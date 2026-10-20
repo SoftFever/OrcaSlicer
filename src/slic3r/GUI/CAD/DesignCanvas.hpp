@@ -85,6 +85,9 @@ public:
     DesignOfferPopup& offer_popup() { return m_offer_popup; }
     // Open the right-click offer as an ImGui popup at a SCREEN position.
     void open_offer_popup(std::string header, std::vector<OfferNode> nodes, const wxPoint& screen);
+    DesignTopBar& topbar_overlay() { return m_topbar; }
+    void set_topbar_overlay(bool on) { m_topbar_on = on; request_repaint(); }
+    bool topbar_overlay_on() const { return m_topbar_on; }
     DesignRibbonOverlay& ribbon_overlay() { return m_ribbon; }
     DesignPalette&       palette() { return m_palette; }
     void                 open_palette();   // at the pointer if it is over the canvas, else the middle
@@ -487,6 +490,8 @@ private:
     bool                m_ctx_over_ui{false};   // the right press landed on an ImGui window
     DesignOfferPopup    m_offer_popup;
     DesignRibbonOverlay m_ribbon;
+    DesignTopBar        m_topbar;
+    bool                m_topbar_on{false};
     DesignPalette       m_palette;
     DesignCandidateMenu m_other_menu;   // Select Other, opened by a press-hold on the solid
     bool                m_ribbon_on{false};

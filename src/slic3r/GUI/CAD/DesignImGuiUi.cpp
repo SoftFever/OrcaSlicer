@@ -284,7 +284,8 @@ std::string tr_verb(const OfferVerb& v)     { return std::string(I18N::translate
 // else the verb's own design_* glyph, else none (text-only button). Rasterised once per theme at 64 px
 // and drawn down-scaled. FreeCAD draws on a light ground: near-neutral dark strokes (and, on a light
 // UI, near-white ones) are re-tinted at load so an outline never disappears into the ribbon.
-static ImTextureID ribbon_icon_texture(const OfferVerb& v)
+// A texture for the first of `names` the app ships (resources/images/<name>.svg), cached under `key` for the theme.
+static ImTextureID svg_texture(const std::string& key, const std::vector<std::string>& names)
 {
     static std::map<std::string, ImTextureID> cache;
     static bool cache_dark = false;
@@ -293,19 +294,15 @@ static ImTextureID ribbon_icon_texture(const OfferVerb& v)
         for (auto& kv : cache) if (kv.second) { GLuint t = (GLuint)(intptr_t)kv.second; glsafe(::glDeleteTextures(1, &t)); }
         cache.clear(); cache_dark = dark;
     }
-    const std::string key = v.id;
     if (auto it = cache.find(key); it != cache.end()) return it->second;
 
     ImTextureID tex = nullptr;
-    std::vector<std::string> names = { std::string("fc_") + v.id };
-    if (v.icon) names.push_back(v.icon);
     for (const std::string& n : names) {
         const std::string path = Slic3r::var(n + ".svg");
         boost::nowide::ifstream f(path, std::ios::binary);
         if (!f) continue;
         std::string svg((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-        if (n.rfind("fc_", 0) == 0) retint_fc_neutrals(svg, dark);
-        else if (dark) { size_t p = 0; while ((p = svg.find("\"#808080\"", p)) != std::string::npos) svg.replace(p, 9, "\"#d0d0d0\""); }
+        if (n.rfind("fc_", 0) != 0 && dark) { size_t p = 0; while ((p = svg.find("\"#808080\"", p)) != std::string::npos) svg.replace(p, 9, "\"#d0d0d0\""); }
         NSVGimage* img = nsvgParse(svg.data(), "px", 96.f);   // parses in place: svg is our own copy
         if (!img) continue;
         constexpr int N = 64;
@@ -315,6 +312,7 @@ static ImTextureID ribbon_icon_texture(const OfferVerb& v)
             const float ox = (N - img->width * sc) * 0.5f, oy = (N - img->height * sc) * 0.5f;   // centre non-square art
             nsvgRasterize(rast, img, ox, oy, sc, px.data(), N, N, N * 4);
             nsvgDeleteRasterizer(rast);
+            if (n.rfind("fc_", 0) == 0) monochrome_fc_rgba(px.data(), size_t(N) * N, dark);   // Orca's one icon grey, not FreeCAD's hues
             GLint  last = 0;
             GLuint id   = 0;
             glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last));
@@ -332,6 +330,14 @@ static ImTextureID ribbon_icon_texture(const OfferVerb& v)
     }
     cache[key] = tex;   // nullptr cached too: no icon for this verb, don't hit the disk every frame
     return tex;
+}
+
+// A verb's icon: FreeCAD's (fc_<id>), else the verb's own design_* glyph, else none (a text-only button).
+static ImTextureID ribbon_icon_texture(const OfferVerb& v)
+{
+    std::vector<std::string> names = { std::string("fc_") + v.id };
+    if (v.icon) names.push_back(v.icon);
+    return svg_texture(std::string("verb:") + v.id, names);
 }
 // The ribbon's text is sized to the Confirm / Cancel buttons beside it (Label::Body_12), not to the
 // canvas overlay's default ImGui font, which is a good deal larger. Applied per window.
@@ -470,6 +476,212 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
     m_height = ImGui::GetWindowHeight();
     imgui.end();
     ImGui::PopStyleVar(3);
+    theme.reset();
+    ImGuiWrapper::pop_common_window_style();
+}
+
+// ---- top bar -----------------------------------------------------------------------------------------
+void DesignTopBar::render(ImGuiWrapper& imgui, float scale, float inset_left)
+{
+    m_hovered = false;
+    if (m_tabs.empty()) m_tabs = build_ribbon_table();
+    const float  em  = imgui.get_style_scaling();
+    const ImVec2 ds  = ImGui::GetIO().DisplaySize;
+    const float  isz = 22.f * em;   // the icons' size
+    using VerbState  = DesignRibbonOverlay::VerbState;
+
+    ImGuiWrapper::push_common_window_style(scale);
+    auto theme = std::make_unique<ThemeScope>();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,    ImVec2(2.f * em, 2.f * em));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,   ImVec2(3.f * em, 3.f * em));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,  ImVec2(6.f * em, 4.f * em));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.f);
+    ImGui::SetNextWindowPos(ImVec2(inset_left, 0.f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(std::max(ds.x - inset_left, 100.f), 0.f), ImGuiCond_Always);
+    imgui.begin(std::string("##design_topbar"),
+                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
+    ImGui::SetWindowFontScale(ribbon_font_scale());
+    m_hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const float fp_x   = style.FramePadding.x;
+    const float btn_w  = isz + 2.f * fp_x;
+    const float btn_h  = isz + 2.f * style.FramePadding.y;
+    const float arr_w  = 8.f * em;
+    const float win_w  = std::max(ds.x - inset_left, 100.f);
+    const float pad    = style.WindowPadding.x;
+    const float y0     = ImGui::GetCursorPosY();
+
+    auto flat = [&](auto&& draw) {   // an icon button paints nothing until hovered, like the wx ones it replaces
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+        const bool r = draw();
+        ImGui::PopStyleColor();
+        return r;
+    };
+    auto icon_button = [&](ImTextureID tex, const std::string& label, bool usable) {
+        if (!usable) {   // ImGui 1.83: no BeginDisabled
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * 0.5f);
+        }
+        const bool clicked = flat([&] {
+            return tex ? ImGui::ImageButton(tex, ImVec2(isz, isz)) : ImGui::Button(fit_label(label, 6.f * isz).c_str(), ImVec2(0.f, btn_h));
+        });
+        if (!usable) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
+        return clicked && usable;
+    };
+    auto arrow_button = [&] {   // the split button's ▾, in the quiet grey rather than the text colour
+        ImGui::PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
+        const bool r = flat([&] { return ImGui::ArrowButtonEx("##dd", ImGuiDir_Down, ImVec2(arr_w, btn_h)); });
+        ImGui::PopStyleColor();
+        return r;
+    };
+
+    // Right side first, so the left side knows how much of the first line it may use: Commit to Plate, then the tool's
+    // Confirm / Cancel.
+    const bool        active   = action_active && action_active();
+    const std::string conf_txt = tr_group("Confirm"), canc_txt = tr_group("Cancel");
+    const float       txt_pad  = 2.f * fp_x + 8.f * em;
+    const float       conf_w   = ImGui::CalcTextSize(conf_txt.c_str()).x + txt_pad, canc_w = ImGui::CalcTextSize(canc_txt.c_str()).x + txt_pad;
+    const float       commit_w = commit_modes.empty() ? 0.f : btn_w + arr_w;
+    const float       right_w  = commit_w + (active ? (commit_w > 0.f ? 10.f * em : 0.f) + conf_w + 6.f * em + canc_w : 0.f);
+    const float       first_limit = win_w - 2.f * pad - (right_w > 0.f ? right_w + 12.f * em : 0.f);
+    const float       next_limit  = win_w - 2.f * pad;
+
+    // Left side: the document actions, then the toolbox. Items run along a line and wrap to the next one when the canvas is
+    // too narrow for them all (the first line stops short of the right side).
+    float cur_x = 0.f;
+    int   line = 0;
+    bool  line_start = true;
+    auto begin_item = [&](float w, bool with_sep) {
+        const float gap   = style.ItemSpacing.x;
+        const float sep_w = with_sep ? 8.f * em + ImGui::CalcTextSize("|").x : 0.f;
+        const float limit = line == 0 ? first_limit : next_limit;
+        if (!line_start && cur_x + gap + sep_w + w > limit) { ++line; cur_x = 0.f; line_start = true; with_sep = false; }   // wrap
+        if (!line_start) {
+            if (with_sep) {
+                ImGui::SameLine(0.f, 4.f * em); ImGui::TextDisabled("|"); ImGui::SameLine(0.f, 4.f * em);
+                cur_x += sep_w;
+            } else {
+                ImGui::SameLine(0.f, gap);
+                cur_x += gap;
+            }
+        }
+        line_start = false;
+        cur_x += w;
+    };
+
+    for (size_t i = 0; i < docs.size(); ++i) {
+        const Doc& d = docs[i];
+        begin_item(btn_w, false);
+        ImGui::PushID(int(i));
+        if (icon_button(svg_texture(std::string("icon:") + d.icon, { d.icon }), d.tip, true) && d.run) d.run();
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", d.tip.c_str());
+        ImGui::PopID();
+    }
+    bool any_tab = !docs.empty();
+    for (size_t ti : {size_t(0), size_t(1), size_t(2)}) {   // Solid, Surface, Sketch
+        if (ti >= m_tabs.size() || m_tabs[ti].groups.empty()) continue;
+        const RibbonTab& t = m_tabs[ti];
+        for (size_t gi = 0; gi < t.groups.size(); ++gi) {
+            const RibbonGroup& g = t.groups[gi];
+            begin_item(btn_w + (g.verbs.size() > 1 ? arr_w : 0.f), gi == 0 && any_tab);
+            ImGui::PushID(int(ti * 100 + gi));
+            const OfferVerb* main = g.verbs.front();   // the variant the button runs: the last one used, else the first
+            if (g.verbs.size() > 1 && load_last) {
+                const std::string last = load_last(g.name);
+                for (const OfferVerb* v : g.verbs) if (last == v->id) { main = v; break; }
+            }
+            const VerbState st     = state ? state(*main) : VerbState{};
+            const bool      usable = st.enabled && main->action != nullptr;
+            const std::string label = tr_verb(*main);
+            if (icon_button(ribbon_icon_texture(*main), label, usable)) {
+                if (save_last) save_last(g.name, main->id);
+                if (run) run(*main);
+            }
+            if (ImGui::IsItemHovered()) {
+                if (!usable) {
+                    const std::string why = !st.why.empty() ? st.why : (main->refusal ? tr_group(main->refusal) : std::string());
+                    if (!why.empty()) ImGui::SetTooltip("%s", why.c_str());
+                } else if (main->hint) ImGui::SetTooltip("%s\n%s", label.c_str(), tr_group(main->hint).c_str());
+                else                   ImGui::SetTooltip("%s", label.c_str());
+            }
+            if (g.verbs.size() > 1) {
+                ImGui::SameLine(0.f, 0.f);
+                if (arrow_button()) ImGui::OpenPopup("##variants");
+                if (ImGui::BeginPopup("##variants")) {   // Esc and a click away close it; nothing is armed
+                    ImGui::SetWindowFontScale(ribbon_font_scale());
+                    for (const OfferVerb* v : g.verbs) {
+                        const VerbState vs = state ? state(*v) : VerbState{};
+                        const bool vok = vs.enabled && v->action != nullptr;
+                        if (!vok) {
+                            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+                            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * 0.5f);
+                        }
+                        if (const ImTextureID tex = ribbon_icon_texture(*v)) { ImGui::Image(tex, ImVec2(16.f * em, 16.f * em)); ImGui::SameLine(); }
+                        const bool clicked = ImGui::MenuItem(tr_verb(*v).c_str());
+                        if (!vok) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
+                        if (clicked && vok) {
+                            if (save_last) save_last(g.name, v->id);
+                            if (run) run(*v);
+                        }
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+            ImGui::PopID();
+            any_tab = true;
+        }
+    }
+    const float left_bottom = ImGui::GetCursorPosY();   // where the next line would start
+
+    // Right side, on the first line.
+    if (right_w > 0.f) {
+        ImGui::SetCursorPos(ImVec2(win_w - pad - right_w, y0));
+        bool started = false;
+        if (!commit_modes.empty()) {
+            started = true;
+            const int cur = std::clamp(commit_current ? commit_current() : 0, 0, int(commit_modes.size()) - 1);
+            ImGui::PushID("commit");
+            const std::string icon = commit_icon ? commit_icon(cur) : std::string();
+            if (icon_button(icon.empty() ? nullptr : svg_texture(std::string("icon:") + icon, { icon }), commit_modes[size_t(cur)].label, true) && commit_run)
+                commit_run();
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", commit_modes[size_t(cur)].tip.c_str());
+            ImGui::SameLine(0.f, 0.f);
+            if (arrow_button()) ImGui::OpenPopup("##commit_modes");
+            if (ImGui::BeginPopup("##commit_modes")) {
+                ImGui::SetWindowFontScale(ribbon_font_scale());
+                for (int i = 0; i < int(commit_modes.size()); ++i) {
+                    if (ImGui::MenuItem(commit_modes[size_t(i)].label.c_str(), nullptr, i == cur) && commit_choose) commit_choose(i);
+                    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", commit_modes[size_t(i)].tip.c_str());
+                }
+                ImGui::EndPopup();
+            }
+            ImGui::PopID();
+        }
+        if (active) {
+            if (started) ImGui::SameLine(0.f, 10.f * em);
+            const bool cok = !confirm_enabled || confirm_enabled();
+            const ImVec4 acc = ImGuiWrapper::COL_ORCA;
+            if (!cok) {
+                ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, style.Alpha * 0.5f);
+            }
+            ImGui::PushStyleColor(ImGuiCol_Button,        acc);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(std::min(acc.x + 0.12f, 1.f), std::min(acc.y + 0.12f, 1.f), std::min(acc.z + 0.12f, 1.f), acc.w));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(acc.x * 0.8f, acc.y * 0.8f, acc.z * 0.8f, acc.w));
+            ImGui::PushStyleColor(ImGuiCol_Text,          ImVec4(1.f, 1.f, 1.f, 1.f));
+            const bool confirmed = ImGui::Button((conf_txt + "##ok").c_str(), ImVec2(conf_w, btn_h));
+            ImGui::PopStyleColor(4);
+            if (!cok) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
+            if (confirmed && cok && confirm) confirm();
+            ImGui::SameLine(0.f, 6.f * em);
+            if (ImGui::Button((canc_txt + "##no").c_str(), ImVec2(canc_w, btn_h)) && cancel) cancel();
+        }
+        ImGui::SetCursorPosY(std::max(left_bottom, ImGui::GetCursorPosY()));   // the window is as tall as its tallest side
+    }
+    m_height = ImGui::GetWindowHeight();
+    imgui.end();
+    ImGui::PopStyleVar(4);
     theme.reset();
     ImGuiWrapper::pop_common_window_style();
 }

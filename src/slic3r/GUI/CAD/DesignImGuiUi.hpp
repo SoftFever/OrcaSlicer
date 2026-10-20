@@ -102,6 +102,40 @@ private:
     bool   m_was_sketching{false};
 };
 
+// ---- top bar --------------------------------------------------------------------------------------------
+// The row above the viewport, drawn on the canvas: the document actions, one split button per toolbox group (the
+// ribbon's own groups and rules, as icon buttons), Commit to Plate and the active tool's Confirm / Cancel. Like the ribbon it
+// owns no document state: a click only EMITS, and the panel runs it on the next turn of the event loop.
+class DesignTopBar
+{
+public:
+    struct Doc    { std::string icon; std::string tip; std::function<void()> run; };
+    struct Commit { std::string label; std::string tip; };
+    std::vector<Doc>    docs;                  // New, Import STEP, Import mesh, Export
+    std::vector<Commit> commit_modes;          // one row per mode of the Commit split button
+    std::function<std::string(int)>                               commit_icon;       // the face of mode i, for the current theme
+    std::function<int()>                                          commit_current;
+    std::function<void(int)>                                      commit_choose;     // the ▾ list: select a mode
+    std::function<void()>                                         commit_run;        // the face: commit in the current mode
+    std::function<DesignRibbonOverlay::VerbState(const OfferVerb&)> state;
+    std::function<void(const OfferVerb&)>                         run;
+    std::function<std::string(const std::string& group)>          load_last;
+    std::function<void(const std::string& group, const std::string& verb_id)> save_last;
+    std::function<bool()>                                         action_active;     // a tool or mode is open: Confirm / Cancel show
+    std::function<bool()>                                         confirm_enabled;   // would Confirm act right now
+    std::function<void()>                                         confirm, cancel;
+
+    // `inset_left` keeps the bar clear of the canvas's corner collapse button.
+    void  render(ImGuiWrapper& imgui, float scale, float inset_left);
+    float height() const { return m_height; }
+    bool  hovered() const { return m_hovered; }
+
+private:
+    std::vector<RibbonTab> m_tabs;
+    bool   m_hovered{false};
+    float  m_height{0.f};
+};
+
 // ---- right-click offer menu as an ImGui popup (item 3) ----------------------------------------------
 // The same rows the wx offer builds (flat rows first, then one submenu per family), as plain data.
 struct OfferNode {

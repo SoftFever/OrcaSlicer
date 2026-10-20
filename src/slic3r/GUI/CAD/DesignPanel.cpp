@@ -8014,6 +8014,8 @@ void DesignPanel::on_tab_shown()
         AppConfig* cfg = wxGetApp().app_config;
         const bool want = cfg->get("design_imgui_ribbon").empty() ? true : cfg->get_bool("design_imgui_ribbon");
         if (want != m_imgui_ribbon) set_imgui_ribbon(want);
+        const bool top = cfg->get("design_imgui_topbar").empty() ? true : cfg->get_bool("design_imgui_topbar");   // on unless a profile chose the wx row
+        if (top != m_imgui_topbar) set_imgui_topbar(top);
     }
     m_imgui_menu = wxGetApp().app_config->get_bool("design_imgui_menu");
     if (show_clock.Time() > 100)   // a slow first show is what users report; the usual one is not news
@@ -11022,6 +11024,7 @@ void DesignPanel::on_export_step()
 void DesignPanel::set_commit_mode(CommitMode mode)
 {
     m_commit_mode = mode;
+    if (m_viewport != nullptr) m_viewport->request_repaint();   // the ImGui bar's Commit face follows
     const bool bodies = mode == CommitMode::Bodies;
     if (m_commit_btn) {
         m_commit_btn->SetBitmap_(commit_icon(bodies));
@@ -12722,6 +12725,51 @@ void DesignPanel::set_imgui_ribbon(bool on)
     }
 }
 
+void DesignPanel::set_imgui_topbar(bool on)
+{
+    m_imgui_topbar = on;
+    AppConfig* cfg = wxGetApp().app_config;
+    cfg->set_bool("design_imgui_topbar", on);
+    if (!m_viewport) return;
+    DesignTopBar& b = m_viewport->topbar_overlay();
+    // ImGui only EMITS: every action runs on the next turn of the event loop, outside the frame, through the handlers the wx
+    // buttons call.
+    auto later = [this](std::function<void()> f) { return [this, f = std::move(f)] { CallAfter(f); }; };
+    b.docs.clear();
+    b.docs.push_back({"design_new",         _u8L("New Design — clear the feature tree"),                          later([this] { on_new_design(); })});
+    b.docs.push_back({"design_step",        _u8L("Import STEP (editable B-rep solid)"),                            later([this] { on_import_step(); })});
+    b.docs.push_back({"design_import_mesh", _u8L("Import mesh (STL/OBJ) as an editable B-rep solid"),              later([this] { on_import_mesh(); })});
+    b.docs.push_back({"design_export",      _u8L("Export STEP…"),                                                  later([this] { on_export_step(); })});
+    b.commit_modes = {
+        {_u8L("Commit to Plate"),            _u8L("All bodies become one object with a part per body, keeping their relative positions")},
+        {_u8L("Commit to Plate (as bodies)"), _u8L("Each body becomes its own object, placed on its own")},
+    };
+    b.commit_icon    = [](int mode) { return commit_icon(mode == int(CommitMode::Bodies)); };
+    b.commit_current = [this] { return int(m_commit_mode); };
+    b.commit_choose  = [this](int i) {
+        const bool bodies = i == int(CommitMode::Bodies);
+        set_commit_mode(bodies ? CommitMode::Bodies : CommitMode::Assembly);
+        wxGetApp().app_config->set("design_commit_mode", bodies ? "bodies" : "assembly");
+    };
+    b.commit_run = later([this] { on_commit(); });
+    b.state = [this](const OfferVerb& v) { return verb_state(v); };
+    b.run = [this](const OfferVerb& v) {
+        const std::string action = v.action ? v.action : "";
+        CallAfter([this, action] { run_offer_action(action.c_str()); });   // the same router the offer menu uses
+    };
+    b.load_last = [cfg](const std::string& group) { return cfg->get("design_ribbon_last_" + group); };
+    b.save_last = [cfg](const std::string& group, const std::string& id) { cfg->set("design_ribbon_last_" + group, id); };
+    b.action_active   = [this] { return action_bar_active(); };
+    b.confirm_enabled = [this] { return confirm_enabled(); };
+    b.confirm = later([this] { tool_confirm(); });
+    b.cancel  = later([this] { tool_cancel(); });
+    m_viewport->set_topbar_overlay(on);
+    if (m_toolbar) {   // the wx row is the same actions: hidden while the bar is drawn on the canvas
+        m_toolbar->Show(!on);
+        if (wxWindow* p = m_toolbar->GetParent()) p->Layout();
+    }
+}
+
 void DesignPanel::set_imgui_tree(bool on)
 {
     m_imgui_tree = on;
@@ -13574,6 +13622,7 @@ void DesignPanel::update_confirm_button()
     const bool ok = confirm_enabled();
     for (::Button* b : m_confirm_btns)
         if (b != nullptr) b->Enable(ok);
+    if (m_viewport != nullptr) m_viewport->request_repaint();   // the ImGui bar greys its Confirm to the same rule
 }
 
 // Which level of the interaction stack one Esc press belongs to. The rule itself lives in
@@ -13680,18 +13729,24 @@ void DesignPanel::update_undo_redo_buttons()
         frame->set_undo_redo_enabled(menu_can_undo_redo(false), menu_can_undo_redo(true));
 }
 
+bool DesignPanel::action_bar_active() const
+{
+    return (m_active != Tool::None)
+        || m_choosing_sketch_plane          // ✗ only: ✓ has nothing to confirm
+        || m_ui_mode == UiMode::Sketch
+        || m_ui_mode == UiMode::Constrain
+        || body_move_pending();
+}
+
 void DesignPanel::update_action_bar()
 {
     update_undo_redo_buttons();   // mode/tool changes flip the do_undo_redo gate -> refresh greying
     update_confirm_button();      // ...and the ✓'s greying
+    if (m_viewport != nullptr) m_viewport->request_repaint();   // the ImGui bar draws the same state
     if (m_tb_action == nullptr || m_toolbar == nullptr) return;
     wxSizer* s = m_toolbar->GetSizer();
     if (s == nullptr) return;
-    const bool active = (m_active != Tool::None)
-                     || m_choosing_sketch_plane          // ✗ only: ✓ has nothing to confirm
-                     || m_ui_mode == UiMode::Sketch
-                     || m_ui_mode == UiMode::Constrain
-                     || body_move_pending();
+    const bool active = action_bar_active();
     s->Show(m_tb_action, active, true);
     // HIDING THE BAR ORPHANS THE KEYBOARD, and that is the "app does not consent to sketch"
     // report. The ✓/✗ live in this bar, so the click that confirms a feature leaves focus on a
