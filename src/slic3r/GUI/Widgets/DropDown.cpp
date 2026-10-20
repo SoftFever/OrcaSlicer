@@ -104,7 +104,7 @@ void DropDown::EnableSearch()
     layout->Add(search_input, 0, wxEXPAND | wxALL, FromDIP(6));
     layout->Add(search_empty, 0, wxALL, FromDIP(8));
     layout->Add(search_list, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(4));
-    SetSizer(layout);
+    SetSizerAndFit(layout);
 
     wxTextCtrl* text = search_input->GetTextCtrl();
     text->Bind(wxEVT_TEXT, [this](wxCommandEvent& event) {
