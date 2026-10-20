@@ -21,6 +21,9 @@
 #include <imgui.h>
 #include <chrono>
 #include <hidapi.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <map>
 #include <boost/algorithm/string/trim.hpp>
 #include <ios>
@@ -164,119 +167,109 @@ static std::string format_device_string(int vid, int pid)
     return ret;
 }
 
-static std::string detect_attached_device()
+namespace {
+// One HID top-level collection: what both device lists below report.
+struct HidCollection
 {
-    std::string ret;
-    // Initialize the hidapi library
-    int res = hid_init();
-    if (res != 0)
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
-    else {
-        // Enumerates devices
-        hid_device_info* devices = hid_enumerate(0, 0);
-        if (devices == nullptr)
-            BOOST_LOG_TRIVIAL(trace) << "detect_attached_device() - no HID device enumerated.";
-        else {
-            // Searches for 1st connected 3Dconnexion device
-            struct DeviceData
-            {
-                unsigned short usage_page{ 0 };
-                unsigned short usage{ 0 };
+    unsigned short vendor_id{ 0 };
+    unsigned short product_id{ 0 };
+    unsigned short usage_page{ 0 };
+    unsigned short usage{ 0 };
+};
+} // namespace
 
-                DeviceData(unsigned short usage_page, unsigned short usage)
-                    : usage_page(usage_page), usage(usage)
-                {}
-
-                // https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf
-                // Usage page 1 - Generic Desktop Controls
-                // Usage page 1, usage 8 - Multi-axis Controller
-                bool has_valid_usage() const { return usage_page == 1 && usage == 8; }
-            };
-
-            // When using 3Dconnexion universal receiver, multiple devices are detected sharing the same vendor_id and product_id.
-            // To choose from them the right one we use: usage_page == 1 and usage == 8
-            // When only a single device is detected, as for wired connections, vendor_id and product_id are enough
-
-            // First we count all the valid devices from the enumerated list,
-
-            hid_device_info* current = devices;
-            typedef std::pair<unsigned short, unsigned short> DeviceIds;
-            typedef std::vector<DeviceData> DeviceDataList;
-            typedef std::map<DeviceIds, DeviceDataList> DetectedDevices;
-            DetectedDevices detected_devices;
-            while (current != nullptr) {
-                unsigned short vendor_id = 0;
-                unsigned short product_id = 0;
-
-                for (size_t i = 0; i < _3DCONNEXION_VENDORS.size(); ++i) {
-                    if (_3DCONNEXION_VENDORS[i] == current->vendor_id) {
-                        vendor_id = current->vendor_id;
-                        break;
-                    }
-                }
-
-                if (vendor_id != 0) {
-                    for (size_t i = 0; i < _3DCONNEXION_DEVICES.size(); ++i) {
-                        if (_3DCONNEXION_DEVICES[i] == current->product_id) {
-                            product_id = current->product_id;
-                            DeviceIds detected_device(vendor_id, product_id);
-                            DetectedDevices::iterator it = detected_devices.find(detected_device);
-                            if (it == detected_devices.end())
-                                it = detected_devices.insert(DetectedDevices::value_type(detected_device, DeviceDataList())).first;
-
-                            it->second.emplace_back(current->usage_page, current->usage);
-                        }
-                    }
-                }
-
-                current = current->next;
-            }
-
-            // Free enumerated devices
-            hid_free_enumeration(devices);
-
-            unsigned short vendor_id = 0;
-            unsigned short product_id = 0;
-            if (!detected_devices.empty()) {
-                // Then we'll decide the choosing logic to apply in dependence of the device count and operating system
-                for (const DetectedDevices::value_type& device : detected_devices) {
-                    if (device.second.size() == 1) {
-                        if (device.second.front().has_valid_usage()) {
-                            vendor_id = device.first.first;
-                            product_id = device.first.second;
-                            break;
-                        }
-                    }
-                    else {
-                        bool found = false;
-                        for (const DeviceData& data : device.second) {
-                            if (data.has_valid_usage()) {
-                                vendor_id = device.first.first;
-                                product_id = device.first.second;
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if (found)
-                            break;
-                    }
-                }
-            }
-
-            if (vendor_id != 0 && product_id != 0) {
-                ret = format_device_string(static_cast<int>(vendor_id), static_cast<int>(product_id));
-                BOOST_LOG_TRIVIAL(trace) << "Detected device: " << std::hex << vendor_id << std::dec << "::" << std::hex << product_id << std::dec << " " << ret;
-            }
-            else
-                BOOST_LOG_TRIVIAL(trace) << "No 3DConnexion device detected";
+// Windows keeps the ids and usage of every HID collection for Raw Input, so nothing is opened.
+// hid_enumerate() opens and queries every HID device instead (~200 ms on a typical PC).
+static bool list_hid_collections_raw_input(std::vector<HidCollection>& out)
+{
+    std::vector<RAWINPUTDEVICELIST> devices;
+    for (int attempt = 0; attempt < 3; ++attempt) {
+        UINT count = 0;
+        if (::GetRawInputDeviceList(nullptr, &count, sizeof(RAWINPUTDEVICELIST)) != 0)
+            return false;
+        devices.resize(count);
+        if (count == 0)
+            break;
+        const UINT got = ::GetRawInputDeviceList(devices.data(), &count, sizeof(RAWINPUTDEVICELIST));
+        if (got != UINT(-1)) {
+            devices.resize(got);
+            break;
         }
-
-        // Finalize the hidapi library
-        hid_exit();
+        if (::GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+            return false;
+        devices.clear(); // a device was plugged in meanwhile, try again
     }
 
-    return ret;
+    for (const RAWINPUTDEVICELIST& device : devices) {
+        if (device.dwType != RIM_TYPEHID)
+            continue;
+        RID_DEVICE_INFO info{};
+        info.cbSize = sizeof(info);
+        UINT size   = sizeof(info);
+        if (::GetRawInputDeviceInfoW(device.hDevice, RIDI_DEVICEINFO, &info, &size) == UINT(-1))
+            continue;
+        out.push_back({ static_cast<unsigned short>(info.hid.dwVendorId), static_cast<unsigned short>(info.hid.dwProductId),
+                        info.hid.usUsagePage, info.hid.usUsage });
+    }
+    return true;
+}
+
+static std::vector<HidCollection> list_hid_collections_hidapi()
+{
+    std::vector<HidCollection> out;
+    if (hid_init() != 0) {
+        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
+        return out;
+    }
+    hid_device_info* devices = hid_enumerate(0, 0);
+    for (hid_device_info* current = devices; current != nullptr; current = current->next)
+        out.push_back({ current->vendor_id, current->product_id, current->usage_page, current->usage });
+    hid_free_enumeration(devices);
+    hid_exit();
+    return out;
+}
+
+static std::string detect_attached_device()
+{
+    std::vector<HidCollection> collections;
+    if (! list_hid_collections_raw_input(collections)) {
+        BOOST_LOG_TRIVIAL(warning) << "Raw Input device list unavailable, enumerating HID devices instead";
+        collections = list_hid_collections_hidapi();
+    }
+    if (collections.empty()) {
+        BOOST_LOG_TRIVIAL(trace) << "detect_attached_device() - no HID device enumerated.";
+        return {};
+    }
+
+    // https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf
+    // Usage page 1 - Generic Desktop Controls
+    // Usage page 1, usage 8 - Multi-axis Controller
+    const auto has_valid_usage = [](const HidCollection& c) { return c.usage_page == 1 && c.usage == 8; };
+
+    // When using 3Dconnexion universal receiver, multiple devices are detected sharing the same vendor_id and product_id.
+    // To choose from them the right one we use: usage_page == 1 and usage == 8
+    // When only a single device is detected, as for wired connections, vendor_id and product_id are enough
+
+    // First we collect all the 3Dconnexion devices from the enumerated list.
+    typedef std::pair<unsigned short, unsigned short> DeviceIds;
+    std::map<DeviceIds, std::vector<HidCollection>> detected_devices;
+    for (const HidCollection& c : collections) {
+        if (std::find(_3DCONNEXION_VENDORS.begin(), _3DCONNEXION_VENDORS.end(), c.vendor_id) == _3DCONNEXION_VENDORS.end() ||
+            std::find(_3DCONNEXION_DEVICES.begin(), _3DCONNEXION_DEVICES.end(), c.product_id) == _3DCONNEXION_DEVICES.end())
+            continue;
+        detected_devices[DeviceIds(c.vendor_id, c.product_id)].push_back(c);
+    }
+
+    // Then we pick the first device with a multi-axis controller collection.
+    for (const auto& [ids, device_collections] : detected_devices) {
+        if (std::any_of(device_collections.begin(), device_collections.end(), has_valid_usage)) {
+            std::string ret = format_device_string(static_cast<int>(ids.first), static_cast<int>(ids.second));
+            BOOST_LOG_TRIVIAL(trace) << "Detected device: " << std::hex << ids.first << std::dec << "::" << std::hex << ids.second << std::dec << " " << ret;
+            return ret;
+        }
+    }
+    BOOST_LOG_TRIVIAL(trace) << "No 3DConnexion device detected";
+    return {};
 }
 
 // Called by Win32 HID enumeration callback.
@@ -824,8 +817,7 @@ bool Mouse3DController::handle_input(const DataPacketAxis& packet)
 void Mouse3DController::init()
 {
 #ifdef _WIN32
-    // hid_enumerate() queries every HID device on the system (~200 ms), so detect on m_thread.
-    // Windows doesn't otherwise use it: HID data arrives as window messages.
+    // Detect on m_thread, which Windows doesn't otherwise use (HID data arrives as window messages).
     if (wxGetApp().app_config->get("skip_3dmouse_detect") == "true") {
         BOOST_LOG_TRIVIAL(info) << "do not detect 3d Mouse";
         return;
