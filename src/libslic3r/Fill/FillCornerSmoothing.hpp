@@ -22,8 +22,8 @@ inline double sanitize_smooth_factor(double smooth_factor)
 }
 
 // Orca: The most vertices per mm of path the rounded corners of a sparse infill of the given line spacing (mm) and
-// density (fraction) may take, for a pattern printing the given length of path per area (1/mm), so that no pattern
-// takes more G-code than Gyroid, the largest of them.
+// density (fraction) may take, for a pattern printing the given length of path per area (1/mm). It bounds the G-code
+// rounding adds where corners are dense.
 double smoothed_infill_vertex_density(double spacing, double density, double path_per_area);
 
 // Orca: How the corners of an infill path are rounded. Lengths are in the units of the points the smoother

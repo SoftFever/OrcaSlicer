@@ -49,13 +49,14 @@ The number of vertices is the smaller of two counts:
   of its neighbours by the G-code resolution, as `LayerRegion::simplify_*` would
   drop it again. Without a junction deviation, the polygon keeps within the
   resolution of the curve.
-- **The G-code budget.** Rounded corners may take 80% of the vertices per area
-  that Gyroid takes at the same density (`smoothed_infill_vertex_density()`).
-  Gyroid flattens its waves to a chord times sagitta of (0.2 mm)², and their
-  radius grows with the distance between the infill lines, which puts a vertex
-  about every cbrt(0.068 mm² × distance) along its path. Each fill divides that by
-  the path it prints per area (`Fill::corner_smoothing()`), so a pattern laying
-  more path than Gyroid gets fewer vertices per mm. A corner owns half of each
+- **The G-code budget.** Rounded corners may take a number of vertices per area
+  of infill (`smoothed_infill_vertex_density()`). The curves of a pattern grow
+  with the distance between its lines, and a curve flattened to a fixed chord
+  times sagitta takes a vertex about every cbrt(radius) along it, so a path laid
+  at the density may take a vertex about every cbrt(0.176 mm² × distance): 1.2 mm
+  at 5% and 0.55 mm at 50% density with 0.45 mm lines. Each fill divides the
+  budget by the path it prints per area (`Fill::corner_smoothing()`), so a
+  pattern laying more path gets fewer vertices per mm. A corner owns half of each
   leg; what it leaves of its budget goes on to the next corners of the path, so
   corners whose own share is short of two vertices take turns.
 
@@ -67,8 +68,10 @@ leave no room to accelerate.
 
 ## Constraints
 
-- No rounded pattern may take more G-code than Gyroid at the same density. The
-  80% leaves room for the travel moves of patterns printed in many pieces.
+- Rounding must not inflate the G-code where corners are dense. Splitting every
+  corner as finely as the junction deviation asks would take several times the
+  G-code of the sharp path there; with the budget, Honeycomb takes about twice
+  and Hilbert Curve three times the G-code of its sharp path at 100%.
 - With the factor at 0 the paths are unchanged, and the fills keep their order of
   operations, so that rounding to the integer grid does not move a point.
 - The plane-path fills (Hilbert Curve, Octagram Spiral) produce their path point

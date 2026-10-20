@@ -15,17 +15,16 @@
 
 namespace Slic3r {
 
-// Gyroid flattens its waves to a chord times sagitta of (0.2 mm)^2, and their radius grows with the distance between
-// the infill lines, which puts a vertex about every cbrt(0.068 mm^2 * distance) along its path: 0.85 mm at 5% and
-// 0.4 mm at 50% density. It prints 0.91 of the path its density makes per area. A rounded pattern may take 80% of the
-// vertices per area Gyroid takes, the rest being left for the travel moves a pattern of more pieces prints.
+// The budget is per area of infill. The curves of a pattern grow with the distance between its lines, and a curve
+// flattened to a fixed chord times sagitta takes a vertex about every cbrt(radius) along it, so a path laid at the
+// density may take a vertex about every cbrt(0.176 mm^2 * distance): 1.2 mm at 5% and 0.55 mm at 50% density with
+// 0.45 mm lines. A pattern laying more path per area gets fewer vertices per mm of it.
 double smoothed_infill_vertex_density(const double spacing, const double density, const double path_per_area)
 {
     if (spacing <= 0. || density <= 0. || path_per_area <= 0.)
         return 0.;
-    const double distance        = spacing / density;
-    const double gyroid_per_area = 0.91 / distance / std::cbrt(0.068 * distance);
-    return 0.8 * gyroid_per_area / path_per_area;
+    const double distance = spacing / density;
+    return 0.728 / (distance * std::cbrt(0.068 * distance)) / path_per_area;
 }
 
 // Turns sharper than this are left untouched: both ends of the curve replacing such a corner nearly
