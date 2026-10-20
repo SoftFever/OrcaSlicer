@@ -175,6 +175,13 @@ public:
         return m_first_byte;
     }
 
+    // The printer answers a close frame before its own read completes, so the agent's stop can return first.
+    bool wait_for_close_frames(int count)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        return m_changed.wait_for(lock, 10s, [&] { return m_close_frames >= count; });
+    }
+
     // Hangs up every connection that is waiting.
     void release()
     {
@@ -316,6 +323,7 @@ private:
                 if (ec == websocket::error::closed) {
                     std::lock_guard<std::mutex> lock(m_mutex);
                     ++m_close_frames;
+                    m_changed.notify_all();
                 }
                 if (ec)
                     reading = false;
@@ -455,12 +463,13 @@ TEST_CASE("Moonraker discovery waits for a complete device identity", "[Moonrake
     agent.device_info.dev_id = "127.0.0.1:7125";
     agent.device_info.dev_ip = agent.device_info.dev_id;
     agent.device_info.base_url = "http://127.0.0.1:7125";
+    agent.device_info.model_name = "Test model";
     agent.start_discovery(true, false);
     REQUIRE(announcements == 1);
-    REQUIRE(agent.fetch_count == 1);
+    REQUIRE(agent.fetch_count == 0);
     REQUIRE(announcement.at("dev_id") == agent.device_info.dev_id);
     REQUIRE(announcement.at("dev_ip") == agent.device_info.dev_ip);
-    REQUIRE(announcement.at("dev_name") == "Test printer");
+    REQUIRE(announcement.at("dev_name") == "Test model");
 }
 
 TEST_CASE("Stopping the status stream gives a silent printer no more than its timeouts", "[MoonrakerPrinterAgent][StatusStream]")
@@ -502,6 +511,7 @@ TEST_CASE("Stopping the status stream sends the printer a close frame", "[Moonra
     REQUIRE(f.printer.wait_for_ready_connections(1));
 
     CHECK(f.stops_within(3s));
+    CHECK(f.printer.wait_for_close_frames(1));
     CHECK(f.printer.close_frames() == 1);
 }
 

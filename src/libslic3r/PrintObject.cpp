@@ -33,7 +33,7 @@
 #include "Fill/FillAdaptive.hpp"
 #include "Fill/Fill.hpp"
 #include "Fill/FillLightning.hpp"
-#include "Fill/FillTpmsAdaptive.hpp"
+#include "Fill/AdaptiveInfillField.hpp"
 #include "format.hpp"
 #include "AABBTreeIndirect.hpp"
 #include "AABBTreeLines.hpp"
@@ -1252,19 +1252,19 @@ FillLightning::GeneratorPtr PrintObject::prepare_lightning_infill_data()
     return has_lightning_infill ? FillLightning::build_generator(std::as_const(*this), [this]() -> void { this->throw_if_canceled(); }) : FillLightning::GeneratorPtr();
 }
 
-TpmsRadialFields PrintObject::prepare_tpms_radial_fields() const
+AdaptiveInfillFields PrintObject::prepare_adaptive_infill_fields() const
 {
-    TpmsRadialFields fields;
-    std::array<bool, size_t(TpmsAdaptiveMode::Count)> modes{};
+    AdaptiveInfillFields fields;
+    std::array<bool, size_t(AdaptiveInfillMode::Count)> modes{};
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id)
         if (const PrintRegionConfig &config = this->printing_region(region_id).config();
-            config.sparse_infill_density > 0 && config.sparse_infill_density < 100 && is_tpms_adaptive_pattern(config.sparse_infill_pattern))
-            modes[size_t(config.tpms_adaptive.value)] = true;
-    modes[size_t(TpmsAdaptiveMode::Disabled)] = false;
+            config.sparse_infill_density > 0 && config.sparse_infill_density < 100 && is_adaptive_infill_pattern(config.sparse_infill_pattern))
+            modes[size_t(config.adaptive_infill_mode.value)] = true;
+    modes[size_t(AdaptiveInfillMode::Disabled)] = false;
     if (std::find(modes.begin(), modes.end(), true) == modes.end() || m_layers.empty())
         return fields;
 
-    std::vector<TpmsRadialField::Slice> slices;
+    std::vector<AdaptiveInfillField::Slice> slices;
     slices.reserve(m_layers.size());
     BoundingBox bbox;
     for (const Layer *layer : m_layers) {
@@ -1277,7 +1277,7 @@ TpmsRadialFields PrintObject::prepare_tpms_radial_fields() const
         if (!modes[mode])
             continue;
         // Without a field, the infill falls back to the regular pattern.
-        auto field = std::make_unique<TpmsRadialField>(slices, bbox, TpmsAdaptiveMode(mode), [this]() { m_print->throw_if_canceled(); });
+        auto field = std::make_unique<AdaptiveInfillField>(slices, bbox, AdaptiveInfillMode(mode), [this]() { m_print->throw_if_canceled(); });
         if (!field->empty())
             fields[mode] = std::move(field);
     }
@@ -1685,9 +1685,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "infill_overhang_angle") {
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern"
-                   || opt_key == "tpms_adaptive"
-                   || opt_key == "tpms_interior_density"
-                   || opt_key == "tpms_adaptive_gradient"
+                   || opt_key == "adaptive_infill_mode"
+                   || opt_key == "adaptive_infill_interior_density"
+                   || opt_key == "adaptive_infill_gradient"
                    // Orca: Body centering now also determines bridge anchors during preparation.
                    // Invalidating preparation also invalidates infill, including top/bottom surfaces.
                    || opt_key == "center_of_surface_pattern"
@@ -3195,7 +3195,7 @@ void PrintObject::bridge_over_infill()
         }
 
         this->m_adaptive_fill_octrees = this->prepare_adaptive_infill_data(surfaces_w_layer);
-        this->m_tpms_radial_fields    = this->prepare_tpms_radial_fields();
+        this->m_adaptive_infill_fields    = this->prepare_adaptive_infill_fields();
 
         std::vector<size_t> layers_to_generate_infill;
         for (const auto &pair : surfaces_by_layer) {
