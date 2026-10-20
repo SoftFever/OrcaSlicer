@@ -771,6 +771,17 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
     if (canceled || eptr)
         return;
 
+    // Nothing could be placed: leave the plates and the instances exactly as they were.
+    // Rebuilding the plates would only re-home the instances by their bounds, which moves
+    // a too large item to whichever plate it happens to reach over.
+    const bool nothing_arranged = !m_selected.empty() &&
+        std::all_of(m_selected.begin(), m_selected.end(), [](const ArrangePolygon &ap) { return !ap.is_arranged(); });
+    if (nothing_arranged) {
+        m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
+        m_plater->m_arrange_running.store(false);
+        return;
+    }
+
     // Unprintable items go to the last virtual bed
     int beds = 0;
 
@@ -870,12 +881,13 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
     }
     m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
 
-    //BBS: reload all objects due to arrange
+    //BBS: reload all objects due to arrange. Plates are never recycled here: arranging
+    // must not remove a plate the user created, even when the arrange left it empty.
     if (only_on_partplate) {
-        plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true, current_plate_index);
+        plate_list.rebuild_plates_after_arrangement(false, true, current_plate_index);
     }
     else {
-        plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true);
+        plate_list.rebuild_plates_after_arrangement(false, true);
     }
 
     // unlock the plates we just locked

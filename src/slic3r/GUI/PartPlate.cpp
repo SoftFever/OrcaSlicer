@@ -7048,19 +7048,14 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 {
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, selected %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % selected % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
 
+	// UNARRANGED means the item could not be placed, so it has no bed to map onto and
+	// must be left where the user had it. Moving it to a virtual bed here would shift
+	// it off the plate, because no such plate is created for it afterwards.
+	if (arrange_polygon.bed_idx == arrangement::UNARRANGED)
+		return;
+
 	if ((selected) || (arrange_polygon.bed_idx != PartPlateList::MAX_PLATES_COUNT))
 	{
-		if (arrange_polygon.bed_idx == -1)
-		{
-			// outarea for large object
-			arrange_polygon.bed_idx = m_plate_list.size();
-			BoundingBox apbox = get_extents(arrange_polygon.transformed_poly());  // the item may have been rotated
-			auto        apbox_size = apbox.size();
-
-			arrange_polygon.translation(X) = 0.5 * apbox_size[0];
-			arrange_polygon.translation(Y) = scaled<double>(static_cast<double>(m_plate_depth)) - 0.5 * apbox_size[1];
-		}
-
 		arrange_polygon.row = arrange_polygon.bed_idx / m_plate_cols;
 		arrange_polygon.col = arrange_polygon.bed_idx % m_plate_cols;
 		arrange_polygon.translation(X) += scaled<double>(plate_stride_x() * arrange_polygon.col);

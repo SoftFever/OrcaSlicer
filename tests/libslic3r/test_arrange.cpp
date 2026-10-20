@@ -220,11 +220,39 @@ TEST_CASE("An item larger than the bed cannot be placed", "[Arrange]")
     ArrangePolygons items;
     items.emplace_back(make_square(scaled(20.)));
     items.emplace_back(make_square(scaled(400.))); // far bigger than the bed
+    // An item that cannot be placed keeps the position it came in with, so the
+    // caller can leave it where the user had it.
+    items[1].translation = {scaled(10.), scaled(20.)};
 
     arrange(items, bed(200, 200), quiet_params(scaled(1.)));
 
     REQUIRE(items[0].bed_idx == 0);
     REQUIRE(items[1].bed_idx == UNARRANGED);
+    REQUIRE(items[1].translation.x() == scaled(10.));
+    REQUIRE(items[1].translation.y() == scaled(20.));
+}
+
+TEST_CASE("An item filling the printable area is arranged", "[Arrange]")
+{
+    // The arrange bed keeps a margin from the printable area and the item is widened by
+    // its brim. Neither may keep an item that fits the printable area from being placed.
+    DynamicPrintConfig cfg   = bed_config(); // 200 x 200
+    ArrangeParams      p     = quiet_params();
+
+    ArrangePolygons items = squares(1, 197.);
+    items.front().brim_width = 1.;
+    update_arrange_params(p, &cfg, items);
+    update_selected_items_inflation(items, &cfg, p);
+    arrange(items, get_shrink_bedpts(&cfg, p), p);
+    REQUIRE(items.front().bed_idx == 0);
+
+    // Larger than the printable area is still refused.
+    ArrangeParams   p_large = quiet_params();
+    ArrangePolygons large   = squares(1, 201.);
+    update_arrange_params(p_large, &cfg, large);
+    update_selected_items_inflation(large, &cfg, p_large);
+    arrange(large, get_shrink_bedpts(&cfg, p_large), p_large);
+    REQUIRE(large.front().bed_idx == UNARRANGED);
 }
 
 TEST_CASE("Items overflowing one bed spill onto virtual beds", "[Arrange]")

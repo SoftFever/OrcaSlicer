@@ -248,7 +248,6 @@ void FillBedJob::process(Ctl &ctl)
     if (m_object_idx == -1 || m_selected.empty()) return;
 
     update_arrange_params(params, m_plater->config(), m_selected);
-    m_bedpts = get_shrink_bedpts(m_plater->config(), params);
 
     auto &partplate_list               = m_plater->get_partplate_list();
     auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
@@ -260,6 +259,8 @@ void FillBedJob::process(Ctl &ctl)
 
     update_selected_items_inflation(m_selected, m_plater->config(), params);
     update_unselected_items_inflation(m_unselected, m_plater->config(), params);
+    // After the inflation, which may give back part of the bed margin.
+    m_bedpts = get_shrink_bedpts(m_plater->config(), params);
 
     bool do_stop = false;
     params.stopcondition = [&ctl, &do_stop]() {
