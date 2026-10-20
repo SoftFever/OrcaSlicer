@@ -3,6 +3,7 @@
 #include <boost/system/error_code.hpp>
 #include <catch2/catch_all.hpp>
 
+#include <cstddef>
 #include <libslic3r/Utils.hpp>
 #include <libslic3r/libslic3r.h>         // GCODEVIEWER_APP_KEY, SLIC3R_APP_KEY (via libslic3r_version.h)
 #include <slic3r/plugin/PluginAuditManager.hpp>

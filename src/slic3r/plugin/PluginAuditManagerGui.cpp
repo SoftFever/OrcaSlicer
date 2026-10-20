@@ -5,11 +5,14 @@
 #include "PluginManager.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 
 #include <algorithm>
+#include <cstddef>
 #include <future>
 #include <memory>
+#include <slic3r/plugin/PluginAuditManager.hpp>
 #include <string>
 #include <utility>
 #include <vector>
