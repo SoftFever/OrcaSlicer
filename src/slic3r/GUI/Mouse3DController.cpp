@@ -164,17 +164,13 @@ static std::string format_device_string(int vid, int pid)
     return ret;
 }
 
-// Runs on a worker thread on Windows; the caller reads skip_3dmouse_detect (AppConfig is not thread safe).
-static std::string detect_attached_device(bool skip_detection)
+static std::string detect_attached_device()
 {
     std::string ret;
     // Initialize the hidapi library
     int res = hid_init();
     if (res != 0)
         BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
-    else if (skip_detection) {
-        BOOST_LOG_TRIVIAL(info) << "do not detect 3d Mouse";
-    }
     else {
         // Enumerates devices
         hid_device_info* devices = hid_enumerate(0, 0);
@@ -830,12 +826,15 @@ void Mouse3DController::init()
 #ifdef _WIN32
     // hid_enumerate() queries every HID device on the system (~200 ms), so detect on m_thread.
     // Windows doesn't otherwise use it: HID data arrives as window messages.
+    if (wxGetApp().app_config->get("skip_3dmouse_detect") == "true") {
+        BOOST_LOG_TRIVIAL(info) << "do not detect 3d Mouse";
+        return;
+    }
     assert(! m_thread.joinable());
     if (! m_thread.joinable()) {
-        const bool skip_detection = wxGetApp().app_config->get("skip_3dmouse_detect") == "true";
-        m_thread = std::thread([this, skip_detection, alive = std::weak_ptr<int>(m_alive)]() {
-            std::string device = detect_attached_device(skip_detection);
-            if (device.empty() || wxTheApp == nullptr)
+        m_thread = std::thread([this, alive = std::weak_ptr<int>(m_alive)]() {
+            std::string device = detect_attached_device();
+            if (device.empty())
                 return;
             wxGetApp().CallAfter([this, alive, device = std::move(device)]() {
                 // Skip if this controller is gone or device_attached() already named the device.
