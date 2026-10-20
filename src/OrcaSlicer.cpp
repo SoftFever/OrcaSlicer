@@ -2723,11 +2723,17 @@ int CLI::run(int argc, char **argv)
         fetch_compatible_values = true;
     }
 
+    // A project whose different_settings_to_system is missing or empty in every entry does not say which of its
+    // values were changed: the GUI saves it that way when its presets match their parents, but also when it cannot
+    // find those parents. Only --uptodate then replaces the stored values with system ones.
+    const bool refresh_unlisted = up_config_to_date || std::any_of(current_different_settings.begin(), current_different_settings.end(),
+                                                                   [](const std::string &keys) { return !keys.empty(); });
+
     // Refresh every project filament no loaded filament replaces from its current system preset, as the GUI
     // does when it loads the project; the filament merge below keeps the keys the project lists as changed.
     // Entries stay in slot order, which the merge's variant bookkeeping relies on.
     std::vector<bool> load_filaments_refresh(load_filaments_config.size(), false);
-    if (is_bbl_3mf && new_printer_name.empty()) {
+    if (is_bbl_3mf && new_printer_name.empty() && refresh_unlisted) {
         const ConfigOptionStrings *project_filament_ids = m_print_config.option<ConfigOptionStrings>("filament_ids");
         for (size_t index = 0; index < current_filaments_system_name.size(); index++) {
             const int slot = static_cast<int>(index) + 1;
@@ -3100,8 +3106,8 @@ int CLI::run(int argc, char **argv)
 
     // Load the project's printer and process settings as the GUI loads its presets: over the default preset,
     // with every key the project does not list as changed, including keys saved before an option existed,
-    // taken from its current system preset.
-    auto load_project_preset = [this, &ensure_system_preset_resolver, &current_different_settings, filament_count](const std::string &system_name, Preset::Type type) {
+    // taken from its current system preset. Without refresh_unlisted the project only gets the keys it lacks.
+    auto load_project_preset = [this, &ensure_system_preset_resolver, &current_different_settings, refresh_unlisted, filament_count](const std::string &system_name, Preset::Type type) {
         if (system_name.empty())
             return;
         // Preset bookkeeping the CLI keeps in its own groups, e.g. inherits_group and print_compatible_printers.
@@ -3124,7 +3130,7 @@ int CLI::run(int argc, char **argv)
         for (const std::string &key : keys) {
             const ConfigOption *opt = config.option(key);
             const ConfigOption *old = m_print_config.option(key);
-            if (bookkeeping_keys.count(key) != 0 || opt == nullptr || (old != nullptr && *old == *opt))
+            if (bookkeeping_keys.count(key) != 0 || opt == nullptr || (old != nullptr && (!refresh_unlisted || *old == *opt)))
                 continue;
             BOOST_LOG_TRIVIAL(info) << boost::format("CLI: %1% from '%2%': %3% -> %4%") % key % system_name % (old ? old->serialize() : std::string("(missing)")) % opt->serialize();
             m_print_config.set_key_value(key, opt->clone());
