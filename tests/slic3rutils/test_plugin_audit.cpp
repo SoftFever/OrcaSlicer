@@ -1132,3 +1132,37 @@ TEST_CASE("Stdlib code is recognized through a symlinked Python home", "[audit][
     CHECK_FALSE(PluginAuditManager::is_stdlib_file((harness.outside.path() / "plugin.py").string()));
     CHECK_FALSE(PluginAuditManager::is_stdlib_file("<string>"));
 }
+
+TEST_CASE("A plugin may read the CPython stdlib without a prompt, but not site-packages or for writing", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    const py::dict paths   = py::module_::import("sysconfig").attr("get_paths")();
+    const fs::path stdlib  = py::str(paths["stdlib"]).cast<std::string>();
+    const fs::path purelib = py::str(paths["purelib"]).cast<std::string>();
+    // os.py ships with every CPython installation. A site-packages path is third-party code even
+    // when the directory is empty: the prompt must come before the missing file is noticed.
+    const fs::path stdlib_file = stdlib / "os.py";
+    REQUIRE(fs::exists(stdlib_file));
+
+    python.globals["STDLIB_FILE"]       = stdlib_file.string();
+    python.globals["SITE_PACKAGE_FILE"] = (purelib / "regression_probe.py").string();
+    python.run_as(PLUGIN, R"PY(
+read_outcome = attempt(lambda: open(STDLIB_FILE).read())
+write_outcome = attempt(lambda: open(STDLIB_FILE, "r+").close())
+site_packages_outcome = attempt(lambda: open(SITE_PACKAGE_FILE).close())
+)PY");
+
+    CHECK(python.str("read_outcome") == "ok");
+    CHECK(python.str("write_outcome") == "denied");
+    CHECK(python.str("site_packages_outcome") == "denied");
+    // Only the write and the site-packages read are asked about; the stdlib read is implicit.
+    const std::string write_prompt         = "open: " + python.str("STDLIB_FILE") + "\n";
+    const std::string site_packages_prompt = "open: " + python.str("SITE_PACKAGE_FILE") + "\n";
+    CHECK(describe(harness.prompts) == write_prompt + site_packages_prompt);
+}

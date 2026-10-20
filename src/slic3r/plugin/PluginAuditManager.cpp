@@ -500,6 +500,12 @@ AuditDecision PluginAuditManager::check_path_access(const boost::filesystem::pat
             candidate = absolute_candidate;
     }
 
+    // Importing Python modules reads their source and may inspect package directories. These
+    // reads are normal interpreter work, not plugin data access; keep the exemption read-only
+    // and exclude third-party packages from the stdlib roots.
+    if (!is_write && is_stdlib_path(candidate))
+        return {true, ""};
+
     // A root that doesn't allow writes only matches a read-shaped request; a write/create/
     // delete-shaped one falls through to "outside allowed root" for that root even though the
     // path is physically inside it.
@@ -1017,6 +1023,22 @@ void persist_grant(const std::string& plugin_key, AuditEventCategory category, b
 
 static PluginAuditManager::PermissionPrompt s_permission_prompt_for_testing;
 
+static const char* audit_category_name(AuditEventCategory category)
+{
+    switch (category) {
+    case AuditEventCategory::FsRead: return "FsRead";
+    case AuditEventCategory::FsReadWrite: return "FsReadWrite";
+    case AuditEventCategory::FsCreate: return "FsCreate";
+    case AuditEventCategory::FsDelete: return "FsDelete";
+    case AuditEventCategory::Http: return "Http";
+    case AuditEventCategory::Socket: return "Socket";
+    case AuditEventCategory::ProcessCreate: return "ProcessCreate";
+    case AuditEventCategory::ProcessReplace: return "ProcessReplace";
+    case AuditEventCategory::Threading: return "Threading";
+    default: return "None";
+    }
+}
+
 // Asks the user to grant an audited event, returning true when they approve an inline prompt.
 // `keys` are what a Yes saves: the unresolved targets, or the event-grant key when the event has
 // no target (by_event), which the prompt does not show as a target.
@@ -1034,6 +1056,16 @@ bool request_permission(AuditEventCategory category, const std::string& plugin_k
                         const std::string& event_name, bool by_event, const std::vector<std::string>& keys)
 {
     const std::vector<std::string> shown = by_event ? std::vector<std::string>{} : keys;
+    std::string targets_text = by_event ? "<none>" : "";
+    for (const auto& target : shown) {
+        if (!targets_text.empty())
+            targets_text += ", ";
+        targets_text += target;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "[AUDIT PROMPT] plugin=" << plugin_key << " event=" << event_name
+                            << " category=" << audit_category_name(category) << " targets=[" << targets_text << "]"
+                            << (by_event && !keys.empty() ? " grant=" + keys.front() : std::string{});
 
     if (s_permission_prompt_for_testing)
         return s_permission_prompt_for_testing(event_name, shown);
@@ -1200,6 +1232,18 @@ bool PluginAuditManager::is_stdlib_file(const std::string& filename)
     return it->second;
 }
 
+bool PluginAuditManager::is_stdlib_path(const boost::filesystem::path& path)
+{
+    if (path.empty())
+        return false;
+
+    const auto inside_any = [&path](const std::vector<boost::filesystem::path>& dirs) {
+        return std::any_of(dirs.begin(), dirs.end(),
+                           [&path](const boost::filesystem::path& dir) { return is_inside_allowed_root(path, dir); });
+    };
+    return inside_any(PluginAuditDetail::s_stdlib_dirs) && !inside_any(PluginAuditDetail::s_site_package_dirs);
+}
+
 void PluginAuditManager::release_frames(std::vector<PyObject*>& frames)
 {
     if (frames.empty())
@@ -1268,7 +1312,7 @@ int PluginAuditManager::audit_hook(const char* event, PyObject* args, void* user
 
 void PluginAuditManager::install_hook()
 {
-    // Tells the stdlib's own frames apart, for the operation-root frames (see record_root_frame).
+    // Identifies stdlib frames for operation roots and stdlib paths for read-only access.
     PluginAuditDetail::collect_stdlib_dirs();
 
     // data_dir() is the primary globally-allowed root during plugin execution: read+write. It
