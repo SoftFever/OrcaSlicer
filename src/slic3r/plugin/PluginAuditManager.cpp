@@ -528,81 +528,6 @@ AuditDecision PluginAuditManager::check_open(const std::string& path_str, const 
     return check_path_access(boost::filesystem::path(path_str), is_write);
 }
 
-bool PluginAuditManager::request_filesystem_read_permissions(const std::string&              plugin_key,
-                                                              const std::vector<std::string>& paths)
-{
-    if (plugin_key.empty() || paths.empty())
-        return true;
-
-    PluginDescriptor descriptor;
-    if (!PluginManager::instance().try_get_plugin_descriptor(plugin_key, descriptor) || descriptor.plugin_root.empty())
-        return false;
-
-    PluginInstallState state;
-    read_install_state(boost::filesystem::path(descriptor.plugin_root), state);
-
-    std::vector<std::string> missing;
-    for (const std::string& path : paths) {
-        if (std::find(state.permissions.fs_read.begin(), state.permissions.fs_read.end(), path) == state.permissions.fs_read.end())
-            missing.push_back(path);
-    }
-    if (missing.empty())
-        return true;
-
-    if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
-        return false;
-
-    auto show_dialog = [&descriptor, &missing]() {
-        wxString requested_paths;
-        for (const std::string& path : missing)
-            requested_paths += wxString::FromUTF8(path.c_str()) + "\n";
-
-        wxMessageDialog dialog(
-            nullptr,
-            wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
-                             wxString::FromUTF8(descriptor.name.c_str()), requested_paths),
-            _L("Plugin permissions"),
-            wxYES_NO | wxICON_WARNING);
-        return dialog.ShowModal() == wxID_YES;
-    };
-
-    bool granted = false;
-    if (wxIsMainThread()) {
-        granted = show_dialog();
-    } else {
-        auto result = std::make_shared<std::promise<bool>>();
-        auto future = result->get_future();
-        GUI::wxGetApp().CallAfter([result, descriptor_name = descriptor.name, missing]() {
-            wxString requested_paths;
-            for (const std::string& path : missing)
-                requested_paths += wxString::FromUTF8(path.c_str()) + "\n";
-
-            wxMessageDialog dialog(
-                nullptr,
-                wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
-                                 wxString::FromUTF8(descriptor_name.c_str()), requested_paths),
-                _L("Plugin permissions"),
-                wxYES_NO | wxICON_WARNING);
-            result->set_value(dialog.ShowModal() == wxID_YES);
-        });
-        granted = future.get();
-    }
-
-    if (!granted)
-        return false;
-
-    if (state.plugin_name.empty()) {
-        state.installed_from    = descriptor.is_cloud_plugin() ? "cloud" : "local";
-        state.installed_version = !descriptor.installed_version.empty() ? descriptor.installed_version : descriptor.version;
-        state.plugin_name       = descriptor.name;
-        state.cloud_uuid        = descriptor.cloud_uuid();
-        state.enabled            = true;
-    }
-
-    state.permissions.fs_read.insert(state.permissions.fs_read.end(), missing.begin(), missing.end());
-    return write_install_state(boost::filesystem::path(descriptor.plugin_root), state);
-}
-
 void PluginAuditManager::report_violation(const AuditViolation& violation)
 {
     m_last_violation     = violation;
@@ -838,7 +763,7 @@ std::vector<std::string> audit_targets(const std::string& event_name, AuditEvent
         // Thread creation exposes no user-supplied target. Use a fixed sentinel so the grant
         // persists per plugin: the permission list matches targets by exact string, and the
         // started function's repr embeds an address that changes every run.
-        targets.emplace_back("thread");
+        targets.emplace_back(kThreadPermissionTarget);
         return targets;
     default:
         break;
@@ -894,6 +819,20 @@ bool has_permission(const std::vector<std::string>& granted, const std::string& 
     return std::find(granted.begin(), granted.end(), target) != granted.end();
 }
 
+// A sandbox plugin may not have a sidecar yet. Seed the small amount of install metadata the
+// writer needs so clicking Yes still creates the JSON file.
+void seed_install_metadata(const PluginDescriptor& descriptor, PluginInstallState& state)
+{
+    if (!state.plugin_name.empty())
+        return;
+
+    state.installed_from    = descriptor.is_cloud_plugin() ? "cloud" : "local";
+    state.installed_version = !descriptor.installed_version.empty() ? descriptor.installed_version : descriptor.version;
+    state.plugin_name       = descriptor.name;
+    state.cloud_uuid        = descriptor.cloud_uuid();
+    state.enabled           = true;
+}
+
 bool persist_permission(const std::string&        plugin_key,
                         PluginInstallState&       state,
                         std::vector<std::string>& permission_list,
@@ -903,15 +842,7 @@ bool persist_permission(const std::string&        plugin_key,
     if (!PluginManager::instance().try_get_plugin_descriptor(plugin_key, descriptor) || descriptor.plugin_root.empty())
         return false;
 
-    // A sandbox plugin may not have a sidecar yet.  Seed the small amount of install metadata
-    // needed by the writer so clicking Yes still creates the JSON file.
-    if (state.plugin_name.empty()) {
-        state.installed_from    = descriptor.is_cloud_plugin() ? "cloud" : "local";
-        state.installed_version = !descriptor.installed_version.empty() ? descriptor.installed_version : descriptor.version;
-        state.plugin_name       = descriptor.name;
-        state.cloud_uuid        = descriptor.cloud_uuid();
-        state.enabled            = true;
-    }
+    seed_install_metadata(descriptor, state);
 
     if (!has_permission(permission_list, target))
         permission_list.push_back(target);
@@ -997,6 +928,13 @@ bool prompt_for_targets(AuditEventCategory category, const std::string& plugin_n
     return dialog.ShowModal() == wxID_YES;
 }
 
+// Shows a prompt whose body may cover several permission buckets. Must run on the GUI thread.
+bool prompt_for_permission_message(const wxString& message)
+{
+    wxMessageDialog dialog(nullptr, message, _L("Plugin permissions"), wxYES_NO | wxICON_WARNING);
+    return dialog.ShowModal() == wxID_YES;
+}
+
 // Records a grant in the plugin's sidecar so it is not asked again. Reads the install state
 // freshly because the async prompt outlives the caller's stack copy of it.
 void persist_grant(const std::string& plugin_key, AuditEventCategory category, bool by_event, const std::vector<std::string>& keys)
@@ -1023,7 +961,7 @@ static PluginAuditManager::PermissionPrompt s_permission_prompt_for_testing;
 // SlicingPipeline hook runs on the slicing worker thread (see PluginHooks.cpp), and
 // BackgroundSlicingProcess::stop()/stop_internal() park the UI thread until that worker stops.
 // Blocking the worker on a marshaled modal -- which is safe for the plugin-load worker that
-// request_filesystem_read_permissions runs on -- would therefore deadlock the application (the
+// request_permissions runs on -- would therefore deadlock the application (the
 // invariant PluginHostUi.cpp documents for slicing-hook UI calls). Off the main thread the prompt
 // is therefore posted asynchronously and the current event denied (fail closed, like an unanswered
 // prompt); the grant is persisted once the user accepts, so a later attempt succeeds without
@@ -1146,6 +1084,105 @@ int audit_plugin_event(PluginAuditManager& mgr, const std::string& event_name, A
 }
 
 } // namespace PluginAuditDetail
+
+bool PluginAuditManager::request_permissions(const std::string& plugin_key, const PluginPermissions& requested)
+{
+    if (plugin_key.empty())
+        return true;
+
+    PluginDescriptor descriptor;
+    if (!PluginManager::instance().try_get_plugin_descriptor(plugin_key, descriptor) || descriptor.plugin_root.empty())
+        return false;
+
+    PluginInstallState state;
+    read_install_state(boost::filesystem::path(descriptor.plugin_root), state);
+
+    // Per bucket, keep only the targets that no earlier grant already covers. Dropping these
+    // before prompting keeps a repeated declaration from asking again for what is on disk.
+    struct MissingBucket {
+        AuditEventCategory       category;
+        std::vector<std::string> targets;
+    };
+    std::vector<MissingBucket> missing_buckets;
+
+    const auto collect_missing = [&missing_buckets](AuditEventCategory category,
+                                                    const std::vector<std::string>& requested_targets,
+                                                    const std::vector<std::string>& granted_targets) {
+        MissingBucket bucket{category, {}};
+        for (const std::string& target : requested_targets) {
+            if (target.empty())
+                continue;
+            if (std::find(granted_targets.begin(), granted_targets.end(), target) == granted_targets.end() &&
+                std::find(bucket.targets.begin(), bucket.targets.end(), target) == bucket.targets.end())
+                bucket.targets.push_back(target);
+        }
+        if (!bucket.targets.empty())
+            missing_buckets.push_back(std::move(bucket));
+    };
+
+    collect_missing(AuditEventCategory::FsRead, requested.fs_read, state.permissions.fs_read);
+    collect_missing(AuditEventCategory::FsReadWrite, requested.fs_readwrite, state.permissions.fs_readwrite);
+    collect_missing(AuditEventCategory::Http, requested.network_http, state.permissions.network_http);
+    collect_missing(AuditEventCategory::Socket, requested.network_socket, state.permissions.network_socket);
+    collect_missing(AuditEventCategory::ProcessCreate, requested.process, state.permissions.process);
+    collect_missing(AuditEventCategory::Threading, requested.threading, state.permissions.threading);
+
+    if (missing_buckets.empty())
+        return true;
+
+    if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
+        return false;
+
+    const auto build_message = [](const std::string& plugin_name, const std::vector<MissingBucket>& buckets) {
+        wxString message;
+        for (const MissingBucket& bucket : buckets) {
+            wxString targets;
+            for (const std::string& target : bucket.targets)
+                targets += wxString::FromUTF8(target.c_str()) + "\n";
+
+            if (!message.IsEmpty())
+                message += "\n\n";
+            message += PluginAuditDetail::audit_message(bucket.category, wxString::FromUTF8(plugin_name.c_str()),
+                                                        wxEmptyString, targets, bucket.targets.size());
+        }
+        return message;
+    };
+
+    bool granted = false;
+    if (wxIsMainThread()) {
+        granted = PluginAuditDetail::prompt_for_permission_message(build_message(descriptor.name, missing_buckets));
+    } else {
+        auto result = std::make_shared<std::promise<bool>>();
+        auto future = result->get_future();
+        GUI::wxGetApp().CallAfter([result, plugin_name = descriptor.name, missing_buckets, build_message]() {
+            result->set_value(PluginAuditDetail::prompt_for_permission_message(build_message(plugin_name, missing_buckets)));
+        });
+        granted = future.get();
+    }
+
+    if (!granted)
+        return false;
+
+    // The dialog can stay open while another grant is persisted; re-read before saving so this
+    // request adds to the current state instead of replacing it.
+    PluginInstallState latest_state;
+    if (read_install_state(boost::filesystem::path(descriptor.plugin_root), latest_state))
+        state = std::move(latest_state);
+
+    PluginAuditDetail::seed_install_metadata(descriptor, state);
+
+    for (const MissingBucket& bucket : missing_buckets) {
+        std::vector<std::string>* permission_list =
+            PluginAuditDetail::permission_list_for(bucket.category, /*by_event=*/false, state.permissions);
+        if (!permission_list)
+            continue;
+        for (const std::string& target : bucket.targets)
+            if (std::find(permission_list->begin(), permission_list->end(), target) == permission_list->end())
+                permission_list->push_back(target);
+    }
+
+    return write_install_state(boost::filesystem::path(descriptor.plugin_root), state);
+}
 
 void PluginAuditManager::record_root_frame()
 {
