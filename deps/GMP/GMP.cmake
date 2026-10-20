@@ -64,6 +64,7 @@ else ()
     # silicon whenever CGAL falls back to exact arithmetic.
     ExternalProject_Add(dep_GMP
         URL https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.bz2
+            https://gmplib.org/download/gmp/gmp-6.3.0.tar.bz2
         URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/GMP
         PATCH_COMMAND git apply ${GMP_DIRECTORY_FLAG} --verbose ${CMAKE_CURRENT_LIST_DIR}/0001-GMP_GCC15.patch
