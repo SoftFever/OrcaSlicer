@@ -20,6 +20,9 @@
 #include <cstdlib>
 #include "libslic3r/LocalesUtils.hpp"
 #include <cstring>
+#include <fstream>
+#include <iterator>
+#include "CAD/FcIconTint.hpp"
 #include <vector>
 #include <cstdint>
 #include <imgui.h>
@@ -367,7 +370,15 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
         replaces["\"#009688\""] = "\"" + new_color + "\"";
 
      NSVGimage *image = nullptr;
-    if (strstr(bitmap_name.c_str(), "printer_thumbnail") == NULL) {
+    if (bitmap_name.rfind("fc_", 0) == 0) {   // FreeCAD's icons keep their own colours; only near-neutral strokes follow the theme
+        std::ifstream f(Slic3r::var(bitmap_name + ".svg"), std::ios::binary);
+        if (f) {
+            std::string svg((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            retint_fc_neutrals(svg, dark_mode);
+            image = nsvgParse(svg.data(), "px", 96.0f);   // parses in place: svg is our own copy
+        }
+    }
+    else if (strstr(bitmap_name.c_str(), "printer_thumbnail") == NULL) {
         image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
     }
     else {

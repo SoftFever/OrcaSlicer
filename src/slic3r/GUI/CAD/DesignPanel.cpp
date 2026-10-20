@@ -11674,6 +11674,14 @@ void DesignPanel::update_fillet_gizmo()
 // The keyboard shortcuts (Shift+N / Shift+X / Shift+B) deliberately keep running the guarded
 // action rather than being gated: a key press has no greyed-out state to see, so the sentence is
 // the only feedback there is.
+// The FreeCAD icon of a verb when the app ships one (the ribbon draws the same), else the verb's own design_* glyph.
+static std::string toolbox_icon(const OfferVerb* v)
+{
+    const std::string fc = std::string("fc_") + v->id;
+    if (boost::filesystem::exists(Slic3r::var(fc + ".svg")) || v->icon == nullptr) return fc;
+    return v->icon;
+}
+
 // One button per group of the Solid / Surface / Sketch ribbon tabs. The button runs the group's last-used variant (the key
 // the ribbon saves under), the small arrow lists the others. The ribbon is only the table's second view: same verbs, same
 // router (run_offer_action), same enable rule (verb_state).
@@ -11681,10 +11689,7 @@ void DesignPanel::build_toolbox()
 {
     m_tb_tools = new wxBoxSizer(wxHORIZONTAL);
     AppConfig* cfg = wxGetApp().app_config;
-    auto icon_of = [](const OfferVerb* v) {
-        const std::string fc = std::string("fc_") + v->id;
-        return v->icon != nullptr ? std::string(v->icon) : fc;
-    };
+    const auto icon_of = [](const OfferVerb* v) { return toolbox_icon(v); };
     const std::vector<RibbonTab> tabs = build_ribbon_table();
     for (size_t ti : {size_t(0), size_t(1), size_t(2)}) {
         if (ti >= tabs.size() || tabs[ti].groups.empty()) continue;
@@ -11711,7 +11716,7 @@ void DesignPanel::build_toolbox()
                 ToolboxBtn& t = m_toolbox[idx];
                 t.cur = v;
                 if (t.verbs.size() > 1) cfg->set("design_ribbon_last_" + t.group, v->id);
-                t.btn->SetBitmap_(v->icon != nullptr ? std::string(v->icon) : std::string("fc_") + v->id);
+                t.btn->SetBitmap_(toolbox_icon(v));
                 const std::string action = v->action ? v->action : "";
                 CallAfter([this, action] { run_offer_action(action.c_str()); });
             };
