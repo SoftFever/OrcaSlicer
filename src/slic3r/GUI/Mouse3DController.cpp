@@ -183,22 +183,22 @@ struct HidCollection
 static bool list_hid_collections_raw_input(std::vector<HidCollection>& out)
 {
     std::vector<RAWINPUTDEVICELIST> devices;
-    for (int attempt = 0; attempt < 3; ++attempt) {
+    bool listed = false;
+    for (int attempt = 0; attempt < 3 && ! listed; ++attempt) {
         UINT count = 0;
         if (::GetRawInputDeviceList(nullptr, &count, sizeof(RAWINPUTDEVICELIST)) != 0)
             return false;
         devices.resize(count);
-        if (count == 0)
-            break;
-        const UINT got = ::GetRawInputDeviceList(devices.data(), &count, sizeof(RAWINPUTDEVICELIST));
+        const UINT got = count == 0 ? 0 : ::GetRawInputDeviceList(devices.data(), &count, sizeof(RAWINPUTDEVICELIST));
         if (got != UINT(-1)) {
             devices.resize(got);
-            break;
-        }
-        if (::GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+            listed = true;
+        } else if (::GetLastError() != ERROR_INSUFFICIENT_BUFFER)
             return false;
-        devices.clear(); // a device was plugged in meanwhile, try again
+        // else a device was plugged in meanwhile, try again
     }
+    if (! listed)
+        return false;
 
     for (const RAWINPUTDEVICELIST& device : devices) {
         if (device.dwType != RIM_TYPEHID)
@@ -817,35 +817,25 @@ bool Mouse3DController::handle_input(const DataPacketAxis& packet)
 void Mouse3DController::init()
 {
 #ifdef _WIN32
-    // Detect on m_thread, which Windows doesn't otherwise use (HID data arrives as window messages).
-    if (wxGetApp().app_config->get("skip_3dmouse_detect") == "true") {
+    if (wxGetApp().app_config->get("skip_3dmouse_detect") == "true")
         BOOST_LOG_TRIVIAL(info) << "do not detect 3d Mouse";
-        return;
+    else
+        m_device_str = detect_attached_device();
+    if (!m_device_str.empty()) {
+        m_connected = true;
+        if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end())
+            m_params = m_params_ui = it_params->second;
     }
-    assert(! m_thread.joinable());
-    if (! m_thread.joinable()) {
-        m_thread = std::thread([this, alive = std::weak_ptr<int>(m_alive)]() {
-            std::string device = detect_attached_device();
-            if (device.empty())
-                return;
-            wxGetApp().CallAfter([this, alive, device = std::move(device)]() {
-                // Skip if this controller is gone or device_attached() already named the device.
-                if (alive.expired() || ! m_device_str.empty())
-                    return;
-                m_device_str = device;
-                m_connected  = true;
-                if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end())
-                    m_params = m_params_ui = it_params->second;
-            });
-        });
-    }
-#else
+#endif // _WIN32
+
 	assert(! m_thread.joinable());
     if (! m_thread.joinable()) {
     	m_stop = false;
+#ifndef _WIN32
+    	// Don't start the background thread on Windows, as the HID messages are sent as Windows messages.
 	    m_thread = std::thread(&Mouse3DController::run, this);
-	}
 #endif // _WIN32
+	}
 }
 
 // Closing the application.

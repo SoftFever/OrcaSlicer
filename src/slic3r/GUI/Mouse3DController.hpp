@@ -2,12 +2,6 @@
 #define slic3r_Mouse3DController_hpp_
 
 // Enabled debug output to console and extended imgui dialog
-#include <cstddef>
-#include <limits>
-#include <deque>
-#include <map>
-#include <string>
-#include <array>
 #define ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT 0
 
 #include "libslic3r/Point.hpp"
@@ -21,7 +15,6 @@
 #include <vector>
 #include <chrono>
 #include <condition_variable>
-#include <memory>
 
 
 namespace Slic3r {
@@ -163,12 +156,7 @@ class Mouse3DController
 
 #if ! __APPLE__
     // Worker thread for enumerating devices, connecting, reading data from the device and closing the device.
-    // On Windows it only runs the one-off device detection at startup (see init()).
     std::thread 		m_thread;
-#ifdef _WIN32
-    // Expires with this object, so a detection result queued for the UI thread is then dropped.
-    std::shared_ptr<int> m_alive { std::make_shared<int>(0) };
-#endif /* _WIN32 */
     hid_device* 		m_device { nullptr };
     // Using m_stop_condition_mutex to synchronize m_stop.
     bool				m_stop { false };
@@ -187,10 +175,6 @@ class Mouse3DController
     mutable bool 		m_settings_dialog_closed_by_user { false };
 
 public:
-#ifdef _WIN32
-    // The detection thread finishes on its own; join it if shutdown() was never called.
-    ~Mouse3DController() { if (m_thread.joinable()) m_thread.join(); }
-#endif /* _WIN32 */
 	// Load the device parameter database from appconfig. To be called on application startup.
 	void load_config(const AppConfig &appconfig);
 	// Store the device parameter database back to appconfig. To be called on application closeup.
