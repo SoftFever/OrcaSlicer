@@ -3872,6 +3872,7 @@ void GLCanvas3D::bind_event_handlers()
                 // The key-up that would commit a keyboard edit goes to whatever took the focus.
                 if (m_selection_edit.kind != SelectionEdit::None)
                     finish_selection_edit();
+                release_held_modifiers();
                 wxGetApp().imgui()->forget_key_claims();
                 ImGui::SetWindowFocus(nullptr);
                 render();
@@ -4301,6 +4302,17 @@ static bool key_repeats(int key)
 }
 
 static void key_released(int key) { s_keys_down.erase(key); }
+
+void GLCanvas3D::release_held_modifiers()
+{
+    for (const int key : { WXK_SHIFT, WXK_CONTROL, WXK_ALT }) {
+        if (s_keys_down.count(key) == 0)
+            continue;
+        wxKeyEvent release(wxEVT_KEY_UP);
+        release.m_keyCode = key;
+        on_key(release);
+    }
+}
 
 void GLCanvas3D::on_key(wxKeyEvent& evt)
 {

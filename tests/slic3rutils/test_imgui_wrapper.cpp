@@ -145,6 +145,21 @@ TEST_CASE("a wheel event with no rotation or on the horizontal axis does not ste
     CHECK_THAT(wheel_after(rotation, axis), WithinAbs(0.0, 0.0));
 }
 
+TEST_CASE("a mouse event replaces a modifier whose key-up went to another window", "[ImGuiWrapper][Regression]")
+{
+    ImGuiWrapper imgui;
+    imgui.set_display_size(800.f, 600.f);
+    ImGui::GetIO().KeyCtrl = true;
+
+    wxMouseEvent move(wxEVT_MOTION);
+    imgui.update_mouse_data(move);
+    CHECK_FALSE(ImGui::GetIO().KeyCtrl);
+
+    move.SetControlDown(true);
+    imgui.update_mouse_data(move);
+    CHECK(ImGui::GetIO().KeyCtrl);
+}
+
 TEST_CASE("an InputText counts as active only while it holds the keyboard", "[ImGuiWrapper]")
 {
     ImGuiFrames f;

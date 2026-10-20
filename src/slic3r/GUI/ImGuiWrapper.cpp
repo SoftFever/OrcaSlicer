@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <array>
 #include <cassert>
 #include <cstdio>
 #include "libslic3r/Technologies.hpp"
@@ -506,6 +505,11 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     io.MouseDown[0] = evt.LeftIsDown();
     io.MouseDown[1] = evt.RightIsDown();
     io.MouseDown[2] = evt.MiddleIsDown();
+    // Replaces a modifier left held when its key-up was sent to another window.
+    io.KeyCtrl  = evt.ControlDown();
+    io.KeyShift = evt.ShiftDown();
+    io.KeyAlt   = evt.AltDown();
+    io.KeySuper = evt.MetaDown();
     // Only a vertical wheel event with a direction is a wheel step. A macOS trackpad reports sideways motion
     // as separate horizontal events, and its wheel events often carry a rotation of 0: wx truncates the
     // sub-pixel deltas to whole ones and passes on events with no delta at all. Read as vertical steps,
@@ -587,16 +591,6 @@ void ImGuiWrapper::new_frame()
     // BBL: copy & paste form prusa github repo (https://github.com/prusa3d/PrusaSlicer/blob/master/src/slic3r/GUI/ImGuiWrapper.cpp#L375C5-L402C6)
     // synchronize key states
     // when the application loses the focus it may happen that the key up event is not processed
-
-    // synchronize modifier keys
-    constexpr std::array<std::pair<ImGuiKeyModFlags_, wxKeyCode>, 3> imgui_mod_keys{
-        std::make_pair(ImGuiKeyModFlags_Ctrl, WXK_CONTROL),
-        std::make_pair(ImGuiKeyModFlags_Shift, WXK_SHIFT),
-        std::make_pair(ImGuiKeyModFlags_Alt, WXK_ALT) };
-    for (const std::pair<ImGuiKeyModFlags_, wxKeyCode>& key : imgui_mod_keys) {
-        if ((io.KeyMods & key.first) != 0 && !wxGetKeyState(key.second))
-            io.KeyMods &= ~key.first;
-    }
 
     // Not sure if it is neccessary
     // values from 33 to 126 are reserved for the standard ASCII characters

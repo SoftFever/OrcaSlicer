@@ -72,10 +72,17 @@ the canvas once nothing claims it. A held slider or button claims none, so the s
 working while one is dragged. One side handles a key from its key-down to its release. Its
 repeats, its char event and its release follow the key-down's decision even when a field or
 modal opens or closes in between, so a key never both runs a shortcut and types, and a
-keyboard move of the selection always sees the release of the key that started it. The
-canvas drops this record when it loses the focus, since the key-ups then go to whatever took
-it. The macOS Edit menu, whose key equivalents run before the canvas sees the key, follows
-the same rule.
+keyboard move of the selection always sees the release of the key that started it.
+
+Key-ups go to whatever window has the focus, so a shortcut that opens a dialog, such as
+Ctrl+P, takes the release of its modifier with it. When the canvas loses the focus it sends
+itself a key-up for each Shift, Ctrl or Alt still held, which ends a gizmo's Shift mode and
+clears ImGui's own copy of the modifier, and then drops its record of held keys.
+`ImGuiWrapper::update_mouse_data()` also takes ImGui's modifiers from each mouse event, which
+carries the real state, since a stale Ctrl would turn every slider click into a Ctrl+click
+and open the slider's text box. The macOS
+Edit menu, whose key equivalents run before the canvas sees the key, follows the same rule
+as the canvas.
 
 ## Which event a chord matches
 
