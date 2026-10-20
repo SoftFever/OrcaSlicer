@@ -104,6 +104,8 @@ struct PluginPermissions
     std::vector<std::string> network_socket;
     std::vector<std::string> process;
     std::vector<std::string> threading;
+    // Grants for audit events that expose no target, keyed "<category>:<event>" (e.g. "Socket:socket.__new__").
+    std::vector<std::string> events;
 };
 
 struct PluginInstallState {

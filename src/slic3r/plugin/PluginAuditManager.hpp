@@ -4,10 +4,9 @@
 // Via pybind11 so this file requests the same python3xx.lib as everything else.
 #include <boost/filesystem/path.hpp>
 #include <pybind11/conduit/wrap_include_python_h.h>
+#include <functional>
 #include <mutex>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include <boost/filesystem.hpp>
@@ -144,15 +143,26 @@ public:
     void clear_last_violation();
     bool last_violation(AuditViolation& violation) const;
 
-    // --- call-site cascade cache ---
-    // A single plugin action often fires several nested CPython audit events as it passes
-    // through stdlib layers (urllib.request calling http.client calling socket, for example).
-    // Once the user approves one event, every stdlib frame still on the stack for that call
-    // is recorded here by (filename, function, first line) identity. A later event whose own
-    // ancestor chain still contains one of those frames is the same logical action seen from
-    // a deeper layer, so it is auto-approved instead of prompting again.
-    bool has_approved_ancestor(const std::string& plugin_key, const std::vector<std::string>& call_site_ids) const;
-    void record_approved_call_sites(const std::string& plugin_key, const std::vector<std::string>& call_site_ids);
+    // --- operation-root frames ---
+    // One stdlib operation fires several nested audit events as it passes through lower layers:
+    // urlopen() raises urllib.Request, then http.client and socket events. When an operation's
+    // own root event is granted (by a saved grant or the user), the stdlib frame that raised it
+    // is held, and a later event whose stack reaches that frame through stdlib frames only is
+    // part of the same operation, so it is allowed without a prompt of its own. Plugin or
+    // library code the operation calls back into is judged on its own. A frame is let go once it
+    // returns, a suspended generator's (os.walk) when the audit scope ends. Letting a frame go may
+    // run finalizers of objects its locals held; they are judged as the plugin and never prompt.
+    void record_root_frame();
+    bool covered_by_root_frame() const;
+    bool releasing_frames() const;
+
+    // True when code from `filename` (a code object's co_filename) is the interpreter's own
+    // stdlib: the only code a root frame's coverage passes through. Valid after install_hook().
+    static bool is_stdlib_file(const std::string& filename);
+
+    // Answers permission prompts in place of the dialog, for tests. Production never sets it.
+    using PermissionPrompt = std::function<bool(const std::string& event_name, const std::vector<std::string>& targets)>;
+    static void set_permission_prompt_for_testing(PermissionPrompt prompt);
 
     bool verbose_events = true;
 
@@ -163,24 +173,32 @@ private:
 
     static int audit_hook(const char* event, PyObject* args, void* user_data);
 
+    // Drops the references in `frames`, keeping the caller's error and denial state intact.
+    void release_frames(std::vector<PyObject*>& frames);
+
     static thread_local std::string                   m_current_plugin_key;
     static thread_local std::string                   m_current_capability_name;
     static thread_local std::vector<AllowedRoot>       m_scoped_allowed_roots;
+    static thread_local std::vector<PyObject*>         m_root_frames; // strong references
+    static thread_local int                            m_releasing_frames;
     static thread_local bool                           m_audit_denial_pending;
     static thread_local bool                           m_has_last_violation;
     static thread_local AuditViolation                 m_last_violation;
 
-    // mutable: is_denied_filename() and has_approved_ancestor() are const queries that must lock.
+    // mutable: is_denied_filename() is a const query that must lock.
     mutable std::mutex m_mutex;
     std::vector<AllowedRoot>             m_global_allowed_roots;
     std::vector<std::string>             m_denied_filenames;
     std::vector<std::string>             m_denied_path_keywords;
-    std::unordered_map<std::string, std::unordered_set<std::string>> m_approved_call_sites; // plugin_key -> call-site ids
 };
 
 // RAII guard that sets the current plugin key and capability name, restoring the previous
 // pair on scope exit. `capability_name` may be empty for calls that are not scoped to a
 // single capability.
+//
+// Each scope owns the root frames recorded inside it and lets them go, as its own plugin, before
+// restoring the outer context. That needs the GIL whenever a frame is still held, so construct
+// the scope after the GIL guard, to be destroyed before it.
 class ScopedPluginAuditContext
 {
 public:
@@ -194,9 +212,12 @@ public:
     ScopedPluginAuditContext& operator=(const ScopedPluginAuditContext&) = delete;
 
 private:
+    std::string                   m_plugin_key;
+    std::string                   m_capability;
     std::string                   m_previous_id;
     std::string                   m_previous_capability;
     std::vector<AllowedRoot>      m_previous_scoped_roots;
+    std::vector<PyObject*>        m_previous_root_frames;
 };
 
 } // namespace Slic3r
