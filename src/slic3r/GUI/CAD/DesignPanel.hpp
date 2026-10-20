@@ -56,6 +56,15 @@ class ScalableButton;
 
 namespace Slic3r { namespace GUI {
 
+// Logs "Design: <name> <ms> ms" when its scope took 5 ms or more: where the time of an edit goes (kernel rebuild or UI refresh).
+struct PhaseLog {
+    explicit PhaseLog(const char* name);
+    ~PhaseLog();
+private:
+    const char* m_name;
+    long long   m_t0;
+};
+
 class DesignTextDialog;
 class DesignRowList;
 
@@ -495,6 +504,7 @@ private:
     wxSizer*  m_box_thicken{nullptr};
     wxSizer*  m_box_rib{nullptr};
     wxSizer*  m_box_sheet{nullptr};
+    wxBoxSizer* m_sheet_body{nullptr};   // everything under the Sheet metal header: what its fold chevron hides
     wxSizer*  m_box_project{nullptr};
     wxSizer*  m_box_delete_face{nullptr};
     wxSizer*  m_box_helix{nullptr};

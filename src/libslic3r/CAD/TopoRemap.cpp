@@ -14,6 +14,7 @@
 #include <limits>
 #include <vector>
 #include <cstddef>
+#include <memory>
 #include "libslic3r/Point.hpp"
 #include <TopAbs_ShapeEnum.hxx>
 #include <GeomAbs_SurfaceType.hxx>
@@ -124,6 +125,22 @@ Topo build(const TopoDS_Shape& s)
     return t;
 }
 
+// build() walks every face and edge of a body; a rebuild asks about several ids of the same two bodies (every id of every
+// feature), so the descriptors are kept for the last few shapes. A shape is immutable, and the cache holds it, so IsSame is
+// a safe key. One cache per thread: the preview rebuilds on a worker thread.
+std::shared_ptr<const Topo> build_cached(const TopoDS_Shape& s)
+{
+    thread_local std::vector<std::pair<TopoDS_Shape, std::shared_ptr<const Topo>>> cache;
+    for (auto it = cache.begin(); it != cache.end(); ++it)
+        if (it->first.IsSame(s)) {
+            if (it != cache.begin()) std::rotate(cache.begin(), it, it + 1);   // most recent first
+            return cache.front().second;
+        }
+    cache.insert(cache.begin(), {s, std::make_shared<const Topo>(build(s))});
+    if (cache.size() > 8) cache.pop_back();
+    return cache.front().second;
+}
+
 // Lower is closer; infinity = cannot be the same kind of thing.
 double distance(const Desc& a, const Desc& b)
 {
@@ -157,14 +174,14 @@ int remap_face(const TopoDS_Shape& before, const TopoDS_Shape& now, int old_id)
 {
     if (before.IsNull() || now.IsNull()) return -1;
     if (before.IsSame(now)) return old_id;
-    return remap(build(before).fd, build(now).fd, old_id);
+    return remap(build_cached(before)->fd, build_cached(now)->fd, old_id);
 }
 
 int remap_edge(const TopoDS_Shape& before, const TopoDS_Shape& now, int old_id)
 {
     if (before.IsNull() || now.IsNull()) return -1;
     if (before.IsSame(now)) return old_id;
-    return remap(build(before).ed, build(now).ed, old_id);
+    return remap(build_cached(before)->ed, build_cached(now)->ed, old_id);
 }
 
 }} // namespace Slic3r::TopoRemap

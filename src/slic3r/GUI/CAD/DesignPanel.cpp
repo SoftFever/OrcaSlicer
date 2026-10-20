@@ -28,6 +28,8 @@
 #include <TopAbs_Orientation.hxx>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/filesystem/path.hpp>
+#include <chrono>
+#include <optional>
 #include <boost/log/trivial.hpp>          // the offer/atlas join check reports on the log
 #include <wx/aui/framemanager.h>
 #include <wx/longlong.h>
@@ -2838,8 +2840,12 @@ DesignPanel::DesignPanel(wxWindow* parent)
 
     // --- Sheet metal (rule, base flange, edge flange, contour flange, hem, unfold, refold) ---
     m_box_sheet = new wxBoxSizer(wxVERTICAL);
-    m_box_sheet->Add(card_header(m_cards, "design_sheet", _L("Sheet metal"), m_hdr_sheet), 0, wxLEFT | wxRIGHT | wxTOP, 12);
+    wxSizer* sheet_hdr = card_header(m_cards, "design_sheet", _L("Sheet metal"), m_hdr_sheet);
+    add_fold(sheet_hdr, m_cards, m_hdr_sheet, "sheet", [] { return std::vector<wxWindow*>{}; });   // folded through apply_fold: its rows are sizers
+    m_box_sheet->Add(sheet_hdr, 0, wxLEFT | wxRIGHT | wxTOP, 12);
     m_box_sheet->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
+    m_sheet_body = new wxBoxSizer(wxVERTICAL);
+    m_box_sheet->Add(m_sheet_body, 0, wxEXPAND);
     {
         auto lab = [&](const wxString& s) { return new wxStaticText(m_cards, wxID_ANY, s); };
         auto spin = [&](double v, double lo, double hi) {
@@ -2847,7 +2853,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
             sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
             return sp;
         };
-        auto group = [&]() { auto* g = two_col_form(); m_box_sheet->Add(g, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12); return g; };
+        auto group = [&]() { auto* g = two_col_form(); m_sheet_body->Add(g, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12); return g; };
 
         auto* gm = group();
         m_sheet_mode = make_combo(m_cards);
@@ -2909,10 +2915,10 @@ DesignPanel::DesignPanel(wxWindow* parent)
         frow->AddStretchSpacer();
         frow->Add(m_sheet_flip, 0, wxALIGN_CENTER_VERTICAL);
         m_sheet_g_flip = frow;
-        m_box_sheet->Add(frow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+        m_sheet_body->Add(frow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
 
         m_sheet_hint = lab(wxString());
-        m_box_sheet->Add(m_sheet_hint, 0, wxLEFT | wxRIGHT | wxTOP, 12);
+        m_sheet_body->Add(m_sheet_hint, 0, wxLEFT | wxRIGHT | wxTOP, 12);
     }
     cards->Add(m_box_sheet, 0, wxEXPAND);
 
@@ -3777,6 +3783,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
     cards->Show(m_box_mirror,      false, true);
     cards->Show(m_box_thicken,     false, true);
     cards->Show(m_box_rib,         false, true);
+    cards->Show(m_box_sheet,       false, true);   // missing here and in close_tool(): the card was on screen from startup and stayed after the tool ended
     cards->Show(m_box_project,     false, true);
     cards->Show(m_box_delete_face, false, true);
     cards->Show(m_box_helix,       false, true);
@@ -4922,16 +4929,17 @@ void DesignPanel::set_status_ok()
         // A recompute invalidates the gizmo's body centroid; a Move ends with it, keeping its pose.
         if (body_move_pending()) end_body_move(true);
         else                     m_viewport->clear_move_gizmo();   // the Transform card's, if up
-        rebuild_disp_meshes();            // apply per-body Move transforms to the display/pick meshes
+        { PhaseLog t("status.rebuild_disp_meshes"); rebuild_disp_meshes(); }            // apply per-body Move transforms to the display/pick meshes
         // Point the solid-pick at the fresh body + TRANSFORMED pick mesh (stable address) + the
         // per-body xform vector (for edge sampling). Resets the whole/face/edge selection, whose
         // ids invalidate on every recompute. Null body is handled inside.
-        m_viewport->set_solid_pick(&m_doc.bodies, &m_disp_pick_mesh,
-                                   &m_doc.display_tri_face, &m_doc.display_tri_body,
-                                   &m_body_visible, &m_body_xform);
-        feed_bodies();
+        { PhaseLog t("status.set_solid_pick");
+          m_viewport->set_solid_pick(&m_doc.bodies, &m_disp_pick_mesh,
+                                     &m_doc.display_tri_face, &m_doc.display_tri_body,
+                                     &m_body_visible, &m_body_xform); }
+        { PhaseLog t("status.feed_bodies"); feed_bodies(); }
     }
-    sync_sketch_display();
+    { PhaseLog t("status.sync_sketch_display"); sync_sketch_display(); }
 }
 
 // Draw every committed sketch that no enabled Extrude consumes, so a sketch stays
@@ -6203,6 +6211,7 @@ void DesignPanel::sheet_sync_mode()
     show(m_sheet_g_unfold, mode == 6);
     m_sheet_len_label->SetLabel(mode == 4 ? _L("Hem length") : _L("Width"));
     m_sheet_mode->Enable(m_edit_index < 0);   // a feature keeps its kind while it is edited
+    if (is_folded("sheet") && m_sheet_body != nullptr) m_box_sheet->Show(m_sheet_body, false, true);
     static const wxString hints[7] = {
         _L("Sets the thickness, bend radius, K-factor and hem gap for every sheet-metal feature after it."),
         _L("Pick a closed sketch: the plate grows along the sketch normal by the rule thickness."),
@@ -8233,7 +8242,7 @@ void DesignPanel::refresh_tree()
     // the deferred load at on_show() has had the chance to read the blob the project arrived
     // with. Clearing there would destroy the recipe of every project being opened. Deleting the
     // last feature still clears it, through the tree-edit call site that always did.
-    if (!m_doc.features.empty()) sync_recipe_to_model();
+    if (!m_doc.features.empty()) { PhaseLog t("tree.sync_recipe"); sync_recipe_to_model(); }
 
     // Preserve the selected row across the rebuild — set_rows() drops the selection, which made
     // every edit/add feel like it "lost" the selection (and broke Edit/Move/Delete on the
@@ -8242,8 +8251,8 @@ void DesignPanel::refresh_tree()
 
     // Datum/reference planes carry no solid; feed them to the viewport so they render as
     // translucent rectangles (otherwise a Plane feature is invisible in the canvas).
-    refresh_datum_planes();
-    update_reference_planes();
+    { PhaseLog t("tree.planes"); refresh_datum_planes(); { PhaseLog t2("planes.reference"); update_reference_planes(); } }
+    std::optional<PhaseLog> rows_t; rows_t.emplace("tree.rows");
     std::vector<DesignRowList::Row> rows;
     rows.reserve(m_doc.features.size());
     for (size_t fi = 0; fi < m_doc.features.size(); ++fi) {
@@ -8273,11 +8282,12 @@ void DesignPanel::refresh_tree()
         };
         rows.push_back(std::move(row));
     }
-    m_tree->set_rows(std::move(rows));
-    refresh_parts();   // bodies live in their own list below the tree, never clipped by history
+    rows_t.reset();
+    { PhaseLog t("tree.set_rows"); m_tree->set_rows(std::move(rows)); }
+    { PhaseLog t("tree.parts"); refresh_parts(); }   // bodies live in their own list below the tree, never clipped by history
     m_tree->select(keep);
     request_feature_highlight();   // set_rows and select() say nothing when `keep` is gone
-    if (m_form && m_form->GetSizer()) { update_cards_frame(); m_form->Layout(); m_form->FitInside(); }
+    if (m_form && m_form->GetSizer()) { PhaseLog t("tree.layout"); update_cards_frame(); m_form->Layout(); m_form->FitInside(); }
 }
 
 // Rebuild the Parts list from the document's bodies, preserving the selected row so a
@@ -8803,14 +8813,22 @@ bool DesignPanel::begin_renumber()
     return true;
 }
 
+PhaseLog::PhaseLog(const char* name) : m_name(name), m_t0(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()) {}
+PhaseLog::~PhaseLog()
+{
+    const long long us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() - m_t0;
+    static const long long min_us = [] { const char* e = std::getenv("ORCA_CAD_PHASE_MS"); return e ? std::atoll(e) * 1000 : 5000LL; }();   // knob: log phases down to this many ms
+    if (us >= min_us) BOOST_LOG_TRIVIAL(info) << "Design: " << m_name << " " << us / 1000.0 << " ms";
+}
+
 void DesignPanel::after_tree_edit(bool ok)
 {
     // Any edit of the history (undo, delete, show/hide, a socket call...) writes the status line
     // over the plane prompt, so it ends the choice rather than leave it waiting unannounced.
     end_sketch_plane_choice();
-    update_undo_redo_buttons();
-    refresh_tree();
-    refresh_variables();
+    { PhaseLog t("undo_redo_buttons"); update_undo_redo_buttons(); }
+    { PhaseLog t("refresh_tree"); refresh_tree(); }
+    { PhaseLog t("refresh_variables"); refresh_variables(); }
     if (!ok) {
         // The edit was refused or rolled back; the body is unchanged. Repaint anyway: picks the
         // caller dropped before trying it are still drawn, and set_status() repaints only when
@@ -8819,7 +8837,7 @@ void DesignPanel::after_tree_edit(bool ok)
         if (m_viewport != nullptr) m_viewport->request_repaint();
         return;
     }
-    sync_recipe_to_model();   // deletes, reorders and suppressions change the document too
+    { PhaseLog t("sync_recipe_to_model"); sync_recipe_to_model(); }   // deletes, reorders and suppressions change the document too
     if (m_doc.display_mesh.its.indices.empty()) {
         if (m_viewport != nullptr) m_viewport->clear_mesh();
         sync_sketch_display();   // empty body: show any un-consumed committed sketch
@@ -8830,13 +8848,12 @@ void DesignPanel::after_tree_edit(bool ok)
         // nde #19/20: a delete/reorder that leaves bodies behind must re-feed the per-body
         // GLVolumes — otherwise the viewport keeps showing the pre-edit solid (the deleted
         // feature's artifact lingered). feed_bodies() is idempotent for the edit/replace path.
-        if (m_viewport != nullptr) feed_bodies();
-        set_status_ok();
+        if (m_viewport != nullptr) { PhaseLog t("feed_bodies"); feed_bodies(); }
+        { PhaseLog t("set_status_ok"); set_status_ok(); }
     }
     // Force a frame: under software GL (llvmpipe on the :10 test box) reload()'s scheduled
     // Refresh() is dropped, so a deleted solid stayed on screen until the next orbit.
-    if (m_viewport != nullptr) m_viewport->request_repaint();
-    m_status->Refresh();
+    { PhaseLog t("repaint"); if (m_viewport != nullptr) m_viewport->request_repaint(); m_status->Refresh(); }
 }
 
 // Erase the whole document (every feature + body) and start fresh. The single "wipe" the
@@ -9379,6 +9396,13 @@ void DesignPanel::apply_fold(const std::string& key, bool relayout)
     for (FoldSection& f : m_folds) {
         if (f.key != key) continue;
         f.chevron->SetLabel(wxString::FromUTF8(f.collapsed ? "\u25B8" : "\u25BE"));
+        if (key == "sheet") {   // a whole sizer of rows: showing it again shows every row, so the mode's rows are chosen anew
+            if (m_box_sheet != nullptr && m_sheet_body != nullptr) {
+                m_box_sheet->Show(m_sheet_body, !f.collapsed, true);
+                if (!f.collapsed) sheet_sync_mode();
+            }
+            continue;
+        }
         if (key == "constraints") {
             if (relayout) rebuild_constraint_list();
             return;
@@ -12149,15 +12173,15 @@ void DesignPanel::refresh_datum_planes()
 {
     if (!m_viewport) return;
     std::vector<SketchPlane> dplanes;
-    for (const auto& dp : m_doc.resolve_datum_planes()) dplanes.push_back(dp.second);
+    { PhaseLog t("planes.resolve_datum"); for (const auto& dp : m_doc.resolve_datum_planes()) dplanes.push_back(dp.second); }
     // Parallel per-plane extents, in the SAME order resolve_datum_planes emits
     // (enabled Plane features, document order), so each datum draws at its u/v size.
     std::vector<Vec2d> dsizes;
     for (const auto& f : m_doc.features)
         if (f.type == CadFeatureType::Plane && f.enabled)
             dsizes.emplace_back(f.plane_u_size, f.plane_v_size);
-    m_viewport->set_datum_planes(std::move(dplanes), std::move(dsizes));
-    refresh_mate_connectors();
+    { PhaseLog t("planes.set_datum"); m_viewport->set_datum_planes(std::move(dplanes), std::move(dsizes)); }
+    { PhaseLog t("planes.mate_connectors"); refresh_mate_connectors(); }
 }
 
 // Feed the connector frames to the viewport. resolve_datum_coordsys() emits them in document order
@@ -13071,6 +13095,7 @@ void DesignPanel::open_tool(Tool t)
     s->Show(m_box_thicken,      t == Tool::Thicken,        true);
     s->Show(m_box_rib,          t == Tool::Rib,            true);
     s->Show(m_box_sheet,        t == Tool::Sheet,          true);
+    if (t == Tool::Sheet) apply_fold("sheet", false);   // Show(..., recursive) just showed every row, folded or not
     s->Show(m_box_project,      t == Tool::Project,        true);
     s->Show(m_box_delete_face,  t == Tool::DeleteFace,     true);
     s->Show(m_box_helix,        t == Tool::Helix,          true);
@@ -13359,6 +13384,7 @@ void DesignPanel::close_tool()
     s->Show(m_box_mirror,       false, true);
     s->Show(m_box_thicken,      false, true);
     s->Show(m_box_rib,          false, true);
+    s->Show(m_box_sheet,        false, true);
     s->Show(m_box_project,      false, true);
     s->Show(m_box_delete_face,  false, true);
     s->Show(m_box_helix,        false, true);

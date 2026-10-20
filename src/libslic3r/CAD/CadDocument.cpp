@@ -10,6 +10,7 @@
 #include "libslic3r/CAD/SketchSolver.hpp"
 #include "libslic3r/CAD/SketchImport.hpp"   // transform_regions for imported art
 
+#include <boost/log/trivial.hpp>
 #include <Standard_Handle.hxx>
 #include <TopAbs_ShapeEnum.hxx>
 #include <Standard_TypeDef.hxx>
@@ -4947,6 +4948,15 @@ static int remap_feature_refs(CadFeature& f, const TopoDS_Shape& was, const Topo
 
 bool CadDocument::recompute()
 {
+    // Where a rebuild spends its time beyond the features themselves: logged when it took 20 ms or more.
+    struct Prof {
+        std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+        double remap_ms = 0; int remaps = 0;
+        ~Prof() {
+            const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+            if (ms >= 20) BOOST_LOG_TRIVIAL(info) << "CadDocument::recompute " << int(ms) << " ms (following face/edge ids: " << int(remap_ms) << " ms in " << remaps << " features)";
+        }
+    } prof;
     m_bar = -1;
     error.clear();
     feature_warnings.clear();
@@ -5036,7 +5046,9 @@ bool CadDocument::recompute()
                 const int t = tb == -1 ? int(built.size()) - 1 : tb;
                 if (was != m_seen_by_feature.end() && t >= 0 && t < int(was->second.size()) && t < int(built.size())
                     && !was->second[t].shape.IsSame(built[t].shape)) {
+                    const auto tr = std::chrono::steady_clock::now();
                     const int lost = remap_feature_refs(features[fi], was->second[t].shape, built[t].shape);
+                    prof.remap_ms += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - tr).count(); ++prof.remaps;
                     if (lost > 0)
                         feature_warnings.emplace_back(int(fi), format(_u8L("%1% face/edge reference(s) could not be followed through the edit and may point elsewhere"), lost));
                 }

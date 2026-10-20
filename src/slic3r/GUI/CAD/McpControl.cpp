@@ -2665,9 +2665,10 @@ json action_set_variable(DesignPanel* panel, const json& params)
     std::string name = params["name"].get<std::string>();
     std::string expr = params["expr"].get<std::string>();
     std::string old = doc.variables.count(name) ? doc.variables[name] : "";
-    doc.checkpoint();
+    { PhaseLog t("checkpoint"); doc.checkpoint(); }
     doc.variables[name] = expr;
-    bool ok = doc.recompute();
+    bool ok;
+    { PhaseLog t("recompute"); ok = doc.recompute(); }
     // undo() recomputes, which succeeds and clears doc.error; carry the reason across so
     // the JSON reply below reports why the edit was rejected instead of an empty string.
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
@@ -3534,8 +3535,8 @@ json undo_redo_state(DesignPanel* panel, bool did)
     return json{{"ok", true}, {"did", did}, {"features", int(doc.features.size())}, {"bodies", int(doc.bodies.size())},
                 {"undo_depth", int(doc.undo_depth())}, {"redo_depth", int(doc.redo_depth())}, {"error", doc.error}};
 }
-json action_undo(DesignPanel* panel, const json&) { const bool did = panel->mcp_doc().undo(); panel->mcp_after_change(); return undo_redo_state(panel, did); }
-json action_redo(DesignPanel* panel, const json&) { const bool did = panel->mcp_doc().redo(); panel->mcp_after_change(); return undo_redo_state(panel, did); }
+json action_undo(DesignPanel* panel, const json&) { bool did; { PhaseLog t("undo"); did = panel->mcp_doc().undo(); } panel->mcp_after_change(); return undo_redo_state(panel, did); }
+json action_redo(DesignPanel* panel, const json&) { bool did; { PhaseLog t("redo"); did = panel->mcp_doc().redo(); } panel->mcp_after_change(); return undo_redo_state(panel, did); }
 
 // One call that answers "what is the state of this design": scene + variables + per-body mass properties and
 // topology counts (the numbers an agent checks after every step), plus undo depth and whether a sketch is open.
@@ -3653,7 +3654,14 @@ json call_method(DesignPanel* panel, const std::string& method, const json& para
         else if (after[i] != before[i]) changed.push_back(int(i));
     }
     json warn = json::array();
-    for (const auto& w : doc.feature_warnings) if (w.first >= int(nf)) warn.push_back(w.second);
+    // An edit of a variable or a field rebuilds features that already existed: a reference one of them could not follow
+    // (it "may point elsewhere") is what the caller most needs to hear, so those calls report every warning, named by feature.
+    const bool edits_existing = method == "set_variable" || method == "set_parameter" || method == "set_feature_expr" || method == "rename_variable"
+        || method == "variables_import" || method == "suppress" || method == "move_feature" || method == "rollback";
+    for (const auto& w : doc.feature_warnings) {
+        if (w.first >= int(nf)) warn.push_back(w.second);
+        else if (edits_existing) warn.push_back("feature " + std::to_string(w.first) + ": " + w.second);
+    }
     r["delta"] = {{"features_added", int(doc.features.size()) - int(nf)}, {"created_bodies", created}, {"changed_bodies", changed},
                   {"removed_bodies", before.size() > after.size() ? int(before.size() - after.size()) : 0}, {"warnings", warn}};
     return r;
