@@ -423,21 +423,23 @@ TEST_CASE("Output filenames with numeric statistics fail before slicing finishes
     CHECK_THROWS_AS(print.output_filename(), PlaceholderParserError);
 }
 
-TEST_CASE("Validation names an object setting that holds nan or inf", "[Print]")
+TEST_CASE("Validation names a setting that holds nan or inf", "[Print]")
 {
-    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-    Print print;
-    Model model;
-    init_print({cube(20)}, print, model, config);
-
     SECTION("a finite value is not reported") {
+        Print print;
+        Model model;
+        init_print({cube(20)}, print, model, DynamicPrintConfig::full_print_config());
         CHECK(print.validate().opt_key.empty());
     }
 
     SECTION("nan and inf are reported with the setting they are in") {
         const double bad = GENERATE(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity());
-        model.objects.front()->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(bad));
-        print.apply(model, config);
+        // print_flow_ratio is a per-region option, so it is only reached through the regions.
+        DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+        config.set_key_value("print_flow_ratio", new ConfigOptionFloat(bad));
+        Print print;
+        Model model;
+        init_print({cube(20)}, print, model, config);
 
         const StringObjectException result = print.validate();
         CHECK(result.opt_key == "print_flow_ratio");
