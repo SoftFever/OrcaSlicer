@@ -391,10 +391,12 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
                 tooltip = OptionsGroup::get_url(line.og_line.label_path) + "\n\n";
             tooltip += line.og_line.label_tooltip;
             if (m_option_state_registry) {
+                std::vector<wxString> reasons;
                 for (const Option& option : line.og_line.get_options()) {
                     const std::string& key = option.opt.opt_key.empty() ? option.opt_id : option.opt.opt_key;
                     wxString reason = m_option_state_registry->description(key);
-                    if (!reason.empty()) {
+                    if (!reason.empty() && std::find(reasons.begin(), reasons.end(), reason) == reasons.end()) {
+                        reasons.push_back(reason);
                         if (!availability.empty())
                             availability += "\n\n";
                         availability += reason;

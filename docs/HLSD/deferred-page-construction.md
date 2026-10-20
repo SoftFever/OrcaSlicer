@@ -105,8 +105,10 @@ recycling without retaining a Field or window pointer.
 The registry formats the current restrictions for both controls and their labels.
 Public toggles refresh the active input's tooltip, and each page's `OG_CustomCtrl`
 reads its owning Tab's registry when the pointer rests on a row label. The label
-remains a hover target when the input is disabled. Markdown tips prepend the same
-restriction text to their document and refresh when that text changes, even when
+remains a hover target when the input is disabled. For rows with multiple options,
+identical restriction descriptions appear once, in their first occurrence order.
+Markdown tips prepend the same restriction text to their document and refresh
+when that text changes, even when
 the document identifier stays the same. Callers without a reason receive a generic
 current-configuration explanation. Dependency rules supply complete translated
 messages describing their prerequisites; compound rules can choose the message for
