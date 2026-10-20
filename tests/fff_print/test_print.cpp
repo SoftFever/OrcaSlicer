@@ -425,17 +425,22 @@ TEST_CASE("Output filenames with numeric statistics fail before slicing finishes
 
 TEST_CASE("Validation names a setting that holds nan or inf", "[Print]")
 {
+    // validate() wants the extruder reset after every layer change when E is relative, as in the other tests.
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_key_value("layer_change_gcode", new ConfigOptionString("G92 E0\n"));
+
     SECTION("a finite value is not reported") {
         Print print;
         Model model;
-        init_print({cube(20)}, print, model, DynamicPrintConfig::full_print_config());
-        CHECK(print.validate().opt_key.empty());
+        init_print({cube(20)}, print, model, config);
+        const StringObjectException result = print.validate();
+        CHECK(result.string.empty());
+        CHECK(result.opt_key.empty());
     }
 
     SECTION("nan and inf are reported with the setting they are in") {
         const double bad = GENERATE(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity());
         // print_flow_ratio is a per-region option, so it is only reached through the regions.
-        DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
         config.set_key_value("print_flow_ratio", new ConfigOptionFloat(bad));
         Print print;
         Model model;
