@@ -3059,8 +3059,16 @@ void GUI_App::init_plugin_gui_wiring()
     plugin_mgr.subscribe_on_unload_callback(switch_printer_agent_after_unload);
     plugin_mgr.subscribe_on_capability_load_callback(
         [refresh_plugins_dialog, refresh_printer_agent_dropdown_after_load](const PluginCapabilityId& capability) {
-            if (capability.type == PluginCapabilityType::PrinterConnection)
+            if (capability.type == PluginCapabilityType::PrinterConnection) {
                 NetworkAgentFactory::register_python_printer_agent(capability.plugin_key, capability.name);
+                // why: plugins load after the startup preset is applied, so the agent that preset
+                // selects may only become available now
+                if (wxTheApp && !wxGetApp().is_closing())
+                    wxGetApp().CallAfter([] {
+                        if (!wxGetApp().is_closing())
+                            wxGetApp().switch_printer_agent_if_pending();
+                    });
+            }
             refresh_plugins_dialog();
             refresh_printer_agent_dropdown_after_load(capability.plugin_key);
             // A newly loaded capability may satisfy a missing-plugin notification; re-validate the
@@ -4301,6 +4309,21 @@ void GUI_App::switch_printer_agent()
 
     // Auto-switch MachineObject (new agent has empty device_info, so always re-select)
     select_machine(effective_agent_id);
+}
+
+void GUI_App::switch_printer_agent_if_pending()
+{
+    if (!m_agent || !preset_bundle)
+        return;
+
+    const std::string wanted_agent_id = resolve_printer_agent_id(preset_bundle->printers.get_edited_preset().config.opt_string("printer_agent"));
+    const auto        live_agent      = m_agent->get_printer_agent();
+    if (live_agent && live_agent->get_agent_info().id == wanted_agent_id)
+        return;
+    if (!NetworkAgentFactory::get_printer_agent_info(wanted_agent_id))
+        return;
+
+    switch_printer_agent();
 }
 
 void GUI_App::select_machine(const std::string& agent_id)
