@@ -299,6 +299,13 @@ enum class AdaptiveInfillGradient {
     Exponential,
 };
 
+// Orca: the curve rounding a sparse infill corner, named by the continuity of its joins to the straight legs.
+enum class InfillSmoothCurve {
+    Arc,     // G1: tangent, constant curvature
+    Quintic, // G2: curvature starts from zero
+    Septic,  // G3: curvature and its rate start from zero
+};
+
 //BBS
 enum class PrintSequence {
     ByLayer,
@@ -818,6 +825,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PowerLossRecoveryMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SurfaceFillOrder)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AdaptiveInfillMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AdaptiveInfillGradient)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillSmoothCurve)
 
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
@@ -1463,6 +1471,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
     ((ConfigOptionPercent,              sparse_infill_smooth_factor))
+    ((ConfigOptionEnum<InfillSmoothCurve>, sparse_infill_smooth_curve))
     ((ConfigOptionFloat,                lateral_lattice_angle_1))
     ((ConfigOptionFloat,                lateral_lattice_angle_2))
     ((ConfigOptionFloat,                infill_overhang_angle))

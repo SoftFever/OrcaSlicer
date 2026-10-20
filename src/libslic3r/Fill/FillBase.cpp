@@ -26,6 +26,7 @@
 #include "../VariableWidth.hpp"
 
 #include "FillBase.hpp"
+#include "FillCornerSmoothing.hpp"
 #include "libslic3r/Exception.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/ExPolygon.hpp"
@@ -126,6 +127,21 @@ bool Fill::use_bridge_flow(const InfillPattern type)
 		}
 	}
 	return cached[type] != 0;
+}
+
+CornerSmoothing Fill::corner_smoothing(const FillParams &params, const double printed_length, const double area) const
+{
+    CornerSmoothing smoothing = params.corner_smoothing();
+    if (printed_length > 0. && area > 0.)
+        smoothing.max_vertex_density =
+            smoothed_infill_vertex_density(this->spacing, params.density, printed_length / area / SCALING_FACTOR) * SCALING_FACTOR;
+    return smoothing;
+}
+
+CornerSmoothing Fill::corner_smoothing(const FillParams &params, const Polylines &paths, const int copies) const
+{
+    const Vec2d extents = get_extents(paths).size().cast<double>();
+    return this->corner_smoothing(params, double(std::max(copies, 1)) * total_length(paths), extents.x() * extents.y());
 }
 
 Polylines Fill::fill_surface(const Surface *surface, const FillParams &params)

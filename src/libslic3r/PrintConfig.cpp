@@ -391,6 +391,13 @@ static t_config_enum_values s_keys_map_AdaptiveInfillGradient{
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AdaptiveInfillGradient)
 
+static t_config_enum_values s_keys_map_InfillSmoothCurve{
+    { "g1", int(InfillSmoothCurve::Arc) },
+    { "g2", int(InfillSmoothCurve::Quintic) },
+    { "g3", int(InfillSmoothCurve::Septic) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillSmoothCurve)
+
 //BBS
 static t_config_enum_values s_keys_map_PrintSequence {
     { "by layer",     int(PrintSequence::ByLayer) },
@@ -3816,6 +3823,23 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(0));
+
+    def = this->add("sparse_infill_smooth_curve", coEnum);
+    def->label = L("Sparse infill smooth curve");
+    def->category = L("Strength");
+    def->tooltip = L("The curve that rounds the sparse infill corners, named by how smoothly it joins the straight lines.\n"
+                     "G1: a circular arc. The fastest through the turn, but its curvature starts at once at both ends.\n"
+                     "G2: the curvature grows from zero, so the toolhead eases into the turn.\n"
+                     "G3: the rate of the curvature also starts from zero. The smoothest, and slightly slower.");
+    def->enum_keys_map = &ConfigOptionEnum<InfillSmoothCurve>::get_enum_values();
+    def->enum_values.push_back("g1");
+    def->enum_values.push_back("g2");
+    def->enum_values.push_back("g3");
+    def->enum_labels.push_back(L("G1 (arc)"));
+    def->enum_labels.push_back(L("G2 (quintic)"));
+    def->enum_labels.push_back(L("G3 (septic)"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<InfillSmoothCurve>(InfillSmoothCurve::Quintic));
 
     def = this->add("top_surface_acceleration", coFloats);
     def->label = L("Top surface");

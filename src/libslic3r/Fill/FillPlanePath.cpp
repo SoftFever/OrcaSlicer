@@ -117,6 +117,10 @@ void FillPlanePath::_fill_surface_single(
     expolygon.translate(-shift.x(), -shift.y());
     bounding_box.translate(-shift.x(), -shift.y());
 
+    // Orca: the path is laid at the distance between lines, which sets the vertices its rounded corners may take.
+    FillParams path_params = params;
+    path_params.smooth_vertex_density = smoothed_infill_vertex_density(this->spacing, params.density, params.density / this->spacing);
+
     Polyline polyline;
     {
         auto distance_between_lines = scaled<double>(this->spacing) * params.multiline / params.density;
@@ -129,12 +133,12 @@ void FillPlanePath::_fill_surface_single(
             // Filling in a bounding box over the whole object, clip generated polyline against the snug bounding box.
             snug_bounding_box.translate(-shift.x(), -shift.y());
             InfillPolylineClipper output(snug_bounding_box, distance_between_lines);
-            this->generate(min_x, min_y, max_x, max_y, resolution, params, output);
+            this->generate(min_x, min_y, max_x, max_y, resolution, path_params, output);
             polyline.points = std::move(output.result());
         } else {
             // Filling in a snug bounding box, no need to clip.
             InfillPolylineOutput output(distance_between_lines);
-            this->generate(min_x, min_y, max_x, max_y, resolution, params, output);
+            this->generate(min_x, min_y, max_x, max_y, resolution, path_params, output);
             polyline.points = std::move(output.result());
         }
     }
@@ -308,8 +312,8 @@ template<typename Output>
 class SmoothingPolylineOutput
 {
 public:
-    SmoothingPolylineOutput(Output &output, const double smooth_factor, const double tolerance)
-        : m_output(output), m_smoother(smooth_factor, tolerance) {}
+    SmoothingPolylineOutput(Output &output, const CornerSmoothing &smoothing)
+        : m_output(output), m_smoother(smoothing) {}
 
     void reserve(size_t n) { m_output.reserve(n); }
     void add_point(const Vec2d &pt) { auto emit = emitter(); m_smoother.push(pt, emit); }
@@ -317,8 +321,8 @@ public:
     void finish() { auto emit = emitter(); m_smoother.flush(emit); }
 
 private:
-    // The curves of two adjacent corners meet at the midpoint of the segment they share, where they
-    // may round to the very same output point. Drop those, they would be zero length extrusions.
+    // Close vertices of a rounded corner may round to the very same output point. Drop those, they
+    // would be zero length extrusions.
     auto emitter()
     {
         return [this](const Vec2d &pt) {
@@ -342,14 +346,15 @@ private:
 template<typename GenerateFn>
 static void generate_path(InfillPolylineOutput &output, const FillParams &params, const double resolution, GenerateFn generate)
 {
-    const double smooth_factor = sanitize_smooth_factor(params.smooth_factor);
-    auto run = [smooth_factor, resolution, &generate](auto &out) {
-        if (smooth_factor == 0.) {
+    // The path runs in units of the line spacing, as the resolution passed in does.
+    const CornerSmoothing smoothing = params.corner_smoothing().scaled(resolution / scaled<double>(params.resolution));
+    auto run = [&smoothing, &generate](auto &out) {
+        if (sanitize_smooth_factor(smoothing.factor) == 0.) {
             generate(out);
         } else {
-            SmoothingPolylineOutput<std::remove_reference_t<decltype(out)>> smoothing(out, smooth_factor, resolution);
-            generate(smoothing);
-            smoothing.finish();
+            SmoothingPolylineOutput<std::remove_reference_t<decltype(out)>> smoothing_output(out, smoothing);
+            generate(smoothing_output);
+            smoothing_output.finish();
         }
     };
 

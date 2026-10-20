@@ -318,8 +318,10 @@ struct SurfaceFillParams
     float                adaptive_infill_interior_density  = 0.f;
     AdaptiveInfillGradient adaptive_infill_gradient = AdaptiveInfillGradient::Linear;
 
-    // Orca: corner smoothing factor in the range [0, 1].
+    // Orca: corner smoothing factor in the range [0, 1], its curve, and the junction deviation it plans for.
     double      smooth_factor { 0. };
+    InfillSmoothCurve smooth_curve { InfillSmoothCurve::Quintic };
+    double      smooth_junction_deviation { 0. };
 
     CenterOfSurfacePattern center_of_surface_pattern{CenterOfSurfacePattern::Each_Surface};
     bool                   separated_infills{false};
@@ -364,6 +366,8 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(adaptive_infill_interior_density);
 		RETURN_COMPARE_NON_EQUAL(adaptive_infill_gradient);
         RETURN_COMPARE_NON_EQUAL(smooth_factor);
+        RETURN_COMPARE_NON_EQUAL(smooth_curve);
+        RETURN_COMPARE_NON_EQUAL(smooth_junction_deviation);
         RETURN_COMPARE_NON_EQUAL(center_of_surface_pattern);
         RETURN_COMPARE_NON_EQUAL(separated_infills);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, fill_order);
@@ -400,6 +404,8 @@ struct SurfaceFillParams
                 this->adaptive_infill_interior_density   == rhs.adaptive_infill_interior_density   &&
                 this->adaptive_infill_gradient  == rhs.adaptive_infill_gradient  &&
                 this->smooth_factor           == rhs.smooth_factor           &&
+                this->smooth_curve            == rhs.smooth_curve            &&
+                this->smooth_junction_deviation == rhs.smooth_junction_deviation &&
                 this->fill_order              == rhs.fill_order;
 	}
 };
@@ -906,6 +912,27 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
 #endif
 }
 
+// Orca: the junction deviation in mm the machine plans the sparse infill with, or 0 if it does not plan by one.
+// Klipper derives it from the square corner velocity and the acceleration, as the G-code processor does.
+static double infill_junction_deviation(const PrintConfig &print_config, const PrintObjectConfig &object_config)
+{
+    double deviation = 0.;
+    if (print_config.gcode_flavor == gcfKlipper) {
+        const double jerk  = object_config.default_jerk.get_at(0) > 0. && object_config.infill_jerk.get_at(0) > 0. ?
+                                 object_config.infill_jerk.get_at(0) : print_config.machine_max_jerk_x.get_at(0);
+        double       accel = object_config.sparse_infill_acceleration.get_at(0).get_abs_value(object_config.default_acceleration.get_at(0));
+        if (!(accel > 0.))
+            accel = object_config.default_acceleration.get_at(0);
+        if (!(accel > 0.))
+            accel = print_config.machine_max_acceleration_extruding.get_at(0);
+        if (jerk > 0. && accel > 0.)
+            deviation = sqr(jerk) * (std::sqrt(2.) - 1.) / accel;
+    } else if (print_config.gcode_flavor == gcfMarlinFirmware) {
+        deviation = print_config.machine_max_junction_deviation.get_at(0);
+    }
+    return std::max(deviation, 0.);
+}
+
 std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_param)
 {
 	std::vector<SurfaceFill> surface_fills;
@@ -1040,8 +1067,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 
                     // Orca: the smoothing factor only applies to the sparse infill patterns that
                     // implement it. The fills clamp and validate the value themselves.
-                    if (is_smoothable_infill_pattern(params.pattern, params.multiline))
-                        params.smooth_factor = 0.01 * region_config.sparse_infill_smooth_factor.value;
+                    if (is_smoothable_infill_pattern(params.pattern, params.multiline)) {
+                        params.smooth_factor             = 0.01 * region_config.sparse_infill_smooth_factor.value;
+                        params.smooth_curve              = region_config.sparse_infill_smooth_curve.value;
+                        params.smooth_junction_deviation = infill_junction_deviation(layer.object()->print()->config(), layer.object()->config());
+                    }
                 } else {
                     const bool top_layer_direction_set    = surface.is_top() && region_config.top_layer_direction.value >= 0.;
                     const bool bottom_layer_direction_set = surface.is_bottom() && region_config.bottom_layer_direction.value >= 0.;
@@ -1438,6 +1468,8 @@ void Layer::make_fills(const FillAdaptive::RegionOctrees* fill_octrees, FillLigh
         params.adaptive_infill_interior_density     = float(0.01 * surface_fill.params.adaptive_infill_interior_density);
         params.adaptive_infill_gradient    = surface_fill.params.adaptive_infill_gradient;
         params.smooth_factor             = surface_fill.params.smooth_factor;
+        params.smooth_curve              = surface_fill.params.smooth_curve;
+        params.smooth_junction_deviation = surface_fill.params.smooth_junction_deviation;
 
 		// BBS
 		params.flow = surface_fill.params.flow;
@@ -1661,6 +1693,8 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(const FillAdapti
         params.adaptive_infill_interior_density     = float(0.01 * surface_fill.params.adaptive_infill_interior_density);
         params.adaptive_infill_gradient    = surface_fill.params.adaptive_infill_gradient;
         params.smooth_factor             = surface_fill.params.smooth_factor;
+        params.smooth_curve              = surface_fill.params.smooth_curve;
+        params.smooth_junction_deviation = surface_fill.params.smooth_junction_deviation;
         // Orca: Match make_fills() when choosing the origin of plane-path patterns.
         // Without the sparse extrusion role, the filler uses each surface's bounds
         // instead of the object's bounds, so bridge anchors shift away from printed infill.

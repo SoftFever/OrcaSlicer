@@ -153,6 +153,7 @@ std::map<std::string, std::vector<SimpleSettingData>> SettingsFactory::PART_CATE
        {"adaptive_infill_interior_density", "", 1},
        {"adaptive_infill_gradient", "", 1},
        {"sparse_infill_smooth_factor", "", 1},
+       {"sparse_infill_smooth_curve", "", 1},
        {"lateral_lattice_angle_1", "", 1},
        {"lateral_lattice_angle_2", "", 1},
        {"infill_overhang_angle", "", 1},

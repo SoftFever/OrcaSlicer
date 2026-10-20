@@ -24,6 +24,7 @@
 #include "../PrintConfig.hpp"
 #include "../Flow.hpp"
 #include "../ExtrusionEntity.hpp"
+#include "FillCornerSmoothing.hpp"
 #include "libslic3r/Polyline.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Point.hpp"
@@ -97,8 +98,19 @@ struct FillParams
     float                adaptive_infill_interior_density { 0.f };
     AdaptiveInfillGradient adaptive_infill_gradient { AdaptiveInfillGradient::Linear };
 
-    // Orca: corner smoothing factor in the range [0, 1].
+    // Orca: corner smoothing factor in the range [0, 1], the curve rounding the corners, and the junction
+    // deviation in mm the machine plans with, or 0 if it does not plan by one.
     double      smooth_factor { 0. };
+    InfillSmoothCurve smooth_curve { InfillSmoothCurve::Quintic };
+    double      smooth_junction_deviation { 0. };
+    // Orca: the most vertices per mm of path the rounded corners may take, 0 for no limit.
+    double      smooth_vertex_density { 0. };
+    // The corner smoothing in scaled coordinates.
+    CornerSmoothing corner_smoothing() const
+    {
+        return CornerSmoothing{smooth_factor, smooth_curve, resolution, smooth_junction_deviation, smooth_vertex_density}
+            .scaled(1. / SCALING_FACTOR);
+    }
 
     // For Lateral lattice
     coordf_t    lateral_lattice_angle_1    { 0.f };
@@ -207,6 +219,12 @@ public:
     // BBS: this method is used to fill the ExtrusionEntityCollection.
     // It call fill_surface by default
     virtual void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out);
+
+    // Orca: The corner smoothing of params for paths of the given length, printed over the given area (both scaled),
+    // copies included. A pattern printing more path per area takes fewer vertices per length of it.
+    CornerSmoothing corner_smoothing(const FillParams &params, double printed_length, double area) const;
+    // The same for lattice paths, which fill their own bounding box, printed `copies` times over by multiline.
+    CornerSmoothing corner_smoothing(const FillParams &params, const Polylines &paths, int copies) const;
 
 protected:
     Fill() :

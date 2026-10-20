@@ -80,11 +80,15 @@ void FillHoneycomb::_fill_surface_single(
             }
             p.rotate(-direction.first, m.hex_center);
             p.simplify(5 * spacing); // simplify to 5x line width
-            // Orca: round the corners of the honeycomb cells. Done before the clipping, so that the
-            // curves are cut by the region boundary just like the sharp path would be.
-            smooth_polyline_corners(p, params.smooth_factor, scaled<double>(params.resolution));
             all_polylines.push_back(p);
         }
+        // Orca: round the corners of the honeycomb cells. Done before the clipping, so that the
+        // curves are cut by the region boundary just like the sharp path would be.
+        const Vec2d           extents   = bounding_box.size().cast<double>();
+        const CornerSmoothing smoothing = this->corner_smoothing(params, double(params.multiline) * total_length(all_polylines),
+                                                                 extents.x() * extents.y());
+        for (Polyline &p : all_polylines)
+            smooth_polyline_corners(p, smoothing);
     }
     // Apply multiline offset if needed
     multiline_fill(all_polylines, params, spacing);
