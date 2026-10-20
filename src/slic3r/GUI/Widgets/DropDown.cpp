@@ -22,6 +22,9 @@
 #include <wx/utils.h>
 #include <wx/brush.h>
 #include <wx/control.h>
+#include <wx/types.h>
+#include <wx/string.h>
+#include <wx/arrstr.h>
 #include <wx/textctrl.h>
 #include <wx/vlbox.h>
 #include <wx/sizer.h>
