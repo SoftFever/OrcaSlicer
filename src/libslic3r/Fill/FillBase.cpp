@@ -2914,7 +2914,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
 
         const float delta = float(scale_(t));
         // Arc tolerance of 1/500 of the offset, Clipper2's default.
-        for (const Polygon &ring : offset(polylines, delta, jtRound, 0.002 * delta, etOpenRound))
+        for (const Polygon &ring : offset(polylines, delta, jtMiter, 0.002 * delta, etOpenRound))
             if (ring.size() >= 3)
                 all_polylines.emplace_back(ring.split_at_first_point());
     }
