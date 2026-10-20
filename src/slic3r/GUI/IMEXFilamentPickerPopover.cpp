@@ -19,6 +19,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/Widgets/ComboBox.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
@@ -104,7 +105,7 @@ void IMEXFilamentPickerPopover::build_row()
             choice->Append(label, wxNullBitmap);
         const auto& names = wxGetApp().preset_bundle->filament_presets;
         if (L >= 0 && L < int(names.size()))
-            choice->SetItemAlias(choice->GetCount() - 1, wxString::FromUTF8(names[L]));
+            choice->SetItemAlias(choice->GetCount() - 1, from_u8(names[L]));
     }
 
     const auto map = m_plate->get_imex_head_filament_map();

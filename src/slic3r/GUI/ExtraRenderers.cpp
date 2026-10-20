@@ -336,8 +336,8 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
     for (size_t i = 0; i < icons.size(); i++) {
         const int row = c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
         if (i < filament_names.size()) {
-            c_editor->SetItemAlias(row, wxString::FromUTF8(filament_names[i]));
-            c_editor->SetItemTooltip(row, wxString::FromUTF8(filament_names[i]));
+            c_editor->SetItemAlias(row, Slic3r::GUI::from_u8(filament_names[i]));
+            c_editor->SetItemTooltip(row, Slic3r::GUI::from_u8(filament_names[i]));
         }
     }
 
