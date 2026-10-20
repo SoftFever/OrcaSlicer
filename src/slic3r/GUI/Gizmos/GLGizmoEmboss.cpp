@@ -1089,8 +1089,8 @@ EmbossStyles GLGizmoEmboss::create_default_styles()
         styles.push_back(WxFontUtils::create_emboss_style(wx_font, _u8L("First font")));
     } else {
         // On current OS is not installed any correct TTF font
-        // use font packed with Slic3r
-        std::string font_path = Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf";
+        // use font packed with OrcaSlicer
+        std::string font_path = Slic3r::resources_dir() + "/fonts/HarmonyOS_Sans_SC_Regular.ttf";
         styles.push_back(EmbossStyle{_u8L("Default font"), font_path, EmbossStyle::Type::file_path});
     }
     return styles;
