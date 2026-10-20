@@ -4864,7 +4864,8 @@ std::vector<std::string> GLGizmoTextureDisplacement::chroma_problems(const Textu
     return out;
 }
 
-void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &layer, float card_pad, float label_w)
+void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &layer, float card_pad, float label_w,
+                                                    float content_w)
 {
     const ImGuiStyle &style   = ImGui::GetStyle();
     const float       frame_h = ImGui::GetFrameHeight();
@@ -4898,8 +4899,11 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
         return;
     }
 
-    const float avail = ImGui::GetContentRegionAvail().x - card_pad;
-    const float thumb = std::max(m_imgui->scaled(2.f), std::round(0.5f * (avail - gap_s)));
+    // Sized from the width the card is allowed, never from the width it has left. The two thumbnails
+    // are square, so a size taken from the live region ties the panel's height to its width: a
+    // scrollbar appears, the region narrows, the thumbnails shrink, the panel gets shorter, the
+    // scrollbar goes, and it does it all again next frame. The panel flickered between two widths.
+    const float thumb = std::max(m_imgui->scaled(2.f), std::round(0.5f * (content_w - gap_s)));
     if (m_chroma_source_key[slot] != layer.chroma_source.get()) {
         TextureDisplacementLayer probe;
         probe.image_data            = layer.chroma_source;
@@ -5223,7 +5227,7 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
         // ---- The colours it reaches, and what the stack costs to reach them ----
         const std::vector<ColorRGB> palette = chroma_palette(layer.chroma);
         if (int(palette.size()) > layer.chroma.base_layers) {
-            const float  w     = ImGui::GetContentRegionAvail().x - card_pad - 3.f * frame_h - 3.f * gap_s;
+            const float  w     = std::max(m_imgui->scaled(2.f), content_w - 3.f * frame_h - 3.f * gap_s);
             const float  h     = frame_h;
             const ImVec2 p     = ImGui::GetCursorScreenPos();
             const int    first = std::max(0, layer.chroma.base_layers);
@@ -8257,6 +8261,13 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                                  style.WindowPadding.y - style.ItemSpacing.y);
     const float body_h     = m_panel_body_h > 0.f ? std::min(m_panel_body_h + 1.f, max_body_h) : max_body_h;
 
+    // The width a card's rows may use, from the body child's fixed width rather than from whatever is
+    // left after a scrollbar: anything whose HEIGHT follows the width it is given has to be measured
+    // against something that does not move, or the panel oscillates between having a scrollbar and
+    // not. A scrollbar's worth is always held back, so the content never has to change when one
+    // appears.
+    const float card_content_w = panel_w - 2.f * card_pad - m_imgui->scaled(0.5f);
+
     push_slim_scrollbar_style(m_imgui->scaled(0.5f), dark);
     // NoScrollWithMouse: ease_wheel_scroll() eases the scroll instead of teleporting five text lines per
     // notch, which on blocks this tall lost the reader's place.
@@ -8821,7 +8832,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 // predicts, what is wrong, how many colours, and the filaments. The solve and the swaps
                 // are not decisions - they follow the stack by themselves (see chroma_settle()).
                 chroma_settle(layer);
-                render_chroma_card(layer, card_pad, label_w);
+                render_chroma_card(layer, card_pad, label_w, card_content_w);
             } else {
             // The three controls nearly every layer needs; everything else waits behind "More settings".
             // Depth and tile size are logarithmic, so both ends of their wide ranges stay usable.

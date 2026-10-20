@@ -534,7 +534,7 @@ private:
     std::array<std::vector<ChromaSuggestion>, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_chroma_suggestion;
     // The whole of a ChromaStack card between its header and More settings: the picture and the print
     // it predicts, the base, the filaments and the colours they reach, and the two actions.
-    void render_chroma_card(TextureDisplacementLayer &layer, float card_pad, float label_w);
+    void render_chroma_card(TextureDisplacementLayer &layer, float card_pad, float label_w, float content_w);
     // The rest of it, behind More settings: the base it measures for itself, the dither switch and the
     // placement of the picture on the patch, none of which is touched twice in a session.
     void render_chroma_details(TextureDisplacementLayer &layer, float card_pad, float label_w);
