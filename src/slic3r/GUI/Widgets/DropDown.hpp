@@ -53,6 +53,8 @@ public:
     };
 
 private:
+    friend class SearchableDropDownList; // draws search rows with this dropdown's metrics
+
     std::vector<Item> &items;
     size_t             count = 0;
     TextInput*         search_input = nullptr;

@@ -44,17 +44,19 @@
 
 // Search results hold source indices: filtering must never change the preset IDs
 // carried by ComboBox client data or select a different material implicitly.
+// Rows are drawn with the dropdown's own row metrics, check mark and icon column.
 class SearchableDropDownList : public wxVListBox
 {
 public:
+    const DropDown&                    owner;
     const std::vector<DropDown::Item>& source;
     std::vector<int>                   matches;
 
-    SearchableDropDownList(wxWindow* parent, const std::vector<DropDown::Item>& items)
-        : wxVListBox(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), source(items)
+    explicit SearchableDropDownList(DropDown& drop)
+        : wxVListBox(&drop, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), owner(drop), source(drop.items)
     {}
 
-    wxCoord OnMeasureItem(size_t) const override { return FromDIP(32); }
+    wxCoord OnMeasureItem(size_t) const override { return owner.rowSize.y; }
 
     // Horizontal extent [first, second) of the row's action icon; empty when the row has none.
     std::pair<int, int> actionColumn(size_t row) const
@@ -71,17 +73,25 @@ public:
         const auto& item = source[matches[row]];
         dc.SetFont(GetFont());
         dc.SetTextForeground(GetForegroundColour());
-        int x = rect.x + FromDIP(8);
-        if (item.icon.IsOk()) {
-            dc.DrawBitmap(item.icon, x, rect.y + (rect.height - item.icon.GetScaledHeight()) / 2, true);
-            x += item.icon.GetScaledWidth() + FromDIP(8);
+        // Same left-to-right layout as DropDown::render().
+        int x = rect.x + 5;
+        if (owner.check_bitmap.bmp().IsOk()) {
+            const wxSize check = owner.check_bitmap.GetBmpSize();
+            if (matches[row] == owner.selection)
+                dc.DrawBitmap(owner.check_bitmap.bmp(), x, rect.y + (rect.height - check.y) / 2, true);
+            x += check.x + 5;
         }
-        const wxString separator(L" — ");
-        wxString       label = item.text;
-        if (!item.alias.empty() && item.alias != item.text)
-            label += separator + item.alias;
-        if (!item.group_label.empty())
-            label += separator + item.group_label;
+        if (item.icon.IsOk())
+            dc.DrawBitmap(item.icon, x, rect.y + (rect.height - item.icon.GetScaledHeight()) / 2, true);
+        if (owner.iconSize.x > 0)
+            x += owner.iconSize.x + 5;
+        else if (item.icon.IsOk())
+            x += item.icon.GetScaledWidth() + 5;
+        // The alias is searchable; show it only when it names something the text doesn't,
+        // such as the preset loaded in a numbered filament slot.
+        wxString label = item.text;
+        if (!item.alias.empty() && !item.alias.StartsWith(item.text))
+            label += wxString(L" — ") + item.alias;
         const auto column = actionColumn(row);
         label             = wxControl::Ellipsize(label, dc, wxELLIPSIZE_END, std::max(1, column.first - x - FromDIP(8)));
         dc.DrawText(label, x, rect.y + (rect.height - dc.GetCharHeight()) / 2);
@@ -96,9 +106,10 @@ void DropDown::EnableSearch()
     if (search_enabled)
         return;
     search_enabled = true;
+    need_sync      = true;
     search_input   = new TextInput(this, wxEmptyString);
     search_input->GetTextCtrl()->SetHint(_L("Type to filter..."));
-    search_list  = new SearchableDropDownList(this, items);
+    search_list  = new SearchableDropDownList(*this);
     search_empty = new Label(this, _L("No matching items..."));
     auto* layout = new wxBoxSizer(wxVERTICAL);
     layout->Add(search_input, 0, wxEXPAND | wxALL, FromDIP(6));
@@ -377,8 +388,8 @@ void DropDown::Popup(wxWindow *focus)
         search_empty->SetBackgroundColour(background);
         search_empty->SetForegroundColour(text);
         search_input->GetTextCtrl()->ChangeValue(wxEmptyString);
+        autoPosition(); // measures the rows the list draws
         filterSearch();
-        autoPosition();
         focus = search_input->GetTextCtrl();
     }
 #ifdef __WXGTK__
@@ -756,13 +767,6 @@ int DropDown::selectedItem()
 
 void DropDown::messureSize()
 {
-    if (search_enabled) {
-        const wxSize available = wxDisplay(GetParent()).GetClientArea().GetSize();
-        SetSize(std::min(available.x, std::max(GetParent()->GetSize().x, FromDIP(420))),
-                std::min(available.y, FromDIP(360)));
-        Layout();
-        return;
-    }
     if (!need_sync) return;
     textSize = wxSize();
     iconSize = wxSize();
@@ -838,13 +842,17 @@ void DropDown::messureSize()
     }
     szContent.y *= std::min((size_t) 15, std::max(count, (size_t) 1));
     szContent.y += items.size() > 15 ? rowSize.y / 2 : 0;
+    // Search keeps the stock width; the field heads a flat list of up to 15 rows.
+    if (search_enabled)
+        szContent.y = search_input->GetBestSize().y + FromDIP(12) +
+                      rowSize.y * int(std::min<size_t>(15, std::max<size_t>(items.size(), 1)));
     wxWindow::SetSize(szContent);
 #ifdef __WXGTK__
     // Gtk has a wrapper window for popup widget
     if (szContent.x > 0 && szContent.y > 0)
         gtk_window_resize (GTK_WINDOW (m_widget), szContent.x, szContent.y);
 #endif
-    if (!groups.empty() && subDropDown == nullptr) {
+    if (!groups.empty() && subDropDown == nullptr && !search_enabled) {
         subDropDown = new DropDown(items);
         subDropDown->mainDropDown = this;
         subDropDown->check_bitmap      = check_bitmap;
@@ -919,11 +927,6 @@ void DropDown::messureSize()
 
 void DropDown::autoPosition()
 {
-    if (search_enabled) {
-        messureSize();
-        Position(GetParent()->ClientToScreen(wxPoint(0, 0)), wxSize(0, GetParent()->GetSize().y));
-        return;
-    }
     messureSize();
     wxPoint pos;
     wxSize  off;
@@ -944,7 +947,7 @@ void DropDown::autoPosition()
     wxPoint old = GetPosition();
     wxSize size = GetSize();
     Position(pos, off);
-    if (old != GetPosition()) {
+    if (old != GetPosition() && !search_enabled) { // search sizes itself in messureSize()
         size = rowSize;
         size.y *= std::min((size_t) 15, count);
         size.y += count > 15 ? rowSize.y / 2 : 0;
