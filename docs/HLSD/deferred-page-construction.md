@@ -114,6 +114,11 @@ current-configuration explanation. Dependency rules supply complete translated
 messages describing their prerequisites; compound rules can choose the message for
 the failed prerequisite. The same recorded text reaches tooltips and search results.
 
+The object table's settings form owns a separate registry because it builds option
+groups outside a Tab. Its dependency callbacks retain their reasons and refresh
+both input and native label tooltips. Rebuilding the form or reevaluating dependencies
+clears its records, so restrictions follow the current object and effective configuration.
+
 Settings search resolves the same owning Tab as option navigation: a matching model
 Tab in object mode, otherwise the global preset Tab. Results show the first line of
 the registry description beneath the option name, with the complete description in
