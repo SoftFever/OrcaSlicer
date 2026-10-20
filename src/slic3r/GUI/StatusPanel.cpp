@@ -2709,6 +2709,12 @@ void StatusPanel::sync_nozzle_temp_controls(size_t count)
     const size_t old_size = m_tempCtrl_nozzles.size();
     ensure_nozzle_temp_controls(count);
 
+    // A generic printer with more than two tools needs to name each control; the L/R badge on
+    // Bambu's dual-tool layout is handled by TempInput itself and must stay unchanged.
+    const bool show_tool_ids = count > 2;
+    for (size_t i = 0; i < m_tempCtrl_nozzles.size(); ++i)
+        m_tempCtrl_nozzles[i]->SetDisplayIdText(show_tool_ids ? wxString::Format("T%d", int(i) + 1) : wxString());
+
     bool layout_changed = false;
     if (m_tempCtrl_nozzle->IsShown()) {
         m_tempCtrl_nozzle->Hide();
