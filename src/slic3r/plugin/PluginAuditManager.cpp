@@ -183,47 +183,52 @@ static const char* category_name(AuditEventCategory category)
 // Path safety
 // ---------------------------------------------------------------------------
 
-bool is_inside_allowed_root(const boost::filesystem::path& candidate, const boost::filesystem::path& allowed_root)
+namespace {
+
+// Canonicalize a path for containment comparison.  weakly_canonical resolves symlinks but does
+// NOT require the path to exist — it canonicalizes the prefix that exists and appends the
+// non-existing tail lexically.
+boost::filesystem::path canonical_for_comparison(const boost::filesystem::path& path)
 {
     namespace fs = boost::filesystem;
 
     boost::system::error_code ec;
-
-    // Canonicalize both paths.  weakly_canonical resolves symlinks but does
-    // NOT require the path to exist — it canonicalizes the prefix that exists
-    // and appends the non-existing tail lexically.
-    fs::path canon_candidate = fs::weakly_canonical(candidate, ec);
+    fs::path canon = fs::weakly_canonical(path, ec);
     if (ec) {
         // Fall back to lexically_normal + absolute
-        canon_candidate = fs::absolute(candidate, ec).lexically_normal();
+        canon = fs::absolute(path, ec).lexically_normal();
         if (ec)
-            canon_candidate = candidate;
+            canon = path;
     }
+    return canon;
+}
 
-    fs::path canon_root = fs::weakly_canonical(allowed_root, ec);
-    if (ec) {
-        canon_root = fs::absolute(allowed_root, ec).lexically_normal();
-        if (ec)
-            canon_root = allowed_root;
-    }
-
-    // Component-wise comparison: the root must be a prefix of candidate,
-    // and the next component must not be ".." or missing.
-    auto cand_it  = canon_candidate.begin();
-    auto cand_end = canon_candidate.end();
-    auto root_it  = canon_root.begin();
-    auto root_end = canon_root.end();
-
-    const auto same_component = [](const fs::path& lhs, const fs::path& rhs) {
+bool same_path_component(const boost::filesystem::path& lhs, const boost::filesystem::path& rhs)
+{
 #ifdef _WIN32
-        return boost::algorithm::iequals(lhs.native(), rhs.native());
+    return boost::algorithm::iequals(lhs.native(), rhs.native());
 #else
-        return lhs == rhs;
+    return lhs == rhs;
 #endif
-    };
+}
+
+// Component-wise containment: the whole of canonical_root must be a prefix of
+// canonical_candidate, and the remaining components must not traverse upward. Both arguments are
+// expected to come from canonical_for_comparison(). On a match, suffix receives the candidate's
+// components below the root (empty when the two paths are equal).
+bool suffix_inside_root(const boost::filesystem::path& canonical_candidate,
+                        const boost::filesystem::path& canonical_root,
+                        boost::filesystem::path&       suffix)
+{
+    suffix.clear();
+
+    auto cand_it  = canonical_candidate.begin();
+    auto cand_end = canonical_candidate.end();
+    auto root_it  = canonical_root.begin();
+    auto root_end = canonical_root.end();
 
     // Consume matching components
-    while (root_it != root_end && cand_it != cand_end && same_component(*root_it, *cand_it)) {
+    while (root_it != root_end && cand_it != cand_end && same_path_component(*root_it, *cand_it)) {
         ++root_it;
         ++cand_it;
     }
@@ -238,7 +243,17 @@ bool is_inside_allowed_root(const boost::filesystem::path& candidate, const boos
             return false;
     }
 
+    for (; cand_it != cand_end; ++cand_it)
+        suffix /= *cand_it;
     return true;
+}
+
+} // namespace
+
+bool is_inside_allowed_root(const boost::filesystem::path& candidate, const boost::filesystem::path& allowed_root)
+{
+    boost::filesystem::path suffix;
+    return suffix_inside_root(canonical_for_comparison(candidate), canonical_for_comparison(allowed_root), suffix);
 }
 
 // ---------------------------------------------------------------------------
@@ -410,7 +425,8 @@ std::vector<std::string> PluginAuditManager::default_denied_path_keywords()
     // it happens to live inside an otherwise-allowed root (e.g. the bundled TLS client cert at
     // resources_dir()/cert/..., which would become reachable the moment resources_dir() is
     // granted as a read-only allowed root). Match as whole path components, not substrings, so
-    // imports such as numpy/__config__.py and stdlib configparser.py remain usable.
+    // imports such as numpy/__config__.py and stdlib configparser.py remain usable. Inside
+    // data_dir() they match below that root only; see is_denied_path_keyword().
     return {"secret", "secrets", "cert", "certs", "certificate", "certificates", "conf", "config"};
 }
 
@@ -429,19 +445,29 @@ bool PluginAuditManager::is_denied_path_keyword(const boost::filesystem::path& c
 {
     namespace fs = boost::filesystem;
 
-    boost::system::error_code ec;
-    fs::path canon = fs::weakly_canonical(candidate, ec);
-    if (ec) {
-        canon = fs::absolute(candidate, ec).lexically_normal();
-        if (ec)
-            canon = candidate;
-    }
+    const fs::path canon = canonical_for_comparison(candidate);
+
+    // The app's data folder can itself sit below a component named like one of the keywords
+    // without being one: Flatpak keeps it under <home>/.var/app/<app-id>/config/OrcaSlicer, and
+    // the sandbox's home layout is not ours to change.  A keyword above data_dir() therefore says
+    // nothing about what a plugin may reach inside it, so inside data_dir() the keywords apply to
+    // the suffix below data_dir() only.  Everywhere else -- resources_dir() with the bundled
+    // certificates, a plugin's own folders, arbitrary files -- the whole path is still checked,
+    // and so is a keyword under data_dir() itself.
+    fs::path canonical_data_dir;
+    if (!data_dir().empty())
+        canonical_data_dir = canonical_for_comparison(data_dir());
+
+    fs::path scope = canon;
+    fs::path suffix;
+    if (!canonical_data_dir.empty() && suffix_inside_root(canon, canonical_data_dir, suffix))
+        scope = suffix;
 
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_denied_path_keywords.empty())
         return false;
 
-    for (const auto& component : canon) {
+    for (const auto& component : scope) {
         std::string name = component.string();
         if (name.empty())
             continue;
@@ -1295,10 +1321,12 @@ void PluginAuditManager::install_hook()
     for (const auto& name : default_denied_filenames())
         add_denied_filename(name);
 
-    // Categorical denies on top of the exact-name list above: no path a plugin can reach may
-    // contain a "secret", "cert"(ificate), or "conf"(ig) path component, regardless of which
-    // allowed root it happens to sit inside. default_denied_path_keywords() is the single
-    // source of this list; the tests seed from it too.
+    // Categorical denies on top of the exact-name list above: a path a plugin reaches must not
+    // have a "secret", "cert"(ificate), or "conf"(ig) component below data_dir() -- or anywhere
+    // in the path outside data_dir(), whose own location may legitimately contain one (Flatpak
+    // keeps it under .../config/OrcaSlicer). This holds regardless of which allowed root the
+    // path happens to sit inside. default_denied_path_keywords() is the single source of this
+    // list; the tests seed from it too.
     for (const auto& keyword : default_denied_path_keywords())
         add_denied_path_keyword(keyword);
 
