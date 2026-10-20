@@ -8,6 +8,7 @@
 #include <slic3r/plugin/PluginAuditManager.hpp>
 #include <slic3r/plugin/PluginFsUtils.hpp>
 #include <slic3r/plugin/PluginManager.hpp>
+#include <slic3r/plugin/PluginProbeCollector.hpp>
 #include <slic3r/plugin/PythonInterpreter.hpp>
 #include <slic3r/plugin/PythonPluginBridge.hpp>
 #include <slic3r/plugin/PythonPluginInterface.hpp>
@@ -32,6 +33,7 @@
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 
+#include <algorithm>
 #include <fstream>
 #include <functional>
 #include <ios>
@@ -66,6 +68,26 @@ void seed_denied_keywords()
     for (const auto& keyword : PluginAuditManager::default_denied_path_keywords())
         mgr.add_denied_path_keyword(keyword);
 }
+
+// Installs the record-only observer for a test and always clears it, so a failed CHECK cannot
+// leave a callback pointing at a destroyed collector for the next test in this process.
+struct ScopedTestObservationObserver
+{
+    explicit ScopedTestObservationObserver(PluginProbeCollector& collector)
+        : m_collector(collector)
+    {
+        PluginAuditManager::instance().set_observation_observer(
+            [this](const AuditObservation& observation) { m_collector.record(observation); });
+    }
+
+    ~ScopedTestObservationObserver() { PluginAuditManager::instance().clear_observation_observer(); }
+
+    ScopedTestObservationObserver(const ScopedTestObservationObserver&)            = delete;
+    ScopedTestObservationObserver& operator=(const ScopedTestObservationObserver&) = delete;
+
+private:
+    PluginProbeCollector& m_collector;
+};
 
 } // namespace
 
@@ -653,6 +675,71 @@ PluginPermissions http_grants(std::vector<std::string> urls)
 const char* const PLUGIN = "AuditPlugin";
 
 } // namespace
+
+TEST_CASE("Probe phase scope restores the previous phase", "[audit]")
+{
+    PluginAuditManager& mgr = PluginAuditManager::instance();
+    mgr.set_current_audit_phase("outer");
+    {
+        ScopedPluginAuditPhase inner("inner");
+        CHECK(mgr.current_audit_phase() == "inner");
+    }
+    CHECK(mgr.current_audit_phase() == "outer");
+    mgr.clear_current_audit_phase();
+    CHECK(mgr.current_audit_phase().empty());
+}
+
+TEST_CASE("Record-only probe observations bypass prompts and retain phase attribution", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide              python(harness);
+
+    PluginProbeCollector          collector;
+    ScopedTestObservationObserver observer(collector);
+
+    // A declared read permission is recorded and allowed, but must not be written to the sidecar.
+    {
+        ScopedPluginAuditContext context(PLUGIN);
+        CHECK(PluginAuditManager::instance().request_filesystem_read_permissions(PLUGIN, {"/tmp/probe-declared"}));
+    }
+
+    {
+        ScopedPluginAuditPhase phase("probe:callback");
+        python.run_as(PLUGIN, "outcome = attempt(lambda: open(PRIVATE).close())");
+    }
+
+    CHECK(python.str("outcome") == "ok");
+    CHECK(harness.prompts.empty());
+    CHECK(harness.saved_permissions(PLUGIN).fs_read.empty());
+
+    const std::vector<AuditObservation> observations = collector.observations();
+    const auto                          open_event   = std::find_if(
+        observations.begin(), observations.end(), [](const AuditObservation& observation) {
+            return observation.event_name == "open";
+        });
+    REQUIRE(open_event != observations.end());
+    CHECK(open_event->plugin_key == PLUGIN);
+    CHECK(open_event->phase == "probe:callback");
+    CHECK(open_event->category == "FsRead");
+    CHECK(open_event->continued);
+    CHECK(std::find(open_event->targets.begin(), open_event->targets.end(), python.str("PRIVATE")) !=
+          open_event->targets.end());
+
+    const auto declared = std::find_if(observations.begin(), observations.end(), [](const AuditObservation& observation) {
+        return observation.event_name == "orca.request_permissions";
+    });
+    REQUIRE(declared != observations.end());
+    CHECK(declared->category == "FsRead");
+    CHECK(std::find(declared->targets.begin(), declared->targets.end(), "/tmp/probe-declared") != declared->targets.end());
+
+    const nlohmann::json summary = collector.summary();
+    CHECK(summary["categories"].contains("FsRead"));
+    CHECK(summary["observed_event_count"].get<std::size_t>() == observations.size());
+}
 
 TEST_CASE("A saved request grant covers the request's own connection in a later session", "[audit][Python]")
 {

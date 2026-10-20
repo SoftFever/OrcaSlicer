@@ -24,6 +24,19 @@ struct AuditViolation {
     std::string            reason;
 };
 
+// One classified CPython audit event observed while the probe is in record-only mode. This is
+// evidence about the code path that ran, not a grant request: the hook allowed the operation to
+// continue and did not consult the permission dialog or the persisted install state.
+struct AuditObservation {
+    std::string              plugin_key;
+    std::string              capability;
+    std::string              phase;
+    std::string              event_name;
+    std::string              category;
+    std::vector<std::string> targets;
+    bool                     continued = true;
+};
+
 // A filesystem root a plugin may access while an audit context is active. allow_write is
 // false for a root that only grants reads (e.g. the bundled, shared resources folder) --
 // a write-shaped event never matches such a root, even though a read-shaped one does.
@@ -137,6 +150,30 @@ public:
     bool request_filesystem_read_permissions(const std::string& plugin_key,
                                              const std::vector<std::string>& paths);
 
+    // --- probe observation mode (thread-safe, never used by the GUI) ---
+    // When an observer is installed, every classified event raised by plugin-authored code is
+    // reported to it and then allowed through (the hook returns 0). The permission dialogs, saved
+    // grants and .install_state.json are never consulted, so this is not a containment boundary.
+    // The observer must not touch Python objects: it runs inside the audit hook with the GIL held.
+    using AuditObserver = std::function<void(const AuditObservation&)>;
+    void set_observation_observer(AuditObserver observer);
+    void clear_observation_observer();
+    bool observation_mode() const;
+
+    // Stop after classification/target extraction; true means an observer consumed the event.
+    // Exposed for the probe and its tests, not for production callers.
+    bool record_observation(const std::string& event_name,
+                            const std::string& category,
+                            const std::vector<std::string>& targets);
+
+    // --- probe phase attribution (thread_local) ---
+    // Labels events for the probe's report. Production leaves it empty. A Python thread spawned by
+    // plugin code inherits no phase, so its events are reported as unattributed rather than being
+    // guessed at.
+    void               set_current_audit_phase(const std::string& phase);
+    const std::string& current_audit_phase() const;
+    void               clear_current_audit_phase();
+
     void report_violation(const AuditViolation& violation);
     bool audit_denial_pending() const;
     void clear_audit_denial();
@@ -178,6 +215,7 @@ private:
 
     static thread_local std::string                   m_current_plugin_key;
     static thread_local std::string                   m_current_capability_name;
+    static thread_local std::string                   m_current_audit_phase;
     static thread_local std::vector<AllowedRoot>       m_scoped_allowed_roots;
     static thread_local std::vector<PyObject*>         m_root_frames; // strong references
     static thread_local int                            m_releasing_frames;
@@ -190,6 +228,11 @@ private:
     std::vector<AllowedRoot>             m_global_allowed_roots;
     std::vector<std::string>             m_denied_filenames;
     std::vector<std::string>             m_denied_path_keywords;
+
+    // Kept apart from m_mutex: observation_mode() is queried from the audit hook while the hook
+    // already holds the GIL, and the setter runs before plugin code starts.
+    mutable std::mutex m_observer_mutex;
+    AuditObserver      m_observation_observer;
 };
 
 // RAII guard that sets the current plugin key and capability name, restoring the previous
@@ -218,6 +261,22 @@ private:
     std::string                   m_previous_capability;
     std::vector<AllowedRoot>      m_previous_scoped_roots;
     std::vector<PyObject*>        m_previous_root_frames;
+};
+
+// Sets the probe's phase label on the current thread and restores the previous one on scope exit.
+// Empty in production, where no phase is ever set.
+class ScopedPluginAuditPhase
+{
+public:
+    explicit ScopedPluginAuditPhase(std::string phase);
+    ~ScopedPluginAuditPhase();
+
+    ScopedPluginAuditPhase(const ScopedPluginAuditPhase&)            = delete;
+    ScopedPluginAuditPhase& operator=(const ScopedPluginAuditPhase&) = delete;
+
+private:
+    std::string m_phase;
+    std::string m_previous_phase;
 };
 
 } // namespace Slic3r

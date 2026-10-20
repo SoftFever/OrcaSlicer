@@ -53,18 +53,6 @@ const char* const LOAD_CANCELLED = "__plugin_load_cancelled__";
 
 } // namespace
 
-void Plugin::release_module()
-{
-    if (module == nullptr && plugin_sys_paths.empty() && plugin_modules.empty())
-        return;
-
-    PythonInterpreter::instance().unload_module(module, module_name, plugin_sys_paths, plugin_modules);
-    module = nullptr;
-    module_name.clear();
-    plugin_sys_paths.clear();
-    plugin_modules.clear();
-}
-
 PluginManager& PluginManager::instance()
 {
     // Touch the interpreter first so its static outlives this one: ~Plugin needs it alive to

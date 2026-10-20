@@ -707,6 +707,10 @@ set(SLIC3R_GUI_SOURCES
     plugin/PluginManager.hpp
     plugin/PluginAuditManager.cpp
     plugin/PluginAuditManager.hpp
+    plugin/PluginAuditManagerGui.cpp
+    plugin/PluginAuditManagerInternal.hpp
+    plugin/PluginModule.cpp
+    plugin/PluginText.hpp
     plugin/PluginResolver.cpp
     plugin/PluginResolver.hpp
     plugin/pluginTypes/printerAgent/PrinterAgentPluginCapability.hpp
@@ -1090,5 +1094,63 @@ if (ORCA_BUILD_PYTHON_STUBGEN_MODULE)
     set_target_properties(orca_stubgen PROPERTIES
         OUTPUT_NAME orca
         PREFIX ""
+    )
+endif()
+
+# Headless plugin permission probe. A distinct executable so normal GUI loading and prompt
+# behavior stay untouched. It compiles the GUI-free plugin sources directly instead of linking
+# libslic3r_gui, so neither the GUI library nor wx is pulled into the probe. The permission
+# front end is selected by source composition: PluginAuditManagerGui.cpp for the GUI app and
+# probe/PluginAuditManagerHeadless.cpp here.
+#
+# Residual cost: the probe still links libslic3r (the large core library) for Utils,
+# LifecycleEvents, the model/print types used by the GUI-free host bindings and libslic3r's own
+# transitive dependencies. It does not link libslic3r_gui, wx or the GUI-only host/plugin sources.
+# Developer/security-analysis tool, so it is off by default.
+if (ORCA_BUILD_PLUGIN_PERMISSION_PROBE)
+    add_executable(orca-plugin-probe
+        plugin/PluginPermissionProbe.cpp
+        plugin/PluginProbeCollector.hpp
+        plugin/probe/NanoSvgImplementation.cpp
+        plugin/PluginAuditManager.cpp
+        plugin/PluginAuditManagerInternal.hpp
+        plugin/PluginModule.cpp
+        plugin/PluginText.hpp
+        plugin/probe/PluginAuditManagerHeadless.cpp
+        plugin/PluginFsUtils.cpp
+        plugin/PluginLoader.cpp
+        plugin/PythonInterpreter.cpp
+        plugin/PythonPluginBridge.cpp
+        plugin/probe/PluginHostProbe.cpp
+        plugin/probe/PluginProbeConfig.cpp
+        plugin/host/PluginHostGeometry.cpp
+        plugin/host/PluginHostMesh.cpp
+        plugin/host/PluginHostModel.cpp
+        plugin/host/PluginHostSlicing.cpp
+        plugin/pluginTypes/printerAgent/PrinterAgentPluginCapability.cpp
+        plugin/pluginTypes/pages/PagesPluginCapability.cpp
+        plugin/pluginTypes/resourceTexture/ResourceTexturePluginCapability.cpp
+        plugin/pluginTypes/script/ScriptPluginCapability.cpp
+        plugin/pluginTypes/slicingPipeline/SlicingPipelinePluginCapability.cpp
+    )
+
+    target_compile_definitions(orca-plugin-probe PRIVATE ORCA_PLUGIN_PROBE_BUILD)
+
+    target_include_directories(orca-plugin-probe PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_SOURCE_DIR}/src
+        Utils
+    )
+
+    target_link_libraries(orca-plugin-probe PRIVATE
+        libslic3r
+        nanosvg
+        pybind11::embed
+    )
+
+    set_target_properties(orca-plugin-probe PROPERTIES
+        OUTPUT_NAME orca-plugin-probe
+        FOLDER "tools"
     )
 endif()
