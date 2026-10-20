@@ -36839,7 +36839,9 @@ msgstr ""
 msgid ""
 "Reverse on even\n"
 "Did you know that <b>Reverse on even</b> feature can significantly improve the surface quality of your overhangs? However, it can cause wall inconsistencies so use carefully!"
-msgstr "Реверс на чётных слояхСовет: настройка <b>Реверс на чётных слоях</b> может существенно улучшить качество нависающих поверхностей. Как и нарушить их однородность, так что используйте с осторожностью."
+msgstr ""
+"Реверс на чётных слоях\n"
+"Совет: настройка <b>Реверс на чётных слоях</b> может существенно улучшить качество нависающих поверхностей. Как и нарушить их однородность, так что используйте с осторожностью."
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
