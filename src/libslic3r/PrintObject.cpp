@@ -1593,6 +1593,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_ironing_pattern"
             || opt_key == "support_ironing_flow"
             || opt_key == "support_ironing_spacing"
+            || opt_key == "support_ironing_inset"
+            || opt_key == "support_ironing_direction"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
