@@ -1552,6 +1552,8 @@ private:
     void _render_imex_ghost_tooltip();
     void _render_section_view_caps();
     void _render_wireframe_overlay();
+    bool _is_below_plate_view_active() const;
+    void _render_below_plate_volumes();
     bool _is_xray_view_active() const;
     void _render_xray_volumes();
     //BBS: GUI refactor: add canvas size as parameters
