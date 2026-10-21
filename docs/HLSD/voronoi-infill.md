@@ -55,3 +55,5 @@ Ordering is local to each fill surface. Sparse-infill anchoring queries and extr
 use the same nominal region flow and cloud settings, so first-layer widths and adaptive
 layer heights do not move points.
 Layer completion reports throttled progress and checks cancellation.
+
+Point ingestion advances in complete generation cubes. Sites remain unchanged between batches; obsolete lower cube rows are retired immediately before the next batch is generated. The persistent Delaunay network removes those vertices before inserting new ones.
