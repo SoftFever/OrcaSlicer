@@ -443,6 +443,9 @@ struct CadFeature {
     int    sm_ref{-1};        // refold: the unfold feature it folds back
     bool   dressup_fit_taper{false};   // fillet: where the radius does not fit, follow the room (GeometryEngine::FilletLaw::fit_taper)
 
+    // LEGACY positional list (recipe v5/v6), FROZEN: load() reads old projects, save() stays as the reference the
+    // coverage test compares the v7 groups against,. New fields
+    // go ONLY into CadFeatureFields.hpp (which also lists the index references the remap follows), never here.
     template<class Archive>
     void save(Archive& ar) const {
         std::string brep = (type == CadFeatureType::Import) ? brep_to_string(imported_solid) : std::string();
@@ -932,7 +935,7 @@ public:
     // The feature whose replay threw in the last recompute(), or -1. Lets the tree mark the row
     // that failed instead of leaving the user a global message and no suspect.
     int error_feature{-1};
-    static constexpr uint32_t ORCA_CAD_RECIPE_VERSION = 6;
+    static constexpr uint32_t ORCA_CAD_RECIPE_VERSION = 7;
     std::string serialize_recipe() const;
     bool deserialize_recipe(const std::string& blob);
 

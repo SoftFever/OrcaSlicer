@@ -593,6 +593,7 @@ if (SLIC3R_CAD)
             CAD/SheetMetal.hpp
             CAD/CadDocument.cpp
             CAD/CadDocument.hpp
+            CAD/CadFeatureFields.hpp
             CAD/ThreadStandards.cpp
             CAD/ThreadStandards.hpp
         )

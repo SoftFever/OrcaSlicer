@@ -13,6 +13,8 @@
 #include <cereal/details/helpers.hpp>
 #include <cereal/cereal.hpp>
 #include <map>
+#include <set>
+#include <cereal/archives/binary.hpp>
 #include <random>
 #include <vector>
 #include <math.h>
@@ -40,6 +42,7 @@
          CHECK(_actual.find(sub) != std::string::npos); } while (0)
 
 #include "libslic3r/CAD/CadDocument.hpp"
+#include "libslic3r/CAD/CadFeatureFields.hpp"
 #include "libslic3r/CAD/PaletteScore.hpp"
 #include "libslic3r/CAD/GeometryEngine.hpp"
 #include "libslic3r/CAD/SketchEngine.hpp"
@@ -2394,6 +2397,31 @@ TEST_CASE("a v5 round trip is exact", "[CadDocument][recipe]")
     }
 }
 
+// The recipe as v6 wrote it: the same outer framing, one positional field list per feature (CadFeature::save). The
+// last feature's stream loses `cut_tail` bytes, as an older build's shorter list would.
+static std::string v6_recipe_of(const std::vector<CadFeature>& features, size_t cut_tail = 0)
+{
+    std::ostringstream oss;
+    {
+        cereal::BinaryOutputArchive ar(oss);
+        ar(uint32_t(6), uint32_t(features.size()));
+        for (size_t i = 0; i < features.size(); ++i) {
+            std::ostringstream fos;
+            { cereal::BinaryOutputArchive fa(fos); fa(features[i]); }
+            std::string fb = fos.str();
+            if (i + 1 == features.size()) fb.resize(fb.size() - cut_tail);
+            ar(uint32_t(fb.size()));
+            ar(cereal::binary_data(fb.data(), fb.size()));
+        }
+        std::ostringstream vos;
+        { cereal::BinaryOutputArchive va(vos); va(std::map<std::string, std::string>{}); }
+        const std::string vb = vos.str();
+        ar(uint32_t(vb.size()));
+        ar(cereal::binary_data(vb.data(), vb.size()));
+    }
+    return oss.str();
+}
+
 TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]")
 {
     // The forward-compat proof: a framed reader that meets a feature blob shorter than its own
@@ -2416,7 +2444,7 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     doc.features[1].coordsys_face_kind  = 777;
     doc.features[1].coordsys_face_edges = 888;
 
-    auto blob = doc.serialize_recipe();
+    auto blob = v6_recipe_of(doc.features);
     REQUIRE(blob.size() > 8);
 
     auto rd32 = [](const std::string& s, size_t off) -> uint32_t {
@@ -2428,9 +2456,7 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
         std::memcpy(&s[off], &u, sizeof(u));
     };
 
-    // Against the constant, not a literal: what this asserts is that the outer frame opens with
-    // the version stamp, which stays true across every bump.
-    REQUIRE(rd32(blob, 0) == CadDocument::ORCA_CAD_RECIPE_VERSION);
+    REQUIRE(rd32(blob, 0) == 6);   // the v6 layout this test cuts; v7 has its own tests below
     uint32_t count = rd32(blob, 4);
     REQUIRE(count == doc.features.size());
 
@@ -2485,29 +2511,149 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     REQUIRE(loaded.features[2].name == doc.features[2].name);
 }
 
-TEST_CASE("an Import keeps its solid when the recipe ends before the later fields", "[CadDocument][recipe]")
+TEST_CASE("an Import keeps its solid when a v6 recipe ends before the later fields", "[CadDocument][recipe]")
 {
     // A project saved by a build that wrote fewer fields still has the body: it is assigned as soon as `brep` is read.
-    CadDocument doc;
     CadFeature f;
     f.type          = CadFeatureType::Import;
     f.name          = "Imported";
     f.imported_solid = BRepPrimAPI_MakeBox(10., 20., 30.).Shape();
-    doc.features.push_back(f);
-
-    std::string blob = doc.serialize_recipe();
-    uint32_t len = 0;
-    std::memcpy(&len, blob.data() + 8, sizeof(len));
-    const size_t cut = 200;   // far more than one field, far less than everything after `brep`
-    REQUIRE(len > cut);
-    blob.erase(8 + 4 + len - cut, cut);
-    len -= uint32_t(cut);
-    std::memcpy(&blob[8], &len, sizeof(len));
 
     CadDocument loaded;
-    REQUIRE(loaded.deserialize_recipe(blob));
+    REQUIRE(loaded.deserialize_recipe(v6_recipe_of({f}, 200)));   // far more than one field, far less than everything after `brep`
     REQUIRE(loaded.features.size() == 1);
     REQUIRE_FALSE(loaded.features[0].imported_solid.IsNull());
+}
+
+namespace {
+// Records the address of every member the legacy positional list (CadFeature::save) writes.
+struct AddrRecorder {
+    std::set<const void*> addrs;
+    template<class... T> void operator()(const T&... x) { (addrs.insert(&x), ...); }
+};
+// The same for the v7 groups.
+struct GroupAddrVisitor {
+    std::set<const void*> addrs;
+    size_t                n = 0;
+    template<class T> void operator()(const T& x) { addrs.insert(&x); ++n; }
+    template<class T> void ref(const T& x)        { addrs.insert(&x); ++n; }
+    void brep(const TopoDS_Shape& s)              { addrs.insert(&s); ++n; }
+};
+}
+
+TEST_CASE("the recipe groups cover every serialised CadFeature field", "[CadDocument][recipe]")
+{
+    // The v7 groups are the single field list; the legacy positional list is the reference for what a feature has.
+    // A field in the legacy list but in no group would be lost on save, and one in two groups would be written twice.
+    const CadFeature f;
+    AddrRecorder legacy;
+    f.save(legacy);
+    std::set<const void*> members;
+    const char* base = reinterpret_cast<const char*>(&f);
+    for (const void* a : legacy.addrs)
+        if (static_cast<const char*>(a) >= base && static_cast<const char*>(a) < base + sizeof(CadFeature))
+            members.insert(a);   // not `brep`, a local of save()
+    members.insert(&f.imported_solid);   // what `brep` stands for
+
+    GroupAddrVisitor v;
+    cad_fields_of_all_groups(v, f);
+    CHECK(v.n == v.addrs.size());   // none twice
+    // type, name and enabled are the stream's header, not in a group
+    v.addrs.insert(&f.type); v.addrs.insert(&f.name); v.addrs.insert(&f.enabled);
+    CHECK(v.addrs == members);
+}
+
+TEST_CASE("a feature written as v7 reads back with every group intact", "[CadDocument][recipe]")
+{
+    CadFeature f;
+    f.type = CadFeatureType::Extrude; f.name = "e"; f.enabled = false;
+    f.width = 7; f.profile.points.push_back(Vec2d(1, 2));                 // sketch
+    f.imported_solid = BRepPrimAPI_MakeBox(1., 2., 3.).Shape();           // import
+    f.sketch_ref = 4; f.distance = 12.5; f.thin_out = 0.5;                // extrude
+    f.dressup_edges = {3, 5}; f.dressup_radii = {1., 2.};                 // dressup
+    f.hole_style = 2; f.thread_pitch = 1.25;                              // hole + thread
+    f.shell_faces = {1, 2}; f.draft_pull = Vec3d(0, 1, 0);                // shell + draft
+    f.loft_profile_refs = {0, 2}; f.sweep_path_ref = 1;                   // revolve / sweep / loft
+    f.pattern_features = {2}; f.pattern_count2 = 3;                       // pattern
+    f.plane_offset = 9; f.coordsys_face_kind = 3;                         // datum
+    f.cut_offset = 2; f.bool_tolerance = 0.1;                             // boolean / cut
+    f.xf_angle_deg = 30; f.helix_pitch = 3;                               // helix / transform
+    f.mate_cs_a = 1; f.rib_depth = 4; f.project_edges = {7};              // project / rib / mate
+    f.sm_ref = 2; f.sm_k = 0.5;                                           // sheet metal
+    f.expr["distance"] = "w + 1";                                         // expr
+
+    std::ostringstream o;
+    { cereal::BinaryOutputArchive a(o); cad_save_feature(a, f); }
+    CadFeature g;
+    {
+        std::istringstream is(o.str());
+        cereal::BinaryInputArchive a(is);
+        cad_load_feature(a, g);
+    }
+    // the legacy list is the reference for "every field": equal bytes means nothing was dropped
+    std::ostringstream ref_f, ref_g;
+    { cereal::BinaryOutputArchive a(ref_f); a(f); }
+    { cereal::BinaryOutputArchive a(ref_g); a(g); }
+    CHECK(ref_f.str() == ref_g.str());
+    CHECK_FALSE(g.imported_solid.IsNull());
+}
+
+TEST_CASE("a v7 feature stores only the groups that differ from default", "[CadDocument][recipe]")
+{
+    CadFeature plain;
+    plain.type = CadFeatureType::Hole;
+    CadFeature rich = plain;
+    rich.hole_diameter = 8;
+    std::ostringstream a, b;
+    { cereal::BinaryOutputArchive x(a); cad_save_feature(x, plain); }
+    { cereal::BinaryOutputArchive x(b); cad_save_feature(x, rich); }
+    CHECK(a.str().size() < b.str().size());
+    CHECK(a.str().size() < 64);   // a default feature is its header only
+}
+
+TEST_CASE("an unknown or short v7 group does not cost the groups after it", "[CadDocument][recipe]")
+{
+    std::ostringstream o;
+    {
+        cereal::BinaryOutputArchive ar(o);
+        ar(CadFeatureType::SmRefold, std::string("r"), true);
+        ar(uint16_t(3));
+        const std::string junk(5, 'x');
+        ar(uint16_t(9999), uint32_t(junk.size()));                       // a group from a newer build
+        ar(cereal::binary_data(junk.data(), junk.size()));
+        std::ostringstream ex;                                            // Extrude, ending after its first field
+        { cereal::BinaryOutputArchive e(ex); e(int(5)); }
+        const std::string eb = ex.str();
+        ar(uint16_t(GroupExtrude), uint32_t(eb.size()));
+        ar(cereal::binary_data(eb.data(), eb.size()));
+        CadFeature sm;
+        sm.sm_ref = 2; sm.sm_k = 0.3;
+        const std::string sb = cad_group_bytes(GroupSheetMetal, sm);
+        ar(uint16_t(GroupSheetMetal), uint32_t(sb.size()));
+        ar(cereal::binary_data(sb.data(), sb.size()));
+    }
+    CadFeature g;
+    std::istringstream is(o.str());
+    cereal::BinaryInputArchive a(is);
+    cad_load_feature(a, g);
+    CHECK(g.type == CadFeatureType::SmRefold);
+    CHECK(g.sketch_ref == 5);               // the short group kept what it had
+    CHECK(g.distance == Catch::Approx(10)); // and defaulted the rest
+    CHECK(g.sm_ref == 2);                   // the group after it survived
+    CHECK(g.sm_k == Catch::Approx(0.3));
+}
+
+TEST_CASE("the index remap covers every feature reference, sm_ref included", "[CadDocument][recipe]")
+{
+    CadFeature f;
+    f.sketch_ref = 1; f.sweep_path_ref = 2; f.pattern_curve_sketch = 3; f.rib_sketch_ref = 4; f.project_source_sketch = 5;
+    f.mate_cs_a = 6; f.mate_cs_b = 7; f.sm_ref = 8; f.loft_profile_refs = {9, 10}; f.pattern_features = {11};
+    std::vector<int> seen;
+    auto note = [&](int& r) { seen.push_back(r); };
+    CadRefVisitor<decltype(note)> rv{note};
+    cad_fields_of_all_groups(rv, f);
+    for (int i = 1; i <= 11; ++i)
+        CHECK(std::count(seen.begin(), seen.end(), i) == 1);
 }
 
 TEST_CASE("a v3 recipe is refused with a message naming the version", "[CadDocument][recipe]")

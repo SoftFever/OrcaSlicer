@@ -126,6 +126,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include <cstdlib>
 #include <ratio>
+#include "libslic3r/CAD/CadFeatureFields.hpp"
 #include <GeomAbs_JoinType.hxx>
 #include <BRepOffset_Mode.hxx>
 
@@ -2487,18 +2488,9 @@ static bool commit_or_rollback(CadDocument& doc, std::vector<CadFeature>& snapsh
 template<class Visit>
 static void for_each_feature_ref(CadFeature& f, Visit&& visit)
 {
-    visit(f.sketch_ref);
-    visit(f.sweep_path_ref);
-    visit(f.pattern_curve_sketch);
-    visit(f.rib_sketch_ref);
-    visit(f.project_source_sketch);
-    visit(f.mate_cs_a);
-    visit(f.mate_cs_b);
-    visit(f.sm_ref);
-    for (int& r : f.loft_profile_refs)
-        visit(r);
-    for (int& r : f.pattern_features)
-        visit(r);
+    // The list of ref fields lives with the recipe's field groups (CadFeatureFields.hpp): v.ref() there.
+    CadRefVisitor<Visit> rv{visit};
+    cad_fields_of_all_groups(rv, f);
 }
 
 int CadDocument::paste_features(const std::vector<std::pair<int, CadFeature>>& items)
@@ -4989,7 +4981,7 @@ bool CadDocument::recompute()
         fp = fnv_chain(fp, &auto_close_loops, sizeof auto_close_loops);
         std::map<uint64_t, std::vector<CadBody>> seen_now;
         auto own_hash = [](const CadFeature& f) {
-            std::ostringstream o; { cereal::BinaryOutputArchive a(o); a(f); }
+            std::ostringstream o; { cereal::BinaryOutputArchive a(o); cad_save_feature(a, f); }
             const std::string s = o.str();
             return fnv_chain(1469598103934665603ull, s.data(), s.size());
         };
@@ -5435,7 +5427,7 @@ std::string CadDocument::serialize_recipe() const
             std::ostringstream fos;
             {
                 cereal::BinaryOutputArchive fa(fos);
-                fa(f);
+                cad_save_feature(fa, f);
             }
             std::string fb = fos.str();
             uint32_t len = static_cast<uint32_t>(fb.size());
@@ -5520,12 +5512,12 @@ bool CadDocument::deserialize_recipe(const std::string& blob)
                            v, ORCA_CAD_RECIPE_VERSION);
             return false;
         }
-        // The framed layout has been byte-identical since v5 (v6 advanced the stamp without
-        // touching the bytes), so every version from 5 up is read below. A future bump that DOES
-        // change the framing must exclude itself there — this is what forces that decision
-        // instead of letting a v7 blob be silently misread by the v5 reader.
-        static_assert(ORCA_CAD_RECIPE_VERSION <= 6,
-                      "recipe version bumped: confirm the new version still uses the v5 framing");
+        // The OUTER framing has been byte-identical since v5 (v6 advanced the stamp without touching
+        // the bytes; v7 changed only what is inside each feature's length-prefixed stream: field groups
+        // instead of one positional list), so every version from 5 up is read below. A future bump that
+        // changes the outer framing must exclude itself there.
+        static_assert(ORCA_CAD_RECIPE_VERSION <= 7,
+                      "recipe version bumped: confirm the new version still uses the v5 outer framing");
         if (v >= 5) {
             // Framed path: every feature is a length-prefixed self-contained cereal stream, so
             // the same four lines handle BOTH directions of mismatch. Older file, newer build:
@@ -5547,7 +5539,8 @@ bool CadDocument::deserialize_recipe(const std::string& blob)
                 try {
                     std::istringstream fs(buf);
                     cereal::BinaryInputArchive fa(fs);
-                    fa(f);
+                    if (v >= 7) cad_load_feature(fa, f);
+                    else        fa(f);   // v5/v6: the old positional list, CadFeature::load
                 } catch (...) {
                     // An OLDER file: the blob ran out before this build's field list did. Everything read
                     // so far is kept and the remaining fields stay at their defaults. Deliberately NOT an
