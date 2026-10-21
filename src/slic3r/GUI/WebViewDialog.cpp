@@ -84,7 +84,7 @@ static json home_page_strings()
         {"recently_opened", _u8L("Recently opened")},
         {"clear_all", _u8L("Clear all")},
         {"remove", _u8L("Remove")},
-        {"open_containing_folder", _u8L("Open Containing Folder")},
+        {"show_in_folder", _u8L("Show in folder")},
     };
 }
 

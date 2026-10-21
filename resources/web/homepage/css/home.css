@@ -864,6 +864,7 @@ body.cloud-mode #LeftBoard
 
 .FileItem:hover .FileActions {
 	display: flex;
+ 	min-height: 40px;
 	justify-content: space-between;
 }
 
