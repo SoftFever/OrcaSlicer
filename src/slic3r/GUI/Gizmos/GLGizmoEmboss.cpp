@@ -2607,7 +2607,7 @@ bool GLGizmoEmboss::rev_input(const std::string &name, T &value, const T *defaul
         ImGui::SetNextItemWidth(width);
         bool changed = imgui_input(("##" + name).c_str(),
             &value, step, step_fast, format, flags);
-        m_imgui->request_frames_while_held(); // ORC auto-repeat of the +/- buttons
+        m_imgui->request_frames_while_held(); // ORCA auto-repeat of the +/- buttons
         return changed;
     };
     return revertible(name, value, default_value, undo_tooltip, 

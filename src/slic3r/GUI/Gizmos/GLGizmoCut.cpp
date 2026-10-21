@@ -2765,7 +2765,7 @@ void GLGizmoCut3D::render_groove_int_input(const std::string& label, int& in_val
     int val = in_val;
     if (ImGui::InputInt("##int_input", &val, 1, 5)) {
         val = std::clamp(val, min_val, max_val);
-        // ORCA Holding a +/- button at the limit steps past it and gets clamped back, don't rebuild for that.
+        // ORCA Holding +/- at the limit clamps back to the same value, don't rebuild for that.
         if (val != in_val) {
             in_val     = val;
             is_changed = true;

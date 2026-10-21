@@ -68,7 +68,7 @@ class ImGuiWrapper
     unsigned m_mouse_buttons{ 0 };
     bool m_disabled{ false };
     bool m_new_frame_open{ false };
-    // Start of the previous ImGui frame, to feed ImGui the real frame time (see new_frame()).
+    // ORCA Start of the previous frame, see new_frame().
     std::chrono::steady_clock::time_point m_last_frame_time{};
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     bool m_requires_extra_frame{ false };
@@ -340,9 +340,8 @@ public:
     bool requires_extra_frame() const { return m_requires_extra_frame; }
     void set_requires_extra_frame() { m_requires_extra_frame = true; }
     void reset_requires_extra_frame() { m_requires_extra_frame = false; }
-    // ORCA Call right after a widget with repeating buttons (the +/- of InputInt, InputFloat, InputDouble)
-    // ImGui repeats a held button only on new frames, but the canvas renders on events, so keep frames
-    // coming while the widget is held with the left button. Stops on the first frame it is released.
+    // ORCA Call right after a widget with +/- buttons. ImGui repeats a held button only on new frames and the
+    // canvas renders on events only, so keep frames coming while the widget is held.
     void request_frames_while_held()
     {
         if (ImGui::IsItemActive() && ImGui::IsMouseDown(ImGuiMouseButton_Left))
