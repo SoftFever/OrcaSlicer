@@ -8740,18 +8740,31 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                          "blending.")) +
                                          "\n\n" + _u8L("Click to change what kind of layer this is."));
                 if (ImGui::BeginPopup("layer_kind")) {
-                    const auto kind = [&](const wxString &title, const std::string &what, bool current) {
-                        const bool picked = ImGui::Selectable(("##" + into_u8(title)).c_str(), current, 0,
-                                                              ImVec2(0.f, 2.f * ImGui::GetTextLineHeight() + 4.f));
+                    // Both lines are drawn by hand, so the item has to be told how wide they are:
+                    // nothing an item draws itself contributes to the width a popup sizes itself by,
+                    // and a selectable of width 0 asks for whatever is left of a popup that is still
+                    // deciding. It came out a few characters wide with the text running out of it.
+                    const std::string relief_title = _u8L("Relief layer");
+                    const std::string relief_what  = _u8L("A height map pushed into the surface.");
+                    const std::string chroma_title = _u8L("ChromaStack picture");
+                    const std::string chroma_what  = _u8L("A color picture made of filament swaps.");
+                    float menu_w = 0.f;
+                    for (const std::string *text : { &relief_title, &relief_what, &chroma_title, &chroma_what })
+                        menu_w = std::max(menu_w, ImGui::CalcTextSize(text->c_str()).x);
+                    menu_w += 2.f * style.FramePadding.x;
+
+                    const auto kind = [&](const std::string &title, const std::string &what, bool current) {
+                        const bool picked = ImGui::Selectable(("##" + title).c_str(), current, 0,
+                                                              ImVec2(menu_w, 2.f * ImGui::GetTextLineHeight() + 4.f));
                         const ImVec2 mn = ImGui::GetItemRectMin();
-                        dl->AddText(ImVec2(mn.x, mn.y + 2.f), ImGui::GetColorU32(ImGuiCol_Text), title.ToUTF8().data());
+                        dl->AddText(ImVec2(mn.x, mn.y + 2.f), ImGui::GetColorU32(ImGuiCol_Text), title.c_str());
                         dl->AddText(ImVec2(mn.x, mn.y + 2.f + ImGui::GetTextLineHeight()),
                                     ImGui::GetColorU32(ImGuiCol_TextDisabled), what.c_str());
                         return picked;
                     };
-                    if (kind(_L("Relief layer"), _u8L("A height map pushed into the surface."), !chroma_card))
+                    if (kind(relief_title, relief_what, !chroma_card))
                         convert_slot = layer.slot, convert_to_chroma = false;
-                    if (kind(_L("ChromaStack picture"), _u8L("A color picture made of filament swaps."), chroma_card))
+                    if (kind(chroma_title, chroma_what, chroma_card))
                         convert_slot = layer.slot, convert_to_chroma = true;
                     ImGui::EndPopup();
                 }
@@ -9404,19 +9417,30 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         // The kind is chosen here because it is a property of the layer, not of the panel: the two
         // cards carry different controls and a card never shows one that does not apply to it.
         if (ImGui::BeginPopup("add_layer_kind")) {
-            const auto kind = [&](const wxString &title, const std::string &what) {
-                const bool picked = ImGui::Selectable(("##" + into_u8(title)).c_str(), false, 0,
-                                                      ImVec2(0.f, 2.f * ImGui::GetTextLineHeight() + 4.f));
+            // The width has to be worked out from the text, for the reason the layer kind's own menu
+            // carries: hand-drawn lines are invisible to a popup's auto-size.
+            const std::string relief_title = _u8L("Relief layer");
+            const std::string relief_what  = _u8L("A height map pushed into the surface. Tiles, depth, blending.");
+            const std::string chroma_title = _u8L("ChromaStack picture");
+            const std::string chroma_what  = _u8L("A color picture made of filament swaps. One copy, flat face.");
+            float menu_w = 0.f;
+            for (const std::string *text : { &relief_title, &relief_what, &chroma_title, &chroma_what })
+                menu_w = std::max(menu_w, ImGui::CalcTextSize(text->c_str()).x);
+            menu_w += 2.f * ImGui::GetStyle().FramePadding.x;
+
+            const auto kind = [&](const std::string &title, const std::string &what) {
+                const bool picked = ImGui::Selectable(("##" + title).c_str(), false, 0,
+                                                      ImVec2(menu_w, 2.f * ImGui::GetTextLineHeight() + 4.f));
                 const ImVec2 mn = ImGui::GetItemRectMin();
                 ImDrawList  *dl = ImGui::GetWindowDrawList();
-                dl->AddText(ImVec2(mn.x, mn.y + 2.f), ImGui::GetColorU32(ImGuiCol_Text), title.ToUTF8().data());
+                dl->AddText(ImVec2(mn.x, mn.y + 2.f), ImGui::GetColorU32(ImGuiCol_Text), title.c_str());
                 dl->AddText(ImVec2(mn.x, mn.y + 2.f + ImGui::GetTextLineHeight()),
                             ImGui::GetColorU32(ImGuiCol_TextDisabled), what.c_str());
                 return picked;
             };
-            if (kind(_L("Relief layer"), _u8L("A height map pushed into the surface. Tiles, depth, blending.")))
+            if (kind(relief_title, relief_what))
                 add_texture_layer(false);
-            if (kind(_L("ChromaStack picture"), _u8L("A color picture made of filament swaps. One copy, flat face.")))
+            if (kind(chroma_title, chroma_what))
                 add_texture_layer(true);
             ImGui::EndPopup();
         }
