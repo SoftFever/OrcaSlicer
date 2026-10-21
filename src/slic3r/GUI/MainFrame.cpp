@@ -154,7 +154,6 @@
 #include <wx/display.h>
 #include <wx/window.h>
 
-
 using json = nlohmann::json;
 
 namespace Slic3r {

@@ -41,7 +41,6 @@
 #include "LazyPage.hpp"
 #include "IdleScheduler.hpp"
 
-
 #include <boost/property_tree/ptree_fwd.hpp>
 
 // BBS
@@ -142,6 +141,13 @@ enum class CalibKind : int
     InputShapingDamp,
     VFA
 };
+
+static_assert(static_cast<int>(CalibKind::Temperature) == 0 && static_cast<int>(CalibKind::MaxVolumetric) == 1 &&
+                  static_cast<int>(CalibKind::PressureAdvance) == 2 && static_cast<int>(CalibKind::FlowRatio) == 3 &&
+                  static_cast<int>(CalibKind::Retraction) == 4 && static_cast<int>(CalibKind::Cornering) == 5 &&
+                  static_cast<int>(CalibKind::InputShapingFreq) == 6 && static_cast<int>(CalibKind::InputShapingDamp) == 7 &&
+                  static_cast<int>(CalibKind::VFA) == 8,
+              "CalibKind ordinals are sent from the home page, so they cannot be renumbered.");
 
 class MainFrame : public DPIFrame
 {
@@ -467,12 +473,10 @@ public:
 
     void        technology_changed();
 
-    // Opens the calibration wizard for `kind`. 
-    // Single source of truth for the wizard lifecycle:
-    // - the Calibration menu handlers, the Speed Dial native commands and the homepage tile all call this. 
-    // - Most wizards are cached members;
-    // - cornering/input-shaping are transient. 
-    // - Switches to the "Prepare (3D) panel" itself when needed, since the wizards drive the canvas. UI thread only.
+    // Opens the calibration wizard for `kind`. Single source of truth for the wizard lifecycle:
+    // the Calibration menu handlers, the Speed Dial native commands and the homepage tile all call
+    // this. Most wizards are cached members; cornering/input-shaping are transient. Switches to the
+    // Prepare (3D) panel itself when needed, since the wizards drive the canvas. UI thread only.
     void        run_calibration(CalibKind calib_kind);
 
     //BBS

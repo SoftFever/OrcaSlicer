@@ -5485,14 +5485,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_calibration_test") == 0) {
                 boost::optional<std::string> kind = root.get_optional<std::string>("data.kind");
-                if (kind.has_value() && kind->empty() == false) {
-                    int idx = -1;
-                    try {
-                        idx = boost::lexical_cast<int>(kind.value());
-                    } catch (const boost::bad_lexical_cast &) {
-                    }
-                    if (idx >= static_cast<int>(CalibKind::Temperature) &&
-                        idx <= static_cast<int>(CalibKind::VFA)) {
+
+                if (kind.has_value() && kind->size() == 1 && (*kind)[0] >= '0' && (*kind)[0] <= '9') {
+                    const int idx = (*kind)[0] - '0';
+
+                    if (idx >= static_cast<int>(CalibKind::Temperature) && idx <= static_cast<int>(CalibKind::VFA)) {
                         if (mainframe)
                             CallAfter([this, idx] { mainframe->run_calibration(static_cast<CalibKind>(idx)); });
                     }

@@ -106,6 +106,12 @@ body
 	color: #A8A8A8;
 }
 
+.CaliItemTag
+{
+	border-color: #4A4A50;
+	color: #A8A8A8;
+}
+
 .CaliGroupHeaderSep,
 .CaliMenuFooter
 {

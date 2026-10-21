@@ -85,43 +85,46 @@ static json home_page_strings()
         {"clear_all", _u8L("Clear all")},
         {"remove", _u8L("Remove")},
         {"open_containing_folder", _u8L("Open Containing Folder")},
-        // The calibration list on the left nav: a tile that opens a list of calibration tests,
-        // grouped into those that describe the printer and those that describe a filament.
         {"new_calibration", _u8L("New Calibration")},
         {"tune_your_printer", _u8L("Tune your printer")},
         {"recommended_test_order", _u8L("Recommended Test Order")},
         {"per_printer", _u8L("Per printer")},
         {"per_filament", _u8L("Per filament")},
-        // TRN Label in front of the symptom that means a calibration test is worth running.
         {"when_label", _u8L("When:")},
+        {"order_label", _u8L("Order:")},
+        {"cali_temperature_order", _u8L("First test for a new filament.")},
+        {"cali_max_volumetric_speed_order", _u8L("After temperature.")},
+        {"cali_max_volumetric_speed_order_2", _u8L("Before changing flow speed.")},
+        {"cali_pressure_advance_order", _u8L("After temperature, before flow ratio.")},
+        {"cali_flow_ratio_order", _u8L("After pressure advance.")},
+        {"cali_retraction_order", _u8L("After pressure advance and flow ratio.")},
+        {"cali_cornering_order", _u8L("First of the advanced tests, after the filament tests.")},
+        {"cali_input_shaping_frequency_order", _u8L("After the filament tests.")},
+        {"cali_input_shaping_damping_order", _u8L("After the frequency is set.")},
+        {"cali_vfa_order", _u8L("After input shaping.")},
         {"calibration_guide", _u8L("Calibration guide")},
+        {"tag_optional", _u8L("Optional")},
+        {"tag_advanced", _u8L("Advanced")},
         {"cali_cornering", _u8L("Cornering")},
-        {"cali_cornering_desc", _u8L("Measures speed lost at sharp direction changes.")},
-        {"cali_cornering_when", _u8L("corners look rounded or wavy")},
+        {"cali_cornering_when", _u8L("Corners look rounded or wavy.")},
+        {"cali_cornering_when_2", _u8L("You want to push print speed.")},
         {"cali_input_shaping_frequency", _u8L("Input shaping frequency")},
-        {"cali_input_shaping_frequency_desc", _u8L("Finds the machine's resonant frequency so input shaping can cancel ringing.")},
-        {"cali_input_shaping_frequency_when", _u8L("once per printer")},
+        {"cali_input_shaping_frequency_when", _u8L("Once per printer")},
         {"cali_input_shaping_damping", _u8L("Input shaping damping")},
-        {"cali_input_shaping_damping_desc", _u8L("Tunes how hard that ringing gets cancelled.")},
-        {"cali_input_shaping_damping_when", _u8L("after the frequency is set")},
+        {"cali_input_shaping_damping_when", _u8L("Ringing is still visible in prints")},
+        {"when_use_auto_input_shaping", _u8L("Use automatic input shaping instead if your printer supports it.")},
         {"cali_vfa", _u8L("VFA")},
-        {"cali_vfa_desc", _u8L("Measures vertical fine artifacts left by high-speed moves.")},
-        {"cali_vfa_when", _u8L("fast prints look rough on the surface")},
+        {"cali_vfa_when", _u8L("Fast prints look rough on the surface")},
         {"cali_temperature", _u8L("Temperature")},
-        {"cali_temperature_desc", _u8L("Finds the best nozzle temperature for this filament.")},
-        {"cali_temperature_when", _u8L("corners blob or detail is stringy")},
+        {"cali_temperature_when", _u8L("Corners blob or detail is stringy")},
         {"cali_max_volumetric_speed", _u8L("Max volumetric speed")},
-        {"cali_max_volumetric_speed_desc", _u8L("Finds the fastest the hotend can melt without starving.")},
-        {"cali_max_volumetric_speed_when", _u8L("before raising speed limits")},
+        {"cali_max_volumetric_speed_when", _u8L("Parts are under-extruded or the nozzle clogs")},
         {"cali_pressure_advance", _u8L("Pressure advance")},
-        {"cali_pressure_advance_desc", _u8L("Tunes how far the nozzle moves ahead of its own pressure.")},
-        {"cali_pressure_advance_when", _u8L("after changing extruder, filament or temps")},
+        {"cali_pressure_advance_when", _u8L("Changed extruder, filament or temps")},
         {"cali_flow_ratio", _u8L("Flow ratio")},
-        {"cali_flow_ratio_desc", _u8L("Measures how much material really lands on the build plate.")},
-        {"cali_flow_ratio_when", _u8L("for thin or inconsistent extrusion")},
+        {"cali_flow_ratio_when", _u8L("Thin or inconsistent extrusion")},
         {"cali_retraction", _u8L("Retraction")},
-        {"cali_retraction_desc", _u8L("Finds the shortest retraction that still stops ooze during travel.")},
-        {"cali_retraction_when", _u8L("stringing issues")},
+        {"cali_retraction_when", _u8L("Stringing issues")},
     };
 }
 
@@ -140,7 +143,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
         m_home_url += "?lang=" + strlang;
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
-    
+
 #if !BBL_RELEASE_TO_PUBLIC
     // Create the button
     bSizer_toolbar = new wxBoxSizer(wxHORIZONTAL);
@@ -318,13 +321,13 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     m_LoginUpdateTimer = nullptr;
     update_mode();
- }
+}
 
 WebViewPanel::~WebViewPanel()
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " Start";
     SetEvtHandlerEnabled(false);
-    
+
     delete m_tools_menu;
 
     if (m_LoginUpdateTimer != nullptr) {
@@ -334,7 +337,6 @@ WebViewPanel::~WebViewPanel()
     }
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " End";
 }
-
 
 void WebViewPanel::create_browser()
 {

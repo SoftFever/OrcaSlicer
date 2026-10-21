@@ -617,6 +617,8 @@ body.cloud-mode #LeftBoard
 	border: 0px;
 	min-width: 420px;
 	max-width: 460px;
+	max-height: calc(100vh - 60px);
+	overflow-y: auto;
 	border: 1px solid #D7D7D7;
 	border-radius: 8px;
 	color: #323A3D;
@@ -689,20 +691,54 @@ body.cloud-mode #LeftBoard
 	font-weight: 700;
 }
 
-.CaliItemDesc
+.CaliItemTag
 {
+	display: inline-block;
+	margin-left: 4px;
+	padding: 0px 6px;
+	border: 1px solid #D7D7D7;
+	border-radius: 8px;
+	color: #737373;
+	font-size: 11px;
+	font-weight: 400;
+	line-height: 16px;
+	vertical-align: 1px;
+}
+
+.CaliItemWhen,
+.CaliItemOrder
+{
+	display: flex;
+	margin-top: 2px;
 	color: #A8A8A8;
 	line-height: 16px;
 }
 
-.CaliItemWhen
+.CaliWhenText,
+.CaliWhenList
 {
-	color: #A8A8A8;
-	line-height: 16px;
+	flex: 1;
 }
 
-.CaliWhenLabel
+.CaliWhenItem
 {
+	display: block;
+	position: relative;
+	padding-left: 10px;
+}
+
+.CaliWhenItem::before
+{
+	content: "•";
+	position: absolute;
+	left: 0;
+}
+
+.CaliWhenLabel,
+.CaliOrderLabel
+{
+	flex: none;
+	margin-right: 4px;
 	color: #A8A8A8;
 	font-weight: 700;
 }

@@ -1,10 +1,32 @@
-// Homepage calibration button: opens a list of test options grouped by printer vs filament.
-// Loaded after home.js; depends on SendWXMessage and OpenUrlInLocalBrowser from ../include/globalapi.js.
-
 function CloseCalibrationMenu()
 {
 	$('#cali_context_menu').hide();
+	$('#cali_menu_trigger').attr('aria-expanded', 'false');
 }
+
+function Set_CalibrationMenu_Event()
+{
+	$(document).off("keydown.calibrationMenu").on("keydown.calibrationMenu", function(e) {
+		if (e.key === "Escape") {
+			if ($('#cali_context_menu').is(':visible')) {
+				CloseCalibrationMenu();
+				$('#cali_menu_trigger').trigger('focus');
+			}
+			return;
+		}
+
+		if (e.key !== "Enter" && e.key !== " ")
+			return;
+
+		let target = $(e.target);
+		if (target.is('#cali_menu_trigger, #cali_context_menu [role="menuitem"]')) {
+			e.preventDefault();
+			target.trigger('click');
+		}
+	});
+}
+
+$(Set_CalibrationMenu_Event);
 
 function OnClickCalibration()
 {
@@ -26,6 +48,7 @@ function ShowCalibrationMenu()
 	let DocumentHeight = $(document).height();
 
 	let Trigger = $('#cali_menu_trigger');
+	Trigger.attr('aria-expanded', 'true');
 	let RealX = Trigger.offset().left;
 	let RealY = Trigger.offset().top + Trigger.height() + 4;
 
