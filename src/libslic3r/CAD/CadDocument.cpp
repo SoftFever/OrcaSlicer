@@ -4747,8 +4747,14 @@ void CadDocument::bind_expressions()
     for (CadFeature& f : features) {
         bool dims = false;
         for (const auto& [field, e] : f.expr) {
-            assign_field(f, field, eval_expr(e, varvals));
-            dims = dims || field.rfind("dim:", 0) == 0;
+            const double v = eval_expr(e, varvals);
+            if (field.rfind("dim:", 0) == 0) {
+                // Only a dimension whose value MOVED needs the sketch solved again: the entities already satisfy the others, and a solve
+                // per sketch on every rebuild was a third of a cache-restored recompute.
+                const int k = std::atoi(field.c_str() + 4);
+                dims = dims || k < 0 || k >= int(f.entity_constraints.size()) || f.entity_constraints[size_t(k)].value != v;
+            }
+            assign_field(f, field, v);
         }
         if (dims) {   // new dimension values: solve the sketch from where it is
             std::vector<SketchEntity> ents = f.entities;
@@ -4944,11 +4950,17 @@ bool CadDocument::recompute()
 {
     // Where a rebuild spends its time beyond the features themselves: logged when it took 20 ms or more.
     struct Prof {
-        std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+        using clock = std::chrono::steady_clock;
+        clock::time_point t0 = clock::now();
         double remap_ms = 0; int remaps = 0;
+        double bind_ms = 0, hash_ms = 0, cache_ms = 0, loop_ms = 0;
+        static double since(clock::time_point t) { return std::chrono::duration<double, std::milli>(clock::now() - t).count(); }
         ~Prof() {
-            const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
-            if (ms >= 20) BOOST_LOG_TRIVIAL(info) << "CadDocument::recompute " << int(ms) << " ms (following face/edge ids: " << int(remap_ms) << " ms in " << remaps << " features)";
+            const double ms = since(t0);
+            if (ms >= 20)
+                BOOST_LOG_TRIVIAL(info) << "CadDocument::recompute " << ms << " ms: bind " << bind_ms << ", hashing " << hash_ms << ", cache " << cache_ms
+                                        << ", loop " << loop_ms << ", after the loop " << (ms - loop_ms - bind_ms) << ", following face/edge ids " << remap_ms
+                                        << " in " << remaps << " features";
         }
     } prof;
     m_bar = -1;
@@ -4971,7 +4983,8 @@ bool CadDocument::recompute()
     error_feature = -1;
     size_t replaying = 0;
     try {
-        bind_expressions();
+        { const auto tb = Prof::clock::now(); bind_expressions(); prof.bind_ms = Prof::since(tb); }
+        const auto t_loop = Prof::clock::now();
         replay_stats = ReplayStats{};
         replay_stats.feature_ms.assign(features.size(), 0.0);
         if (!m_replay_cache) m_replay_cache = std::make_shared<ReplayCache>();
@@ -4980,10 +4993,13 @@ bool CadDocument::recompute()
         fp = fnv_chain(fp, modeling_origin.data(), 3 * sizeof(double));
         fp = fnv_chain(fp, &auto_close_loops, sizeof auto_close_loops);
         std::map<uint64_t, std::vector<CadBody>> seen_now;
-        auto own_hash = [](const CadFeature& f) {
+        auto own_hash = [&prof](const CadFeature& f) {
+            const auto th = Prof::clock::now();
             std::ostringstream o; { cereal::BinaryOutputArchive a(o); cad_save_feature(a, f); }
             const std::string s = o.str();
-            return fnv_chain(1469598103934665603ull, s.data(), s.size());
+            const uint64_t h = fnv_chain(1469598103934665603ull, s.data(), s.size());
+            prof.hash_ms += Prof::since(th);
+            return h;
         };
         // A sketch drawn on a face follows that face: find where the face went, and move the sketch plane onto it.
         auto attach_update = [&](size_t fi) {
@@ -5051,19 +5067,23 @@ bool CadDocument::recompute()
             if (solid_feature) before = built;   // what this feature is about to see, recorded under the feature as it ends up
             auto note = [&]() { if (solid_feature) seen_now[own_hash(features[fi])] = std::move(before); };
             {   // chain: this feature's bytes (fields already bound to the variables) on top of everything before it
+                const auto th = Prof::clock::now();
                 std::ostringstream fos;
                 { cereal::BinaryOutputArchive fa(fos); fa(features[fi]); }
                 const std::string fb = fos.str();
                 fp = fnv_chain(fp, fb.data(), fb.size());
+                prof.hash_ms += Prof::since(th);
             }
             if (replay_is_trivial(features[fi])) { replay_feature(fi, built); continue; }
             ReplayCache::Entry hit;
+            const auto tc = Prof::clock::now();
             if (m_replay_cache->get(fp, hit)) {
                 built = std::move(hit.built);
                 features[fi] = std::move(hit.after);
                 for (const std::string& w : hit.warnings) feature_warnings.emplace_back(int(fi), w);
                 ++replay_stats.restored;
                 note();
+                prof.cache_ms += Prof::since(tc);
                 continue;
             }
             const size_t nw = feature_warnings.size();
@@ -5077,6 +5097,7 @@ bool CadDocument::recompute()
             note();
         }
         if (incremental) m_seen_by_feature = std::move(seen_now);
+        prof.loop_ms = Prof::since(t_loop);
     } catch (const std::exception& e) {
         error_feature = int(replaying);
         error = *e.what() ? e.what() : _u8L("OCCT operation failed");
