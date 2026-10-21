@@ -301,6 +301,67 @@ TEST_CASE("Plugin audit denies secret/certificate/config-like paths by keyword",
     }
 }
 
+TEST_CASE("Plugin audit checks denied keywords below data_dir, not in the directories above it", "[PluginAudit]")
+{
+    // Flatpak keeps the app's data folder under <home>/.var/app/<app-id>/config/OrcaSlicer, so
+    // data_dir() itself has a "config" component. That ancestor describes the sandbox's layout,
+    // not what the folder holds, and must not hard-deny every path inside it.
+    ScopedDataDir data_dir_guard("plugin-audit-data-dir-keyword");
+    const fs::path flatpak_data_dir = data_dir_guard.dir / "config" / "OrcaSlicer";
+    set_data_dir(flatpak_data_dir.string());
+
+    seed_denied_names();
+    seed_denied_keywords();
+
+    PluginAuditManager& mgr = PluginAuditManager::instance();
+    // Reproduce install_hook()'s grant: data_dir() is a global allowed root.
+    mgr.add_global_allowed_root(data_dir());
+
+    ScopedPluginAuditContext ctx("test_plugin", "");
+
+    SECTION("the root and the paths below it that carry no keyword are allowed")
+    {
+        CHECK_FALSE(mgr.is_denied_path_keyword(flatpak_data_dir / "orca_plugins" / "state.json"));
+        CHECK(mgr.check_open(data_dir(), "r").allowed);
+        CHECK(mgr.check_open((flatpak_data_dir / "orca_plugins" / "test_plugin" / "state.json").string(), "r").allowed);
+        CHECK(mgr.check_open((flatpak_data_dir / "orca_plugins" / "test_plugin" / "state.json").string(), "w").allowed);
+        CHECK(mgr.check_open((flatpak_data_dir / "system" / "profiles" / "vendor.json").string(), "r").allowed);
+    }
+
+    SECTION("a 'secrets' component below data_dir() is still denied")
+    {
+        AuditDecision decision = mgr.check_open((flatpak_data_dir / "secrets" / "token.json").string(), "r");
+        CHECK_FALSE(decision.allowed);
+        CHECK(decision.reason == "denied path keyword");
+    }
+
+    SECTION("a 'config' component below data_dir() is still denied")
+    {
+        AuditDecision decision = mgr.check_open((flatpak_data_dir / "config" / "settings.json").string(), "r");
+        CHECK_FALSE(decision.allowed);
+        CHECK(decision.reason == "denied path keyword");
+    }
+
+    SECTION("the app config below data_dir() is still denied by name")
+    {
+        AuditDecision decision = mgr.check_open((flatpak_data_dir / (SLIC3R_APP_KEY ".conf")).string(), "r");
+        CHECK_FALSE(decision.allowed);
+        CHECK(decision.reason == "denied filename");
+    }
+
+    SECTION("an unrelated resources root keeps the full-path keyword check")
+    {
+        ScopedResourcesDir resources_dir_guard("plugin-audit-data-dir-keyword-resources");
+        mgr.add_global_allowed_root(resources_dir(), /*allow_write=*/false);
+
+        CHECK(mgr.check_open((fs::path(resources_dir()) / "profiles" / "vendor.json").string(), "r").allowed);
+
+        AuditDecision decision = mgr.check_open((fs::path(resources_dir()) / "cert" / "slicer_base64.cer").string(), "r");
+        CHECK_FALSE(decision.allowed);
+        CHECK(decision.reason == "denied path keyword");
+    }
+}
+
 TEST_CASE("Plugin audit is_denied_path combines the filename and keyword registries", "[audit]")
 {
     seed_denied_names();

@@ -411,6 +411,7 @@ public:
     const boost::optional<Semver>& last_config_version() const { return m_last_config_version; }
 
     // Reconcile the live printer agent with the stored preset selection.
+    // No-op until the main window exists; the startup preset load installs the agent then.
     void switch_printer_agent();
     // Install the selected preset's agent if it is registered but not live, e.g. when its plugin
     // finishes loading after the startup preset was applied. Otherwise leave the live agent alone.
