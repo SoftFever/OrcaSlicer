@@ -163,6 +163,7 @@ using json = nlohmann::json;
 #include <X11/Xlib.h>
 #endif
 #include <unistd.h>
+#include "slic3r/GUI/Widgets/WebView.hpp"
 #endif
 
 #ifdef SLIC3R_GUI
@@ -1125,6 +1126,19 @@ static void load_downward_settings_list_from_config(std::string config_file, std
     }
 }
 
+#ifdef __WXGTK__
+// Virtual GPUs (VirtualBox, VMware, QEMU) cannot back WebKit's hardware DMABUF renderer.
+static bool is_hypervisor_guest()
+{
+    std::ifstream cpuinfo("/proc/cpuinfo");
+    std::string line;
+    while (std::getline(cpuinfo, line))
+        if (boost::starts_with(line, "flags"))
+            return line.find(" hypervisor") != std::string::npos;
+    return false;
+}
+#endif
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -1156,14 +1170,27 @@ int CLI::run(int argc, char **argv)
     // opt-in path. The ~2020-era WebKit2GTK XWayland compositor bug it
     // worked around appears fixed in WebKit2GTK >= 2.42; leaving it
     // unset preserves WebKit hardware acceleration on Device / Setup
-    // Wizard / login / store. The default path still applies it on
-    // XWayland sessions as a conservative fallback for older WebKit.
+    // Wizard / login / store. The default path applies it only where it
+    // forces GDK_BACKEND=x11 below (a build without EGL, so the app really
+    // runs through XWayland), and only when the linked WebKitGTK predates
+    // the fix (< 2.42), as a conservative fallback for older WebKit.
     // ------------------------------------------------------------------
     {
         const char* gdk_backend = ::getenv("GDK_BACKEND");
         // Match "x11" and comma-prefixed forms like "x11,wayland" (GTK
         // honours the first backend in the comma-separated list).
         const bool x11_opt_in = gdk_backend && boost::starts_with(gdk_backend, "x11");
+
+        // NVIDIA's proprietary driver cannot back WebKitGTK's DMABUF renderer.
+        // Force the shared-memory transport, which keeps compositing and threaded
+        // scrolling; the second variable clears Debian/Ubuntu/openSUSE's isNVIDIA().
+        if (::access("/proc/driver/nvidia/version", F_OK) == 0 && WebView::SupportsForceSharedMemory()) {
+            ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /* replace */ false);
+            ::setenv("WEBKIT_FORCE_DMABUF_RENDERER", "1", /* replace */ false);
+        }
+
+        if (is_hypervisor_guest() && WebView::SupportsForceSharedMemory())
+            ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /* replace */ false);
 
         if (x11_opt_in) {
             // ===== X11 / XWayland (opted in via GDK_BACKEND=x11) =====
@@ -1204,22 +1231,17 @@ int CLI::run(int argc, char **argv)
                 if (wayland_env && *wayland_env) {
                     BOOST_LOG_TRIVIAL(warning) << "Wayland detected but wxWidgets has no EGL support (wxHAS_EGL is OFF). Forcing X11 backend.";
                     ::setenv("GDK_BACKEND", "x11", true);
+
+                    // GTK will use X11 in a Wayland session here, which is the
+                    // one default-path case that really runs through XWayland.
+                    // WebKit2GTK accelerated compositing could fail silently
+                    // there on releases before 2.42, so force it off. Disabling
+                    // it also turns off threaded scrolling, hence the gate.
+                    if (WebView::NeedsCompositingWorkaround())
+                        ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
                 }
             }
             #endif
-
-            // WebKit2GTK compositing can fail under XWayland on older
-            // WebKit releases. Disable it only when both DISPLAY and
-            // WAYLAND_DISPLAY are set (i.e. an XWayland session is in
-            // use). On pure X11 or native Wayland, compositing is left
-            // enabled so WebKit retains HW acceleration.
-            {
-                const char* display_env_wk = ::getenv("DISPLAY");
-                const char* wayland_env_wk = ::getenv("WAYLAND_DISPLAY");
-                if (display_env_wk && *display_env_wk && wayland_env_wk && *wayland_env_wk) {
-                    ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
-                }
-            }
 
             // XInitThreads is needed before GStreamer may use Xlib. On
             // native Wayland without DISPLAY, GStreamer uses waylandsink

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2026-07-20 13:33+0200\n"
 "Last-Translator: Manu Goiogana <mgoiogana@gmail.com>\n"
 "Language-Team: \n"
@@ -754,17 +754,21 @@ msgstr "Hautaketa"
 msgid "Plate"
 msgstr "Plaka"
 
+# AI Translated
+# Needs human review: Glossary has no Basque rendering; Banatu chosen (command that spaces objects evenly, counterpart of Lerrokatu).
 msgid "Distribute"
-msgstr ""
+msgstr "Banatu"
 
 msgid "Coordinate system used for transform actions."
 msgstr "Eraldatze-ekintzetan erabilitako koordenatu-sistema."
 
+# AI Translated
 msgid "Reference for alignment"
-msgstr ""
+msgstr "Lerrokatzeko erreferentzia"
 
+# AI Translated
 msgid "Select at least 3 parts or objects"
-msgstr ""
+msgstr "Hautatu gutxienez 3 pieza edo objektu"
 
 # AI Translated
 msgid "Align left"
@@ -821,8 +825,9 @@ msgstr "Banatu goi-behe norabidean"
 msgid "Drop"
 msgstr "Askatu"
 
+# AI Translated
 msgid "Move the selection along Z so that its lowest point touches the bed."
-msgstr ""
+msgstr "Mugitu hautapena Z ardatzean, bere punturik baxuenak ohea ukitu dezan."
 
 msgid "Absolute"
 msgstr "Absolutua"
@@ -1710,7 +1715,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "(%1%) formaren trazuak onartzen ez direnak ditu: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Egoera baliogabea; jakinarazi erreproduzitzeko urratsak GitHub-en"
 
 # AI Translated
@@ -1718,11 +1723,11 @@ msgid "No embossed file"
 msgstr "Ez dago erliebeko fitxategirik"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "SVG fitxategia falta da erliebeko forman"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "SVG fitxategiaren datuak falta dira"
 
 msgid "Face the camera"
@@ -2044,17 +2049,21 @@ msgstr "Muntaketa tresnan sartzen"
 msgid "Leaving Assembly gizmo"
 msgstr "Muntaketa tresnatik irteten"
 
+# AI Translated
 msgid "Parts of a cut object cannot be moved"
-msgstr ""
+msgstr "Ebakitako objektu baten piezak ezin dira mugitu"
 
+# AI Translated
 msgid "Aligning to the plate is available in X and Y only"
-msgstr ""
+msgstr "Plakarekin lerrokatzea X eta Y ardatzetan bakarrik dago erabilgarri"
 
+# AI Translated
 msgid "Turn off Auto-Drop for the selected objects to move them in Z"
-msgstr ""
+msgstr "Desgaitu hautatutako objektuen 'Automatikoki jaitsi' aukera, Z ardatzean mugitzeko"
 
+# AI Translated
 msgid "All selected objects must be on the same plate"
-msgstr ""
+msgstr "Hautatutako objektu guztiak plaka berean egon behar dute"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -4849,7 +4858,7 @@ msgstr "Mesedez, gorde proiektua eta berrabiarazi programa."
 msgid "Unknown C++ exception."
 msgstr "C++ salbuespen ezezaguna."
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "G-codea prozesatzen aurreko fitxategitik…"
 
 msgid "Slicing complete"
@@ -6373,8 +6382,10 @@ msgstr "Ardatzak"
 msgid "Gridlines"
 msgstr "Sareta-lerroak"
 
+# AI Translated
+# Needs human review: Glossary has no Basque rendering for Focus mode (hides the UI to concentrate on the 3D canvas); check the wording.
 msgid "Focus mode"
-msgstr ""
+msgstr "Kontzentrazio modua"
 
 msgid "Labels"
 msgstr "Etiketak"
@@ -6435,7 +6446,7 @@ msgstr "Bolumena:"
 msgid "Size:"
 msgstr "Tamaina:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "G-code ibilbideen gatazkak aurkitu dira %d geruzan, Z = %.2lf mm. Urrundu gehiago gatazkan dauden objektuak (%s <-> %s)."
 
@@ -10692,11 +10703,13 @@ msgstr "Erakutsi onartzen ez diren aurrezarpenak"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Erakutsi bateraezinak edo onartu gabeak diren aurrezarpenak inprimagailuaren eta filamentuaren goitibeherako zerrendetan. Aurrezarpen hauek ezin dira hautatu."
 
+# AI Translated
 msgid "Export statistics with G-code"
-msgstr ""
+msgstr "Esportatu estatistikak G-codearekin"
 
+# AI Translated
 msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Gaituta badago, G-code fitxategi bat esportatzean haren estatistikak ere JSON gisa idazten dira alboan, <name>.statistics.json izenarekin, eta esportatutako 3MF xerratu fitxategiak barruan gordetzen ditu: inprimatze-denbora, filamentuaren eta lerro-motaren araberako guztiak, eta gauza bera geruza bakoitzeko eta objektu bakoitzeko."
 
 msgid "Experimental Features"
 msgstr "Ezaugarri esperimentalak"
@@ -11540,6 +11553,10 @@ msgstr "Huts egin du fitxategia inprimagailuaren biltegira igotzean. Saiatu berr
 # AI Translated
 msgid "Send Failed"
 msgstr "Bidalketak huts egin du"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Ez dago inprimagailurik erabilgarri"
 
 msgid "The name length exceeds the limit."
 msgstr "Izenaren luzerak muga gainditzen du."
@@ -13358,8 +13375,8 @@ msgid "Left mouse"
 msgstr "Saguaren ezkerreko botoia"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Leihoko edozein tokitan erabilgarri, baita testu-eremu batean idazten ari zarenean ere."
+msgid "Available anywhere in the window."
+msgstr "Leihoko edozein lekutan erabilgarri."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13470,10 +13487,6 @@ msgstr "%s %s ekintzari esleituta dago. %s ekintzari berriro esleitu?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "%s lehenetsia %s ekintzari esleituta dago. %s ekintzari berriro esleitu?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Lasterbide globalak idazten ari zarenean ere aplikatzen dira."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -13915,9 +13928,10 @@ msgstr "\"%2%\" objektuaren \"%1%\" aldatzaileak (%3% guztira) ez du eraginik iz
 msgid "Seam placement may differ from expected."
 msgstr "Josturaren kokapena espero zena ez bezalakoa izan daiteke."
 
+# AI Translated
 #, boost-format
 msgid "Failed to write the G-code statistics to %1%."
-msgstr ""
+msgstr "Ezin izan dira G-codearen estatistikak idatzi hemen: %1%."
 
 msgid "Internal Bridge"
 msgstr "Barruko zubia"
@@ -17258,6 +17272,14 @@ msgstr "Baztertu objektuak"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Gaitu aukera hau G-codean EXCLUDE OBJECT komandoa gehitzeko."
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Ingeradaren tolerantzia"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "EXCLUDE_OBJECT_DEFINE-n idatzitako objektuaren ingeradak jatorrizko ingeradarekiko duen gehieneko desbideratzea. Balio handiagoek puntu gutxiago ematen dituzte, eta horrek objektu askoko G-codea aztertzean blokeatzen diren firmwareei laguntzen die. 0 balioak puntu guztiak mantentzen ditu."
+
 msgid "Verbose G-code"
 msgstr "G-code xehea"
 
@@ -20431,11 +20453,13 @@ msgstr "Irteerako direktorioa"
 msgid "This is the output directory for exported files."
 msgstr "Hau da esportatutako fitxategien irteerako direktorioa."
 
+# AI Translated
 msgid "Export statistics"
-msgstr ""
+msgstr "Esportatu estatistikak"
 
+# AI Translated
 msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Idatzi xerratutako plaka bakoitzaren estatistikak JSON gisa, plate_N.statistics.json izenarekin irteera-direktorioan bere G-codearen ondoan eta --export-3mf aukerak sortutako 3MFaren barruan: inprimatze-denbora, filamentuaren eta lerro-motaren araberako guztiak, eta gauza bera geruza bakoitzeko eta objektu bakoitzeko."
 
 msgid "Debug level"
 msgstr "Arazketa-maila"
@@ -22835,7 +22859,7 @@ msgstr "%s proba hasten..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "%s proba: IPa ebatzita = %s"
 
 # AI Translated
@@ -30144,1231 +30168,1651 @@ msgid_plural "The current filament list does not contain %s. Project filaments r
 msgstr[0] "Uneko filamentu-zerrendan ez dago %s. Filamentu nahasiak behar duen proiektuko filamentu bat automatikoki sortuko da deskonposatu ondoren."
 msgstr[1] "Uneko filamentu-zerrendan ez dago %s. Filamentu nahasiak behar dituen proiektuko filamentuak automatikoki sortuko dira deskonposatu ondoren."
 
+# AI Translated
 msgid "Color Picker"
-msgstr ""
+msgstr "Kolore-hautatzailea"
 
+# AI Translated
 msgid "Basic Colors"
-msgstr ""
+msgstr "Oinarrizko koloreak"
 
-msgid "Orca Palette"
-msgstr ""
-
+# AI Translated
 #. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
-msgid "RAL Classic"
-msgstr ""
+msgid "Orca Palette"
+msgstr "Orca paleta"
 
+# AI Translated
 #. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL klasikoa"
+
+# AI Translated
 msgid "Gradients"
-msgstr ""
+msgstr "Gradienteak"
 
+# AI Translated
+# Needs human review: Single solid color as opposed to a gradient (color picker tab); Uniformea chosen to avoid the solid-infill sense, check the wording.
+msgctxt "Color picker"
 msgid "Solid"
-msgstr ""
+msgstr "Uniformea"
 
+# AI Translated
 msgid "Gradient"
-msgstr ""
+msgstr "Gradientea"
 
+# AI Translated
 msgid "Gradient start"
-msgstr ""
+msgstr "Gradientearen hasiera"
 
+# AI Translated
 msgid "Gradient end"
-msgstr ""
+msgstr "Gradientearen amaiera"
 
+# AI Translated
 msgid "Gradient color"
-msgstr ""
+msgstr "Gradientearen kolorea"
 
+# AI Translated
 msgid "Add color"
-msgstr ""
+msgstr "Gehitu kolorea"
 
+# AI Translated
 msgid "Remove color"
-msgstr ""
+msgstr "Kendu kolorea"
 
+# AI Translated
 msgid "Saturation"
-msgstr ""
+msgstr "Saturazioa"
 
+# AI Translated
 msgid "Original color"
-msgstr ""
+msgstr "Jatorrizko kolorea"
 
+# AI Translated
 #. TRN: Clicking the current color preview adds it to the saved favorites.
 msgid "Save current color"
-msgstr ""
+msgstr "Gorde uneko kolorea"
 
+# AI Translated
+# Needs human review: Glossary has no Basque cell for Palette; Paleta chosen.
 msgid "Palettes"
-msgstr ""
+msgstr "Paletak"
 
+# AI Translated
 msgid "Search colors"
-msgstr ""
+msgstr "Bilatu koloreak"
 
+# AI Translated
 msgid "Filter colors"
-msgstr ""
+msgstr "Iragazi koloreak"
 
+# AI Translated
 msgid "No matching colors"
-msgstr ""
+msgstr "Ez dago bat datorren kolorerik"
 
+# AI Translated
 msgid "Hex color"
-msgstr ""
+msgstr "Kolore hexadezimala"
 
 # AI Translated
 msgid "Opacity"
 msgstr "Opakutasuna"
 
+# AI Translated
 msgid "Opacity percent"
-msgstr ""
+msgstr "Opakutasun-ehunekoa"
 
+# AI Translated
 msgid "Save color"
-msgstr ""
+msgstr "Gorde kolorea"
 
+# AI Translated
 msgid "Enter a complete hexadecimal color"
-msgstr ""
+msgstr "Idatzi kolore hexadezimal osoa"
 
+# AI Translated
 msgid "The current multi-color selection is kept until you choose a different color."
-msgstr ""
+msgstr "Uneko kolore anitzeko hautapena mantendu egiten da beste kolore bat aukeratu arte."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Gehienez %d kolore onartzen dira."
 
+# AI Translated
 msgid "Crimson"
-msgstr ""
+msgstr "Karmesia"
 
+# AI Translated
 msgid "Orange red"
-msgstr ""
+msgstr "Laranja-gorria"
 
+# AI Translated
 msgid "Tomato"
-msgstr ""
+msgstr "Tomatea"
 
+# AI Translated
 msgid "Orange"
-msgstr ""
+msgstr "Laranja"
 
+# AI Translated
 msgid "Dark orange"
-msgstr ""
+msgstr "Laranja iluna"
 
+# AI Translated
 msgid "Gold"
-msgstr ""
+msgstr "Urrea"
 
+# AI Translated
 msgid "Burly wood"
-msgstr ""
+msgstr "Zur sendoa"
 
+# AI Translated
 msgid "Bisque"
-msgstr ""
+msgstr "Bisque"
 
+# AI Translated
 msgid "Misty rose"
-msgstr ""
+msgstr "Arrosa lainotsua"
 
+# AI Translated
 msgid "Light yellow"
-msgstr ""
+msgstr "Hori argia"
 
+# AI Translated
 msgid "Lemon chiffon"
-msgstr ""
+msgstr "Limoi-xifoia"
 
+# AI Translated
 msgid "Beige"
-msgstr ""
+msgstr "Beixa"
 
+# AI Translated
 msgid "Light golden rod yellow"
-msgstr ""
+msgstr "Urre-makila hori argia"
 
+# AI Translated
 msgid "Pale golden rod"
-msgstr ""
+msgstr "Urre-makila zurbila"
 
+# AI Translated
 msgid "Khaki"
-msgstr ""
+msgstr "Kakia"
 
+# AI Translated
 msgid "Dark khaki"
-msgstr ""
+msgstr "Kaki iluna"
 
+# AI Translated
 msgid "Peach puff"
-msgstr ""
+msgstr "Mertxika-bolia"
 
+# AI Translated
 msgid "Moccasin"
-msgstr ""
+msgstr "Mokasina"
 
+# AI Translated
 msgid "Papaya whip"
-msgstr ""
+msgstr "Papaia-krema"
 
+# AI Translated
 msgid "Blanched almond"
-msgstr ""
+msgstr "Almendra zurituta"
 
+# AI Translated
 msgid "Antique white"
-msgstr ""
+msgstr "Zuri antzinakoa"
 
+# AI Translated
 msgid "Navajo white"
-msgstr ""
+msgstr "Navajo zuria"
 
+# AI Translated
 msgid "Wheat"
-msgstr ""
+msgstr "Garia"
 
+# AI Translated
 msgid "Golden rod"
-msgstr ""
+msgstr "Urre-makila"
 
+# AI Translated
 msgid "Chocolate"
-msgstr ""
+msgstr "Txokolatea"
 
+# AI Translated
 msgid "Peru"
-msgstr ""
+msgstr "Peru"
 
+# AI Translated
 msgid "Fire brick"
-msgstr ""
+msgstr "Su-adreilua"
 
+# AI Translated
 msgid "Sienna"
-msgstr ""
+msgstr "Siena"
 
+# AI Translated
 msgid "Saddle brown"
-msgstr ""
+msgstr "Zela-marroia"
 
+# AI Translated
 msgid "Brown"
-msgstr ""
+msgstr "Marroia"
 
+# AI Translated
 msgid "Rosy brown"
-msgstr ""
+msgstr "Marroi arrosatua"
 
+# AI Translated
 msgid "Salmon"
-msgstr ""
+msgstr "Izokina"
 
+# AI Translated
 msgid "Light salmon"
-msgstr ""
+msgstr "Izokin argia"
 
+# AI Translated
 msgid "Dark salmon"
-msgstr ""
+msgstr "Izokin iluna"
 
+# AI Translated
 msgid "Sandy brown"
-msgstr ""
+msgstr "Hare-marroia"
 
+# AI Translated
 msgid "Coral"
-msgstr ""
+msgstr "Korala"
 
+# AI Translated
 msgid "Light coral"
-msgstr ""
+msgstr "Koral argia"
 
+# AI Translated
 msgid "Indian red"
-msgstr ""
+msgstr "Gorri indiarra"
 
+# AI Translated
 msgid "Dark red"
-msgstr ""
+msgstr "Gorri iluna"
 
+# AI Translated
 msgid "Maroon"
-msgstr ""
+msgstr "Granatea"
 
+# AI Translated
 msgid "Green yellow"
-msgstr ""
+msgstr "Berde horixka"
 
+# AI Translated
 msgid "Yellow green"
-msgstr ""
+msgstr "Hori berdexka"
 
+# AI Translated
 msgid "Chartreuse"
-msgstr ""
+msgstr "Chartreuse"
 
+# AI Translated
 msgid "Lawn green"
-msgstr ""
+msgstr "Zelai-berdea"
 
+# AI Translated
 msgid "Lime green"
-msgstr ""
+msgstr "Lima-berdea"
 
+# AI Translated
 msgid "Spring green"
-msgstr ""
+msgstr "Udaberri-berdea"
 
+# AI Translated
 msgid "Medium spring green"
-msgstr ""
+msgstr "Udaberri-berde ertaina"
 
+# AI Translated
 msgid "Lime"
-msgstr ""
+msgstr "Lima"
 
+# AI Translated
 msgid "Forest green"
-msgstr ""
+msgstr "Baso-berdea"
 
+# AI Translated
 msgid "Dark green"
-msgstr ""
+msgstr "Berde iluna"
 
+# AI Translated
 msgid "Olive drab"
-msgstr ""
+msgstr "Oliba apala"
 
+# AI Translated
 msgid "Olive"
-msgstr ""
+msgstr "Oliba-berdea"
 
+# AI Translated
 msgid "Dark olive green"
-msgstr ""
+msgstr "Oliba-berde iluna"
 
+# AI Translated
 msgid "Pale green"
-msgstr ""
+msgstr "Berde zurbila"
 
+# AI Translated
 msgid "Light green"
-msgstr ""
+msgstr "Berde argia"
 
+# AI Translated
 msgid "Medium sea green"
-msgstr ""
+msgstr "Itsaso-berde ertaina"
 
+# AI Translated
 msgid "Sea green"
-msgstr ""
+msgstr "Itsaso-berdea"
 
+# AI Translated
 msgid "Dark sea green"
-msgstr ""
+msgstr "Itsaso-berde iluna"
 
+# AI Translated
 msgid "Cadet blue"
-msgstr ""
+msgstr "Kadete-urdina"
 
+# AI Translated
 msgid "Medium aqua marine"
-msgstr ""
+msgstr "Akuamarina ertaina"
 
+# AI Translated
 msgid "Turquoise"
-msgstr ""
+msgstr "Turkesa"
 
+# AI Translated
 msgid "Medium turquoise"
-msgstr ""
+msgstr "Turkesa ertaina"
 
+# AI Translated
 msgid "Dark turquoise"
-msgstr ""
+msgstr "Turkesa iluna"
 
+# AI Translated
 msgid "Pale turquoise"
-msgstr ""
+msgstr "Turkesa zurbila"
 
+# AI Translated
 msgid "Aqua"
-msgstr ""
+msgstr "Akua"
 
+# AI Translated
 msgid "Light cyan"
-msgstr ""
+msgstr "Ziano argia"
 
+# AI Translated
 msgid "Mint cream"
-msgstr ""
+msgstr "Menta-krema"
 
+# AI Translated
 msgid "Honey dew"
-msgstr ""
+msgstr "Ezti-ihintza"
 
+# AI Translated
 msgid "Aquamarine"
-msgstr ""
+msgstr "Akuamarina"
 
+# AI Translated
 msgid "Light sea green"
-msgstr ""
+msgstr "Itsaso-berde argia"
 
+# AI Translated
 msgid "Dark cyan"
-msgstr ""
+msgstr "Ziano iluna"
 
+# AI Translated
+# Needs human review: CSS teal (dark blue-green); check that Berde-urdin iluna reads as a color name next to Urdin berdexka and Berde urdinxka.
 msgid "Teal"
-msgstr ""
+msgstr "Berde-urdin iluna"
 
+# AI Translated
 msgid "Dark slate gray"
-msgstr ""
+msgstr "Pizarra-gris iluna"
 
+# AI Translated
 msgid "Light slate gray"
-msgstr ""
+msgstr "Pizarra-gris argia"
 
+# AI Translated
 msgid "Slate gray"
-msgstr ""
+msgstr "Pizarra-grisa"
 
+# AI Translated
 msgid "Deep sky blue"
-msgstr ""
+msgstr "Zeru-urdin sakona"
 
+# AI Translated
 msgid "Dodger Blue"
-msgstr ""
+msgstr "Dodger urdina"
 
+# AI Translated
 msgid "Sky blue"
-msgstr ""
+msgstr "Zeru-urdina"
 
+# AI Translated
 msgid "Light sky blue"
-msgstr ""
+msgstr "Zeru-urdin argia"
 
+# AI Translated
 msgid "Light blue"
-msgstr ""
+msgstr "Urdin argia"
 
+# AI Translated
 msgid "Powder blue"
-msgstr ""
+msgstr "Hauts-urdina"
 
+# AI Translated
 msgid "Light steel blue"
-msgstr ""
+msgstr "Altzairu-urdin argia"
 
+# AI Translated
 msgid "Steel blue"
-msgstr ""
+msgstr "Altzairu-urdina"
 
+# AI Translated
+# Needs human review: Flower name not known in Basque; rendered as Lore-urdina (flower blue), check for a proper name.
 msgid "Cornflower blue"
-msgstr ""
+msgstr "Lore-urdina"
 
+# AI Translated
 msgid "Royal blue"
-msgstr ""
+msgstr "Urdin erreala"
 
+# AI Translated
 msgid "Medium blue"
-msgstr ""
+msgstr "Urdin ertaina"
 
+# AI Translated
 msgid "Midnight blue"
-msgstr ""
+msgstr "Gauerdi-urdina"
 
+# AI Translated
 msgid "Dark blue"
-msgstr ""
+msgstr "Urdin iluna"
 
+# AI Translated
 msgid "Navy"
-msgstr ""
+msgstr "Itsas-urdina"
 
+# AI Translated
 msgid "Slate blue"
-msgstr ""
+msgstr "Pizarra-urdina"
 
+# AI Translated
 msgid "Dark slate blue"
-msgstr ""
+msgstr "Pizarra-urdin iluna"
 
+# AI Translated
 msgid "Medium slate blue"
-msgstr ""
+msgstr "Pizarra-urdin ertaina"
 
+# AI Translated
 msgid "Blue violet"
-msgstr ""
+msgstr "Urdin-bioleta"
 
+# AI Translated
 msgid "Indigo"
-msgstr ""
+msgstr "Indigoa"
 
+# AI Translated
 msgid "Dark violet"
-msgstr ""
+msgstr "Bioleta iluna"
 
+# AI Translated
 msgid "Dark orchid"
-msgstr ""
+msgstr "Orkidea iluna"
 
+# AI Translated
 msgid "Medium orchid"
-msgstr ""
+msgstr "Orkidea ertaina"
 
+# AI Translated
 msgid "Orchid"
-msgstr ""
+msgstr "Orkidea"
 
+# AI Translated
 msgid "Violet"
-msgstr ""
+msgstr "Bioleta"
 
+# AI Translated
 msgid "Medium purple"
-msgstr ""
+msgstr "More ertaina"
 
+# AI Translated
 msgid "Purple"
-msgstr ""
+msgstr "Morea"
 
+# AI Translated
 msgid "Rebecca purple"
-msgstr ""
+msgstr "Rebecca morea"
 
+# AI Translated
 msgid "Medium violet red"
-msgstr ""
+msgstr "Bioleta-gorri ertaina"
 
-msgid "PaleV violet red"
-msgstr ""
+# AI Translated
+msgid "Pale violet red"
+msgstr "Bioleta-gorri zurbila"
 
+# AI Translated
 msgid "Deep pink"
-msgstr ""
+msgstr "Arrosa sakona"
 
+# AI Translated
 msgid "Hot pink"
-msgstr ""
+msgstr "Arrosa bizia"
 
+# AI Translated
 msgid "Light pink"
-msgstr ""
+msgstr "Arrosa argia"
 
+# AI Translated
 msgid "Pink"
-msgstr ""
+msgstr "Arrosa"
 
+# AI Translated
+# Needs human review: Rendered as Aran-morea (plum purple); check the color name.
 msgid "Plum"
-msgstr ""
+msgstr "Aran-morea"
 
+# AI Translated
+# Needs human review: Rendered as Kardu-morea (thistle purple); check the color name.
 msgid "Thistle"
-msgstr ""
+msgstr "Kardu-morea"
 
+# AI Translated
 msgid "Fuchsia"
-msgstr ""
+msgstr "Fuksia"
 
+# AI Translated
 msgid "Dark magenta"
-msgstr ""
+msgstr "Magenta iluna"
 
+# AI Translated
 msgid "Linen"
-msgstr ""
+msgstr "Lihoa"
 
+# AI Translated
 msgid "Old lace"
-msgstr ""
+msgstr "Dantela zaharra"
 
+# AI Translated
+# Needs human review: CSS color 'seashell'; the Shell glossary match is a false positive.
 msgid "Sea shell"
-msgstr ""
+msgstr "Itsaso-maskorra"
 
+# AI Translated
 msgid "Ivory"
-msgstr ""
+msgstr "Eborea"
 
+# AI Translated
 msgid "Floral white"
-msgstr ""
+msgstr "Lore-zuria"
 
+# AI Translated
 msgid "Lavender blush"
-msgstr ""
+msgstr "Izpiliku arrosatua"
 
+# AI Translated
 msgid "Ghost white"
-msgstr ""
+msgstr "Mamu-zuria"
 
+# AI Translated
 msgid "Alice blue"
-msgstr ""
+msgstr "Alice urdina"
 
+# AI Translated
 msgid "Lavender"
-msgstr ""
+msgstr "Izpilikua"
 
+# AI Translated
 msgid "White smoke"
-msgstr ""
+msgstr "Ke-zuria"
 
+# AI Translated
 msgid "Gainsboro"
-msgstr ""
+msgstr "Gainsboro"
 
+# AI Translated
 msgid "Black"
-msgstr ""
+msgstr "Beltza"
 
+# AI Translated
 msgid "Coral fire"
-msgstr ""
+msgstr "Koral-sua"
 
+# AI Translated
 msgid "Sea anemone"
-msgstr ""
+msgstr "Itsas anemona"
 
+# AI Translated
 msgid "Deep abyss"
-msgstr ""
+msgstr "Amildegi sakona"
 
+# AI Translated
 msgid "Lobster red"
-msgstr ""
+msgstr "Otarrain-gorria"
 
+# AI Translated
 msgid "Sandy clay"
-msgstr ""
+msgstr "Buztin hareatsua"
 
+# AI Translated
 msgid "Driftwood"
-msgstr ""
+msgstr "Uhin-egurra"
 
+# AI Translated
+# Needs human review: Plant name (Hippophae); check the Basque name and whether a color-only name reads better.
 msgid "Sea buckthorn"
-msgstr ""
+msgstr "Itsas elorri-zuria"
 
+# AI Translated
 msgid "Sunset reef"
-msgstr ""
+msgstr "Ilunabarreko arrezifea"
 
+# AI Translated
 msgid "Tiger coral"
-msgstr ""
+msgstr "Tigre-korala"
 
+# AI Translated
 msgid "Pink coral"
-msgstr ""
+msgstr "Koral arrosa"
 
+# AI Translated
 msgid "Seashell glow"
-msgstr ""
+msgstr "Maskor-dirdira"
 
+# AI Translated
 msgid "Sand"
-msgstr ""
+msgstr "Harea"
 
+# AI Translated
 msgid "Golden kelp"
-msgstr ""
+msgstr "Alga urrea"
 
+# AI Translated
 msgid "Sunlit dune"
-msgstr ""
+msgstr "Eguzkitako duna"
 
+# AI Translated
 msgid "Amber nautilus"
-msgstr ""
+msgstr "Anbar-nautilusa"
 
+# AI Translated
 msgid "Sea lemon"
-msgstr ""
+msgstr "Itsas limoia"
 
+# AI Translated
 msgid "Pale starfish"
-msgstr ""
+msgstr "Itsas-izar zurbila"
 
+# AI Translated
 msgid "Spring tide"
-msgstr ""
+msgstr "Marea bizia"
 
+# AI Translated
 msgid "Lime algae"
-msgstr ""
+msgstr "Lima-alga"
 
+# AI Translated
 msgid "Sea grass"
-msgstr ""
+msgstr "Itsas-belarra"
 
+# AI Translated
 msgid "Neon plankton"
-msgstr ""
+msgstr "Neon-planktona"
 
+# AI Translated
 msgid "Kelp forest"
-msgstr ""
+msgstr "Alga-basoa"
 
+# AI Translated
 msgid "Emerald wave"
-msgstr ""
+msgstr "Esmeralda-olatua"
 
+# AI Translated
 msgid "Whale shadow"
-msgstr ""
+msgstr "Balearen itzala"
 
+# AI Translated
 msgid "Sea turtle"
-msgstr ""
+msgstr "Itsas dortoka"
 
+# AI Translated
 msgid "Lagoon"
-msgstr ""
+msgstr "Laguna"
 
+# AI Translated
 msgid "Tropical current"
-msgstr ""
+msgstr "Korronte tropikala"
 
+# AI Translated
 msgid "Midnight trench"
-msgstr ""
+msgstr "Gauerdiko itsas-sakonuna"
 
+# AI Translated
 msgid "Dark kelp"
-msgstr ""
+msgstr "Alga iluna"
 
+# AI Translated
 msgid "Crystal surf"
-msgstr ""
+msgstr "Kristal-olatua"
 
+# AI Translated
 msgid "Turquoise bay"
-msgstr ""
+msgstr "Badia turkesa"
 
+# AI Translated
 msgid "Sky over reef"
-msgstr ""
+msgstr "Arrezife gaineko zerua"
 
+# AI Translated
 msgid "Shallow sky"
-msgstr ""
+msgstr "Zeru azalekoa"
 
-msgid "Electric bel"
-msgstr ""
+# AI Translated
+msgid "Electric blue"
+msgstr "Urdin elektrikoa"
 
+# AI Translated
 msgid "Dolphin"
-msgstr ""
+msgstr "Izurdea"
 
+# AI Translated
 msgid "Ocean depths"
-msgstr ""
+msgstr "Ozeanoaren sakonerak"
 
+# AI Translated
 msgid "Whale"
-msgstr ""
+msgstr "Balea"
 
+# AI Translated
 msgid "Indigo abyss"
-msgstr ""
+msgstr "Indigo-amildegia"
 
+# AI Translated
 msgid "Sea urchin"
-msgstr ""
+msgstr "Itsas trikua"
 
+# AI Translated
 msgid "Lavender coral"
-msgstr ""
+msgstr "Izpiliku-korala"
 
+# AI Translated
 msgid "Violet tide"
-msgstr ""
+msgstr "Marea bioleta"
 
+# AI Translated
 msgid "Deep sea orchid"
-msgstr ""
+msgstr "Itsaso sakoneko orkidea"
 
+# AI Translated
 msgid "Neon jelly"
-msgstr ""
+msgstr "Neon-medusa"
 
+# AI Translated
 msgid "Fuchsia coral"
-msgstr ""
+msgstr "Fuksia-korala"
 
+# AI Translated
 msgid "Pink jellyfish"
-msgstr ""
+msgstr "Medusa arrosa"
 
+# AI Translated
 msgid "Foam"
-msgstr ""
+msgstr "Aparra"
 
+# AI Translated
 msgid "Seashell white"
-msgstr ""
+msgstr "Maskor-zuria"
 
+# AI Translated
 msgid "Pebble gray"
-msgstr ""
+msgstr "Koxkor-grisa"
 
+# AI Translated
 msgid "Storm cloud"
-msgstr ""
+msgstr "Ekaitz-hodeia"
 
+# AI Translated
 msgid "Ink black"
-msgstr ""
+msgstr "Tinta-beltza"
 
+# AI Translated
 msgid "Green beige"
-msgstr ""
+msgstr "Beixa berdexka"
 
+# AI Translated
 msgid "Sand yellow"
-msgstr ""
+msgstr "Hare-horia"
 
+# AI Translated
 msgid "Signal yellow"
-msgstr ""
+msgstr "Seinale-horia"
 
+# AI Translated
 msgid "Golden yellow"
-msgstr ""
+msgstr "Urre-horia"
 
+# AI Translated
 msgid "Honey yellow"
-msgstr ""
+msgstr "Ezti-horia"
 
+# AI Translated
 msgid "Maize yellow"
-msgstr ""
+msgstr "Arto-horia"
 
-msgid "Dalmatian yellow"
-msgstr ""
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Nartziso-horia"
 
+# AI Translated
 msgid "Brown beige"
-msgstr ""
+msgstr "Beixa marroixka"
 
+# AI Translated
 msgid "Lemon yellow"
-msgstr ""
+msgstr "Limoi-horia"
 
+# AI Translated
 msgid "Oyster white"
-msgstr ""
+msgstr "Ostra-zuria"
 
+# AI Translated
 msgid "Light ivory"
-msgstr ""
+msgstr "Ebore argia"
 
+# AI Translated
 msgid "Zinc yellow"
-msgstr ""
+msgstr "Zink-horia"
 
+# AI Translated
 msgid "Grey beige"
-msgstr ""
+msgstr "Beixa grisaxka"
 
+# AI Translated
 msgid "Olive yellow"
-msgstr ""
+msgstr "Oliba-horia"
 
+# AI Translated
 msgid "Rape yellow"
-msgstr ""
+msgstr "Koltza-horia"
 
+# AI Translated
 msgid "Traffic yellow"
-msgstr ""
+msgstr "Trafiko-horia"
 
+# AI Translated
 msgid "Ochre yellow"
-msgstr ""
+msgstr "Okre-horia"
 
+# AI Translated
+# Needs human review: Source name looks like a RAL variant; check the rendering.
 msgid "Traffic orange yellow"
-msgstr ""
+msgstr "Trafiko-laranja horixka"
 
+# AI Translated
 msgid "Curry"
-msgstr ""
+msgstr "Curry"
 
+# AI Translated
 msgid "Melon yellow"
-msgstr ""
+msgstr "Meloi-horia"
 
+# AI Translated
 msgid "Broom yellow"
-msgstr ""
+msgstr "Isats-horia"
 
+# AI Translated
 msgid "Dahlia yellow"
-msgstr ""
+msgstr "Dalia-horia"
 
+# AI Translated
 msgid "Pastel yellow"
-msgstr ""
+msgstr "Hori pastela"
 
+# AI Translated
 msgid "Pearl beige"
-msgstr ""
+msgstr "Perla-beixa"
 
+# AI Translated
 msgid "Pearl gold"
-msgstr ""
+msgstr "Perla-urrea"
 
+# AI Translated
 msgid "Sun yellow"
-msgstr ""
+msgstr "Eguzki-horia"
 
+# AI Translated
 msgid "Yellow orange"
-msgstr ""
+msgstr "Hori-laranja"
 
+# AI Translated
 msgid "Deep orange"
-msgstr ""
+msgstr "Laranja sakona"
 
+# AI Translated
 msgid "Vermilion"
-msgstr ""
+msgstr "Bermilioia"
 
+# AI Translated
 msgid "Pearl orange"
-msgstr ""
+msgstr "Perla-laranja"
 
+# AI Translated
 msgid "Pure orange"
-msgstr ""
+msgstr "Laranja hutsa"
 
+# AI Translated
 msgid "Luminous orange"
-msgstr ""
+msgstr "Laranja argitsua"
 
+# AI Translated
 msgid "Luminous bright orange"
-msgstr ""
+msgstr "Laranja argitsu distiratsua"
 
+# AI Translated
 msgid "Bright red orange"
-msgstr ""
+msgstr "Gorri-laranja distiratsua"
 
+# AI Translated
 msgid "Traffic orange"
-msgstr ""
+msgstr "Trafiko-laranja"
 
+# AI Translated
 msgid "Signal orange"
-msgstr ""
+msgstr "Seinale-laranja"
 
+# AI Translated
 msgid "Salmon orange"
-msgstr ""
+msgstr "Izokin-laranja"
 
+# AI Translated
 msgid "Pearl pink"
-msgstr ""
+msgstr "Perla-arrosa"
 
+# AI Translated
 msgid "Copper orange"
-msgstr ""
+msgstr "Kobre-laranja"
 
+# AI Translated
 msgid "Signal brown"
-msgstr ""
+msgstr "Seinale-marroia"
 
+# AI Translated
+# Needs human review: RAL color name as given in the source; check the rendering.
 msgid "Fir orange"
-msgstr ""
+msgstr "Izei-laranja"
 
+# AI Translated
 msgid "Signal red"
-msgstr ""
+msgstr "Seinale-gorria"
 
+# AI Translated
 msgid "Luminous red"
-msgstr ""
+msgstr "Gorri argitsua"
 
+# AI Translated
 msgid "Carmine red"
-msgstr ""
+msgstr "Karmin-gorria"
 
+# AI Translated
 msgid "Pearl carmine red"
-msgstr ""
+msgstr "Perla-karmin-gorria"
 
+# AI Translated
 msgid "Pure red"
-msgstr ""
+msgstr "Gorri hutsa"
 
+# AI Translated
 msgid "Luminous deep red"
-msgstr ""
+msgstr "Gorri sakon argitsua"
 
+# AI Translated
+# Needs human review: Fruit name; Mahats-gorria is approximate, check.
 msgid "Currant red"
-msgstr ""
+msgstr "Mahats-gorria"
 
+# AI Translated
 msgid "Pearl ruby red"
-msgstr ""
+msgstr "Perla-rubi-gorria"
 
+# AI Translated
 msgid "Fire red"
-msgstr ""
+msgstr "Su-gorria"
 
+# AI Translated
 msgid "Ruby red"
-msgstr ""
+msgstr "Rubi-gorria"
 
+# AI Translated
 msgid "Purple red"
-msgstr ""
+msgstr "More-gorria"
 
+# AI Translated
 msgid "Wine red"
-msgstr ""
+msgstr "Ardo-gorria"
 
+# AI Translated
 msgid "Black red"
-msgstr ""
+msgstr "Gorri beltzaxka"
 
+# AI Translated
 msgid "Oxide red"
-msgstr ""
+msgstr "Oxido-gorria"
 
+# AI Translated
 msgid "Brown red"
-msgstr ""
+msgstr "Gorri marroixka"
 
+# AI Translated
 msgid "Pine red"
-msgstr ""
+msgstr "Pinu-gorria"
 
+# AI Translated
 msgid "Tomato red"
-msgstr ""
+msgstr "Tomate-gorria"
 
+# AI Translated
 msgid "Antique pink"
-msgstr ""
+msgstr "Arrosa antzinakoa"
 
+# AI Translated
 msgid "Coral red"
-msgstr ""
+msgstr "Koral-gorria"
 
+# AI Translated
+# Needs human review: Same word as Pink (Arrosa); check whether a distinct name is wanted.
 msgid "Rose"
-msgstr ""
+msgstr "Arrosa"
 
+# AI Translated
 msgid "Strawberry red"
-msgstr ""
+msgstr "Marrubi-gorria"
 
+# AI Translated
 msgid "Traffic red"
-msgstr ""
+msgstr "Trafiko-gorria"
 
+# AI Translated
 msgid "Salmon pink"
-msgstr ""
+msgstr "Izokin-arrosa"
 
+# AI Translated
 msgid "Luminous rose"
-msgstr ""
+msgstr "Arrosa argitsua"
 
+# AI Translated
 msgid "Luminous bright red"
-msgstr ""
+msgstr "Gorri argitsu distiratsua"
 
+# AI Translated
 msgid "Raspberry red"
-msgstr ""
+msgstr "Mugurdi-gorria"
 
+# AI Translated
 msgid "Orient red"
-msgstr ""
+msgstr "Ekialdeko gorria"
 
+# AI Translated
 msgid "Pearl ruby"
-msgstr ""
+msgstr "Perla-rubia"
 
+# AI Translated
 msgid "Red purple"
-msgstr ""
+msgstr "More gorrixka"
 
+# AI Translated
 msgid "Red violet"
-msgstr ""
+msgstr "Bioleta gorrixka"
 
+# AI Translated
 msgid "Heather violet"
-msgstr ""
+msgstr "Txilar-bioleta"
 
+# AI Translated
 msgid "Bordeaux violet"
-msgstr ""
+msgstr "Bordele-bioleta"
 
+# AI Translated
 msgid "Mahogany"
-msgstr ""
+msgstr "Kaoba"
 
+# AI Translated
 msgid "Grey purple"
-msgstr ""
+msgstr "More grisaxka"
 
+# AI Translated
 msgid "Signal violet"
-msgstr ""
+msgstr "Seinale-bioleta"
 
+# AI Translated
 msgid "Fir green"
-msgstr ""
+msgstr "Izei-berdea"
 
+# AI Translated
+# Needs human review: RAL color named after Sabine; check the rendering.
 msgid "Sabine grey"
-msgstr ""
+msgstr "Sabine grisa"
 
+# AI Translated
 msgid "Pearl violet"
-msgstr ""
+msgstr "Perla-bioleta"
 
+# AI Translated
 msgid "Pearl blackberry"
-msgstr ""
+msgstr "Perla-masusta"
 
+# AI Translated
 msgid "Green blue"
-msgstr ""
+msgstr "Berde urdinxka"
 
+# AI Translated
 msgid "Ultramarine blue"
-msgstr ""
+msgstr "Ultramar urdina"
 
+# AI Translated
 msgid "Sapphire blue"
-msgstr ""
+msgstr "Zafiro-urdina"
 
+# AI Translated
 msgid "Black blue"
-msgstr ""
+msgstr "Urdin beltzaxka"
 
+# AI Translated
 msgid "Signal blue"
-msgstr ""
+msgstr "Seinale-urdina"
 
+# AI Translated
 msgid "Brilliant blue"
-msgstr ""
+msgstr "Urdin distiratsua"
 
+# AI Translated
 msgid "Grey blue"
-msgstr ""
+msgstr "Urdin grisaxka"
 
+# AI Translated
 msgid "Azure blue"
-msgstr ""
+msgstr "Azur-urdina"
 
+# AI Translated
 msgid "Gentian blue"
-msgstr ""
+msgstr "Gentziana-urdina"
 
+# AI Translated
 msgid "Cobalt blue"
-msgstr ""
+msgstr "Kobalto-urdina"
 
+# AI Translated
 msgid "Pigeon blue"
-msgstr ""
+msgstr "Uso-urdina"
 
+# AI Translated
 msgid "Traffic blue"
-msgstr ""
+msgstr "Trafiko-urdina"
 
+# AI Translated
 msgid "Turquoise blue"
-msgstr ""
+msgstr "Turkesa-urdina"
 
-msgid "Capsanthin violet"
-msgstr ""
+# AI Translated
+msgid "Capri blue"
+msgstr "Capri-urdina"
 
+# AI Translated
 msgid "Ocean blue"
-msgstr ""
+msgstr "Ozeano-urdina"
 
+# AI Translated
 msgid "Water blue"
-msgstr ""
+msgstr "Ur-urdina"
 
+# AI Translated
 msgid "Night blue"
-msgstr ""
+msgstr "Gau-urdina"
 
+# AI Translated
 msgid "Distant blue"
-msgstr ""
+msgstr "Urdin urruna"
 
+# AI Translated
 msgid "Pastel blue"
-msgstr ""
+msgstr "Urdin pastela"
 
+# AI Translated
 msgid "Pearl gentian blue"
-msgstr ""
+msgstr "Perla-gentziana-urdina"
 
+# AI Translated
 msgid "Pearl midnight blue"
-msgstr ""
+msgstr "Perla-gauerdi-urdina"
 
+# AI Translated
 msgid "Patina green"
-msgstr ""
+msgstr "Patina-berdea"
 
+# AI Translated
 msgid "Emerald green"
-msgstr ""
+msgstr "Esmeralda-berdea"
 
+# AI Translated
 msgid "Leaf green"
-msgstr ""
+msgstr "Hosto-berdea"
 
+# AI Translated
 msgid "Olive green"
-msgstr ""
+msgstr "Oliba-berdea"
 
+# AI Translated
 msgid "Blue green"
-msgstr ""
+msgstr "Urdin berdexka"
 
+# AI Translated
 msgid "Moss green"
-msgstr ""
+msgstr "Goroldio-berdea"
 
+# AI Translated
 msgid "Grey olive"
-msgstr ""
+msgstr "Oliba grisaxka"
 
+# AI Translated
 msgid "Pine green"
-msgstr ""
+msgstr "Pinu-berdea"
 
+# AI Translated
 msgid "Pine brown"
-msgstr ""
+msgstr "Pinu-marroia"
 
+# AI Translated
 msgid "Grass green"
-msgstr ""
+msgstr "Belar-berdea"
 
+# AI Translated
 msgid "Reseda green"
-msgstr ""
+msgstr "Reseda-berdea"
 
+# AI Translated
 msgid "Brown green"
-msgstr ""
+msgstr "Berde marroixka"
 
+# AI Translated
 msgid "Reed green"
-msgstr ""
+msgstr "Lezka-berdea"
 
+# AI Translated
 msgid "Black green"
-msgstr ""
+msgstr "Berde beltzaxka"
 
+# AI Translated
 msgid "Turquoise green"
-msgstr ""
+msgstr "Turkesa-berdea"
 
+# AI Translated
 msgid "May green"
-msgstr ""
+msgstr "Maiatz-berdea"
 
+# AI Translated
 msgid "Chrome oxide green"
-msgstr ""
+msgstr "Kromo oxido-berdea"
 
+# AI Translated
 msgid "Traffic green"
-msgstr ""
+msgstr "Trafiko-berdea"
 
+# AI Translated
 msgid "Fern green"
-msgstr ""
+msgstr "Garo-berdea"
 
+# AI Translated
 msgid "Opal green"
-msgstr ""
+msgstr "Opalo-berdea"
 
+# AI Translated
 msgid "Mint green"
-msgstr ""
+msgstr "Menta-berdea"
 
+# AI Translated
 msgid "Bronze green"
-msgstr ""
+msgstr "Brontze-berdea"
 
+# AI Translated
 msgid "Pearl green"
-msgstr ""
+msgstr "Perla-berdea"
 
+# AI Translated
 msgid "Sax turquoise"
-msgstr ""
+msgstr "Saxe-turkesa"
 
+# AI Translated
 msgid "Pearl turquoise"
-msgstr ""
+msgstr "Perla-turkesa"
 
+# AI Translated
 msgid "Pearl jade"
-msgstr ""
+msgstr "Perla-jadea"
 
+# AI Translated
 msgid "Pure green"
-msgstr ""
+msgstr "Berde hutsa"
 
+# AI Translated
 msgid "Luminous green"
-msgstr ""
+msgstr "Berde argitsua"
 
+# AI Translated
 msgid "Squirrel grey"
-msgstr ""
+msgstr "Katagorri-grisa"
 
+# AI Translated
 msgid "Silver grey"
-msgstr ""
+msgstr "Zilar-grisa"
 
-msgid "Olivestone"
-msgstr ""
+# AI Translated
+msgid "Olive grey"
+msgstr "Oliba-grisa"
 
+# AI Translated
 msgid "Moss grey"
-msgstr ""
+msgstr "Goroldio-grisa"
 
+# AI Translated
 msgid "Signal grey"
-msgstr ""
+msgstr "Seinale-grisa"
 
+# AI Translated
 msgid "Mouse grey"
-msgstr ""
+msgstr "Sagu-grisa"
 
+# AI Translated
 msgid "Beige grey"
-msgstr ""
+msgstr "Gris beixa"
 
+# AI Translated
 msgid "Khaki grey"
-msgstr ""
+msgstr "Kaki-grisa"
 
+# AI Translated
 msgid "Green grey"
-msgstr ""
+msgstr "Gris berdexka"
 
+# AI Translated
 msgid "Tarpaulin grey"
-msgstr ""
+msgstr "Mihise-grisa"
 
+# AI Translated
 msgid "Iron grey"
-msgstr ""
+msgstr "Burdin-grisa"
 
+# AI Translated
 msgid "Basalt grey"
-msgstr ""
+msgstr "Basalto-grisa"
 
+# AI Translated
 msgid "Brown grey"
-msgstr ""
+msgstr "Gris marroixka"
 
+# AI Translated
 msgid "Slate grey"
-msgstr ""
+msgstr "Pizarra-grisa"
 
+# AI Translated
 msgid "Anthracite grey"
-msgstr ""
+msgstr "Antrazita-grisa"
 
+# AI Translated
 msgid "Light grey"
-msgstr ""
+msgstr "Gris argia"
 
+# AI Translated
 msgid "Umber grey"
-msgstr ""
+msgstr "Umbra-grisa"
 
+# AI Translated
 msgid "Concrete grey"
-msgstr ""
+msgstr "Hormigoi-grisa"
 
+# AI Translated
 msgid "Graphite grey"
-msgstr ""
+msgstr "Grafito-grisa"
 
+# AI Translated
 msgid "Granite grey"
-msgstr ""
+msgstr "Granito-grisa"
 
+# AI Translated
 msgid "Stone grey"
-msgstr ""
+msgstr "Harri-grisa"
 
+# AI Translated
 msgid "Pebble grey"
-msgstr ""
+msgstr "Koxkor-grisa"
 
+# AI Translated
 msgid "Cement grey"
-msgstr ""
+msgstr "Zementu-grisa"
 
+# AI Translated
 msgid "Yellow grey"
-msgstr ""
+msgstr "Gris horixka"
 
+# AI Translated
 msgid "Platinum grey"
-msgstr ""
+msgstr "Platino-grisa"
 
+# AI Translated
 msgid "Dusty grey"
-msgstr ""
+msgstr "Hauts-grisa"
 
+# AI Translated
 msgid "Agate grey"
-msgstr ""
+msgstr "Agata-grisa"
 
+# AI Translated
 msgid "Quartz grey"
-msgstr ""
+msgstr "Kuartzo-grisa"
 
+# AI Translated
 msgid "Window grey"
-msgstr ""
+msgstr "Leiho-grisa"
 
+# AI Translated
 msgid "Traffic grey A"
-msgstr ""
+msgstr "Trafiko-grisa A"
 
+# AI Translated
 msgid "Traffic grey B"
-msgstr ""
+msgstr "Trafiko-grisa B"
 
+# AI Translated
 msgid "Silk grey"
-msgstr ""
+msgstr "Zeta-grisa"
 
+# AI Translated
 msgid "Telegrey 1"
-msgstr ""
+msgstr "Telegris 1"
 
+# AI Translated
 msgid "Telegrey 2"
-msgstr ""
+msgstr "Telegris 2"
 
+# AI Translated
 msgid "Telegrey 4"
-msgstr ""
+msgstr "Telegris 4"
 
+# AI Translated
 msgid "Pearl mouse grey"
-msgstr ""
+msgstr "Perla-sagu-grisa"
 
+# AI Translated
 msgid "Green brown"
-msgstr ""
+msgstr "Marroi berdexka"
 
+# AI Translated
 msgid "Ochre brown"
-msgstr ""
+msgstr "Okre-marroia"
 
+# AI Translated
 msgid "Clay brown"
-msgstr ""
+msgstr "Buztin-marroia"
 
+# AI Translated
 msgid "Copper brown"
-msgstr ""
+msgstr "Kobre-marroia"
 
+# AI Translated
 msgid "Chocolate brown"
-msgstr ""
+msgstr "Txokolate-marroia"
 
+# AI Translated
 msgid "Olive brown"
-msgstr ""
+msgstr "Oliba-marroia"
 
+# AI Translated
 msgid "Nut brown"
-msgstr ""
+msgstr "Intxaur-marroia"
 
+# AI Translated
 msgid "Red brown"
-msgstr ""
+msgstr "Marroi gorrixka"
 
+# AI Translated
 msgid "Sepia brown"
-msgstr ""
+msgstr "Sepia-marroia"
 
+# AI Translated
 msgid "Chestnut brown"
-msgstr ""
+msgstr "Gaztaina-marroia"
 
+# AI Translated
 msgid "Mahogany brown"
-msgstr ""
+msgstr "Kaoba-marroia"
 
+# AI Translated
 msgid "Grey brown"
-msgstr ""
+msgstr "Marroi grisaxka"
 
+# AI Translated
 msgid "Pearl copper"
-msgstr ""
+msgstr "Perla-kobrea"
 
+# AI Translated
 msgid "Beige brown"
-msgstr ""
+msgstr "Beixa-marroia"
 
+# AI Translated
 msgid "Pearl mocha brown"
-msgstr ""
+msgstr "Perla-moka-marroia"
 
+# AI Translated
 msgid "Earth brown"
-msgstr ""
+msgstr "Lur-marroia"
 
+# AI Translated
 msgid "Pearl brown"
-msgstr ""
+msgstr "Perla-marroia"
 
+# AI Translated
 msgid "Cream"
-msgstr ""
+msgstr "Krema"
 
+# AI Translated
 msgid "Grey white"
-msgstr ""
+msgstr "Zuri grisaxka"
 
+# AI Translated
 msgid "Signal white"
-msgstr ""
+msgstr "Seinale-zuria"
 
+# AI Translated
 msgid "Signal black"
-msgstr ""
+msgstr "Seinale-beltza"
 
+# AI Translated
 msgid "Jet black"
-msgstr ""
+msgstr "Gagatz-beltza"
 
+# AI Translated
 msgid "White aluminium"
-msgstr ""
+msgstr "Aluminio zuria"
 
+# AI Translated
 msgid "Grey aluminium"
-msgstr ""
+msgstr "Aluminio grisa"
 
+# AI Translated
 msgid "Pure white"
-msgstr ""
+msgstr "Zuri hutsa"
 
+# AI Translated
 msgid "Graphite black"
-msgstr ""
+msgstr "Grafito-beltza"
 
+# AI Translated
 msgid "Traffic white"
-msgstr ""
+msgstr "Trafiko-zuria"
 
+# AI Translated
 msgid "Traffic black"
-msgstr ""
+msgstr "Trafiko-beltza"
 
+# AI Translated
 msgid "Papyrus white"
-msgstr ""
+msgstr "Papiro-zuria"
 
+# AI Translated
 msgid "Pearl light grey"
-msgstr ""
+msgstr "Perla-gris argia"
 
+# AI Translated
 msgid "Metal: Silver"
-msgstr ""
+msgstr "Metala: Zilarra"
 
+# AI Translated
 msgid "Metal: Brass"
-msgstr ""
+msgstr "Metala: Letoia"
 
+# AI Translated
 msgid "Metal: Gold"
-msgstr ""
+msgstr "Metala: Urrea"
 
+# AI Translated
 msgid "Metal: Copper"
-msgstr ""
+msgstr "Metala: Kobrea"
 
+# AI Translated
 msgid "Metal: Bronze"
-msgstr ""
+msgstr "Metala: Brontzea"
 
+# AI Translated
 msgid "Nature: Pearl"
-msgstr ""
+msgstr "Natura: Perla"
 
+# AI Translated
 msgid "Nature: Rainbow"
-msgstr ""
+msgstr "Natura: Ortzadarra"
 
+# AI Translated
 msgid "Nature: Clear Sky"
-msgstr ""
+msgstr "Natura: Zeru garbia"
 
+# AI Translated
 msgid "Nature: Sunset"
-msgstr ""
+msgstr "Natura: Ilunabarra"
 
+# AI Translated
 msgid "Wood: Dark"
-msgstr ""
+msgstr "Egurra: Iluna"
 
+# AI Translated
 msgid "Wood: Medium"
-msgstr ""
+msgstr "Egurra: Ertaina"
 
+# AI Translated
 msgid "Wood: Light"
-msgstr ""
+msgstr "Egurra: Argia"
 
 # AI Translated
 msgid "Alternate nozzles:"
@@ -31845,12 +32289,24 @@ msgid "Built-in"
 msgstr "Integratuak"
 
 # AI Translated
+msgid "My textures"
+msgstr "Nire testurak"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Ez da testurarik aurkitu."
 
 # AI Translated
-msgid "My textures"
-msgstr "Nire testurak"
+msgid "Texture libraries"
+msgstr "Testura-liburutegiak"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Arakatu testura-liburutegi gehiago"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "OrcaCloud irekitzen du Hasiera orrian, pluginak arakatzeko."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -32253,11 +32709,13 @@ msgstr "Modeloaren UV diseinuak berak mapatzen du, eta hori da jada kokapena - t
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Testuraren kopia batek modeloan duen zabalera. Txikiagoak patroia maizago errepikatzen du eta xehetasuna finagoa egiten du; Lauzatu desaktibatuta dagoenean, kopia bakarraren tamaina da."
 
+# AI Translated
 msgid "Larger"
-msgstr ""
+msgstr "Handiagoa"
 
+# AI Translated
 msgid "Smaller"
-msgstr ""
+msgstr "Txikiagoa"
 
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
@@ -32333,11 +32791,13 @@ msgstr "Kolore nahasiak"
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Finkatze batek gehi ditzakeen filamentu nahasien gehieneko kopurua. Testuraren koloreetatik aukeratzen dira, eta finkatzeak benetan erabiltzen dituenak soilik sortzen dira."
 
+# AI Translated
 msgid "Few"
-msgstr ""
+msgstr "Gutxi"
 
+# AI Translated
 msgid "Many"
-msgstr ""
+msgstr "Asko"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -32693,11 +33153,13 @@ msgstr "Birsaretzea"
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Modelo osoa berreraikitzeko erabiltzen den triangelu-tamaina, milimetrotan. Desplazamenduak sare uniforme batean funtzionatzen du ondoen; honek bihurtzen du inportazio irregular bat sare uniforme."
 
+# AI Translated
 msgid "Before"
-msgstr ""
+msgstr "Aurretik"
 
+# AI Translated
 msgid "After"
-msgstr ""
+msgstr "Ondoren"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -34576,6 +35038,10 @@ msgid "Slicing Pipeline"
 msgstr "Xerratze-kanalizazioa"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Baliabide-testura"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "Pluginaren konfigurazio-interfazea hutsik zegoen. Editore lehenetsia erakusten."
 
@@ -34721,6 +35187,30 @@ msgstr "Pluginaren direktorioak .py eta .whl sarrera-fitxategiak ditu"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Pluginaren direktorioak ez du .py edo .whl sarrera-fitxategirik"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Baliabide-testuren direktorioa ez dago ezarrita"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Ezin izan da baliabide-testuren direktorioa ebatzi"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Baliabide-testuren bidea ez da direktorio bat"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Ezin izan da pluginaren karpeta ebatzi"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Baliabide-testuren direktorioa pluginaren karpetatik kanpo dago"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Ezin izan da baliabide-testuren direktorioa irakurri"
 
 # AI Translated
 #, boost-format
@@ -35180,7 +35670,7 @@ msgstr "Huts egin du \"%1%\" konfigurazio-fitxategia kargatzeak: %2%"
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "Ez da %1% aplikazioak sortutako G-code fitxategia."
 
 # AI Translated
@@ -35300,7 +35790,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "Ezin izan da %1% G-code fitxategiaren aldi baterako kopia egin post-prozesatze scripta exekutatu aurretik: %2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "Post-prozesadoreak ezin du esportatutako G-code fitxategia aurkitu"
 
 # AI Translated
@@ -35667,6 +36157,27 @@ msgid ""
 msgstr ""
 "Saihestu okertzea\n"
 "Ba al zenekien ABS bezalako okertzeko joera duten materialak inprimatzean ohe beroaren tenperatura egoki igotzeak okertzeko probabilitatea murriztu dezakeela?"
+
+# AI Translated
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Dalmaziar horia"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "Kapsantina-bioleta"
+
+# AI Translated
+# Needs human review: RAL color name; check the rendering.
+#~ msgid "Olivestone"
+#~ msgstr "Oliba-harria"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Leihoko edozein tokitan erabilgarri, baita testu-eremu batean idazten ari zarenean ere."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Lasterbide globalak idazten ari zarenean ere aplikatzen dira."
 
 #~ msgid "Please choose the filament color"
 #~ msgstr "Hautatu filamentuen kolorea"
@@ -36137,9 +36648,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "konfiguratutako erremintarik ez"
 
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "Gehitu amaierako G-codea inprimaketa osoa amaitzean."
-
 #~ msgid "Maximum X speed"
 #~ msgstr "X gehieneko abiadura"
 
@@ -36156,23 +36664,8 @@ msgstr ""
 #~ msgstr "Xerratze-prozesuko urrats bakoitzean deitzen diren Python pluginak, tarteko datuak irakurri eta aldatzeko; horien artean, G-codearen azken post-prozesatze fasea ere sartzen da. Ikerketa- edo esperimentazio-mailakoak."
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "Gaituta dagoenean, xerratzaileak eremu nagusiaren edukia ohearen jatorrian (0,0) zentratuta duen G-code sortzen du. Inprimagailuaren firmwareak kokatzen ditu kopiak/ispiluak eremu fisiko bakoitzaren posizioan. Gaitu soilik firmwareak kopia/ispilu moduan bere eremu-desplazamenduak aplikatzen dituen inprimagailuetan (adib. RepRapFirmware-ren IDEX bikoizte-modua). Ez du eraginik Nagusia (Primary) moduan."
-
-# AI Translated
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "Plaka bakoitzeko gainidazketa, buru fisikoak filamentu-zirrikituekin lotzen dituena (1etik hasita). Hutsik badago, pem-inbertsioaren balio lehenetsiak erabiltzen dira."
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "Xerratu aurretik sarea zein ardatzaren inguruan biratzen den. Zinta-inprimagailuaren inklinazioa da: biraketa isometriko bat (distortsiorik gabea), ohearen errendatzea eta euskarrien grabitate-inklinazioa ere gidatzen dituena, eta G-codearen alderantzizko transformazioak desegiten duena makinaren koordenatu-sistemaren zizailadura/eskala eta berresleipena aplikatu aurretik. X da atariaren ohiko inklinazioa (zinta Y ardatzean zehar mugitzen da)."
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "Adituentzako gainidazketa: ezarri makinaren koordenatu-sistemaren inklinazio-angelua (G-codearen zizailadura/eskala) xerratu aurreko biraketa-angelutik independenteki. Desgaituta dagoenean, makinaren koordenatu-sistemaren transformazioa zintaren inklinazio-angelutik ateratzen da; beraz, angelu bakar batek gidatzen ditu bi etapak. Gaitu soilik atariaren inklinazio fisikoa xerratze-biraketatik desberdina duen makina bat konpentsatzeko."
-
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "'Hormaren gehieneko bereizmena' ezarpenerako bereizmena murriztean baimendutako gehieneko desbideratzea. Handitzen baduzu, inprimaketa ez da hain zehatza izango, baina G-codea txikiagoa izango da. 'Hormaren gehieneko desbideratzeak'-ek 'Hormaren gehieneko bereizmena' mugatzen du; beraz, bien artean gatazkarik badago, 'Hormaren gehieneko desbideratzeak' izango du lehentasuna."
 
 #~ msgid " not in range "
 #~ msgstr " ez dago tartean "

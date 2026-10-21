@@ -432,27 +432,36 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
     std::string OozePrevention::pre_toolchange(GCode& gcodegen)
     {
-        std::string gcode;
-
         unsigned int extruder_id = gcodegen.writer().filament()->id();
-        const auto& filament_idle_temp = gcodegen.config().idle_temperature;
-        if (filament_idle_temp.get_at(extruder_id) == 0) {
-            // There is no idle temperature defined in filament settings.
-            // Use the delta value from print config.
-            if (gcodegen.config().standby_temperature_delta.value != 0) {
-                // we assume that heating is always slower than cooling, so no need to block
-                gcode += gcodegen.writer().set_temperature
-                (this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value, false, extruder_id);
-                gcode.pop_back();
-                gcode += " ;cooldown\n"; // this is a marker for GCodeProcessor, so it can supress the commands when needed
-            }
-        } else {
-            // Use the value from filament settings. That one is absolute, not delta.
-            gcode += gcodegen.writer().set_temperature(filament_idle_temp.get_at(extruder_id), false, extruder_id);
-            gcode.pop_back();
-            gcode += " ;cooldown\n"; // this is a marker for GCodeProcessor, so it can supress the commands when needed
+
+        // Check if this tool will ever be used again in this print.
+        bool is_last_use = false;
+        if (gcodegen.m_print != nullptr && !gcodegen.m_print->tool_ordering().empty()) {
+            coordf_t current_z        = gcodegen.layer() ? gcodegen.layer()->print_z : gcodegen.writer().get_position().z();
+            const auto& tool_ordering = gcodegen.m_print->tool_ordering();
+            const auto& cfg           = gcodegen.config();
+            const int heater          = imex_physical_heater_for(cfg.is_imex.value, cfg.physical_extruder_map, int(extruder_id));
+            is_last_use               = tool_ordering.is_last_extrusion_layer(current_z, extruder_id);
+            for (unsigned int f : tool_ordering.all_extruders())
+                if (is_last_use && imex_physical_heater_for(cfg.is_imex.value, cfg.physical_extruder_map, int(f)) == heater)
+                    is_last_use = tool_ordering.is_last_extrusion_layer(current_z, f);
         }
 
+        int temp = 0;
+        if (!is_last_use) {
+            const auto& filament_idle_temp = gcodegen.config().idle_temperature;
+            if (filament_idle_temp.get_at(extruder_id) == 0) {
+                if (gcodegen.config().standby_temperature_delta.value == 0)
+                    return std::string();
+                temp = this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value;
+            } else {
+                temp = filament_idle_temp.get_at(extruder_id);
+            }
+        }
+
+        std::string gcode = gcodegen.writer().set_temperature(temp, false, extruder_id);
+        gcode.pop_back();
+        gcode += " ;cooldown\n"; // this is a marker for GCodeProcessor, so it can supress the commands when needed
         return gcode;
     }
 
@@ -3970,12 +3979,22 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("hold_chamber_temp_for_flat_print", new ConfigOptionBool(hold_chamber_temp_for_flat_print));
     }
 
-    this->placeholder_parser().set("print_time_total_sec", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Total_Sec_Placeholder)));
-    this->placeholder_parser().set("print_time_day", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Day_Placeholder)));
-    this->placeholder_parser().set("print_time_hour", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Hour_Placeholder)));
-    this->placeholder_parser().set("print_time_minute", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Minute_Placeholder)));
-    this->placeholder_parser().set("print_time_sec", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Sec_Placeholder)));
-    this->placeholder_parser().set("used_filament_length", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Length_Placeholder)));
+    this->placeholder_parser().set_deferred("print_time_total_sec", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Total_Sec_Placeholder));
+    this->placeholder_parser().set_deferred("print_time_day", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Day_Placeholder));
+    this->placeholder_parser().set_deferred("print_time_hour", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Hour_Placeholder));
+    this->placeholder_parser().set_deferred("print_time_minute", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Minute_Placeholder));
+    this->placeholder_parser().set_deferred("print_time_sec", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Sec_Placeholder));
+    this->placeholder_parser().set_deferred("used_filament_length", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Length_Placeholder));
+    // The final print statistics are known only after the whole G-code is generated, so they are filled in during post-processing too.
+    // The running extruded_* totals are left alone; profiles use them as numbers.
+    this->placeholder_parser().set_deferred("used_filament", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Length_Placeholder));
+    this->placeholder_parser().set_deferred("print_time", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Normal_Print_Time_Placeholder));
+    this->placeholder_parser().set_deferred("normal_print_time", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Normal_Print_Time_Placeholder));
+    this->placeholder_parser().set_deferred("silent_print_time", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Silent_Print_Time_Placeholder));
+    this->placeholder_parser().set_deferred("total_weight", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Weight_Placeholder));
+    this->placeholder_parser().set_deferred("total_cost", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Cost_Placeholder));
+    this->placeholder_parser().set_deferred("total_wipe_tower_cost", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Wipe_Tower_Cost_Placeholder));
+    this->placeholder_parser().set_deferred("total_wipe_tower_filament", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Wipe_Tower_Filament_Placeholder));
 
     // Sync variant-mapped params into placeholder_parser before processing start gcode
     update_placeholder_parser_with_variant_params();
@@ -6641,10 +6660,6 @@ LayerResult GCode::process_layer(
         case CalibMode::Calib_Input_shaping_freq: {
             if (m_layer_index == 1){
                 gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f, print.calib_params().shaper_type);
-                if (m_writer.get_gcode_flavor() == gcfKlipper) {
-                    // Disable minimum cruise ratio to ensure consistent motion for calibration
-                    gcode += "SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0\n";
-                }
             } else {
                 if (print.calib_params().freqStartX == print.calib_params().freqStartY && print.calib_params().freqEndX == print.calib_params().freqEndY) {
                     gcode += writer().set_input_shaping('A', 0.f, this->interpolate_value_across_layers(print.calib_params().freqStartX, print.calib_params().freqEndX), "");
@@ -6657,10 +6672,6 @@ LayerResult GCode::process_layer(
         }
         case CalibMode::Calib_Input_shaping_damp: {
             if (m_layer_index == 1){
-                if (m_writer.get_gcode_flavor() == gcfKlipper) {
-                    // Disable minimum cruise ratio to ensure consistent motion for calibration
-                    gcode += "SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0\n";
-                }
                 gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX, print.calib_params().shaper_type);
                 gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY, print.calib_params().shaper_type);
             } else {
