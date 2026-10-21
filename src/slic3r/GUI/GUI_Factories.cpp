@@ -31,6 +31,7 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include <utility>
 #include <wx/dataview.h>
+#include <wx/menu.h>
 #include <wx/string.h>
 #include <wx/event.h>
 #include <cstddef>
