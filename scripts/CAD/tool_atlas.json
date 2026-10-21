@@ -1018,6 +1018,26 @@
       "hint": "Report the volume and surface area of the selected body"
     },
     {
+      "id": "quotes",
+      "name": "Dimensions",
+      "slot": "reference",
+      "key": null,
+      "feature": null,
+      "mcp": null,
+      "accepts": [
+        "none",
+        "body_solid"
+      ],
+      "needs": {
+        "bodies": 1
+      },
+      "refusal": null,
+      "gui": true,
+      "action": "btn:quotes",
+      "icon": null,
+      "hint": "Show the dimensions of the body in drafting style: overall size, hole diameters and fillet radii; click one to edit it"
+    },
+    {
       "id": "interference",
       "name": "Interference",
       "slot": "reference",

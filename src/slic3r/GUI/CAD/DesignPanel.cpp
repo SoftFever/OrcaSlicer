@@ -1070,6 +1070,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
         m_verb_actions["btn:delete_body"] = [this] { on_delete_body(); };
         m_verb_actions["btn:edit"]   = [this] { on_edit_feature(); };
         m_verb_actions["btn:mass"]   = [this] { on_mass_properties(); };
+        m_verb_actions["btn:quotes"] = [this] { on_toggle_quotes(); };
         m_verb_actions["btn:interference"] = [this] { on_check_interference(); };
         // Reachable from the offer menu on a SELECTED SKETCH, not only from the toolbar icon.
         // A user evaluating against Onshape reported that "adding constraints seems to be
@@ -3465,6 +3466,15 @@ DesignPanel::DesignPanel(wxWindow* parent)
         set_tree_selection(feat);
         on_edit_feature();
     });
+
+    m_viewport->quote_overlay().quotes = [this]() -> const std::vector<Quotes::Quote>& { return quotes_for_view(); };
+    m_viewport->quote_overlay().edit   = [this](int feat) {   // runs outside the frame: the card it opens must not be built mid-render
+        CallAfter([this, feat] {
+            if (feat < 0 || feat >= int(m_doc.features.size())) return;
+            set_tree_selection(feat);
+            on_edit_feature();
+        });
+    };
 
     // F key (Prepare's Place on Face): the tool forwards it here when the Design viewport
     // has focus; we lay the selected body face on the bed. Returns false when no face is
@@ -5929,6 +5939,38 @@ void DesignPanel::on_check_interference()
 // Volume and surface area of the selected body. A report, not a feature: it never checkpoints,
 // never recomputes and never opens a card, which is why it sits beside the interference check
 // rather than in the on_add_* family. It reports geometry only — there is no density, so no mass.
+const std::vector<Quotes::Quote>& DesignPanel::quotes_for_view()
+{
+    if (m_quote_gen != m_doc.topo_generation || m_quote_body != m_sel_solid_body || m_quote_nbodies != m_doc.bodies.size()) {
+        m_quote_cache.clear();
+        for (size_t b = 0; b < m_doc.bodies.size(); ++b) {
+            if (m_sel_solid_body >= 0 && int(b) != m_sel_solid_body) continue;
+            try {
+                std::vector<Quotes::Quote> q = Quotes::compute(m_doc.bodies[b].shape, int(b));
+                Quotes::link_features(q, m_doc);
+                for (Quotes::Quote& one : q) m_quote_cache.push_back(std::move(one));
+            } catch (...) {   // OCCT's exceptions are not std::exception; a shape it cannot read just has no dimensions
+            }
+        }
+        m_quote_gen     = m_doc.topo_generation;
+        m_quote_body    = m_sel_solid_body;
+        m_quote_nbodies = m_doc.bodies.size();
+    }
+    return m_quote_cache;
+}
+
+void DesignPanel::on_toggle_quotes()
+{
+    if (!m_viewport) return;
+    const bool on = !m_viewport->quotes_on();
+    if (on && m_doc.bodies.empty()) {
+        set_status(StatusKind::Info, _L("There is no body to dimension yet"));
+        return;
+    }
+    m_viewport->set_quotes_on(on);
+    set_status(StatusKind::Info, on ? _L("Dimensions on — click one with a feature behind it to edit it") : _L("Dimensions off"));
+}
+
 void DesignPanel::on_mass_properties()
 {
     // This bounds check is not defensive padding — it is what makes the verb safe to fire from

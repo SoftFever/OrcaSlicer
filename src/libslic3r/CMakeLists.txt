@@ -579,6 +579,8 @@ if (SLIC3R_CAD)
             CAD/GeometryEngine.hpp
             CAD/TopoRemap.cpp
             CAD/TopoRemap.hpp
+            CAD/Quotes.cpp
+            CAD/Quotes.hpp
             CAD/SketchEngine.cpp
             CAD/SketchEngine.hpp
             CAD/SketchConstraints.cpp

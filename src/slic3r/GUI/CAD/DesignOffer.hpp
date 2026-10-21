@@ -141,6 +141,7 @@ static const OfferVerb kOfferVerbs[] = {
     {"project", L_CONTEXT("Project", "Design"), 6, nullptr, "fly:plane#4", L("Project needs a body or a sketch — add or import one first"), 0x00004482u, 0, 0, false, false, nullptr, "design_sketch", L("Project body edges, or a whole sketch (Use), onto a plane")},
     {"measure", L_CONTEXT("Measure", "Design"), 6, nullptr, nullptr, nullptr, 0x000b03feu, 0, 0, false, false, nullptr, nullptr, L("Measure between the picked points, edges or faces")},
     {"mass_props", L_CONTEXT("Volume and area", "Design"), 6, nullptr, "btn:mass", nullptr, 0x000000feu, 1, 0, false, false, nullptr, "info", L("Report the volume and surface area of the selected body")},
+    {"quotes", L_CONTEXT("Dimensions", "Design"), 6, nullptr, "btn:quotes", nullptr, 0x00000081u, 1, 0, false, false, nullptr, nullptr, L("Show the dimensions of the body in drafting style: overall size, hole diameters and fillet radii; click one to edit it")},
     {"interference", L_CONTEXT("Interference", "Design"), 6, nullptr, "btn:interference", L("Interference needs at least two bodies"), 0x00000280u, 2, 0, false, false, nullptr, nullptr, L("Check whether two bodies overlap — reports, changes nothing")},
     {"edit_feature", L_CONTEXT("Edit", "Design"), 7, nullptr, "btn:edit", nullptr, 0x00007d8eu, 0, 0, false, false, nullptr, "design_edit", L("Reopen the selected feature to change what it was made from")},
     {"rename", L_CONTEXT("Rename…", "Design"), 8, "F2", "btn:rename", L("Select a feature, or a body, to rename it"), 0x00004080u, 0, 0, false, false, nullptr, nullptr, L("Give this feature a name you will recognise in the tree (a body takes its name from the feature that makes it)")},
@@ -233,7 +234,7 @@ static const OfferVerb kOfferVerbs[] = {
     {"con_distancex", L_CONTEXT("Horizontal distance", "Design"), 6, nullptr, "con:DistanceX", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_dist_x", L("Fix the horizontal distance between two points")},
     {"con_distancey", L_CONTEXT("Vertical distance", "Design"), 6, nullptr, "con:DistanceY", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_dist_y", L("Fix the vertical distance between two points")},
 };
-static const int kOfferVerbCount = 121;
+static const int kOfferVerbCount = 122;
 
 }} // namespace Slic3r::GUI
 

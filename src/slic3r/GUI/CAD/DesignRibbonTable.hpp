@@ -47,7 +47,7 @@ static const Place kPlace[] = {
     {"surf_extrude", 1, L("Surface")}, {"surf_revolve", 1, L("Surface")}, {"surf_loft", 1, L("Surface")}, {"surf_fill", 1, L("Surface")},
     {"surf_offset", 1, L("Offset / Thicken")}, {"thicken_surf", 1, L("Offset / Thicken")},
     {"plane", 3, L("Reference")}, {"axis", 3, L("Reference")}, {"coordsys_v", 3, L("Reference")}, {"helix", 3, L("Reference")}, {"project", 3, L("Reference")},
-    {"measure", 3, L("Inspect")}, {"mass_props", 3, L("Inspect")}, {"interference", 3, L("Inspect")},
+    {"measure", 3, L("Inspect")}, {"mass_props", 3, L("Inspect")}, {"quotes", 3, L("Inspect")}, {"interference", 3, L("Inspect")},
     {"edit_feature", 3, L("Edit")}, {"rename", 3, L("Edit")}, {"colour", 3, L("Edit")}, {"zoom_to", 3, L("Edit")},
     {"delete_face", 3, L("Edit")}, {"delete", 3, L("Edit")}, {"delete_body", 3, L("Edit")},
 };

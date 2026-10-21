@@ -227,6 +227,7 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
             if (m_other_menu.is_open()) m_canvas->set_as_dirty();
         }
         if (m_palette.is_open()) m_canvas->set_as_dirty();   // keep frames coming: the box takes focus on the frame AFTER it opens
+        if (m_quotes_on) m_quotes.render(imgui, wxGetApp().plater()->get_camera(), m_canvas->get_scale());   // under the bars: they draw after
         float left = 34.f * em;   // clear of the corner collapse button
         if (m_topbar_on) {   // the document actions, the toolbox and Confirm / Cancel: one row from the canvas's left edge, the panel hangs under it
             m_topbar.render(imgui, m_canvas->get_scale(), m_sidebar_on ? 0.f : left);

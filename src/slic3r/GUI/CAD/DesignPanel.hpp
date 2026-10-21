@@ -23,6 +23,7 @@
 #include <map>
 
 #include "libslic3r/CAD/CadDocument.hpp"
+#include "libslic3r/CAD/Quotes.hpp"
 #include "slic3r/GUI/CAD/DesignCardModel.hpp"
 #include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
 #include "slic3r/GUI/CAD/DesignInteraction.hpp"   // CadLevel: what one Esc press means
@@ -930,6 +931,13 @@ private:
     PlanePick m_plane_pick{PlanePick::None};         // which ref the next solid pick fills
     // Click-selected solid topology (whole/face/edge cycle): face id for up-to-face / dress-up.
     int               m_sel_solid_body{-1};   // which body the face/edge selection is on
+    // The dimensions on view: those of the selected body, else of every body. Recomputed only when the shapes or the selection change.
+    std::vector<Quotes::Quote> m_quote_cache;
+    uint64_t m_quote_gen{0};
+    int      m_quote_body{-2};
+    size_t   m_quote_nbodies{0};
+    const std::vector<Quotes::Quote>& quotes_for_view();
+    void on_toggle_quotes();
     int               m_sel_solid_face{-1};
     // The face a sketch session was started on (start_sketch_on_target): the committed Sketch records it so it follows the
     // face through upstream edits. Checked against the committed plane before it is trusted.

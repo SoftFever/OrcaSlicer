@@ -13,6 +13,7 @@
 
 #include <functional>
 #include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
+#include "slic3r/GUI/CAD/DesignQuotes.hpp"
 #include <memory>
 #include <string>
 #include <wx/string.h>
@@ -92,6 +93,10 @@ public:
     void set_topbar_overlay(bool on) { m_topbar_on = on; request_repaint(); }
     bool topbar_overlay_on() const { return m_topbar_on; }
     DesignRibbonOverlay& ribbon_overlay() { return m_ribbon; }
+    // The body's dimensions drawn over the viewport (the Dimensions verb); the panel supplies the quotes and what a click on one does.
+    DesignQuoteOverlay& quote_overlay() { return m_quotes; }
+    bool quotes_on() const { return m_quotes_on; }
+    void set_quotes_on(bool on) { m_quotes_on = on; request_repaint(); }
     DesignPalette&       palette() { return m_palette; }
     void                 open_palette();   // at the pointer if it is over the canvas, else the middle
     void set_ribbon_overlay(bool on) { m_ribbon_on = on; request_repaint(); }
@@ -494,6 +499,8 @@ private:
     DesignOfferPopup    m_offer_popup;
     DesignRibbonOverlay m_ribbon;
     DesignTopBar        m_topbar;
+    DesignQuoteOverlay  m_quotes;
+    bool                m_quotes_on{false};
     DesignSidebarOverlay m_sidebar;
     bool                m_sidebar_on{false};
     bool                m_topbar_on{false};
