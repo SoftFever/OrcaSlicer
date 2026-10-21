@@ -212,7 +212,7 @@ private:
     void        append_menu_item_plate_delete(wxMenu *menu, size_t pos = -1);
     wxMenu*     append_menu_item_transform(wxMenu* menu, bool multi_selection, bool show_mirror, bool convert_unit);
     wxMenu*     append_menu_item_modify(   wxMenu* menu, bool multi_selection, bool splittable, bool is_mesh, bool mesh_boolean);
-    wxMenu*     append_menu_item_utilities(wxMenu* menu, bool multi_selection, bool disk_op, bool export_op);
+    wxMenu*     append_menu_item_more(     wxMenu* menu, bool multi_selection, bool disk_op, bool export_op);
 };
 
 }}

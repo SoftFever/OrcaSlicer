@@ -1415,7 +1415,7 @@ wxMenu* MenuFactory::append_menu_item_modify(wxMenu* menu, bool multi_selection,
     return sub_menu;
 }
 
-wxMenu* MenuFactory::append_menu_item_utilities(wxMenu* menu, bool multi_selection, bool disk_op, bool export_op)
+wxMenu* MenuFactory::append_menu_item_more(wxMenu* menu, bool multi_selection, bool disk_op, bool export_op)
 {
     wxMenu* sub_menu = new wxMenu();
 
@@ -1432,7 +1432,7 @@ wxMenu* MenuFactory::append_menu_item_utilities(wxMenu* menu, bool multi_selecti
         append_menu_item_export_stl(sub_menu, multi_selection);
         append_menu_item_export_drc(sub_menu, multi_selection);
     }
-    append_submenu(menu, sub_menu, wxID_ANY, _L("Utilities"), "", "",[](){return true;}, m_parent);
+    append_submenu(menu, sub_menu, wxID_ANY, _L("More"), "", "",[](){return true;}, m_parent);
 
     return sub_menu;
 }
@@ -1764,7 +1764,7 @@ void MenuFactory::create_extra_object_menu()
 
     // ORCA Utilities menu
     m_object_menu.AppendSeparator();
-    m_object_utilities_menu = append_menu_item_utilities(&m_object_menu, false /*multi_selection*/, true /*disk_op*/, false/*export_op*/);
+    m_object_utilities_menu = append_menu_item_more(&m_object_menu, false /*multi_selection*/, true /*disk_op*/, false/*export_op*/);
 }
 
 void MenuFactory::create_bbl_assemble_object_menu()
@@ -1859,7 +1859,7 @@ void MenuFactory::create_bbl_part_menu()
     m_part_project_marker = menu->FindItem(_L("Paste Process Settings")); // append_menu_item_per_object_settings() is inserted after this item
 
     menu->AppendSeparator();
-    m_part_utilities_menu = append_menu_item_utilities(&m_part_menu, false /*multi_selection*/, true /*disk_op*/, false /*export_op*/);
+    m_part_utilities_menu = append_menu_item_more(&m_part_menu, false /*multi_selection*/, true /*disk_op*/, false /*export_op*/);
 }
 
 void MenuFactory::create_bbl_assemble_part_menu()
@@ -2186,7 +2186,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         menu->AppendSeparator();
 
         // Reload from disk / Replace all with STL / Export STL / Export DRC
-        append_menu_item_utilities(menu, true /*multi_selection*/, true /*disk_op*/, true /*export_op*/);
+        append_menu_item_more(menu, true /*multi_selection*/, true /*disk_op*/, true /*export_op*/);
     }
     else {
         append_menu_item_center(menu);
@@ -2217,7 +2217,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         menu->AppendSeparator();
 
         // Reload from disk / Replace all with STL
-        append_menu_item_utilities(menu, true /*multi_selection*/, true /*disk_op*/, false /*export_op*/);
+        append_menu_item_more(menu, true /*multi_selection*/, true /*disk_op*/, false /*export_op*/);
     }
     return menu;
 }
