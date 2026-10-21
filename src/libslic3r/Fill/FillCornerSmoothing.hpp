@@ -153,14 +153,4 @@ void smooth_polylines_corners(Polylines &polylines, const CornerSmoothing &smoot
 void smooth_polygons_corners(Polygons &polygons, const CornerSmoothing &smoothing, double max_corner_distance = 0.,
                              const CornerFilter &corner_filter = {});
 
-// The G2 curve, flattened to the given tolerance.
-inline void smooth_polyline_corners(Polyline &polyline, double smooth_factor, double tolerance)
-{
-    smooth_polyline_corners(polyline, CornerSmoothing{smooth_factor, InfillSmoothCurve::Quintic, tolerance});
-}
-inline void smooth_polygons_corners(Polygons &polygons, double smooth_factor, double tolerance)
-{
-    smooth_polygons_corners(polygons, CornerSmoothing{smooth_factor, InfillSmoothCurve::Quintic, tolerance});
-}
-
 } // namespace Slic3r
