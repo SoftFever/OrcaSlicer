@@ -3875,6 +3875,22 @@ void GLCanvas3D::bind_event_handlers()
                 render();
                 evt.Skip();
             });
+        // ORCA The capture can be taken away while a button is held (Alt+Tab, a dialog popping up, a lock screen)
+        // The button-up then never reaches the canvas and ImGui keeps the button down, so a held widget
+        // (a +/- step button, a slider) would stay active and keep requesting frames on its own.
+        // Cancel the interaction rather than complete it: clear the active widget first, so the synthesized
+        // release can't count as a click on a button still under the last known cursor position.
+        // Only sent when the capture is lost unexpectedly, never for a drag that leaves the window normally.
+        m_canvas->Bind(wxEVT_MOUSE_CAPTURE_LOST, [this](wxMouseCaptureLostEvent&) {
+                if (GImGui != nullptr) {
+                    ImGui::ClearActiveID();
+                    ImGuiIO& io = ImGui::GetIO();
+                    for (bool& down : io.MouseDown)
+                        down = false;
+                }
+                m_navigator_dragging = false;
+                render();
+            });
         m_event_handlers_bound = true;
 
         m_canvas->Bind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);

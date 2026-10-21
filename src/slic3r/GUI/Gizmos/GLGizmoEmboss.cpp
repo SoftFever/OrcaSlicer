@@ -2607,10 +2607,7 @@ bool GLGizmoEmboss::rev_input(const std::string &name, T &value, const T *defaul
         ImGui::SetNextItemWidth(width);
         bool changed = imgui_input(("##" + name).c_str(),
             &value, step, step_fast, format, flags);
-        // ImGui repeats the +/- step buttons only on new frames, but the canvas renders on events,
-        // so keep rendering while the mouse is held on the input to make the buttons auto-repeat.
-        if (ImGui::IsItemActive() && ImGui::IsMouseDown(ImGuiMouseButton_Left))
-            m_imgui->set_requires_extra_frame();
+        m_imgui->request_frames_while_held(); // ORC auto-repeat of the +/- buttons
         return changed;
     };
     return revertible(name, value, default_value, undo_tooltip, 

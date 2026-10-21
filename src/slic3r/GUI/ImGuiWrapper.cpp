@@ -579,6 +579,18 @@ void ImGuiWrapper::new_frame()
 
     ImGuiIO& io = ImGui::GetIO();
 
+    // ImGui times button and key repeat, double clicks and hover delays with io.DeltaTime. Left at its
+    // default of 1/60 s per frame, its clock counts frames, so a held +/- button repeats faster the faster
+    // the canvas renders: at 1000 fps the first repeat came after 17 ms and steps ran ~670 times a second.
+    // Feed it the real frame time, capped at 1/60 s: above 60 fps the timing follows the wall clock, at or
+    // below 60 fps it is unchanged, and the long gaps of an idle event-driven canvas never count as time held.
+    const auto now = std::chrono::steady_clock::now();
+    if (m_last_frame_time != std::chrono::steady_clock::time_point{}) {
+        const float dt = std::chrono::duration<float>(now - m_last_frame_time).count();
+        io.DeltaTime   = std::clamp(dt, 1e-4f, 1.f / 60.f); // ImGui asserts a positive DeltaTime
+    }
+    m_last_frame_time = now;
+
     ImGui::NewFrame();
     m_new_frame_open = true;
 
