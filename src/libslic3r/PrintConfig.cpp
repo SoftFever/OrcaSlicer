@@ -4379,10 +4379,8 @@ void PrintConfigDef::init_fff_params()
                      " - Enabled: arcs are fitted to all toolpaths.\n"
                      " - Sparse infill only: arcs are fitted to the sparse infill only, which shortens the G-code of "
                      "curved infill patterns without affecting the walls and surfaces.\n\n"
-                     "Note: For Klipper machines, Disabled is recommended. Klipper does not benefit from "
-                     "arc commands as these are split again into line segments by the firmware. This results in a reduction "
-                     "in surface quality as line segments are converted to arcs by the slicer and then back to line segments "
-                     "by the firmware, and small curves such as smoothed infill corners print slower.");
+                     "Note: For Klipper machines, Disabled is recommended. Klipper splits arcs back into line segments, "
+                     "which lowers the surface quality and can increase the print time.");
     def->enum_keys_map = &ConfigOptionEnum<ArcFittingMode>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("enabled");
