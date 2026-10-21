@@ -22,6 +22,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 
 #include <catch2/catch_all.hpp>
 
@@ -724,15 +725,49 @@ TEST_CASE("Custom G-code placeholders are substituted", "[Print]")
                 })
               .find("; between-object-gcode") != std::string::npos);
 
-    // [layer_num] keeps counting across sequentially printed objects (199 then 399).
+    // [layer_num] keeps counting across sequentially printed objects (199 then 399), and [max_layer_z]
+    // stays at the first object's 20mm top while the second object starts.
     const std::string per_layer = slice_two_cubes_arranged({
         { "print_sequence",             "by object" },
-        { "layer_change_gcode",         ";Layer:[layer_num] ([layer_z] mm)" },
+        { "layer_change_gcode",         ";Layer:[layer_num] ([layer_z] mm) max [max_layer_z]" },
         { "layer_height",               0.1 },
         { "initial_layer_print_height", 0.1 },
     });
     CHECK(per_layer.find(";Layer:199 ") != std::string::npos);
     CHECK(per_layer.find(";Layer:399 ") != std::string::npos);
+    CHECK(per_layer.find(";Layer:200 (0.1 mm) max 20\n") != std::string::npos);
+}
+
+TEST_CASE("Timelapse G-code gets the snapshot placeholders on bed slingers and other printers", "[Print]")
+{
+    const std::string structure = GENERATE(as<std::string>{}, "i3", "corexy");
+    CAPTURE(structure);
+    std::string gcode;
+    REQUIRE_NOTHROW(gcode = slice({ cube(20) }, {
+                        { "printer_structure",         structure },
+                        { "printable_area",            "0x0,200x0,200x200,0x200" },
+                        { "bed_exclude_area",          "0x0" },
+                        { "extruder_clearance_radius", 40 },
+                        { "timelapse_type",            "0" },
+                        { "time_lapse_gcode",  "; Timelapse {if has_timelapse_safe_pos}safe{else}none{endif} [timelapse_pos_x] "
+                                               "[clear_to_x0] [curr_physical_extruder_id]" },
+                    }));
+    CHECK(gcode.find("\n; Timelapse safe ") != std::string::npos);
+}
+
+TEST_CASE("The first filament start G-code on Bambu Lab printers gets the layer placeholders", "[Print]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_key_value("filament_start_gcode", new ConfigOptionStrings({ "; Start [layer_num] [layer_z] [max_layer_z]" }));
+    Print print;
+    Model model;
+    init_print({ cube(20) }, print, model, config);
+    print.is_BBL_printer() = true;
+
+    std::string gcode;
+    REQUIRE_NOTHROW(gcode = Slic3r::Test::gcode(print));
+    // The first filament start G-code runs before the first layer.
+    CHECK(gcode.find("\n; Start -1 ") != std::string::npos);
 }
 
 // The final print statistics are known only after the whole G-code is generated, yet every custom G-code,
@@ -792,6 +827,20 @@ TEST_CASE("Print statistics in custom G-code match the final print statistics", 
         CAPTURE(key);
         CHECK(value_of(key) == stats.opt_string(key));
     }
+}
+
+TEST_CASE("Print statistics in custom G-code cannot be used in a calculation", "[Print]")
+{
+    const std::string key = GENERATE(as<std::string>{}, "total_weight", "used_filament", "total_cost", "print_time", "normal_print_time",
+                                     "silent_print_time", "total_wipe_tower_cost", "total_wipe_tower_filament", "print_time_total_sec",
+                                     "print_time_day", "print_time_hour", "print_time_minute", "print_time_sec", "used_filament_length");
+    CAPTURE(key);
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({ { "file_start_gcode", "; {" + key + " + 1}\n" } });
+    Print print;
+    Model model;
+    init_print({ cube(20) }, print, model, config);
+    CHECK_THROWS_WITH(Slic3r::Test::gcode(print), Catch::Matchers::ContainsSubstring("known only after the G-code is generated"));
 }
 
 TEST_CASE("export_gcode writes G-code without a result pointer", "[Print][export_gcode]")
