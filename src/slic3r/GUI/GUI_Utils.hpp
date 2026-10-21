@@ -490,6 +490,9 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
 int get_dpi_for_window(const wxWindow *window);
 
 #ifdef __WXOSX__
+// Raise the current native modal (including wxWindowDisabler sessions), not its parent.
+// Call on the GUI thread after activation has settled. Returns false when none is visible.
+bool raise_macos_modal_window();
 void dataview_remove_insets(wxDataViewCtrl* dv);
 void staticbox_remove_margin(wxStaticBox* sb);
 // Clip a top-level window (and its webview) to a rounded rect with a native layer.

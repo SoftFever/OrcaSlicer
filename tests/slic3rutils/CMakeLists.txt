@@ -123,3 +123,12 @@ if (ORCA_BUNDLED_UV_EXECUTABLE)
 endif()
 
 orcaslicer_discover_tests(${_TEST_NAME}_tests)
+
+if (APPLE)
+    # Opt-in: creates native windows and requires a logged-in desktop. Keep it out of
+    # the headless unit-test run; see macos-dialog-windows.md for the invocation.
+    find_package(wxWidgets 3.3 CONFIG REQUIRED COMPONENTS core base)
+    add_executable(macos_dialog_windows_tests EXCLUDE_FROM_ALL test_macos_dialog_windows.mm)
+    target_compile_definitions(macos_dialog_windows_tests PRIVATE wxDEBUG_LEVEL=0)
+    target_link_libraries(macos_dialog_windows_tests PRIVATE wx::core wx::base Catch2::Catch2)
+endif()

@@ -549,6 +549,22 @@ name — for any other window call `window_pos_save/restore` with its own name.
 macOS dialogs are not attached as Cocoa child windows (no `addChildWindow`, `src/osx/cocoa/nonownedwnd.mm:947-991`),
 so they do not move with their parent; non-tool windows get `setHidesOnDeactivate:NO`.
 
+**Orca's macOS dependency patch. [source]** `deps/wxWidgets/0002-macos-managed-dialog-windows.patch`
+changes the native class for captioned `wxTOPLEVEL_EX_DIALOG` windows to `wxNSWindow`, excluding
+`wxPOPUP_WINDOW`, `wxFRAME_TOOL_WINDOW` and `wxWS_EX_TRANSIENT`. These dialogs use `Managed` and
+`ParticipatesInCycle` collection behaviour, and enter the native window menu only while shown
+(including non-resizable dialogs); title changes update that entry. The excluded classes keep
+their original `wxNSPanel` behaviour. This does not change wx modality or add an always-on-top level.
+
+**Activation recovery.** `GUI_App::restore_macos_modal_window` defers restoration after app/main-frame
+activation; `GUI_App::MacReopenApp` does the same for Dock reopening, falling back to wx's implementation
+when no native modal is visible. `raise_macos_modal_window` resolves `NSApp.modalWindow` and the deepest
+attached sheet at execution time, and does nothing while the app is inactive. Do not substitute
+`dialogStack` for this lookup: `wxWindowDisabler` starts a Cocoa modal session without setting
+`wxDialog::IsModal()` or entering Orca's stack. Never retain a dialog pointer across the queued restore
+or show a hidden dialog from activation handling. `ParamsDialog::Popup` shows only when hidden and
+restores the modal above it rather than covering a nested confirmation.
+
 **OrcaSlicer.**
 - `DPIAware`'s constructor defaults `style = wxDEFAULT_FRAME_STYLE` and `name = wxFrameNameStr` for
   dialogs too: `DPIDialog(parent, id, title)` without a style is resizable with min/max boxes. Pass

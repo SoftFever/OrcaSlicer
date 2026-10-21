@@ -7,6 +7,28 @@
 namespace Slic3r {
 namespace GUI {
 
+bool raise_macos_modal_window()
+{
+    if (![NSApp isActive])
+        return false;
+
+    // Resolve at call time: a queued activation may outlive the dialog which caused it.
+    NSWindow* window = [NSApp modalWindow];
+    if (!window)
+        window = [[NSApp keyWindow] sheetParent];
+    if (!window)
+        window = [[NSApp mainWindow] attachedSheet];
+    while ([window attachedSheet])
+        window = [window attachedSheet];
+
+    // wxWindowDisabler without an exempt window uses a zero-sized dummy panel.
+    if (![window isVisible] || NSIsEmptyRect([window frame]))
+        return false;
+
+    [window makeKeyAndOrderFront:nil];
+    return true;
+}
+
 void dataview_remove_insets(wxDataViewCtrl* dv) {
     NSScrollView* scrollview = (NSScrollView*) ((wxCocoaDataViewControl*)dv->GetDataViewPeer())->GetWXWidget();
     NSOutlineView* outlineview = scrollview.documentView;

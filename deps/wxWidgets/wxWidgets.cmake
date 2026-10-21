@@ -24,9 +24,10 @@ endif ()
 set(_wx_patch_command "")
 if (APPLE)
     set(_wx_patch_command
-        ${GIT_EXECUTABLE} checkout -f -- src/osx/cocoa/colour.mm
+        ${GIT_EXECUTABLE} checkout -f -- src/osx/cocoa/colour.mm src/osx/cocoa/nonownedwnd.mm
         COMMAND ${GIT_EXECUTABLE} apply --verbose
                 ${CMAKE_CURRENT_LIST_DIR}/0001-macos-use-srgb-colour-components.patch
+                ${CMAKE_CURRENT_LIST_DIR}/0002-macos-managed-dialog-windows.patch
     )
 endif ()
 
@@ -67,6 +68,13 @@ orcaslicer_add_cmake_project(
         -DwxUSE_EXPAT=sys
         -DwxUSE_NANOSVG=OFF
 )
+
+if (APPLE)
+    ExternalProject_Add_StepDependencies(dep_wxWidgets patch
+        ${CMAKE_CURRENT_LIST_DIR}/0001-macos-use-srgb-colour-components.patch
+        ${CMAKE_CURRENT_LIST_DIR}/0002-macos-managed-dialog-windows.patch
+    )
+endif ()
 
 # wxWidgets 3.3 cmake install doesn't include private headers.
 # OrcaSlicer uses some of the private headers (for accessibility support).

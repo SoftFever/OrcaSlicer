@@ -98,7 +98,8 @@ void ParamsDialog::Popup()
 #ifdef __WIN32__
     Reparent(wxGetApp().mainframe);
 #endif
-    Center();
+    if (!IsShown())
+        Center();
     if (m_panel && m_panel->get_current_tab()) {
         bool just_edit = false;
         if (!m_editing_filament_id.empty()) just_edit = true;
@@ -112,7 +113,19 @@ void ParamsDialog::Popup()
                 preset_bundle.printers.get_edited_preset().config.opt_bool("support_multi_bed_types");
         }
     }
-    Show();
+    if (!IsShown())
+        Show();
+#ifdef __APPLE__
+    // Queue on the dialog itself, so destruction also discards this callback.
+    CallAfter([this] {
+        if (!wxGetApp().is_closing() && wxGetApp().IsActive() &&
+            !wxGetApp().IsScheduledForDestruction(this) && !IsBeingDeleted() && IsShown() &&
+            !raise_macos_modal_window() && IsEnabled())
+            Raise();
+    });
+#else
+    Raise();
+#endif
 }
 
 void ParamsDialog::on_dpi_changed(const wxRect &suggested_rect)

@@ -731,6 +731,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     Bind(wxEVT_ACTIVATE, [this](wxActivateEvent& event) {
         if (m_plater != nullptr && event.GetActive())
             m_plater->on_activate();
+#ifdef __APPLE__
+        if (event.GetActive())
+            wxGetApp().restore_macos_modal_window();
+#endif
         event.Skip();
     });
 

@@ -3189,6 +3189,12 @@ bool GUI_App::on_init_inner()
     });
 
 #ifdef __APPLE__
+    Bind(wxEVT_ACTIVATE_APP, [this](wxActivateEvent& event) {
+        if (event.GetActive())
+            restore_macos_modal_window();
+        event.Skip();
+    });
+
     // A quit request from the Dock, a logout or a restart ends with AppKit calling exit() right after this event, so
     // OnExit() and ~GUI_App() never run. Shut the plugins and Python down here as ~GUI_App() does. Left to
     // PluginManager's static destructor, the shutdown locks hook state that has already been destroyed and aborts.
@@ -9532,6 +9538,22 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
         init_app_config();
     }*/
     wxApp::OSXStoreOpenFiles(fileNames);
+}
+
+void GUI_App::restore_macos_modal_window()
+{
+    CallAfter([this] {
+        if (!is_closing())
+            raise_macos_modal_window();
+    });
+}
+
+void GUI_App::MacReopenApp()
+{
+    CallAfter([this] {
+        if (!is_closing() && IsActive() && !raise_macos_modal_window())
+            wxApp::MacReopenApp();
+    });
 }
 
 void GUI_App::MacOpenURL(const wxString& url)

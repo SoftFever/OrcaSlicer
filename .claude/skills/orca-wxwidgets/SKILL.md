@@ -26,6 +26,10 @@ how you read the wx docs:
   corrupts state. Check preconditions yourself; do not expect a debug build to catch misuse.
 - **No SVG in wx** (`wxUSE_NANOSVG=OFF`): `wxBitmapBundle::FromSVG*` does not exist. Orca rasterises
   its SVG icons itself (`BitmapCache`, `create_scaled_bitmap`, `ScalableBitmap`).
+- **macOS window-management patch:** ordinary captioned wx dialogs use `wxNSWindow`, not
+  `wxNSPanel`, and participate in the native window list and cycle. Tool, popup, transient and
+  frameless dialogs retain their panel behaviour. See `references/windows-dialogs.md` §5;
+  the patch is applied by `deps/wxWidgets/wxWidgets.cmake` when building the dependency.
 
 Look things up in the source the app is built from — it beats memory, and 3.3 changed real behaviour:
 
