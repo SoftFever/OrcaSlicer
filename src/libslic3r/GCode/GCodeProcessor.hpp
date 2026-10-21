@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cassert>
 #include <cstdint>
+#include <algorithm>
 #include <array>
 #include <unordered_map>
 #include <utility>
@@ -1076,18 +1077,34 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
                 m_custom_gcode_per_print_z_id = m_result.custom_gcode_per_print_z.size() - 1;
             }
 
-            void update(float height) {
-                if (!m_move_id.has_value() || !m_custom_gcode_per_print_z_id.has_value())
+            // The time pass inserts actual speed moves in front of the moves of its blocks, and the stored
+            // vertex has no block of its own, so it shifts with every insertion made before it.
+            void on_moves_inserted(const std::vector<std::pair<unsigned int, unsigned int>>& id_map) {
+                if (!m_move_id.has_value())
                     return;
+                auto it = std::lower_bound(id_map.begin(), id_map.end(), *m_move_id,
+                                           [](const std::pair<unsigned int, unsigned int>& entry, size_t id) { return entry.first < id; });
+                if (it != id_map.begin()) {
+                    --it;
+                    *m_move_id += it->second - it->first;
+                }
+            }
 
-                const Vec3f position = m_result.moves.back().position;
+            // Returns the index of the move erased from the list, if any.
+            std::optional<size_t> update(float height) {
+                if (!m_move_id.has_value() || !m_custom_gcode_per_print_z_id.has_value())
+                    return std::nullopt;
 
-                GCodeProcessorResult::MoveVertex& move = m_result.moves.emplace_back(m_result.moves[*m_move_id]);
+                const Vec3f  position = m_result.moves.back().position;
+                const size_t erased   = *m_move_id;
+
+                GCodeProcessorResult::MoveVertex& move = m_result.moves.emplace_back(m_result.moves[erased]);
                 move.position = position;
                 move.height = height;
-                m_result.moves.erase(m_result.moves.begin() + *m_move_id);
+                m_result.moves.erase(m_result.moves.begin() + erased);
                 m_result.custom_gcode_per_print_z[*m_custom_gcode_per_print_z_id].print_z = position.z();
                 reset();
+                return erased;
             }
 
             void reset() {
