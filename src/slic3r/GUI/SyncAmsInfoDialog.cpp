@@ -15,7 +15,7 @@
 #include "libslic3r/Utils.hpp"
 #include <string>
 #include "slic3r/GUI/BBLStatusBarPrint.hpp"
-#include "slic3r/GUI/Printer/PrinterFileSystem.h"
+#include <nlohmann/json.hpp>
 #include <cassert>
 #include "libslic3r/PrintConfig.hpp"
 #include <cstdlib>
@@ -85,9 +85,7 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 
 namespace fs = boost::filesystem;
-
-using namespace Slic3r;
-using namespace Slic3r::GUI;
+using json = nlohmann::json;
 
 #define OK_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
 #define CANCEL_BUTTON_SIZE wxSize(FromDIP(58), FromDIP(24))
@@ -1578,7 +1576,7 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(DevExtderSystem data, wxString &err
         }
     }
 
-    vector<int> map_extruders = {1, 0};
+    std::vector<int> map_extruders = {1, 0};
 
     // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
     std::vector<std::string> flow_type_of_machine;
@@ -1678,7 +1676,7 @@ void SyncAmsInfoDialog::stripWhiteSpace(std::string &str)
 {
     if (str == "") { return; }
 
-    string::iterator cur_it;
+    std::string::iterator cur_it;
     cur_it = str.begin();
 
     while (cur_it != str.end()) {
@@ -2214,7 +2212,7 @@ void SyncAmsInfoDialog::update_user_printer()
             {
                 m_list.push_back(it->second);
                 wxString dev_name_text = from_u8(it->second->get_dev_name());
-                if (it->second->is_lan_mode_printer()) { dev_name_text += "(LAN)"; }
+                if (it->second->is_lan_mode_printer()) { dev_name_text += _L("(LAN)"); }
                 machine_list_name.Add(dev_name_text);
                 break;
             }

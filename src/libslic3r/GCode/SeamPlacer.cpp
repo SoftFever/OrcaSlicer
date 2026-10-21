@@ -29,6 +29,7 @@
 #include <memory>
 #include <random>
 #include <algorithm>
+#include <limits>
 #include <queue>
 #include <string>
 #include <unordered_map>
@@ -608,7 +609,7 @@ void process_perimeter_polygon(const Polygon &orig_polygon, float z_coord, const
   // Apply weak modifiers if no strong modifier was inserted
   if (!inserted_seam_position.has_value() && !weak_segments.empty()) {
     PreciseSeam::apply_weak_modifiers_to_perimeter(
-        weak_segments, result, perimeter, some_point_enforced);
+        weak_segments, result, perimeter, some_point_enforced, warnings);
   }
 
   if (some_point_enforced) {
@@ -706,7 +707,7 @@ void compute_global_occlusion(GlobalModelInfo &result, const PrintObject *po,
                               SeamPosition seam_position = spAligned) {
   BOOST_LOG_TRIVIAL(debug)
       << "SeamPlacer: gather occlusion meshes: start";
-  auto obj_transform = po->trafo_centered();
+  auto obj_transform = po->trafo_sliced();
   indexed_triangle_set triangle_set;
   indexed_triangle_set negative_volumes_set;
   //add all parts
@@ -796,7 +797,7 @@ void gather_enforcers_blockers(GlobalModelInfo &result, const PrintObject *po) {
   BOOST_LOG_TRIVIAL(debug)
       << "SeamPlacer: build AABB trees for raycasting enforcers/blockers: start";
 
-  auto obj_transform = po->trafo_centered();
+  auto obj_transform = po->trafo_sliced();
 
   for (const ModelVolume *mv : po->model_object()->volumes) {
     // Collect painting only from model parts (what the gizmo edits) and negative volumes (the only way
@@ -896,16 +897,13 @@ struct SeamComparator {
       return a.central_enforcer;
     }
 
-    if (a.type == EnforcedBlockedSeamPoint::Enforced) {
-      return true;
-    }
-
-    if (a.type == EnforcedBlockedSeamPoint::Blocked) {
-      return false;
-    }
-
     if (a.type != b.type) {
       return a.type > b.type;
+    }
+
+    // Two Blocked points fall through like Neutral ones, so a perimeter blocked all round still gets a proper seam.
+    if (a.type == EnforcedBlockedSeamPoint::Enforced) {
+      return true;
     }
 
     //avoid overhangs
@@ -1135,7 +1133,6 @@ void SeamPlacer::gather_seam_candidates(const PrintObject *po, const SeamPlacerI
 
 void SeamPlacer::calculate_candidates_visibility(const PrintObject *po,
                                                  const SeamPlacerImpl::GlobalModelInfo &global_model_info) {
-  using namespace SeamPlacerImpl;
 
   std::vector<PrintObjectSeamData::LayerSeams> &layers = m_seam_per_object[po].layers;
   tbb::parallel_for(tbb::blocked_range<size_t>(0, layers.size()),
@@ -1211,21 +1208,21 @@ std::optional<std::pair<size_t, size_t>> SeamPlacer::find_next_seam_in_layer(
     const size_t layer_idx, const float max_distance,
     const SeamPlacerImpl::SeamComparator &comparator) const {
   using namespace SeamPlacerImpl;
-  std::vector<size_t> nearby_points_indices = find_nearby_points(*layers[layer_idx].points_tree, projected_position,
-                                                                 max_distance);
-
-  if (nearby_points_indices.empty()) {
-    return {};
-  }
-
-  size_t best_nearby_point_index = nearby_points_indices[0];
-  size_t nearest_point_index = nearby_points_indices[0];
-
-  // Now find best nearby point, nearest point, and corresponding indices
-  for (const size_t &nearby_point_index : nearby_points_indices) {
+  // Find the best nearby point and the nearest one. A layer of a fine relief has tens of thousands of candidates within
+  // the radius, so they are looked at as the search finds them rather than collected into a vector first.
+  constexpr size_t none = std::numeric_limits<size_t>::max();
+  size_t best_nearby_point_index = none;
+  size_t nearest_point_index = none;
+  visit_nearby_points(*layers[layer_idx].points_tree, projected_position, max_distance,
+                      [&layers, &comparator, &projected_position, layer_idx, &best_nearby_point_index, &nearest_point_index]
+                      (size_t nearby_point_index) {
+    if (best_nearby_point_index == none) {
+      // The first point found starts both, as the first of the collected ones did.
+      best_nearby_point_index = nearest_point_index = nearby_point_index;
+    }
     const SeamCandidate &point = layers[layer_idx].points[nearby_point_index];
     if (point.perimeter.finalized) {
-      continue; // skip over finalized perimeters, try to find some that is not finalized
+      return; // skip over finalized perimeters, try to find some that is not finalized
     }
     if (comparator.is_first_better(point, layers[layer_idx].points[best_nearby_point_index],
                                    projected_position.head<2>())
@@ -1237,6 +1234,10 @@ std::optional<std::pair<size_t, size_t>> SeamPlacer::find_next_seam_in_layer(
         || layers[layer_idx].points[nearest_point_index].perimeter.finalized) {
       nearest_point_index = nearby_point_index;
     }
+  });
+
+  if (best_nearby_point_index == none) {
+    return {};
   }
 
   const SeamCandidate &best_nearby_point = layers[layer_idx].points[best_nearby_point_index];
@@ -1661,18 +1662,42 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
           parts.push_back((boost::format(_u8L("multiple intersections with a perimeter, only one was used (%1%)")) % type_list(mi)).str());
       if (fc != 0)
           parts.push_back((boost::format(_u8L("a perimeter is fully inside a modifier, the modifier was not applied to it (%1%)")) % type_list(fc)).str());
-      // Modifiers evaluated somewhere that never reached a perimeter; never-evaluated ones are not reported.
-      // Print and volume order make the named one deterministic; the log lists them all.
-      std::vector<const ModelVolume*> no_effect;
-      for (const PrintObject *po : print.objects())
-          for (const ModelVolume *volume : po->model_object()->volumes) {
-              const auto it = precise_seam_warnings.modifier_usage.find(volume);
-              if (it != precise_seam_warnings.modifier_usage.end() &&
-                  it->second.checked.load(std::memory_order_relaxed) &&
-                  !it->second.reached.load(std::memory_order_relaxed) &&
-                  std::find(no_effect.begin(), no_effect.end(), volume) == no_effect.end())
-                  no_effect.push_back(volume);
+      // Modifiers whose usage flags match, in print and volume order, so the named one is deterministic.
+      const auto collect_modifiers = [&print, &precise_seam_warnings](const auto &matches) {
+          std::vector<const ModelVolume*> found;
+          for (const PrintObject *po : print.objects())
+              for (const ModelVolume *volume : po->model_object()->volumes) {
+                  const auto it = precise_seam_warnings.modifier_usage.find(volume);
+                  if (it != precise_seam_warnings.modifier_usage.end() && matches(it->second) &&
+                      std::find(found.begin(), found.end(), volume) == found.end())
+                      found.push_back(volume);
+              }
+          return found;
+      };
+      // Seam Blocked modifiers whose whole perimeter stayed Blocked; the user warning names only the
+      // first one, the log lists them all.
+      const std::vector<const ModelVolume*> fully_blocked = collect_modifiers(
+          [](const PreciseSeam::PreciseSeamWarnings::ModifierUsage &usage) { return usage.fully_blocked.load(std::memory_order_relaxed); });
+      for (const ModelVolume *volume : fully_blocked)
+          BOOST_LOG_TRIVIAL(warning) << "[PreciseSeamFullyBlocked] object=\"" << volume->get_object()->name
+              << "\" modifier=\"" << volume->name << "\"";
+      if (!fully_blocked.empty()) {
+          const ModelVolume *first = fully_blocked.front();
+          if (fully_blocked.size() == 1) {
+              // TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+              parts.push_back((boost::format(_u8L("%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"))
+                  % _u8L("Seam Blocked") % first->name % first->get_object()->name).str());
+          } else {
+              // TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+              parts.push_back((boost::format(_u8L("%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"))
+                  % _u8L("Seam Blocked") % first->name % first->get_object()->name % fully_blocked.size()).str());
           }
+      }
+      // Modifiers evaluated somewhere that never reached a perimeter; never-evaluated ones are not reported.
+      const std::vector<const ModelVolume*> no_effect = collect_modifiers(
+          [](const PreciseSeam::PreciseSeamWarnings::ModifierUsage &usage) {
+              return usage.checked.load(std::memory_order_relaxed) && !usage.reached.load(std::memory_order_relaxed);
+          });
       // The user warning names only the first one; the log lists them all.
       for (const ModelVolume *volume : no_effect)
           BOOST_LOG_TRIVIAL(warning) << "[PreciseSeamNoEffect] object=\"" << volume->get_object()->name
