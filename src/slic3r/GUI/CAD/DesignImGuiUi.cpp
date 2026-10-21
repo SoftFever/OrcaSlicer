@@ -312,7 +312,7 @@ static ImTextureID svg_texture(const std::string& key, const std::vector<std::st
             const float ox = (N - img->width * sc) * 0.5f, oy = (N - img->height * sc) * 0.5f;   // centre non-square art
             nsvgRasterize(rast, img, ox, oy, sc, px.data(), N, N, N * 4);
             nsvgDeleteRasterizer(rast);
-            decolorize_rgba(px.data(), size_t(N) * N, dark);   // one family of greys: FreeCAD's hues and Orca's green arrows alike
+            decolorize_rgba(px.data(), size_t(N) * N, dark, fc_subtractive_icon(n));   // one family of greys: FreeCAD's hues and Orca's green arrows alike
             GLint  last = 0;
             GLuint id   = 0;
             glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last));
