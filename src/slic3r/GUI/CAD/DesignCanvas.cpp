@@ -1685,6 +1685,7 @@ int DesignCanvas::sketch_selection_count() const
 void DesignCanvas::square_up_on_entry()
 {
     if (wxGetApp().app_config->get("design_sketch_auto_normal") == "0") return;
+    if (!m_camera_swapped) return;   // the Design tab is not showing (an MCP client began the sketch): the plater's camera is Prepare's or Preview's
     view_normal_to_sketch();
 }
 

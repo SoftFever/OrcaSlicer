@@ -2516,12 +2516,18 @@ void DesignSketchTool::apply_segment_length(double len)
 
 void DesignSketchTool::keep_segment_as_drawn()
 {
+    bool chain = false;
+    Vec2d chain_from = Vec2d::Zero();
     if (m_points.size() == 2) {
         const int base = int(m_entities.size());
         push_line(m_points[0], m_points[1]);  // accrues into the session's entities
         infer_auto_constraints(base);         // auto Coincident at snapped ends + H/V
+        // A free line goes on from where it ended (Esc or a right-click ends the chain), so a polyline is drawn in one run.
+        chain = m_mode == Mode::Line && !m_typed_line && wxGetApp().app_config->get("design_sketch_autodim_line") != "1";
+        chain_from = m_points[1];
     }
     m_points.clear();
+    if (chain) m_points.push_back(chain_from);
     m_has_cursor = false;
     m_awaiting_length = false;
 }
@@ -4313,6 +4319,7 @@ bool DesignSketchTool::begin_typed_length(char c)
     if (!m_active || m_mode != Mode::Line || m_points.size() != 1 || !m_has_cursor || m_awaiting_length) return false;
     if ((m_cursor - m_points[0]).norm() < 1e-6) return false;
     if (on_inline_seed) on_inline_seed(std::string(1, c));
+    m_typed_line = true;   // typing a length asks for the field: open it even though lines are otherwise drawn freely
     m_points.push_back(m_cursor);
     keep_segment_as_drawn();
     return true;
@@ -10075,13 +10082,16 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
     // Draw-then-edit: a creation tool that just committed a new entity/feature (gesture now
     // idle) gets its result auto-selected — so render_live_quotes below computes its quotes —
     // and the primary value editor armed (opened after those quotes exist, see service block).
-    if (m_active && is_creation_autoedit_mode() && m_points.empty() &&
+    // Lines are drawn freely (no prompt after each segment; dimension them afterwards) unless design_sketch_autodim_line is "1".
+    const bool free_line = m_mode == Mode::Line && wxGetApp().app_config->get("design_sketch_autodim_line") != "1";
+    if (m_active && is_creation_autoedit_mode() && (!free_line || m_typed_line) && m_points.empty() &&
         m_open_feature < 0 && !m_awaiting_length) {
         const int n = int(m_entities.size());
         if (m_autoedit_seen >= 0 && n > m_autoedit_seen && n > 0) {
             m_selection.clear();
             m_selection.push_back(n - 1);   // feature_of(last) groups rect/slot/poly/ellipse
             m_autoedit_pending = true;
+            m_typed_line = false;
         }
         m_autoedit_seen = n;
     }

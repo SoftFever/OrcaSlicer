@@ -2485,6 +2485,31 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     REQUIRE(loaded.features[2].name == doc.features[2].name);
 }
 
+TEST_CASE("an Import keeps its solid when the recipe ends before the later fields", "[CadDocument][recipe]")
+{
+    // A project saved by a build that wrote fewer fields still has the body: it is assigned as soon as `brep` is read.
+    CadDocument doc;
+    CadFeature f;
+    f.type          = CadFeatureType::Import;
+    f.name          = "Imported";
+    f.imported_solid = BRepPrimAPI_MakeBox(10., 20., 30.).Shape();
+    doc.features.push_back(f);
+
+    std::string blob = doc.serialize_recipe();
+    uint32_t len = 0;
+    std::memcpy(&len, blob.data() + 8, sizeof(len));
+    const size_t cut = 200;   // far more than one field, far less than everything after `brep`
+    REQUIRE(len > cut);
+    blob.erase(8 + 4 + len - cut, cut);
+    len -= uint32_t(cut);
+    std::memcpy(&blob[8], &len, sizeof(len));
+
+    CadDocument loaded;
+    REQUIRE(loaded.deserialize_recipe(blob));
+    REQUIRE(loaded.features.size() == 1);
+    REQUIRE_FALSE(loaded.features[0].imported_solid.IsNull());
+}
+
 TEST_CASE("a v3 recipe is refused with a message naming the version", "[CadDocument][recipe]")
 {
     // Honesty guard: the framing fixes the future, not the past. A v3 field list no longer

@@ -5,6 +5,7 @@
 #
 #   scripts/CAD/run-rig-checks.sh                 # every check
 #   ONLY="undo sheet" scripts/CAD/run-rig-checks.sh   # a subset, by name
+#   (the app needs ORCA_CAD_MCP_UI=1 for the ui.* drivers)
 #   HOST=tommaso@100.103.234.2 SOCK=/tmp/orca-test.sock DISPLAY_RIG=:10
 #
 # The app must be up (see the orca-cad-rig skill). Each check starts from new_document and leaves the tab clean; between them the

@@ -68,9 +68,10 @@ def hud(at, mods=None):
 
 # a reference line, drawn at about 20 degrees; its start is where the snap targets are
 call("ui.key", key="L")
-a0, a1 = [cx - 200, cy + 200], [cx + 0, cy + 127]
-call("ui.move", at=a0); call("ui.click", at=a0); time.sleep(0.5)
-call("ui.move", at=a1); call("ui.click", at=a1); time.sleep(0.5)
+a0, a1 = [cx - 320, cy + 200], [cx - 120, cy + 120]   # left of the centre: the tool offer that opens on entry sits right of it
+# Shift bypasses the grid: the ends stay where they were clicked, whatever the zoom of this canvas puts the grid dots at
+call("ui.move", at=a0, mods=["shift"]); call("ui.click", at=a0, mods=["shift"]); time.sleep(0.5)
+call("ui.move", at=a1, mods=["shift"]); call("ui.click", at=a1, mods=["shift"]); time.sleep(0.5)
 call("ui.key", key="Escape")
 call("ui.key", key="L")
 

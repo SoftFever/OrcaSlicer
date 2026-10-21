@@ -2494,6 +2494,7 @@ static void for_each_feature_ref(CadFeature& f, Visit&& visit)
     visit(f.project_source_sketch);
     visit(f.mate_cs_a);
     visit(f.mate_cs_b);
+    visit(f.sm_ref);
     for (int& r : f.loft_profile_refs)
         visit(r);
     for (int& r : f.pattern_features)

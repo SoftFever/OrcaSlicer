@@ -3129,16 +3129,25 @@ json action_screenshot(DesignPanel* panel, const json& params)
 // ui.move/click/drag/key/text/worldToScreen/inspect. The events are built as wx events and processed by the live widgets
 // on the MAIN thread, one step at a time with a pause between steps, so ImGui renders the frames it needs to see a press
 // before its release. The pauses are why this runs on the client's thread, not inside one main-thread call.
+// Everything the lambda uses is captured BY VALUE: after the 15 s timeout it may still be queued, and it is then dropped
+// unrun (the same queued / running / abandoned state as dispatch_once) rather than reading the caller's freed locals.
 template<class F> auto on_main(F f) -> decltype(f())
 {
     using R = decltype(f());
-    auto prom = std::make_shared<std::promise<R>>();
-    auto fut  = prom->get_future();
-    wxGetApp().CallAfter([prom, f]() mutable {
+    auto prom  = std::make_shared<std::promise<R>>();
+    auto fut   = prom->get_future();
+    auto state = std::make_shared<std::atomic<int>>(0);   // 0 queued, 1 running, 2 abandoned
+    wxGetApp().CallAfter([prom, state, f]() mutable {
+        int queued = 0;
+        if (!state->compare_exchange_strong(queued, 1)) return;
         try { if constexpr (std::is_void_v<R>) { f(); prom->set_value(); } else prom->set_value(f()); }
         catch (...) { prom->set_exception(std::current_exception()); }
     });
-    if (fut.wait_for(std::chrono::seconds(15)) != std::future_status::ready) throw std::runtime_error("main-thread timeout");
+    if (fut.wait_for(std::chrono::seconds(15)) != std::future_status::ready) {
+        int queued = 0;
+        if (state->compare_exchange_strong(queued, 2)) throw std::runtime_error("main-thread timeout: the command was NOT run");
+        fut.wait();   // already running: wait for it
+    }
     return fut.get();
 }
 
@@ -3349,12 +3358,12 @@ json ui_dispatch(const std::string& method, const json& p)
         const std::string ev = p.value("event", std::string());
         if (ev != "copy" && ev != "paste" && ev != "delete" && ev != "toggle") throw std::runtime_error("ui.tree event: copy | paste | delete | toggle");
         const int row = p.value("row", -1);
-        on_main([&]() { panelp()->mcp_tree_event(ev, row); return true; });
+        on_main([=]() { panelp()->mcp_tree_event(ev, row); return true; });
         pause(150);
         return json{{"ok", true}};
     }
     if (method == "ui.card") {   // rig driver for the wx feature cards: open one, set fields, commit
-        if (p.contains("open") && !(p["open"].is_string() && on_main([&]() { return panelp()->mcp_card_open(p["open"].get<std::string>()); })))
+        if (p.contains("open") && !(p["open"].is_string() && on_main([=]() { return panelp()->mcp_card_open(p["open"].get<std::string>()); })))
             throw std::runtime_error("ui.card open: dressup | extrude | shell | draft | pattern | sheet[:0-6]");
         if (p.contains("set")) {
             if (!p["set"].is_object()) throw std::runtime_error("ui.card set must be an object {field: number}");
@@ -3362,18 +3371,18 @@ json ui_dispatch(const std::string& method, const json& p)
                 if (!it.value().is_number()) throw std::runtime_error("ui.card set values are numbers");
                 const std::string k = it.key();
                 const double      v = it.value().get<double>();
-                if (!on_main([&]() { return panelp()->mcp_card_set(k, v); })) throw std::runtime_error("ui.card: unknown field or bad choice: " + k);
+                if (!on_main([=]() { return panelp()->mcp_card_set(k, v); })) throw std::runtime_error("ui.card: unknown field or bad choice: " + k);
             }
         }
         if (p.contains("check")) {
             if (!p["check"].is_array()) throw std::runtime_error("ui.card check must be an array of feature indices");
             for (const json& x : p["check"])
-                if (!x.is_number_integer() || !on_main([&]() { return panelp()->mcp_card_check_feature(x.get<int>(), true); })) throw std::runtime_error("ui.card check: not a repeatable feature");
+                if (!x.is_number_integer() || !on_main([=]() { return panelp()->mcp_card_check_feature(x.get<int>(), true); })) throw std::runtime_error("ui.card check: not a repeatable feature");
         }
         bool confirmed = true;
         if (p.value("confirm", false)) {
-            for (int i = 0; i < 50 && !on_main([&]() { return panelp()->mcp_card_confirm_enabled(); }); ++i) pause(100);   // the preview settles first
-            confirmed = on_main([&]() { return panelp()->mcp_card_confirm(); });
+            for (int i = 0; i < 50 && !on_main([=]() { return panelp()->mcp_card_confirm_enabled(); }); ++i) pause(100);   // the preview settles first
+            confirmed = on_main([=]() { return panelp()->mcp_card_confirm(); });
         }
         return json{{"ok", confirmed}, {"card", ui_card_state(panelp())}};
     }
@@ -3953,6 +3962,7 @@ void install_ui_watchdog()
     g_stall_sig = SIGRTMIN + 4;   // glibc keeps the first few real-time signals for itself
     const std::string path = "/tmp/orca-cad-stall-" + std::to_string(::getpid()) + ".txt";
     g_stall_fd = ::open(path.c_str(), O_RDWR | O_CREAT | O_APPEND | O_CLOEXEC, 0600);
+    if (g_stall_fd >= 0) ::unlink(path.c_str());   // the watchdog reads the stack back through the fd and logs it: nothing is left in /tmp
     void* prime[1]; (void) ::backtrace(prime, 1);
     struct sigaction sa{};
     sa.sa_handler = stall_stack_handler;
@@ -4076,6 +4086,8 @@ std::string dispatch_request(const std::string& line)
         return rpc_error(id, -32003, "unauthorized: this app was launched with ORCA_CAD_MCP_TOKEN; send it as \"token\"");
     // A transient refusal (a rebuild in progress) is waited out here, on the client's own thread, never on the UI thread.
     if (method.rfind("ui.", 0) == 0 && method != "ui.screenshot") {
+        if (const char* on = std::getenv("ORCA_CAD_MCP_UI"); on == nullptr || std::string(on) != "1")   // synthetic input is for test rigs, not for every agent on the socket
+            return rpc_error(id, -32601, "the ui.* test drivers are off: start the app with ORCA_CAD_MCP_UI=1");
         try { return json{{"jsonrpc", "2.0"}, {"id", id}, {"result", ui_dispatch(method, params)}}.dump(); }
         catch (const std::exception& ex) { return rpc_error(id, -32000, ex.what()); }
     }

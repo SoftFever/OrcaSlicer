@@ -1154,6 +1154,7 @@ private:
     GLCanvas3D*         m_last_canvas{nullptr};   // the canvas of the last mouse event: a typed digit completes a shape through the same path as a click
     int                 m_dr_n{-1}, m_dr_x{0}, m_dr_y{0};   // points held when the press landed (-1: no press), and where
     bool                m_awaiting_length{false}; // inline value editor open -> freeze canvas
+    bool                m_typed_line{false};      // a length was typed on a free line: its field opens
     int                 m_autoedit_seen{-1};      // entity count baseline for draw-then-edit
     bool                m_autoedit_pending{false};// a new entity just committed -> open editor
     // Draw-then-edit step queue: every characteristic dimension of the freshly-drawn shape

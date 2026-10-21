@@ -517,7 +517,10 @@ struct CadFeature {
            plane_base, plane_offset, plane_angle_tilt, plane_axis,
            bool_tool_body, bool_keep_tool, bool_tolerance, bool_target_face, bool_tool_face,
            cut_offset, cut_flip, cut_keep_upper, cut_keep_lower,
-           brep,
+           brep);
+        // A recipe saved before the fields below ends early and `ar` throws there: the body must already be set by then
+        imported_solid = brep_from_string(brep);
+        ar(
            plane_type, plane_face_body, plane_face, plane_face2_body, plane_face2,
            plane_edge_body, plane_edge, plane_edge2_body, plane_edge2, plane_u_size, plane_v_size,
            mirror_keep_original,
@@ -552,7 +555,6 @@ struct CadFeature {
                hole_tip_angle,
                sm_thickness, sm_radius, sm_k, sm_gap, sm_angle, sm_ref,
                dressup_fit_taper);
-        imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature
     // length, so it can only be read with exactly the field list it was written with; reading it
