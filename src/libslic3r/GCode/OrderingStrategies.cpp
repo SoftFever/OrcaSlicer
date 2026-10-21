@@ -4,6 +4,7 @@
 #include "OrderingStrategies.hpp"
 #include "../Geometry.hpp"
 #include "../ShortestPath.hpp"
+#include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/KDTreeIndirect.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -153,43 +154,84 @@ bool tsp_remove_crossings(std::vector<size_t>& path, const Points& centers)
     // TSP helpers (2-opt, closing-edge rotation) that operate on the full cycle.
     size_t n_edges = pn;
 
-    // Scan from edge `from` for the first pair of intersecting edges worth reversing; returns {i, j} or {npos, npos} if none.
+    constexpr size_t npos = std::numeric_limits<size_t>::max();
+
+    // Whether edges i and j intersect and reversing path[i+1..j] is worth it. The reversal replaces edges (ai, bi) and
+    // (aj, bj) with (ai, aj) and (bi, bj). Edges that only touch or overlap collinearly, as at points sharing a position,
+    // may gain nothing from it, and reversing them would find the same pair again on every scan. A gain within
+    // SCALED_EPSILON, which nearly collinear crossings can have too, is not worth a reversal either.
+    auto worth_reversing = [&](size_t i, size_t j) {
+        // Skip the (0, pn-1) pair: edges (0,1) and (pn-1,0) share node 0.
+        if (i == 0 && j == pn - 1)
+            return false;
+        const Point& ai = centers[path[i]];
+        const Point& bi = centers[path[(i + 1) % pn]];
+        const Point& aj = centers[path[j]];
+        const Point& bj = centers[path[(j + 1) % pn]];
+        return bboxes_overlap(ai, bi, aj, bj) && Geometry::segments_intersect(ai, bi, aj, bj) &&
+            ai.distance_to(bi) + aj.distance_to(bj) - ai.distance_to(aj) - bi.distance_to(bj) > SCALED_EPSILON;
+    };
+
+    // Scan from edge `from` for the first pair worth reversing, smallest i and then smallest j; returns {i, j} or
+    // {npos, npos} if none.
     auto find_crossing = [&](size_t from) -> std::pair<size_t, size_t> {
-        for (size_t i = from; i < n_edges; ++i) {
-            const Point& ai = centers[path[i]];
-            const Point& bi = centers[path[(i + 1) % pn]];
-
-            for (size_t j = i + 2; j < n_edges; ++j) {
-                // Skip the (0, pn-1) pair: edges (0,1) and (pn-1,0) share node 0.
-                if (i == 0 && j == pn - 1) continue;
-
-                const Point& aj = centers[path[j]];
-                const Point& bj = centers[path[(j + 1) % pn]];
-
-                if (!bboxes_overlap(ai, bi, aj, bj) || !Geometry::segments_intersect(ai, bi, aj, bj))
-                    continue;
-                // The reversal replaces edges (ai, bi) and (aj, bj) with (ai, aj) and (bi, bj). Edges that only touch
-                // or overlap collinearly, as at points sharing a position, may gain nothing from it, and reversing
-                // them would find the same pair again on every scan. A gain within SCALED_EPSILON, which nearly
-                // collinear crossings can have too, is not worth a reversal either.
-                if (ai.distance_to(bi) + aj.distance_to(bj) - ai.distance_to(aj) - bi.distance_to(bj) > SCALED_EPSILON)
+        for (size_t i = from; i < n_edges; ++i)
+            for (size_t j = i + 2; j < n_edges; ++j)
+                if (worth_reversing(i, j))
                     return {i, j};
-            }
+        return {npos, npos};
+    };
+
+    // For many islands, the same scan with the edges binned in a uniform grid over their boxes, so each edge is only
+    // tested against the edges sharing a cell with it - two edges whose boxes overlap always do. It returns the same
+    // pair as find_crossing(), so the result is unchanged. The all-pairs scan is quadratic in the edge count; rebuilding
+    // the grid costs more than it saves below the threshold.
+    constexpr size_t grid_min_size = 500;
+    BoundingBox extent;
+    for (size_t idx : path)
+        extent.merge(centers[idx]);
+    const int     grid_n = std::clamp(int(std::sqrt(double(pn))), 1, 256);
+    const coord_t cell_w = std::max<coord_t>(1, (extent.max.x() - extent.min.x()) / grid_n + 1);
+    const coord_t cell_h = std::max<coord_t>(1, (extent.max.y() - extent.min.y()) / grid_n + 1);
+    const auto    for_cells = [&](const Point& a, const Point& b, auto&& fn) {
+        const int x0 = int((std::min(a.x(), b.x()) - extent.min.x()) / cell_w), x1 = int((std::max(a.x(), b.x()) - extent.min.x()) / cell_w);
+        const int y0 = int((std::min(a.y(), b.y()) - extent.min.y()) / cell_h), y1 = int((std::max(a.y(), b.y()) - extent.min.y()) / cell_h);
+        for (int y = y0; y <= y1; ++y)
+            for (int x = x0; x <= x1; ++x)
+                fn(y * grid_n + x);
+    };
+    std::vector<std::vector<size_t>> edge_cells(size_t(grid_n) * grid_n);
+
+    auto find_crossing_grid = [&](size_t from) -> std::pair<size_t, size_t> {
+        for (std::vector<size_t>& cell : edge_cells)
+            cell.clear();
+        for (size_t j = 0; j < n_edges; ++j)
+            for_cells(centers[path[j]], centers[path[(j + 1) % pn]], [&](int cell) { edge_cells[cell].emplace_back(j); });
+
+        for (size_t i = from; i < n_edges; ++i) {
+            size_t first_j = npos;
+            for_cells(centers[path[i]], centers[path[(i + 1) % pn]], [&](int cell) {
+                for (size_t j : edge_cells[cell])
+                    if (j >= i + 2 && j < first_j && worth_reversing(i, j))
+                        first_j = j;
+            });
+            if (first_j != npos)
+                return {i, first_j};
         }
-        return {std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()};
+        return {npos, npos};
     };
 
     // Process crossings one at a time. Reversing path[ci+1..cj] replaces only edges ci and cj; the edges between
     // them are the same segments traversed backwards. The scan therefore resumes at edge ci rather than at edge 0,
-    // so a pass over the tour costs one quadratic scan however many reversals it makes. Pairs before ci that
-    // involve a replaced edge are new too, so a scan that reaches the end starts over from edge 0, and the loop
-    // ends when a scan from edge 0 finds nothing.
+    // so a pass over the tour costs one scan however many reversals it makes. Pairs before ci that involve a
+    // replaced edge are new too, so a scan that reaches the end starts over from edge 0, and the loop ends when a
+    // scan from edge 0 finds nothing.
     // Every reversal shortens the cycle, so no tour repeats and the loop ends; the cap is a safety net.
     size_t max_reversals = pn * pn;
     bool improved = false;
     for (size_t from = 0;;) {
-        auto [ci, cj] = find_crossing(from);
-        if (ci == std::numeric_limits<size_t>::max()) {
+        auto [ci, cj] = pn >= grid_min_size ? find_crossing_grid(from) : find_crossing(from);
+        if (ci == npos) {
             if (from == 0)
                 break;
             from = 0;
