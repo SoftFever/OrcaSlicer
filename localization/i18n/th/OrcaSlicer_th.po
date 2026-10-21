@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 10:04-0300\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2026-06-19 13:40+0700\n"
 "Last-Translator: Icezaza\n"
 "Language-Team: Thai\n"
@@ -727,6 +727,9 @@ msgstr "มม."
 msgid "Part selection"
 msgstr "การเลือกชิ้นส่วน"
 
+msgid "Select multiple objects"
+msgstr "เลือกหลายวัตถุ"
+
 msgid "Fixed step drag"
 msgstr "แก้ไขการลากขั้นตอน"
 
@@ -789,9 +792,83 @@ msgstr "ชิ้นส่วน"
 msgid "Relative"
 msgstr "สัมพัทธ์"
 
+msgid "Selection"
+msgstr "การเลือก"
+
+# AI Translated
+msgid "Plate"
+msgstr "เพลต"
+
+# AI Translated
+msgid "Distribute"
+msgstr "กระจาย"
+
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "ระบบพิกัดที่ใช้สำหรับการแปลงรูป"
+
+# AI Translated
+msgid "Reference for alignment"
+msgstr "ตัวอ้างอิงสำหรับการจัดแนว"
+
+# AI Translated
+msgid "Select at least 3 parts or objects"
+msgstr "เลือกชิ้นส่วนหรือวัตถุอย่างน้อย 3 รายการ"
+
+# AI Translated
+msgid "Align left"
+msgstr "จัดชิดซ้าย"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "จัดกึ่งกลางซ้าย-ขวา"
+
+# AI Translated
+msgid "Align right"
+msgstr "จัดชิดขวา"
+
+# AI Translated
+msgid "Align front"
+msgstr "จัดชิดด้านหน้า"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "จัดกึ่งกลางหน้า-หลัง"
+
+# AI Translated
+msgid "Align back"
+msgstr "จัดชิดด้านหลัง"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "จัดชิดด้านล่าง"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "จัดกึ่งกลางบน-ล่าง"
+
+# AI Translated
+msgid "Align top"
+msgstr "จัดชิดด้านบน"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "กระจายในแนวซ้าย-ขวา"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "กระจายในแนวหน้า-หลัง"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "กระจายในแนวบน-ล่าง"
+
+msgid "Drop"
+msgstr "วางลงฐานพิมพ์"
+
+# AI Translated
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr "เลื่อนส่วนที่เลือกไปตามแกน Z ให้จุดต่ำสุดแตะฐานพิมพ์"
 
 # AI Translated
 msgid "Absolute"
@@ -1674,7 +1751,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "เส้นโครงร่างของรูปร่าง (%1%) ประกอบด้วยที่ไม่รองรับ: %2%"
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "สถานะไม่ถูกต้อง โปรดรายงานขั้นตอนการทำให้เกิดซ้ำบน GitHub"
 
 # AI Translated
@@ -1682,11 +1759,11 @@ msgid "No embossed file"
 msgstr "ไม่มีไฟล์ลายนูน"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "ไม่มีไฟล์ SVG ในรูปทรงลายนูน"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "ไม่มีข้อมูลของไฟล์ SVG"
 
 msgid "Face the camera"
@@ -2007,6 +2084,22 @@ msgstr "เข้าสู่กิซโมการประกอบ"
 
 msgid "Leaving Assembly gizmo"
 msgstr "ออกจากกิซโมการประกอบ"
+
+# AI Translated
+msgid "Parts of a cut object cannot be moved"
+msgstr "ไม่สามารถย้ายชิ้นส่วนของวัตถุที่ถูกตัดได้"
+
+# AI Translated
+msgid "Aligning to the plate is available in X and Y only"
+msgstr "การจัดแนวกับเพลตทำได้เฉพาะแกน X และ Y"
+
+# AI Translated
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr "ปิดการวางอัตโนมัติของวัตถุที่เลือกเพื่อย้ายในแกน Z"
+
+# AI Translated
+msgid "All selected objects must be on the same plate"
+msgstr "วัตถุที่เลือกทั้งหมดต้องอยู่บนเพลตเดียวกัน"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -3208,63 +3301,12 @@ msgid "Center"
 msgstr "กึ่งกลาง"
 
 # AI Translated
-msgid "Distribute left-right"
-msgstr "กระจายในแนวซ้าย-ขวา"
-
-# AI Translated
-msgid "Distribute front-back"
-msgstr "กระจายในแนวหน้า-หลัง"
-
-# AI Translated
-msgid "Distribute top-bottom"
-msgstr "กระจายในแนวบน-ล่าง"
-
-# AI Translated
-msgid "Align left"
-msgstr "จัดชิดซ้าย"
-
-# AI Translated
-msgid "Align left-right center"
-msgstr "จัดกึ่งกลางซ้าย-ขวา"
-
-# AI Translated
-msgid "Align right"
-msgstr "จัดชิดขวา"
-
-# AI Translated
-msgid "Align front"
-msgstr "จัดชิดด้านหน้า"
-
-# AI Translated
-msgid "Align front-back center"
-msgstr "จัดกึ่งกลางหน้า-หลัง"
-
-# AI Translated
-msgid "Align back"
-msgstr "จัดชิดด้านหลัง"
-
-# AI Translated
-msgid "Align bottom"
-msgstr "จัดชิดด้านล่าง"
-
-# AI Translated
-msgid "Align top-bottom center"
-msgstr "จัดกึ่งกลางบน-ล่าง"
-
-# AI Translated
-msgid "Align top"
-msgstr "จัดชิดด้านบน"
-
-# AI Translated
 msgid "Align/Distribute"
 msgstr "จัดแนว/กระจาย"
 
 # AI Translated
 msgid "Align and distribute objects"
 msgstr "จัดแนวและกระจายวัตถุ"
-
-msgid "Drop"
-msgstr "วางลงฐานพิมพ์"
 
 msgid "Edit Process Settings"
 msgstr "แก้ไขการตั้งค่ากระบวนการ"
@@ -3634,10 +3676,6 @@ msgstr "ไม่มี ขอบยึดชิ้นงาน"
 
 msgid "Outer wall speed"
 msgstr "ความเร็วผนังด้านนอก"
-
-# AI Translated
-msgid "Plate"
-msgstr "เพลต"
 
 msgid "Brim"
 msgstr "ขอบยึดชิ้นงาน (Brim)"
@@ -4933,7 +4971,7 @@ msgstr "โปรดบันทึกโปรเจกต์และเริ
 msgid "Unknown C++ exception."
 msgstr "ข้อยกเว้น C++ ที่ไม่ทราบสาเหตุ"
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "กำลังประมวลผล G-code จากไฟล์ก่อนหน้า..."
 
 msgid "Slicing complete"
@@ -6470,6 +6508,10 @@ msgstr "แกน"
 
 msgid "Gridlines"
 msgstr "เส้นกริด"
+
+# AI Translated
+msgid "Focus mode"
+msgstr "โหมดโฟกัส"
 
 msgid "Labels"
 msgstr "ป้ายชื่อ"
@@ -10831,6 +10873,15 @@ msgid "Show incompatible/unsupported presets in the printer and filament dropdow
 msgstr "แสดงค่าที่ตั้งไว้ล่วงหน้าที่ไม่เข้ากันหรือไม่รองรับในรายการเลือกเครื่องพิมพ์และเส้นพลาสติก ไม่สามารถเลือกค่าที่ตั้งไว้ล่วงหน้าเหล่านี้ได้"
 
 # AI Translated
+msgid "Export statistics with G-code"
+msgstr "ส่งออกสถิติพร้อมกับ G-code"
+
+# AI Translated
+# Needs human review: "feature" rendered as line type (ประเภทเส้น / Loại đường); check this matches the per-feature totals in the exported JSON
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr "เมื่อเปิดใช้งาน การส่งออกไฟล์ G-code จะเขียนสถิติของไฟล์นั้นเป็น JSON ไว้ข้างกันด้วย ในชื่อ <name>.statistics.json และไฟล์ 3MF ที่สไลซ์แล้วซึ่งส่งออกจะมีสถิตินี้อยู่ภายใน ได้แก่ เวลาพิมพ์ ยอดรวมของเส้นพลาสติกและประเภทเส้น และข้อมูลเดียวกันนี้แยกตามเลเยอร์และตามวัตถุ"
+
+# AI Translated
 msgid "Experimental Features"
 msgstr "ฟีเจอร์ทดลอง"
 
@@ -11691,6 +11742,10 @@ msgstr "ไม่สามารถอัปโหลดไฟล์ไปยั
 # AI Translated
 msgid "Send Failed"
 msgstr "ส่งล้มเหลว"
+
+# AI Translated
+msgid "No available printers"
+msgstr "ไม่มีเครื่องพิมพ์ที่พร้อมใช้งาน"
 
 msgid "The name length exceeds the limit."
 msgstr "ชื่อมีความยาวเกินขีดจำกัด"
@@ -13334,9 +13389,6 @@ msgstr "ปริมาณการไล่เส้นชิ่งสำหร
 msgid "from/to"
 msgstr "จาก/ไปยัง"
 
-msgid "Please choose the filament color"
-msgstr "กรุณาเลือกสีเส้นพลาสติก"
-
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "ตัวแทนระบบคลาวด์ไม่พร้อมใช้งาน โปรดรีสตาร์ท OrcaSlicer แล้วลองอีกครั้ง"
 
@@ -13546,8 +13598,8 @@ msgid "Left mouse"
 msgstr "เมาส์ซ้าย"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "ใช้ได้ทุกที่ในหน้าต่าง แม้ขณะพิมพ์ในช่องข้อความ"
+msgid "Available anywhere in the window."
+msgstr "ใช้ได้ทุกที่ในหน้าต่าง"
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13572,9 +13624,6 @@ msgstr "ใช้ได้ขณะที่มุมมอง 3 มิติใ
 
 msgid "Select a part"
 msgstr "เลือกส่วนหนึ่ง"
-
-msgid "Select multiple objects"
-msgstr "เลือกหลายวัตถุ"
 
 msgid "Select objects by rectangle"
 msgstr "เลือกวัตถุตามสี่เหลี่ยม"
@@ -13661,10 +13710,6 @@ msgstr "%s ถูกกำหนดให้กับ %s แล้ว กำห�
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "%s ซึ่งเป็นค่าเริ่มต้นถูกกำหนดให้กับ %s แล้ว กำหนดใหม่ให้กับ %s หรือไม่"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "แป้นพิมพ์ลัดส่วนกลางจะทำงานแม้ขณะพิมพ์ข้อความ"
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14109,6 +14154,11 @@ msgstr "ตัวปรับแต่ง \"%1%\" ของ \"%2%\" (ทั้�
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "ตำแหน่งรอยตะเข็บอาจแตกต่างจากที่คาดไว้"
+
+# AI Translated
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr "เขียนสถิติ G-code ไปยัง %1% ไม่สำเร็จ"
 
 msgid "Internal Bridge"
 msgstr "สะพานภายใน"
@@ -17584,6 +17634,14 @@ msgstr "ไม่รวมวัตถุ"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "เปิดใช้งานตัวเลือกนี้เพื่อเพิ่มคำสั่ง EXCLUDE OBJECT ใน G-code"
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "ค่าความเผื่อเส้นขอบ"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "ค่าเบี่ยงเบนสูงสุดของเส้นขอบวัตถุที่เขียนลงใน EXCLUDE_OBJECT_DEFINE จากเส้นขอบเดิม ค่าที่มากขึ้นจะให้จำนวนจุดน้อยลง ซึ่งช่วยเฟิร์มแวร์ที่ค้างขณะแยกวิเคราะห์ G-code ที่มีวัตถุจำนวนมาก ค่า 0 คือเก็บทุกจุดไว้"
+
 msgid "Verbose G-code"
 msgstr "G-code แบบละเอียด"
 
@@ -20857,6 +20915,15 @@ msgstr "ไดเร็กทอรีเอาต์พุต"
 msgid "This is the output directory for exported files."
 msgstr "ไดเร็กทอรีเอาต์พุตสำหรับไฟล์ที่ส่งออก"
 
+# AI Translated
+msgid "Export statistics"
+msgstr "ส่งออกสถิติ"
+
+# AI Translated
+# Needs human review: "feature" rendered as line type (ประเภทเส้น / Loại đường); check this matches the per-feature totals in the exported JSON
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr "เขียนสถิติของแต่ละเพลตที่สไลซ์แล้วเป็น JSON ชื่อ plate_N.statistics.json ไว้ข้างไฟล์ G-code ในโฟลเดอร์ปลายทาง และภายใน 3MF ของ --export-3mf ได้แก่ เวลาพิมพ์ ยอดรวมของเส้นพลาสติกและประเภทเส้น และข้อมูลเดียวกันนี้แยกตามเลเยอร์และตามวัตถุ"
+
 msgid "Debug level"
 msgstr "ระดับการแก้ไขข้อบกพร่อง"
 
@@ -23266,7 +23333,7 @@ msgstr "เริ่มทดสอบ %s..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "ทดสอบ %s แปลง IP ได้ = %s"
 
 # AI Translated
@@ -29732,9 +29799,6 @@ msgstr "เปิด Speed Dial"
 msgid "Slicing and printing"
 msgstr "การสไลซ์และการพิมพ์"
 
-msgid "Selection"
-msgstr "การเลือก"
-
 # AI Translated
 msgid "Editing"
 msgstr "การแก้ไข"
@@ -30637,6 +30701,1642 @@ msgid_plural "The current filament list does not contain %s. Project filaments r
 msgstr[0] "รายการเส้นพลาสติกปัจจุบันไม่มี %s เส้นพลาสติกโครงการที่เส้นพลาสติกผสมต้องใช้จะถูกสร้างขึ้นโดยอัตโนมัติหลังจากแยกสี"
 
 # AI Translated
+msgid "Color Picker"
+msgstr "ตัวเลือกสี"
+
+# AI Translated
+msgid "Basic Colors"
+msgstr "สีพื้นฐาน"
+
+# AI Translated
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "Orca Palette"
+msgstr "จานสี Orca"
+
+# AI Translated
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL คลาสสิก"
+
+# AI Translated
+msgid "Gradients"
+msgstr "การไล่ระดับสี"
+
+# AI Translated
+msgctxt "Color picker"
+msgid "Solid"
+msgstr "สีเดียว"
+
+# AI Translated
+msgid "Gradient"
+msgstr "ไล่ระดับสี"
+
+# AI Translated
+msgid "Gradient start"
+msgstr "จุดเริ่มต้นการไล่ระดับสี"
+
+# AI Translated
+msgid "Gradient end"
+msgstr "จุดสิ้นสุดการไล่ระดับสี"
+
+# AI Translated
+msgid "Gradient color"
+msgstr "สีของการไล่ระดับสี"
+
+# AI Translated
+msgid "Add color"
+msgstr "เพิ่มสี"
+
+# AI Translated
+msgid "Remove color"
+msgstr "ลบสี"
+
+# AI Translated
+msgid "Saturation"
+msgstr "ความอิ่มตัว"
+
+# AI Translated
+msgid "Original color"
+msgstr "สีเดิม"
+
+# AI Translated
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr "บันทึกสีปัจจุบัน"
+
+# AI Translated
+msgid "Palettes"
+msgstr "จานสี"
+
+# AI Translated
+msgid "Search colors"
+msgstr "ค้นหาสี"
+
+# AI Translated
+msgid "Filter colors"
+msgstr "กรองสี"
+
+# AI Translated
+msgid "No matching colors"
+msgstr "ไม่มีสีที่ตรงกัน"
+
+# AI Translated
+msgid "Hex color"
+msgstr "สีเลขฐานสิบหก"
+
+# AI Translated
+msgid "Opacity"
+msgstr "ความทึบแสง"
+
+# AI Translated
+msgid "Opacity percent"
+msgstr "เปอร์เซ็นต์ความทึบแสง"
+
+# AI Translated
+msgid "Save color"
+msgstr "บันทึกสี"
+
+# AI Translated
+msgid "Enter a complete hexadecimal color"
+msgstr "ป้อนสีเลขฐานสิบหกให้ครบถ้วน"
+
+# AI Translated
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr "การเลือกหลายสีปัจจุบันจะคงไว้จนกว่าคุณจะเลือกสีอื่น"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr "รองรับสูงสุด %d สี"
+
+# AI Translated
+msgid "Crimson"
+msgstr "แดงคริมสัน"
+
+# AI Translated
+msgid "Orange red"
+msgstr "แดงส้ม"
+
+# AI Translated
+msgid "Tomato"
+msgstr "แดงมะเขือเทศ"
+
+# AI Translated
+msgid "Orange"
+msgstr "ส้ม"
+
+# AI Translated
+msgid "Dark orange"
+msgstr "ส้มเข้ม"
+
+# AI Translated
+msgid "Gold"
+msgstr "ทอง"
+
+# AI Translated
+msgid "Burly wood"
+msgstr "น้ำตาลไม้อ่อน"
+
+# AI Translated
+msgid "Bisque"
+msgstr "ส้มครีม"
+
+# AI Translated
+msgid "Misty rose"
+msgstr "ชมพูหมอก"
+
+# AI Translated
+msgid "Light yellow"
+msgstr "เหลืองอ่อน"
+
+# AI Translated
+msgid "Lemon chiffon"
+msgstr "ครีมเลมอน"
+
+# AI Translated
+msgid "Beige"
+msgstr "เบจ"
+
+# AI Translated
+msgid "Light golden rod yellow"
+msgstr "เหลืองขมิ้นอ่อน"
+
+# AI Translated
+msgid "Pale golden rod"
+msgstr "เหลืองขมิ้นซีด"
+
+# AI Translated
+msgid "Khaki"
+msgstr "กากี"
+
+# AI Translated
+msgid "Dark khaki"
+msgstr "กากีเข้ม"
+
+# AI Translated
+msgid "Peach puff"
+msgstr "พีชอ่อน"
+
+# AI Translated
+msgid "Moccasin"
+msgstr "เหลืองหนังกวาง"
+
+# AI Translated
+msgid "Papaya whip"
+msgstr "ครีมมะละกอ"
+
+# AI Translated
+msgid "Blanched almond"
+msgstr "อัลมอนด์ลอกเปลือก"
+
+# AI Translated
+msgid "Antique white"
+msgstr "ขาวโบราณ"
+
+# AI Translated
+msgid "Navajo white"
+msgstr "ขาวนาวาโฮ"
+
+# AI Translated
+msgid "Wheat"
+msgstr "ข้าวสาลี"
+
+# AI Translated
+msgid "Golden rod"
+msgstr "เหลืองขมิ้น"
+
+# AI Translated
+msgid "Chocolate"
+msgstr "ช็อกโกแลต"
+
+# AI Translated
+msgid "Peru"
+msgstr "น้ำตาลเปรู"
+
+# AI Translated
+msgid "Fire brick"
+msgstr "อิฐทนไฟ"
+
+# AI Translated
+msgid "Sienna"
+msgstr "น้ำตาลเซียนนา"
+
+# AI Translated
+msgid "Saddle brown"
+msgstr "น้ำตาลอานม้า"
+
+# AI Translated
+msgid "Brown"
+msgstr "น้ำตาล"
+
+# AI Translated
+msgid "Rosy brown"
+msgstr "น้ำตาลกุหลาบ"
+
+# AI Translated
+msgid "Salmon"
+msgstr "แซลมอน"
+
+# AI Translated
+msgid "Light salmon"
+msgstr "แซลมอนอ่อน"
+
+# AI Translated
+msgid "Dark salmon"
+msgstr "แซลมอนเข้ม"
+
+# AI Translated
+msgid "Sandy brown"
+msgstr "น้ำตาลทราย"
+
+# AI Translated
+msgid "Coral"
+msgstr "ปะการัง"
+
+# AI Translated
+msgid "Light coral"
+msgstr "ปะการังอ่อน"
+
+# AI Translated
+msgid "Indian red"
+msgstr "แดงอินเดียน"
+
+# AI Translated
+msgid "Dark red"
+msgstr "แดงเข้ม"
+
+# AI Translated
+msgid "Maroon"
+msgstr "แดงเลือดหมู"
+
+# AI Translated
+msgid "Green yellow"
+msgstr "เหลืองเขียว"
+
+# AI Translated
+msgid "Yellow green"
+msgstr "เขียวเหลือง"
+
+# AI Translated
+msgid "Chartreuse"
+msgstr "ชาร์เทรอส"
+
+# AI Translated
+msgid "Lawn green"
+msgstr "เขียวสนามหญ้า"
+
+# AI Translated
+msgid "Lime green"
+msgstr "เขียวมะนาว"
+
+# AI Translated
+msgid "Spring green"
+msgstr "เขียวฤดูใบไม้ผลิ"
+
+# AI Translated
+msgid "Medium spring green"
+msgstr "เขียวฤดูใบไม้ผลิกลาง"
+
+# AI Translated
+msgid "Lime"
+msgstr "ไลม์"
+
+# AI Translated
+msgid "Forest green"
+msgstr "เขียวป่า"
+
+# AI Translated
+msgid "Dark green"
+msgstr "เขียวเข้ม"
+
+# AI Translated
+msgid "Olive drab"
+msgstr "เขียวมะกอกหม่น"
+
+# AI Translated
+msgid "Olive"
+msgstr "มะกอก"
+
+# AI Translated
+msgid "Dark olive green"
+msgstr "เขียวมะกอกเข้ม"
+
+# AI Translated
+msgid "Pale green"
+msgstr "เขียวซีด"
+
+# AI Translated
+msgid "Light green"
+msgstr "เขียวอ่อน"
+
+# AI Translated
+msgid "Medium sea green"
+msgstr "เขียวทะเลกลาง"
+
+# AI Translated
+msgid "Sea green"
+msgstr "เขียวทะเล"
+
+# AI Translated
+msgid "Dark sea green"
+msgstr "เขียวทะเลเข้ม"
+
+# AI Translated
+msgid "Cadet blue"
+msgstr "น้ำเงินแคเด็ต"
+
+# AI Translated
+msgid "Medium aqua marine"
+msgstr "อความารีนกลาง"
+
+# AI Translated
+msgid "Turquoise"
+msgstr "เทอร์ควอยซ์"
+
+# AI Translated
+msgid "Medium turquoise"
+msgstr "เทอร์ควอยซ์กลาง"
+
+# AI Translated
+msgid "Dark turquoise"
+msgstr "เทอร์ควอยซ์เข้ม"
+
+# AI Translated
+msgid "Pale turquoise"
+msgstr "เทอร์ควอยซ์ซีด"
+
+# AI Translated
+msgid "Aqua"
+msgstr "อควา"
+
+# AI Translated
+msgid "Light cyan"
+msgstr "ไซแอนอ่อน"
+
+# AI Translated
+msgid "Mint cream"
+msgstr "ครีมมินต์"
+
+# AI Translated
+msgid "Honey dew"
+msgstr "ฮันนีดิว"
+
+# AI Translated
+msgid "Aquamarine"
+msgstr "อความารีน"
+
+# AI Translated
+msgid "Light sea green"
+msgstr "เขียวทะเลอ่อน"
+
+# AI Translated
+msgid "Dark cyan"
+msgstr "ไซแอนเข้ม"
+
+# AI Translated
+msgid "Teal"
+msgstr "เขียวหัวเป็ด"
+
+# AI Translated
+msgid "Dark slate gray"
+msgstr "เทาหินชนวนเข้ม"
+
+# AI Translated
+msgid "Light slate gray"
+msgstr "เทาหินชนวนอ่อน"
+
+# AI Translated
+msgid "Slate gray"
+msgstr "เทาหินชนวน"
+
+# AI Translated
+msgid "Deep sky blue"
+msgstr "ฟ้าท้องฟ้าเข้ม"
+
+# AI Translated
+msgid "Dodger Blue"
+msgstr "น้ำเงินดอดเจอร์"
+
+# AI Translated
+msgid "Sky blue"
+msgstr "ฟ้าท้องฟ้า"
+
+# AI Translated
+msgid "Light sky blue"
+msgstr "ฟ้าท้องฟ้าอ่อน"
+
+# AI Translated
+msgid "Light blue"
+msgstr "ฟ้าอ่อน"
+
+# AI Translated
+msgid "Powder blue"
+msgstr "ฟ้าแป้ง"
+
+# AI Translated
+msgid "Light steel blue"
+msgstr "น้ำเงินเหล็กอ่อน"
+
+# AI Translated
+msgid "Steel blue"
+msgstr "น้ำเงินเหล็ก"
+
+# AI Translated
+msgid "Cornflower blue"
+msgstr "น้ำเงินคอร์นฟลาวเวอร์"
+
+# AI Translated
+msgid "Royal blue"
+msgstr "น้ำเงินรอยัล"
+
+# AI Translated
+msgid "Medium blue"
+msgstr "น้ำเงินกลาง"
+
+# AI Translated
+msgid "Midnight blue"
+msgstr "น้ำเงินเที่ยงคืน"
+
+# AI Translated
+msgid "Dark blue"
+msgstr "น้ำเงินเข้ม"
+
+# AI Translated
+msgid "Navy"
+msgstr "น้ำเงินกรมท่า"
+
+# AI Translated
+msgid "Slate blue"
+msgstr "น้ำเงินหินชนวน"
+
+# AI Translated
+msgid "Dark slate blue"
+msgstr "น้ำเงินหินชนวนเข้ม"
+
+# AI Translated
+msgid "Medium slate blue"
+msgstr "น้ำเงินหินชนวนกลาง"
+
+# AI Translated
+msgid "Blue violet"
+msgstr "ม่วงน้ำเงิน"
+
+# AI Translated
+msgid "Indigo"
+msgstr "คราม"
+
+# AI Translated
+msgid "Dark violet"
+msgstr "ไวโอเล็ตเข้ม"
+
+# AI Translated
+msgid "Dark orchid"
+msgstr "กล้วยไม้เข้ม"
+
+# AI Translated
+msgid "Medium orchid"
+msgstr "กล้วยไม้กลาง"
+
+# AI Translated
+msgid "Orchid"
+msgstr "กล้วยไม้"
+
+# AI Translated
+msgid "Violet"
+msgstr "ไวโอเล็ต"
+
+# AI Translated
+msgid "Medium purple"
+msgstr "ม่วงกลาง"
+
+# AI Translated
+msgid "Purple"
+msgstr "ม่วง"
+
+# AI Translated
+msgid "Rebecca purple"
+msgstr "ม่วงเรเบกกา"
+
+# AI Translated
+msgid "Medium violet red"
+msgstr "แดงไวโอเล็ตกลาง"
+
+# AI Translated
+msgid "Pale violet red"
+msgstr "แดงไวโอเล็ตซีด"
+
+# AI Translated
+msgid "Deep pink"
+msgstr "ชมพูเข้ม"
+
+# AI Translated
+msgid "Hot pink"
+msgstr "ชมพูสด"
+
+# AI Translated
+msgid "Light pink"
+msgstr "ชมพูอ่อน"
+
+# AI Translated
+msgid "Pink"
+msgstr "ชมพู"
+
+# AI Translated
+msgid "Plum"
+msgstr "ม่วงบ๊วย"
+
+# AI Translated
+msgid "Thistle"
+msgstr "ม่วงธิสเซิล"
+
+# AI Translated
+msgid "Fuchsia"
+msgstr "ฟูเชีย"
+
+# AI Translated
+msgid "Dark magenta"
+msgstr "แมเจนตาเข้ม"
+
+# AI Translated
+msgid "Linen"
+msgstr "ผ้าลินิน"
+
+# AI Translated
+msgid "Old lace"
+msgstr "ลูกไม้เก่า"
+
+# AI Translated
+msgid "Sea shell"
+msgstr "เปลือกหอย"
+
+# AI Translated
+msgid "Ivory"
+msgstr "งาช้าง"
+
+# AI Translated
+msgid "Floral white"
+msgstr "ขาวดอกไม้"
+
+# AI Translated
+msgid "Lavender blush"
+msgstr "ลาเวนเดอร์อมชมพู"
+
+# AI Translated
+msgid "Ghost white"
+msgstr "ขาวโกสต์"
+
+# AI Translated
+msgid "Alice blue"
+msgstr "ฟ้าอลิซ"
+
+# AI Translated
+msgid "Lavender"
+msgstr "ลาเวนเดอร์"
+
+# AI Translated
+msgid "White smoke"
+msgstr "ขาวควัน"
+
+# AI Translated
+msgid "Gainsboro"
+msgstr "เกนส์โบโร"
+
+# AI Translated
+msgid "Black"
+msgstr "ดำ"
+
+# AI Translated
+msgid "Coral fire"
+msgstr "ปะการังเพลิง"
+
+# AI Translated
+msgid "Sea anemone"
+msgstr "ดอกไม้ทะเล"
+
+# AI Translated
+msgid "Deep abyss"
+msgstr "ห้วงเหวลึก"
+
+# AI Translated
+msgid "Lobster red"
+msgstr "แดงกุ้งมังกร"
+
+# AI Translated
+msgid "Sandy clay"
+msgstr "ดินเหนียวปนทราย"
+
+# AI Translated
+msgid "Driftwood"
+msgstr "ไม้ลอยน้ำ"
+
+# AI Translated
+msgid "Sea buckthorn"
+msgstr "ซีบัคธอร์น"
+
+# AI Translated
+msgid "Sunset reef"
+msgstr "แนวปะการังยามอาทิตย์ตก"
+
+# AI Translated
+msgid "Tiger coral"
+msgstr "ปะการังเสือ"
+
+# AI Translated
+msgid "Pink coral"
+msgstr "ปะการังชมพู"
+
+# AI Translated
+msgid "Seashell glow"
+msgstr "ประกายเปลือกหอย"
+
+# AI Translated
+msgid "Sand"
+msgstr "ทราย"
+
+# AI Translated
+msgid "Golden kelp"
+msgstr "สาหร่ายเคลป์สีทอง"
+
+# AI Translated
+msgid "Sunlit dune"
+msgstr "เนินทรายยามแดด"
+
+# AI Translated
+msgid "Amber nautilus"
+msgstr "นอติลุสอำพัน"
+
+# AI Translated
+msgid "Sea lemon"
+msgstr "มะนาวทะเล"
+
+# AI Translated
+msgid "Pale starfish"
+msgstr "ดาวทะเลซีด"
+
+# AI Translated
+msgid "Spring tide"
+msgstr "น้ำเกิด"
+
+# AI Translated
+msgid "Lime algae"
+msgstr "สาหร่ายเขียวมะนาว"
+
+# AI Translated
+msgid "Sea grass"
+msgstr "หญ้าทะเล"
+
+# AI Translated
+msgid "Neon plankton"
+msgstr "แพลงก์ตอนนีออน"
+
+# AI Translated
+msgid "Kelp forest"
+msgstr "ป่าสาหร่ายเคลป์"
+
+# AI Translated
+msgid "Emerald wave"
+msgstr "คลื่นมรกต"
+
+# AI Translated
+msgid "Whale shadow"
+msgstr "เงาวาฬ"
+
+# AI Translated
+msgid "Sea turtle"
+msgstr "เต่าทะเล"
+
+# AI Translated
+msgid "Lagoon"
+msgstr "ลากูน"
+
+# AI Translated
+msgid "Tropical current"
+msgstr "กระแสน้ำเขตร้อน"
+
+# AI Translated
+msgid "Midnight trench"
+msgstr "ร่องลึกยามเที่ยงคืน"
+
+# AI Translated
+msgid "Dark kelp"
+msgstr "สาหร่ายเคลป์เข้ม"
+
+# AI Translated
+msgid "Crystal surf"
+msgstr "คลื่นคริสตัล"
+
+# AI Translated
+msgid "Turquoise bay"
+msgstr "อ่าวเทอร์ควอยซ์"
+
+# AI Translated
+msgid "Sky over reef"
+msgstr "ท้องฟ้าเหนือแนวปะการัง"
+
+# AI Translated
+msgid "Shallow sky"
+msgstr "ท้องฟ้าน้ำตื้น"
+
+# AI Translated
+msgid "Electric blue"
+msgstr "น้ำเงินอิเล็กทริก"
+
+# AI Translated
+msgid "Dolphin"
+msgstr "โลมา"
+
+# AI Translated
+msgid "Ocean depths"
+msgstr "ห้วงลึกมหาสมุทร"
+
+# AI Translated
+msgid "Whale"
+msgstr "วาฬ"
+
+# AI Translated
+msgid "Indigo abyss"
+msgstr "ห้วงลึกสีคราม"
+
+# AI Translated
+msgid "Sea urchin"
+msgstr "เม่นทะเล"
+
+# AI Translated
+msgid "Lavender coral"
+msgstr "ปะการังลาเวนเดอร์"
+
+# AI Translated
+msgid "Violet tide"
+msgstr "กระแสน้ำไวโอเล็ต"
+
+# AI Translated
+msgid "Deep sea orchid"
+msgstr "กล้วยไม้ทะเลลึก"
+
+# AI Translated
+msgid "Neon jelly"
+msgstr "แมงกะพรุนนีออน"
+
+# AI Translated
+msgid "Fuchsia coral"
+msgstr "ปะการังฟูเชีย"
+
+# AI Translated
+msgid "Pink jellyfish"
+msgstr "แมงกะพรุนชมพู"
+
+# AI Translated
+msgid "Foam"
+msgstr "ฟองคลื่น"
+
+# AI Translated
+msgid "Seashell white"
+msgstr "ขาวเปลือกหอย"
+
+# AI Translated
+msgid "Pebble gray"
+msgstr "เทาก้อนกรวด"
+
+# AI Translated
+msgid "Storm cloud"
+msgstr "เมฆพายุ"
+
+# AI Translated
+msgid "Ink black"
+msgstr "ดำหมึก"
+
+# AI Translated
+msgid "Green beige"
+msgstr "เบจเขียว"
+
+# AI Translated
+msgid "Sand yellow"
+msgstr "เหลืองทราย"
+
+# AI Translated
+msgid "Signal yellow"
+msgstr "เหลืองสัญญาณ"
+
+# AI Translated
+msgid "Golden yellow"
+msgstr "เหลืองทอง"
+
+# AI Translated
+msgid "Honey yellow"
+msgstr "เหลืองน้ำผึ้ง"
+
+# AI Translated
+msgid "Maize yellow"
+msgstr "เหลืองข้าวโพด"
+
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "เหลืองแดฟโฟดิล"
+
+# AI Translated
+msgid "Brown beige"
+msgstr "เบจน้ำตาล"
+
+# AI Translated
+msgid "Lemon yellow"
+msgstr "เหลืองเลมอน"
+
+# AI Translated
+msgid "Oyster white"
+msgstr "ขาวหอยนางรม"
+
+# AI Translated
+msgid "Light ivory"
+msgstr "งาช้างอ่อน"
+
+# AI Translated
+msgid "Zinc yellow"
+msgstr "เหลืองสังกะสี"
+
+# AI Translated
+msgid "Grey beige"
+msgstr "เบจเทา"
+
+# AI Translated
+msgid "Olive yellow"
+msgstr "เหลืองมะกอก"
+
+# AI Translated
+msgid "Rape yellow"
+msgstr "เหลืองดอกเรพ"
+
+# AI Translated
+msgid "Traffic yellow"
+msgstr "เหลืองจราจร"
+
+# AI Translated
+msgid "Ochre yellow"
+msgstr "เหลืองออคเคอร์"
+
+# AI Translated
+msgid "Traffic orange yellow"
+msgstr "เหลืองส้มจราจร"
+
+# AI Translated
+msgid "Curry"
+msgstr "แกงกะหรี่"
+
+# AI Translated
+msgid "Melon yellow"
+msgstr "เหลืองเมลอน"
+
+# AI Translated
+msgid "Broom yellow"
+msgstr "เหลืองดอกบรูม"
+
+# AI Translated
+msgid "Dahlia yellow"
+msgstr "เหลืองดาห์เลีย"
+
+# AI Translated
+msgid "Pastel yellow"
+msgstr "เหลืองพาสเทล"
+
+# AI Translated
+msgid "Pearl beige"
+msgstr "เบจมุก"
+
+# AI Translated
+msgid "Pearl gold"
+msgstr "ทองมุก"
+
+# AI Translated
+msgid "Sun yellow"
+msgstr "เหลืองอาทิตย์"
+
+# AI Translated
+msgid "Yellow orange"
+msgstr "ส้มเหลือง"
+
+# AI Translated
+msgid "Deep orange"
+msgstr "ส้มเข้มจัด"
+
+# AI Translated
+msgid "Vermilion"
+msgstr "แดงชาด"
+
+# AI Translated
+msgid "Pearl orange"
+msgstr "ส้มมุก"
+
+# AI Translated
+msgid "Pure orange"
+msgstr "ส้มบริสุทธิ์"
+
+# AI Translated
+msgid "Luminous orange"
+msgstr "ส้มเรืองแสง"
+
+# AI Translated
+msgid "Luminous bright orange"
+msgstr "ส้มสดเรืองแสง"
+
+# AI Translated
+msgid "Bright red orange"
+msgstr "ส้มแดงสด"
+
+# AI Translated
+msgid "Traffic orange"
+msgstr "ส้มจราจร"
+
+# AI Translated
+msgid "Signal orange"
+msgstr "ส้มสัญญาณ"
+
+# AI Translated
+msgid "Salmon orange"
+msgstr "ส้มแซลมอน"
+
+# AI Translated
+msgid "Pearl pink"
+msgstr "ชมพูมุก"
+
+# AI Translated
+msgid "Copper orange"
+msgstr "ส้มทองแดง"
+
+# AI Translated
+msgid "Signal brown"
+msgstr "น้ำตาลสัญญาณ"
+
+# AI Translated
+msgid "Fir orange"
+msgstr "ส้มเฟอร์"
+
+# AI Translated
+msgid "Signal red"
+msgstr "แดงสัญญาณ"
+
+# AI Translated
+msgid "Luminous red"
+msgstr "แดงเรืองแสง"
+
+# AI Translated
+msgid "Carmine red"
+msgstr "แดงคาร์ไมน์"
+
+# AI Translated
+msgid "Pearl carmine red"
+msgstr "แดงคาร์ไมน์มุก"
+
+# AI Translated
+msgid "Pure red"
+msgstr "แดงบริสุทธิ์"
+
+# AI Translated
+msgid "Luminous deep red"
+msgstr "แดงเข้มเรืองแสง"
+
+# AI Translated
+msgid "Currant red"
+msgstr "แดงเคอร์แรนต์"
+
+# AI Translated
+msgid "Pearl ruby red"
+msgstr "แดงทับทิมมุก"
+
+# AI Translated
+msgid "Fire red"
+msgstr "แดงเพลิง"
+
+# AI Translated
+msgid "Ruby red"
+msgstr "แดงทับทิม"
+
+# AI Translated
+msgid "Purple red"
+msgstr "แดงม่วง"
+
+# AI Translated
+msgid "Wine red"
+msgstr "แดงไวน์"
+
+# AI Translated
+msgid "Black red"
+msgstr "แดงดำ"
+
+# AI Translated
+msgid "Oxide red"
+msgstr "แดงออกไซด์"
+
+# AI Translated
+msgid "Brown red"
+msgstr "แดงน้ำตาล"
+
+# AI Translated
+# Needs human review: Source name "Pine red" looks unusual for a RAL color; translated literally
+msgid "Pine red"
+msgstr "แดงต้นสน"
+
+# AI Translated
+msgid "Tomato red"
+msgstr "แดงมะเขือเทศ"
+
+# AI Translated
+msgid "Antique pink"
+msgstr "ชมพูโบราณ"
+
+# AI Translated
+msgid "Coral red"
+msgstr "แดงปะการัง"
+
+# AI Translated
+msgid "Rose"
+msgstr "กุหลาบ"
+
+# AI Translated
+msgid "Strawberry red"
+msgstr "แดงสตรอว์เบอร์รี"
+
+# AI Translated
+msgid "Traffic red"
+msgstr "แดงจราจร"
+
+# AI Translated
+msgid "Salmon pink"
+msgstr "ชมพูแซลมอน"
+
+# AI Translated
+msgid "Luminous rose"
+msgstr "กุหลาบเรืองแสง"
+
+# AI Translated
+msgid "Luminous bright red"
+msgstr "แดงสดเรืองแสง"
+
+# AI Translated
+msgid "Raspberry red"
+msgstr "แดงราสเบอร์รี"
+
+# AI Translated
+msgid "Orient red"
+msgstr "แดงตะวันออก"
+
+# AI Translated
+msgid "Pearl ruby"
+msgstr "ทับทิมมุก"
+
+# AI Translated
+msgid "Red purple"
+msgstr "ม่วงแดง"
+
+# AI Translated
+msgid "Red violet"
+msgstr "ไวโอเล็ตแดง"
+
+# AI Translated
+msgid "Heather violet"
+msgstr "ไวโอเล็ตเฮเทอร์"
+
+# AI Translated
+msgid "Bordeaux violet"
+msgstr "ไวโอเล็ตบอร์โดซ์"
+
+# AI Translated
+msgid "Mahogany"
+msgstr "มะฮอกกานี"
+
+# AI Translated
+msgid "Grey purple"
+msgstr "ม่วงเทา"
+
+# AI Translated
+msgid "Signal violet"
+msgstr "ไวโอเล็ตสัญญาณ"
+
+# AI Translated
+msgid "Fir green"
+msgstr "เขียวเฟอร์"
+
+# AI Translated
+msgid "Sabine grey"
+msgstr "เทาซาบีน"
+
+# AI Translated
+msgid "Pearl violet"
+msgstr "ไวโอเล็ตมุก"
+
+# AI Translated
+msgid "Pearl blackberry"
+msgstr "แบล็กเบอร์รีมุก"
+
+# AI Translated
+msgid "Green blue"
+msgstr "น้ำเงินเขียว"
+
+# AI Translated
+msgid "Ultramarine blue"
+msgstr "น้ำเงินอัลตรามารีน"
+
+# AI Translated
+msgid "Sapphire blue"
+msgstr "น้ำเงินไพลิน"
+
+# AI Translated
+msgid "Black blue"
+msgstr "น้ำเงินดำ"
+
+# AI Translated
+msgid "Signal blue"
+msgstr "น้ำเงินสัญญาณ"
+
+# AI Translated
+msgid "Brilliant blue"
+msgstr "น้ำเงินสดใส"
+
+# AI Translated
+msgid "Grey blue"
+msgstr "น้ำเงินเทา"
+
+# AI Translated
+msgid "Azure blue"
+msgstr "ฟ้าอาซูร์"
+
+# AI Translated
+msgid "Gentian blue"
+msgstr "น้ำเงินเจนเชียน"
+
+# AI Translated
+msgid "Cobalt blue"
+msgstr "น้ำเงินโคบอลต์"
+
+# AI Translated
+msgid "Pigeon blue"
+msgstr "น้ำเงินนกพิราบ"
+
+# AI Translated
+msgid "Traffic blue"
+msgstr "น้ำเงินจราจร"
+
+# AI Translated
+msgid "Turquoise blue"
+msgstr "น้ำเงินเทอร์ควอยซ์"
+
+# AI Translated
+msgid "Capri blue"
+msgstr "น้ำเงินคาปรี"
+
+# AI Translated
+msgid "Ocean blue"
+msgstr "น้ำเงินมหาสมุทร"
+
+# AI Translated
+msgid "Water blue"
+msgstr "ฟ้าสีน้ำ"
+
+# AI Translated
+msgid "Night blue"
+msgstr "น้ำเงินราตรี"
+
+# AI Translated
+msgid "Distant blue"
+msgstr "ฟ้าไกล"
+
+# AI Translated
+msgid "Pastel blue"
+msgstr "ฟ้าพาสเทล"
+
+# AI Translated
+msgid "Pearl gentian blue"
+msgstr "น้ำเงินเจนเชียนมุก"
+
+# AI Translated
+msgid "Pearl midnight blue"
+msgstr "น้ำเงินเที่ยงคืนมุก"
+
+# AI Translated
+msgid "Patina green"
+msgstr "เขียวสนิม"
+
+# AI Translated
+msgid "Emerald green"
+msgstr "เขียวมรกต"
+
+# AI Translated
+msgid "Leaf green"
+msgstr "เขียวใบไม้"
+
+# AI Translated
+msgid "Olive green"
+msgstr "เขียวมะกอก"
+
+# AI Translated
+msgid "Blue green"
+msgstr "เขียวน้ำเงิน"
+
+# AI Translated
+msgid "Moss green"
+msgstr "เขียวมอส"
+
+# AI Translated
+msgid "Grey olive"
+msgstr "มะกอกเทา"
+
+# AI Translated
+msgid "Pine green"
+msgstr "เขียวสน"
+
+# AI Translated
+# Needs human review: Source name "Pine brown" looks unusual for a RAL color; translated literally
+msgid "Pine brown"
+msgstr "น้ำตาลสน"
+
+# AI Translated
+msgid "Grass green"
+msgstr "เขียวหญ้า"
+
+# AI Translated
+msgid "Reseda green"
+msgstr "เขียวเรเซดา"
+
+# AI Translated
+msgid "Brown green"
+msgstr "เขียวน้ำตาล"
+
+# AI Translated
+msgid "Reed green"
+msgstr "เขียวต้นอ้อ"
+
+# AI Translated
+msgid "Black green"
+msgstr "เขียวดำ"
+
+# AI Translated
+msgid "Turquoise green"
+msgstr "เขียวเทอร์ควอยซ์"
+
+# AI Translated
+msgid "May green"
+msgstr "เขียวเดือนพฤษภาคม"
+
+# AI Translated
+msgid "Chrome oxide green"
+msgstr "เขียวโครมออกไซด์"
+
+# AI Translated
+msgid "Traffic green"
+msgstr "เขียวจราจร"
+
+# AI Translated
+msgid "Fern green"
+msgstr "เขียวเฟิร์น"
+
+# AI Translated
+msgid "Opal green"
+msgstr "เขียวโอปอล"
+
+# AI Translated
+msgid "Mint green"
+msgstr "เขียวมินต์"
+
+# AI Translated
+msgid "Bronze green"
+msgstr "เขียวบรอนซ์"
+
+# AI Translated
+msgid "Pearl green"
+msgstr "เขียวมุก"
+
+# AI Translated
+# Needs human review: Unusual source name ("Sax turquoise"); translated literally
+msgid "Sax turquoise"
+msgstr "เทอร์ควอยซ์แซกซ์"
+
+# AI Translated
+msgid "Pearl turquoise"
+msgstr "เทอร์ควอยซ์มุก"
+
+# AI Translated
+msgid "Pearl jade"
+msgstr "หยกมุก"
+
+# AI Translated
+msgid "Pure green"
+msgstr "เขียวบริสุทธิ์"
+
+# AI Translated
+msgid "Luminous green"
+msgstr "เขียวเรืองแสง"
+
+# AI Translated
+msgid "Squirrel grey"
+msgstr "เทากระรอก"
+
+# AI Translated
+msgid "Silver grey"
+msgstr "เทาเงิน"
+
+# AI Translated
+msgid "Olive grey"
+msgstr "เทามะกอก"
+
+# AI Translated
+msgid "Moss grey"
+msgstr "เทามอส"
+
+# AI Translated
+msgid "Signal grey"
+msgstr "เทาสัญญาณ"
+
+# AI Translated
+msgid "Mouse grey"
+msgstr "เทาหนู"
+
+# AI Translated
+msgid "Beige grey"
+msgstr "เทาเบจ"
+
+# AI Translated
+msgid "Khaki grey"
+msgstr "เทากากี"
+
+# AI Translated
+msgid "Green grey"
+msgstr "เทาเขียว"
+
+# AI Translated
+msgid "Tarpaulin grey"
+msgstr "เทาผ้าใบ"
+
+# AI Translated
+msgid "Iron grey"
+msgstr "เทาเหล็ก"
+
+# AI Translated
+msgid "Basalt grey"
+msgstr "เทาบะซอลต์"
+
+# AI Translated
+msgid "Brown grey"
+msgstr "เทาน้ำตาล"
+
+# AI Translated
+msgid "Slate grey"
+msgstr "เทาหินชนวน"
+
+# AI Translated
+msgid "Anthracite grey"
+msgstr "เทาแอนทราไซต์"
+
+# AI Translated
+msgid "Light grey"
+msgstr "เทาอ่อน"
+
+# AI Translated
+msgid "Umber grey"
+msgstr "เทาอัมเบอร์"
+
+# AI Translated
+msgid "Concrete grey"
+msgstr "เทาคอนกรีต"
+
+# AI Translated
+msgid "Graphite grey"
+msgstr "เทากราไฟต์"
+
+# AI Translated
+msgid "Granite grey"
+msgstr "เทาหินแกรนิต"
+
+# AI Translated
+msgid "Stone grey"
+msgstr "เทาหิน"
+
+# AI Translated
+msgid "Pebble grey"
+msgstr "เทาก้อนกรวด"
+
+# AI Translated
+msgid "Cement grey"
+msgstr "เทาซีเมนต์"
+
+# AI Translated
+msgid "Yellow grey"
+msgstr "เทาเหลือง"
+
+# AI Translated
+msgid "Platinum grey"
+msgstr "เทาแพลทินัม"
+
+# AI Translated
+msgid "Dusty grey"
+msgstr "เทาฝุ่น"
+
+# AI Translated
+msgid "Agate grey"
+msgstr "เทาอาเกต"
+
+# AI Translated
+msgid "Quartz grey"
+msgstr "เทาควอตซ์"
+
+# AI Translated
+msgid "Window grey"
+msgstr "เทาหน้าต่าง"
+
+# AI Translated
+msgid "Traffic grey A"
+msgstr "เทาจราจร A"
+
+# AI Translated
+msgid "Traffic grey B"
+msgstr "เทาจราจร B"
+
+# AI Translated
+msgid "Silk grey"
+msgstr "เทาไหม"
+
+# AI Translated
+msgid "Telegrey 1"
+msgstr "เทเลเกรย์ 1"
+
+# AI Translated
+msgid "Telegrey 2"
+msgstr "เทเลเกรย์ 2"
+
+# AI Translated
+msgid "Telegrey 4"
+msgstr "เทเลเกรย์ 4"
+
+# AI Translated
+msgid "Pearl mouse grey"
+msgstr "เทาหนูมุก"
+
+# AI Translated
+msgid "Green brown"
+msgstr "น้ำตาลเขียว"
+
+# AI Translated
+msgid "Ochre brown"
+msgstr "น้ำตาลออคเคอร์"
+
+# AI Translated
+msgid "Clay brown"
+msgstr "น้ำตาลดินเหนียว"
+
+# AI Translated
+msgid "Copper brown"
+msgstr "น้ำตาลทองแดง"
+
+# AI Translated
+msgid "Chocolate brown"
+msgstr "น้ำตาลช็อกโกแลต"
+
+# AI Translated
+msgid "Olive brown"
+msgstr "น้ำตาลมะกอก"
+
+# AI Translated
+msgid "Nut brown"
+msgstr "น้ำตาลถั่ว"
+
+# AI Translated
+msgid "Red brown"
+msgstr "น้ำตาลแดง"
+
+# AI Translated
+msgid "Sepia brown"
+msgstr "น้ำตาลซีเปีย"
+
+# AI Translated
+msgid "Chestnut brown"
+msgstr "น้ำตาลเกาลัด"
+
+# AI Translated
+msgid "Mahogany brown"
+msgstr "น้ำตาลมะฮอกกานี"
+
+# AI Translated
+msgid "Grey brown"
+msgstr "น้ำตาลเทา"
+
+# AI Translated
+msgid "Pearl copper"
+msgstr "ทองแดงมุก"
+
+# AI Translated
+msgid "Beige brown"
+msgstr "น้ำตาลเบจ"
+
+# AI Translated
+msgid "Pearl mocha brown"
+msgstr "น้ำตาลม็อกค่ามุก"
+
+# AI Translated
+msgid "Earth brown"
+msgstr "น้ำตาลดิน"
+
+# AI Translated
+msgid "Pearl brown"
+msgstr "น้ำตาลมุก"
+
+# AI Translated
+msgid "Cream"
+msgstr "ครีม"
+
+# AI Translated
+msgid "Grey white"
+msgstr "ขาวเทา"
+
+# AI Translated
+msgid "Signal white"
+msgstr "ขาวสัญญาณ"
+
+# AI Translated
+msgid "Signal black"
+msgstr "ดำสัญญาณ"
+
+# AI Translated
+msgid "Jet black"
+msgstr "ดำสนิท"
+
+# AI Translated
+msgid "White aluminium"
+msgstr "อะลูมิเนียมขาว"
+
+# AI Translated
+msgid "Grey aluminium"
+msgstr "อะลูมิเนียมเทา"
+
+# AI Translated
+msgid "Pure white"
+msgstr "ขาวบริสุทธิ์"
+
+# AI Translated
+msgid "Graphite black"
+msgstr "ดำกราไฟต์"
+
+# AI Translated
+msgid "Traffic white"
+msgstr "ขาวจราจร"
+
+# AI Translated
+msgid "Traffic black"
+msgstr "ดำจราจร"
+
+# AI Translated
+msgid "Papyrus white"
+msgstr "ขาวปาปิรุส"
+
+# AI Translated
+msgid "Pearl light grey"
+msgstr "เทาอ่อนมุก"
+
+# AI Translated
+msgid "Metal: Silver"
+msgstr "โลหะ: เงิน"
+
+# AI Translated
+msgid "Metal: Brass"
+msgstr "โลหะ: ทองเหลือง"
+
+# AI Translated
+msgid "Metal: Gold"
+msgstr "โลหะ: ทอง"
+
+# AI Translated
+msgid "Metal: Copper"
+msgstr "โลหะ: ทองแดง"
+
+# AI Translated
+msgid "Metal: Bronze"
+msgstr "โลหะ: บรอนซ์"
+
+# AI Translated
+msgid "Nature: Pearl"
+msgstr "ธรรมชาติ: มุก"
+
+# AI Translated
+msgid "Nature: Rainbow"
+msgstr "ธรรมชาติ: สายรุ้ง"
+
+# AI Translated
+msgid "Nature: Clear Sky"
+msgstr "ธรรมชาติ: ท้องฟ้าโปร่ง"
+
+# AI Translated
+msgid "Nature: Sunset"
+msgstr "ธรรมชาติ: พระอาทิตย์ตก"
+
+# AI Translated
+msgid "Wood: Dark"
+msgstr "ไม้: เข้ม"
+
+# AI Translated
+msgid "Wood: Medium"
+msgstr "ไม้: ปานกลาง"
+
+# AI Translated
+msgid "Wood: Light"
+msgstr "ไม้: อ่อน"
+
+# AI Translated
 msgid "Alternate nozzles:"
 msgstr "หัวฉีดทางเลือก:"
 
@@ -31111,12 +32811,24 @@ msgid "Built-in"
 msgstr "ในตัว"
 
 # AI Translated
+msgid "My textures"
+msgstr "พื้นผิวของฉัน"
+
+# AI Translated
 msgid "No textures found."
 msgstr "ไม่พบพื้นผิว"
 
 # AI Translated
-msgid "My textures"
-msgstr "พื้นผิวของฉัน"
+msgid "Texture libraries"
+msgstr "คลังพื้นผิว"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "สำรวจคลังพื้นผิวเพิ่มเติม"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "เปิด OrcaCloud ในหน้าแรกเพื่อเรียกดูปลั๊กอิน"
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -31520,6 +33232,14 @@ msgid "How wide one copy of the texture is on the model. Smaller repeats the pat
 msgstr "ความกว้างของพื้นผิวหนึ่งชุดบนโมเดล ค่าที่เล็กลงจะทำให้ลวดลายซ้ำบ่อยขึ้นและมีรายละเอียดละเอียดขึ้น เมื่อปิด ไทล์ ค่านี้คือขนาดของสำเนาเดียว"
 
 # AI Translated
+msgid "Larger"
+msgstr "ใหญ่ขึ้น"
+
+# AI Translated
+msgid "Smaller"
+msgstr "เล็กลง"
+
+# AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "หมุนพื้นผิวบนผิวโมเดล หน่วยเป็นองศา - สำหรับจัดแนวลวดลายให้ตรงกับขอบของโมเดล"
 
@@ -31592,6 +33312,14 @@ msgstr "สีผสม"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "จำนวนเส้นพลาสติกผสมสูงสุดที่การอบอาจเพิ่มได้ โดยเลือกจากสีของพื้นผิว และจะสร้างเฉพาะเส้นที่การอบใช้จริงเท่านั้น"
+
+# AI Translated
+msgid "Few"
+msgstr "น้อย"
+
+# AI Translated
+msgid "Many"
+msgstr "มาก"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -31713,10 +33441,6 @@ msgstr "กรอบฉาย"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "เปิดหน้าต่างที่คุณลากวางเหนือโมเดลได้ สิ่งที่มองเห็นผ่านหน้าต่างนั้นจะได้รับพื้นผิว และขอบของหน้าต่างจะกลายเป็นขอบของการฉาย"
-
-# AI Translated
-msgid "Opacity"
-msgstr "ความทึบแสง"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -31945,6 +33669,14 @@ msgstr "การรีเมช"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "ขนาดสามเหลี่ยมที่ใช้สร้างทั้งโมเดลใหม่ หน่วยเป็นมม. การกระจัดทำงานได้ดีที่สุดบนเมชที่สม่ำเสมอ ซึ่งค่านี้จะช่วยสร้างเมชดังกล่าวจากไฟล์นำเข้าที่ไม่สม่ำเสมอ"
+
+# AI Translated
+msgid "Before"
+msgstr "ก่อน"
+
+# AI Translated
+msgid "After"
+msgstr "หลัง"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -33798,6 +35530,10 @@ msgid "Slicing Pipeline"
 msgstr "ไปป์ไลน์การสไลซ์"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "พื้นผิวทรัพยากร"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "UI การกำหนดค่าของปลั๊กอินว่างเปล่า กำลังแสดงตัวแก้ไขเริ่มต้น"
 
@@ -33943,6 +35679,30 @@ msgstr "ไดเรกทอรีปลั๊กอินมีทั้งไ
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "ไดเรกทอรีปลั๊กอินไม่มีไฟล์ entry .py หรือ .whl"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "ยังไม่ได้ตั้งค่าโฟลเดอร์พื้นผิวทรัพยากร"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "ไม่สามารถระบุโฟลเดอร์พื้นผิวทรัพยากรได้"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "พาธพื้นผิวทรัพยากรไม่ใช่โฟลเดอร์"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "ไม่สามารถระบุโฟลเดอร์ปลั๊กอินได้"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "โฟลเดอร์พื้นผิวทรัพยากรอยู่นอกโฟลเดอร์ปลั๊กอิน"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "ไม่สามารถอ่านโฟลเดอร์พื้นผิวทรัพยากรได้"
 
 # AI Translated
 #, boost-format
@@ -34404,7 +36164,7 @@ msgstr "โหลดไฟล์การกำหนดค่า \"%1%\" ไม
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "ไม่ใช่ไฟล์ G-code ที่สร้างโดย %1%"
 
 # AI Translated
@@ -34524,7 +36284,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "ไม่สามารถสร้างสำเนาชั่วคราวของไฟล์ G-code %1% ก่อนเรียกใช้สคริปต์หลังการประมวลผลได้: %2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "ตัวประมวลผลภายหลังไม่พบไฟล์ G-code ที่ส่งออก"
 
 # AI Translated
@@ -34892,6 +36652,31 @@ msgid ""
 msgstr ""
 "หลีกเลี่ยงการบิดเบี้ยว\n"
 "คุณรู้หรือไม่ว่าเมื่อพิมพ์วัสดุที่มีแนวโน้มที่จะเกิดการบิดเบี้ยว เช่น ABS การเพิ่มอุณหภูมิฐานพิมพ์อย่างเหมาะสมสามารถลดความน่าจะเป็นของการบิดเบี้ยวได้"
+
+# AI Translated
+#~ msgid "Dalmatian yellow"
+#~ msgstr "เหลืองดัลเมเชียน"
+
+# AI Translated
+# Needs human review: Source "Capsanthin violet" is probably a typo for RAL "Capri blue" (sits between Turquoise blue and Ocean blue); translated as Capri blue. Source string needs fixing
+#~ msgid "Capsanthin violet"
+#~ msgstr "น้ำเงินคาปรี"
+
+# AI Translated
+# Needs human review: Source "Olivestone" is probably a typo for RAL "Olive grey" (sits between Silver grey and Moss grey); translated as Olive grey. Source string needs fixing
+#~ msgid "Olivestone"
+#~ msgstr "เทามะกอก"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "ใช้ได้ทุกที่ในหน้าต่าง แม้ขณะพิมพ์ในช่องข้อความ"
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "แป้นพิมพ์ลัดส่วนกลางจะทำงานแม้ขณะพิมพ์ข้อความ"
+
+#~ msgid "Please choose the filament color"
+#~ msgstr "กรุณาเลือกสีเส้นพลาสติก"
 
 #~ msgid ""
 #~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
@@ -35359,9 +37144,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "ไม่มีเครื่องมือที่กำหนดค่าไว้"
 
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "สิ้นสุด G-code เมื่อพิมพ์เสร็จทั้งหมด"
-
 #~ msgid "Maximum X speed"
 #~ msgstr "ความเร็ว X สูงสุด"
 
@@ -35379,23 +37161,8 @@ msgstr ""
 #~ msgstr "ปลั๊กอิน Python ที่เรียกใช้ในแต่ละขั้นตอนของไปป์ไลน์การสไลซ์เพื่ออ่านและแก้ไขข้อมูลการสไลซ์ระหว่างกลาง รวมถึงขั้นตอนหลังประมวลผล G-code สุดท้าย สำหรับการวิจัย/ทดลอง"
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "เมื่อเปิดใช้งาน สไลเซอร์จะสร้าง G-code โดยให้เนื้อหาของโซนหลักอยู่กึ่งกลางที่จุดกำเนิดของฐานพิมพ์ (0,0) เฟิร์มแวร์ของเครื่องพิมพ์จะรับผิดชอบการวางสำเนา/ภาพกระจกเงาที่ตำแหน่งของแต่ละโซนจริง เปิดใช้งานเฉพาะกับเครื่องพิมพ์ที่เฟิร์มแวร์ใช้ค่าออฟเซ็ตโซนของตัวเองในโหมดสำเนา/กระจกเงา (เช่น โหมด duplication ของ IDEX ใน RepRapFirmware) ไม่มีผลในโหมดหลัก (Primary)"
-
-# AI Translated
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "ค่าแทนที่ต่อเพลตที่จับคู่หัวจริงกับช่องเส้นพลาสติก (เริ่มนับจาก 1) เว้นว่างหมายถึงใช้ค่าเริ่มต้นจาก pem-inversion"
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "แกนที่ใช้หมุนเมชก่อนการสไลซ์ นี่คือการเอียงของเครื่องพิมพ์สายพาน: การหมุนแบบไอโซเมตริก (ไม่บิดเบี้ยว) ซึ่งยังใช้กำหนดการแสดงผลฐานพิมพ์และการเอียงแรงโน้มถ่วงของส่วนรองรับ และการแปลงกลับของ G-code จะย้อนการหมุนนี้ก่อนการเฉือน/ปรับสเกลและการแมปแกนของระบบพิกัดเครื่อง X คือการเอียงแกนทรีที่ใช้ทั่วไป (สายพานเคลื่อนที่ตามแนว Y)"
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "การแทนที่สำหรับผู้เชี่ยวชาญ: ตั้งมุมเอียงของระบบพิกัดเครื่อง (การเฉือน/ปรับสเกล G-code) แยกจากมุมหมุนก่อนสไลซ์ เมื่อปิดใช้งาน การแปลงระบบพิกัดเครื่องจะคำนวณจากมุมเอียงสายพาน ดังนั้นมุมเดียวจะควบคุมทั้งสองขั้นตอน เปิดใช้งานเฉพาะเพื่อชดเชยเครื่องที่การเอียงจริงของแกนทรีต่างจากการหมุนสำหรับสไลซ์"
-
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "ค่าเบี่ยงเบนสูงสุดที่อนุญาตเมื่อลดความละเอียดสำหรับการตั้งค่า 'ความละเอียดสูงสุดของผนัง' หากเพิ่มค่านี้ การพิมพ์จะแม่นยำน้อยลง แต่ G-Code จะน้อยลง 'ค่าเบี่ยงเบนของผนังสูงสุด' จะจำกัด 'ความละเอียดของผนังสูงสุด' ดังนั้นหากทั้งสองข้อขัดแย้งกัน 'ค่าเบี่ยงเบนของผนังสูงสุด' จะมีความสำคัญเหนือกว่า"
 
 #~ msgid " not in range "
 #~ msgstr "ไม่อยู่ในช่วง"

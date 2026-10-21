@@ -428,6 +428,10 @@ private:
     void render_texture_library_popup(const ImVec2 &panel_min, const ImVec2 &panel_max);
     int  m_picker_slot         = -1;
     bool m_picker_open_request = false;
+    // Set when the popup opens, so the next layout scrolls the layer's current texture into view.
+    bool  m_picker_reveal_selected = false;
+    float m_picker_scroll_target   = 0.f;  // see ease_wheel_scroll()
+    float m_picker_scroll_applied  = -1.f;
     void set_layer_texture(TextureDisplacementLayer &layer, const TextureLibraryEntry &entry);
     void import_custom_texture(TextureDisplacementLayer &layer);
 
@@ -1062,6 +1066,8 @@ private:
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;
+    // Generation of the library the above were cached against; a change clears them.
+    uint64_t                              m_library_generation = 0;
 
     // Everything the *unwrap* depends on. update_uv_editor() runs from rebuild_preview(), i.e. on
     // every stroke end and every slider release - but depth/tiling/rotation/offset/blend change
@@ -1103,12 +1109,15 @@ private:
     // The config key behind m_undocked.
     static constexpr const char *UNDOCKED_CONFIG_KEY = "texture_displacement_panel_undocked";
 
-    // Smooth scrolling for the panel body (everything between the header and the pinned Bake footer).
-    // ImGui jumps a fixed number of lines per wheel notch, which on tall layer cards reads as a hard
-    // jolt rather than a scroll. The wheel is intercepted (ImGuiWindowFlags_NoScrollWithMouse) and
-    // moves a *target* offset instead; the real scroll is eased toward it over the following frames.
+    // Smooth scrolling for a child window, called inside it: the panel body (everything between the header
+    // and the pinned Bake footer) and the texture library's grid. ImGui jumps a fixed number of lines per
+    // wheel notch, which on tall layer cards reads as a hard jolt rather than a scroll. The child sets
+    // ImGuiWindowFlags_NoScrollWithMouse, and the wheel moves `target` instead; the real scroll is eased
+    // toward it over the following frames. `applied` is what the easing wrote last frame, <0 until the
+    // first one.
+    void  ease_wheel_scroll(float &target, float &applied);
     float m_panel_scroll_target  = 0.f;
-    float m_panel_scroll_applied = -1.f; // what the easing wrote last frame; <0 until the first one
+    float m_panel_scroll_applied = -1.f;
     // Last frame's body content height and footer height. The body is a child window that has to be
     // given its height before its content is laid out, so it is sized from the previous frame: as tall
     // as its content, capped so the footer still fits above the bottom of the canvas.

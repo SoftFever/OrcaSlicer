@@ -22,6 +22,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 
 #include <catch2/catch_all.hpp>
 
@@ -733,6 +734,79 @@ TEST_CASE("Custom G-code placeholders are substituted", "[Print]")
     });
     CHECK(per_layer.find(";Layer:199 ") != std::string::npos);
     CHECK(per_layer.find(";Layer:399 ") != std::string::npos);
+}
+
+// The final print statistics are known only after the whole G-code is generated, yet every custom G-code,
+// the file header included, gets the same values as filename_format.
+TEST_CASE("Print statistics in custom G-code match the final print statistics", "[Print][Regression]")
+{
+    const std::string gcode_key = GENERATE(as<std::string>{}, "file_start_gcode", "machine_start_gcode", "machine_end_gcode");
+    // Bambu printers use another tag table and G-code layout.
+    const bool is_bbl = GENERATE(false, true);
+    CAPTURE(gcode_key, is_bbl);
+
+    const std::vector<std::string> number_keys = { "total_weight", "used_filament", "total_cost", "total_wipe_tower_cost",
+                                                   "total_wipe_tower_filament" };
+    const std::vector<std::string> time_keys   = { "print_time", "normal_print_time", "silent_print_time" };
+    std::string                    templ;
+    for (const std::vector<std::string> *keys : { &number_keys, &time_keys })
+        for (const std::string &key : *keys)
+            templ += "; stat " + key + "={" + key + "}\n";
+
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { gcode_key,          templ },
+        { "filament_density", "1.25" },
+        { "filament_cost",    "20" },
+        { "time_cost",        "2" },
+    });
+    Print print;
+    Model model;
+    init_print({ cube(20) }, print, model, config);
+    print.is_BBL_printer() = is_bbl;
+
+    std::string gcode;
+    REQUIRE_NOTHROW(gcode = Slic3r::Test::gcode(print));
+
+    // Match whole lines only: the config block repeats the template on a single line, and Bambu printers
+    // write that block before the start G-code.
+    const std::string lines    = "\n" + gcode;
+    const auto        value_of = [&lines](const std::string &key) {
+        const std::string prefix = "\n; stat " + key + "=";
+        const size_t      start  = lines.find(prefix);
+        REQUIRE(start != std::string::npos);
+        const size_t begin = start + prefix.size();
+        return lines.substr(begin, lines.find('\n', begin) - begin);
+    };
+    // The same statistics filename_format is expanded with.
+    DynamicConfig stats = print.print_statistics().config();
+    // A 20mm cube with filament_density 1.25 weighs something, unlike the running extruded_weight_total in the header.
+    CHECK(stats.opt_float("total_weight") > 0.);
+    for (const std::string &key : number_keys) {
+        CAPTURE(key);
+        const std::string value = value_of(key);
+        REQUIRE(value.find('@') == std::string::npos);
+        // Written with two decimals.
+        CHECK_THAT(std::stod(value), Catch::Matchers::WithinAbs(stats.opt_float(key), 0.006));
+    }
+    for (const std::string &key : time_keys) {
+        CAPTURE(key);
+        CHECK(value_of(key) == stats.opt_string(key));
+    }
+}
+
+TEST_CASE("Print statistics in custom G-code cannot be used in a calculation", "[Print]")
+{
+    const std::string key = GENERATE(as<std::string>{}, "total_weight", "used_filament", "total_cost", "print_time", "normal_print_time",
+                                     "silent_print_time", "total_wipe_tower_cost", "total_wipe_tower_filament", "print_time_total_sec",
+                                     "print_time_day", "print_time_hour", "print_time_minute", "print_time_sec", "used_filament_length");
+    CAPTURE(key);
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({ { "file_start_gcode", "; {" + key + " + 1}\n" } });
+    Print print;
+    Model model;
+    init_print({ cube(20) }, print, model, config);
+    CHECK_THROWS_WITH(Slic3r::Test::gcode(print), Catch::Matchers::ContainsSubstring("known only after the G-code is generated"));
 }
 
 TEST_CASE("export_gcode writes G-code without a result pointer", "[Print][export_gcode]")
