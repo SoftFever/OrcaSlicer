@@ -11,6 +11,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
@@ -130,6 +131,20 @@ static AuditEventCategory event_category(const std::string& event_name)
     return it == audit_event_categories.end() ? AuditEventCategory::None : it->second;
 }
 
+// Events the 3.12 stdlib raises with sys.audit() inside the function that performs the whole
+// operation, so the raising frame bounds everything the operation does. Every other mapped event
+// is a primitive raised from C, whose current frame is whatever Python code called it -- possibly
+// a library loop over many targets -- so it never marks an operation. glob.glob and glob.glob/2
+// are raised in iglob(), which returns its lazy generator before any directory is listed.
+static const std::unordered_set<std::string> operation_root_events{
+    "urllib.Request",      "http.client.connect",   "os.walk",          "os.fwalk",
+    "glob.glob",           "glob.glob/2",           "pathlib.Path.glob", "pathlib.Path.rglob",
+    "subprocess.Popen",    "pty.spawn",             "tempfile.mkstemp", "tempfile.mkdtemp",
+    "shutil.copyfile",     "shutil.copymode",       "shutil.copystat",  "shutil.copytree",
+    "shutil.chown",        "shutil.move",           "shutil.rmtree",    "shutil.make_archive",
+    "shutil.unpack_archive",
+};
+
 // True for the categories whose targets are filesystem paths, as opposed to a network
 // address or a process command line -- the deny-path and allowed-root checks only make sense
 // against a path.
@@ -146,51 +161,74 @@ static bool is_fs_category(AuditEventCategory category)
     }
 }
 
+// The category's name in a saved event grant, e.g. "FsRead" in "FsRead:open".
+static const char* category_name(AuditEventCategory category)
+{
+    switch (category) {
+    case AuditEventCategory::FsRead:         return "FsRead";
+    case AuditEventCategory::FsReadWrite:    return "FsReadWrite";
+    case AuditEventCategory::FsCreate:       return "FsCreate";
+    case AuditEventCategory::FsDelete:       return "FsDelete";
+    case AuditEventCategory::Http:           return "Http";
+    case AuditEventCategory::Socket:         return "Socket";
+    case AuditEventCategory::ProcessCreate:  return "ProcessCreate";
+    case AuditEventCategory::ProcessReplace: return "ProcessReplace";
+    case AuditEventCategory::Threading:      return "Threading";
+    case AuditEventCategory::None:           break;
+    }
+    return "None";
+}
+
 // ---------------------------------------------------------------------------
 // Path safety
 // ---------------------------------------------------------------------------
 
-bool is_inside_allowed_root(const boost::filesystem::path& candidate, const boost::filesystem::path& allowed_root)
+namespace {
+
+// Canonicalize a path for containment comparison.  weakly_canonical resolves symlinks but does
+// NOT require the path to exist — it canonicalizes the prefix that exists and appends the
+// non-existing tail lexically.
+boost::filesystem::path canonical_for_comparison(const boost::filesystem::path& path)
 {
     namespace fs = boost::filesystem;
 
     boost::system::error_code ec;
-
-    // Canonicalize both paths.  weakly_canonical resolves symlinks but does
-    // NOT require the path to exist — it canonicalizes the prefix that exists
-    // and appends the non-existing tail lexically.
-    fs::path canon_candidate = fs::weakly_canonical(candidate, ec);
+    fs::path canon = fs::weakly_canonical(path, ec);
     if (ec) {
         // Fall back to lexically_normal + absolute
-        canon_candidate = fs::absolute(candidate, ec).lexically_normal();
+        canon = fs::absolute(path, ec).lexically_normal();
         if (ec)
-            canon_candidate = candidate;
+            canon = path;
     }
+    return canon;
+}
 
-    fs::path canon_root = fs::weakly_canonical(allowed_root, ec);
-    if (ec) {
-        canon_root = fs::absolute(allowed_root, ec).lexically_normal();
-        if (ec)
-            canon_root = allowed_root;
-    }
-
-    // Component-wise comparison: the root must be a prefix of candidate,
-    // and the next component must not be ".." or missing.
-    auto cand_it  = canon_candidate.begin();
-    auto cand_end = canon_candidate.end();
-    auto root_it  = canon_root.begin();
-    auto root_end = canon_root.end();
-
-    const auto same_component = [](const fs::path& lhs, const fs::path& rhs) {
+bool same_path_component(const boost::filesystem::path& lhs, const boost::filesystem::path& rhs)
+{
 #ifdef _WIN32
-        return boost::algorithm::iequals(lhs.native(), rhs.native());
+    return boost::algorithm::iequals(lhs.native(), rhs.native());
 #else
-        return lhs == rhs;
+    return lhs == rhs;
 #endif
-    };
+}
+
+// Component-wise containment: the whole of canonical_root must be a prefix of
+// canonical_candidate, and the remaining components must not traverse upward. Both arguments are
+// expected to come from canonical_for_comparison(). On a match, suffix receives the candidate's
+// components below the root (empty when the two paths are equal).
+bool suffix_inside_root(const boost::filesystem::path& canonical_candidate,
+                        const boost::filesystem::path& canonical_root,
+                        boost::filesystem::path&       suffix)
+{
+    suffix.clear();
+
+    auto cand_it  = canonical_candidate.begin();
+    auto cand_end = canonical_candidate.end();
+    auto root_it  = canonical_root.begin();
+    auto root_end = canonical_root.end();
 
     // Consume matching components
-    while (root_it != root_end && cand_it != cand_end && same_component(*root_it, *cand_it)) {
+    while (root_it != root_end && cand_it != cand_end && same_path_component(*root_it, *cand_it)) {
         ++root_it;
         ++cand_it;
     }
@@ -205,7 +243,17 @@ bool is_inside_allowed_root(const boost::filesystem::path& candidate, const boos
             return false;
     }
 
+    for (; cand_it != cand_end; ++cand_it)
+        suffix /= *cand_it;
     return true;
+}
+
+} // namespace
+
+bool is_inside_allowed_root(const boost::filesystem::path& candidate, const boost::filesystem::path& allowed_root)
+{
+    boost::filesystem::path suffix;
+    return suffix_inside_root(canonical_for_comparison(candidate), canonical_for_comparison(allowed_root), suffix);
 }
 
 // ---------------------------------------------------------------------------
@@ -215,26 +263,50 @@ bool is_inside_allowed_root(const boost::filesystem::path& candidate, const boos
 thread_local std::string PluginAuditManager::m_current_plugin_key = "";
 thread_local std::string PluginAuditManager::m_current_capability_name = "";
 thread_local std::vector<AllowedRoot> PluginAuditManager::m_scoped_allowed_roots;
+thread_local std::vector<PyObject*> PluginAuditManager::m_root_frames;
+thread_local int PluginAuditManager::m_releasing_frames = 0;
 thread_local bool PluginAuditManager::m_audit_denial_pending = false;
 thread_local bool PluginAuditManager::m_has_last_violation = false;
 thread_local AuditViolation PluginAuditManager::m_last_violation;
 
 ScopedPluginAuditContext::ScopedPluginAuditContext(const std::string& plugin_key,
                                                    const std::string& capability_name)
-    : m_previous_id(PluginAuditManager::instance().current_plugin())
+    : m_plugin_key(plugin_key)
+    , m_capability(capability_name)
+    , m_previous_id(PluginAuditManager::instance().current_plugin())
     , m_previous_capability(PluginAuditManager::instance().current_capability())
     , m_previous_scoped_roots(PluginAuditManager::m_scoped_allowed_roots)
+    , m_previous_root_frames(std::move(PluginAuditManager::m_root_frames))
 {
     PluginAuditManager::instance().set_current_plugin(plugin_key);
     PluginAuditManager::instance().set_current_capability(capability_name);
     PluginAuditManager::m_scoped_allowed_roots.clear();
+    PluginAuditManager::m_root_frames.clear();
 }
 
 ScopedPluginAuditContext::~ScopedPluginAuditContext()
 {
-    PluginAuditManager::instance().set_current_plugin(m_previous_id);
-    PluginAuditManager::instance().set_current_capability(m_previous_capability);
+    PluginAuditManager& mgr = PluginAuditManager::instance();
+
+    // Let this scope's root frames go while it is still the current context, and as its own
+    // plugin: the trampoline's denial path clears the key before the scope ends, and a finalizer
+    // must never be judged as the outer plugin, or bypass the audit when there is none. A
+    // finalizer may record a new root frame, so repeat until none is held.
+    if (!PluginAuditManager::m_root_frames.empty()) {
+        assert(PyGILState_Check());
+        mgr.set_current_plugin(m_plugin_key);
+        mgr.set_current_capability(m_capability);
+        while (!PluginAuditManager::m_root_frames.empty()) {
+            std::vector<PyObject*> frames = std::move(PluginAuditManager::m_root_frames);
+            PluginAuditManager::m_root_frames.clear();
+            mgr.release_frames(frames);
+        }
+    }
+
+    mgr.set_current_plugin(m_previous_id);
+    mgr.set_current_capability(m_previous_capability);
     PluginAuditManager::m_scoped_allowed_roots = std::move(m_previous_scoped_roots);
+    PluginAuditManager::m_root_frames          = std::move(m_previous_root_frames);
 }
 
 // ---------------------------------------------------------------------------
@@ -296,16 +368,18 @@ void PluginAuditManager::add_denied_filename(const std::string& filename)
 std::vector<std::string> PluginAuditManager::default_denied_filenames()
 {
     // AppConfig::config_path() picks .conf vs .ini on the USE_JSON_CONFIG ifdef and the app key
-    // on its mode, and is a non-static member we cannot call without an instance.  Denying all
+    // on its mode, and is a non-static member we cannot call without an instance. Denying all
     // four names is cheaper and more robust than replicating that; the two unused names cost one
-    // string comparison each.  Single-sourced here so install_hook() and the tests seed from the
-    // same list and cannot drift apart.
+    // string comparison each. Keep the plugin install-state sidecar here too: it controls which
+    // packages load on startup and must remain host-managed. Single-sourced so install_hook() and
+    // the tests seed from the same list and cannot drift apart.
     return {
         SLIC3R_APP_KEY ".conf",
         GCODEVIEWER_APP_KEY ".conf",
         SLIC3R_APP_KEY ".ini",
         GCODEVIEWER_APP_KEY ".ini",
         secret_constants::USER_SECRET_FILENAME,
+        ".install_state.json",
     };
 }
 
@@ -353,7 +427,8 @@ std::vector<std::string> PluginAuditManager::default_denied_path_keywords()
     // it happens to live inside an otherwise-allowed root (e.g. the bundled TLS client cert at
     // resources_dir()/cert/..., which would become reachable the moment resources_dir() is
     // granted as a read-only allowed root). Match as whole path components, not substrings, so
-    // imports such as numpy/__config__.py and stdlib configparser.py remain usable.
+    // imports such as numpy/__config__.py and stdlib configparser.py remain usable. Inside
+    // data_dir() they match below that root only; see is_denied_path_keyword().
     return {"secret", "secrets", "cert", "certs", "certificate", "certificates", "conf", "config"};
 }
 
@@ -372,19 +447,29 @@ bool PluginAuditManager::is_denied_path_keyword(const boost::filesystem::path& c
 {
     namespace fs = boost::filesystem;
 
-    boost::system::error_code ec;
-    fs::path canon = fs::weakly_canonical(candidate, ec);
-    if (ec) {
-        canon = fs::absolute(candidate, ec).lexically_normal();
-        if (ec)
-            canon = candidate;
-    }
+    const fs::path canon = canonical_for_comparison(candidate);
+
+    // The app's data folder can itself sit below a component named like one of the keywords
+    // without being one: Flatpak keeps it under <home>/.var/app/<app-id>/config/OrcaSlicer, and
+    // the sandbox's home layout is not ours to change.  A keyword above data_dir() therefore says
+    // nothing about what a plugin may reach inside it, so inside data_dir() the keywords apply to
+    // the suffix below data_dir() only.  Everywhere else -- resources_dir() with the bundled
+    // certificates, a plugin's own folders, arbitrary files -- the whole path is still checked,
+    // and so is a keyword under data_dir() itself.
+    fs::path canonical_data_dir;
+    if (!data_dir().empty())
+        canonical_data_dir = canonical_for_comparison(data_dir());
+
+    fs::path scope = canon;
+    fs::path suffix;
+    if (!canonical_data_dir.empty() && suffix_inside_root(canon, canonical_data_dir, suffix))
+        scope = suffix;
 
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_denied_path_keywords.empty())
         return false;
 
-    for (const auto& component : canon) {
+    for (const auto& component : scope) {
         std::string name = component.string();
         if (name.empty())
             continue;
@@ -441,6 +526,12 @@ AuditDecision PluginAuditManager::check_path_access(const boost::filesystem::pat
             candidate = absolute_candidate;
     }
 
+    // Importing Python modules reads their source and may inspect package directories. These
+    // reads are normal interpreter work, not plugin data access; keep the exemption read-only
+    // and exclude third-party packages from the stdlib roots.
+    if (!is_write && is_stdlib_path(candidate))
+        return {true, ""};
+
     // A root that doesn't allow writes only matches a read-shaped request; a write/create/
     // delete-shaped one falls through to "outside allowed root" for that root even though the
     // path is physically inside it.
@@ -471,81 +562,6 @@ AuditDecision PluginAuditManager::check_open(const std::string& path_str, const 
     return check_path_access(boost::filesystem::path(path_str), is_write);
 }
 
-bool PluginAuditManager::request_filesystem_read_permissions(const std::string&              plugin_key,
-                                                              const std::vector<std::string>& paths)
-{
-    if (plugin_key.empty() || paths.empty())
-        return true;
-
-    PluginDescriptor descriptor;
-    if (!PluginManager::instance().try_get_plugin_descriptor(plugin_key, descriptor) || descriptor.plugin_root.empty())
-        return false;
-
-    PluginInstallState state;
-    read_install_state(boost::filesystem::path(descriptor.plugin_root), state);
-
-    std::vector<std::string> missing;
-    for (const std::string& path : paths) {
-        if (std::find(state.permissions.fs_read.begin(), state.permissions.fs_read.end(), path) == state.permissions.fs_read.end())
-            missing.push_back(path);
-    }
-    if (missing.empty())
-        return true;
-
-    if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
-        return false;
-
-    auto show_dialog = [&descriptor, &missing]() {
-        wxString requested_paths;
-        for (const std::string& path : missing)
-            requested_paths += wxString::FromUTF8(path.c_str()) + "\n";
-
-        wxMessageDialog dialog(
-            nullptr,
-            wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
-                             wxString::FromUTF8(descriptor.name.c_str()), requested_paths),
-            _L("Plugin permissions"),
-            wxYES_NO | wxICON_WARNING);
-        return dialog.ShowModal() == wxID_YES;
-    };
-
-    bool granted = false;
-    if (wxIsMainThread()) {
-        granted = show_dialog();
-    } else {
-        auto result = std::make_shared<std::promise<bool>>();
-        auto future = result->get_future();
-        GUI::wxGetApp().CallAfter([result, descriptor_name = descriptor.name, missing]() {
-            wxString requested_paths;
-            for (const std::string& path : missing)
-                requested_paths += wxString::FromUTF8(path.c_str()) + "\n";
-
-            wxMessageDialog dialog(
-                nullptr,
-                wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
-                                 wxString::FromUTF8(descriptor_name.c_str()), requested_paths),
-                _L("Plugin permissions"),
-                wxYES_NO | wxICON_WARNING);
-            result->set_value(dialog.ShowModal() == wxID_YES);
-        });
-        granted = future.get();
-    }
-
-    if (!granted)
-        return false;
-
-    if (state.plugin_name.empty()) {
-        state.installed_from    = descriptor.is_cloud_plugin() ? "cloud" : "local";
-        state.installed_version = !descriptor.installed_version.empty() ? descriptor.installed_version : descriptor.version;
-        state.plugin_name       = descriptor.name;
-        state.cloud_uuid        = descriptor.cloud_uuid();
-        state.enabled            = true;
-    }
-
-    state.permissions.fs_read.insert(state.permissions.fs_read.end(), missing.begin(), missing.end());
-    return write_install_state(boost::filesystem::path(descriptor.plugin_root), state);
-}
-
 void PluginAuditManager::report_violation(const AuditViolation& violation)
 {
     m_last_violation     = violation;
@@ -573,34 +589,6 @@ bool PluginAuditManager::last_violation(AuditViolation& violation) const
 
     violation = m_last_violation;
     return true;
-}
-
-bool PluginAuditManager::has_approved_ancestor(const std::string&              plugin_key,
-                                               const std::vector<std::string>& call_site_ids) const
-{
-    if (plugin_key.empty() || call_site_ids.empty())
-        return false;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto it = m_approved_call_sites.find(plugin_key);
-    if (it == m_approved_call_sites.end())
-        return false;
-
-    for (const auto& id : call_site_ids)
-        if (it->second.count(id))
-            return true;
-    return false;
-}
-
-void PluginAuditManager::record_approved_call_sites(const std::string&              plugin_key,
-                                                     const std::vector<std::string>& call_site_ids)
-{
-    if (plugin_key.empty() || call_site_ids.empty())
-        return;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto& approved = m_approved_call_sites[plugin_key];
-    approved.insert(call_site_ids.begin(), call_site_ids.end());
 }
 
 // ---------------------------------------------------------------------------
@@ -663,40 +651,88 @@ std::string python_str(PyObject* object)
     return result;
 }
 
-std::vector<std::string> call_site_identities(const std::string& plugin_root)
-{
-    std::vector<std::string> ids;
-    if (plugin_root.empty())
-        return ids;
+// The interpreter's stdlib folders, and the site-packages folders inside them that hold
+// third-party code, both resolved. Set by install_hook(); like the verdict cache below, only
+// touched while the GIL is held.
+static std::vector<boost::filesystem::path>   s_stdlib_dirs;
+static std::vector<boost::filesystem::path>   s_site_package_dirs;
+static std::unordered_map<std::string, bool>  s_stdlib_file_verdicts; // co_filename -> is stdlib
 
+void collect_stdlib_dirs()
+{
+    s_stdlib_dirs.clear();
+    s_site_package_dirs.clear();
+    s_stdlib_file_verdicts.clear();
+
+    PyObject* sysconfig = PyImport_ImportModule("sysconfig");
+    PyObject* paths     = sysconfig ? PyObject_CallMethod(sysconfig, "get_paths", nullptr) : nullptr;
+    if (paths && PyDict_Check(paths)) {
+        const auto collect = [paths](const char* key, std::vector<boost::filesystem::path>& out) {
+            const std::string dir = python_unicode(PyDict_GetItemString(paths, key)); // borrowed
+            if (dir.empty())
+                return;
+            boost::system::error_code ec;
+            const boost::filesystem::path resolved = boost::filesystem::weakly_canonical(dir, ec);
+            out.push_back(ec ? boost::filesystem::path(dir) : resolved);
+        };
+        collect("stdlib", s_stdlib_dirs);
+        collect("platstdlib", s_stdlib_dirs);
+        collect("purelib", s_site_package_dirs);
+        collect("platlib", s_site_package_dirs);
+    }
+    Py_XDECREF(paths);
+    Py_XDECREF(sysconfig);
+    if (PyErr_Occurred()) {
+        PyErr_Clear();
+        BOOST_LOG_TRIVIAL(error) << "[AUDIT] Failed to read the stdlib folders from sysconfig";
+    }
+}
+
+bool is_stdlib_frame(PyObject* frame)
+{
+    PyCodeObject* code = PyFrame_GetCode(reinterpret_cast<PyFrameObject*>(frame)); // new reference
+    const std::string filename = python_unicode(code->co_filename);
+    Py_DECREF(code);
+    return PluginAuditManager::is_stdlib_file(filename);
+}
+
+// The frames on this thread's Python stack, innermost first. The pointers stay valid while the
+// caller runs, because a running activation keeps its frame object alive.
+std::vector<PyObject*> stack_frames()
+{
+    std::vector<PyObject*> frames;
     PyFrameObject* frame = PyEval_GetFrame(); // borrowed reference
     Py_XINCREF(frame);                        // normalize to an owned reference for the loop below
-
     while (frame) {
-        PyCodeObject* code     = PyFrame_GetCode(frame); // new reference
-        const std::string filename = python_unicode(reinterpret_cast<PyObject*>(code->co_filename));
-        const bool is_plugin_frame = !filename.empty() && boost::algorithm::starts_with(filename, plugin_root);
-
-        std::string id;
-        if (!is_plugin_frame && !filename.empty()) {
-            const std::string funcname = python_unicode(reinterpret_cast<PyObject*>(code->co_name));
-            id = filename + ":" + funcname + ":" + std::to_string(code->co_firstlineno);
-        }
-        Py_DECREF(code);
-
+        frames.push_back(reinterpret_cast<PyObject*>(frame));
         PyFrameObject* back = PyFrame_GetBack(frame); // new reference, or nullptr at the top of the stack
         Py_DECREF(frame);
         frame = back;
-
-        if (is_plugin_frame)
-            break;
-        if (!id.empty())
-            ids.push_back(std::move(id));
     }
+    return frames;
+}
 
-    Py_XDECREF(frame); // only holds a reference here if the loop exited via break
+// Moves the held root frames whose operation has returned from `held` to `dropped`. A suspended
+// generator's frame (os.walk between two items) is off the stack, but its operation resumes, so
+// it stays held until the scope ends.
+void take_returned_frames(std::vector<PyObject*>& held, std::vector<PyObject*>& dropped)
+{
+    if (held.empty())
+        return;
 
-    return ids;
+    const std::vector<PyObject*> stack = stack_frames();
+    const auto running = [&stack](PyObject* frame) {
+        if (std::find(stack.begin(), stack.end(), frame) != stack.end())
+            return true;
+        // NULL once the generator has finished or been deleted: its frame then owns its own data.
+        PyObject* generator = PyFrame_GetGenerator(reinterpret_cast<PyFrameObject*>(frame)); // new reference
+        const bool suspended = generator != nullptr;
+        Py_XDECREF(generator);
+        return suspended;
+    };
+    const auto returned = std::stable_partition(held.begin(), held.end(), running);
+    dropped.insert(dropped.end(), returned, held.end());
+    held.erase(returned, held.end());
 }
 
 static const std::unordered_set<std::string> two_path_fs_events{
@@ -717,12 +753,15 @@ static const std::unordered_map<std::string, std::vector<Py_ssize_t>> audit_targ
     {"socket.getnameinfo", {0}},
     {"socket.getservbyname", {0}},
     {"socket.getservbyport", {0}},
+    {"socket.sendto", {1}},
+    {"socket.sendmsg", {1}},
 
     {"os.system", {0}},
     {"subprocess.Popen", {1, 0}},
     {"os.posix_spawn", {1, 0}},
     {"os.spawn", {2, 1}},
     {"os.startfile", {0}},
+    {"os.startfile/2", {0}},
     {"pty.spawn", {0}},
     {"_winapi.CreateProcess", {1, 0}},
     {"_posixsubprocess.fork_exec", {0}},
@@ -758,7 +797,7 @@ std::vector<std::string> audit_targets(const std::string& event_name, AuditEvent
         // Thread creation exposes no user-supplied target. Use a fixed sentinel so the grant
         // persists per plugin: the permission list matches targets by exact string, and the
         // started function's repr embeds an address that changes every run.
-        targets.emplace_back("thread");
+        targets.emplace_back(kThreadPermissionTarget);
         return targets;
     default:
         break;
@@ -767,7 +806,11 @@ std::vector<std::string> audit_targets(const std::string& event_name, AuditEvent
     const auto it = audit_target_arg_indices.find(event_name);
     if (it != audit_target_arg_indices.end()) {
         for (const Py_ssize_t index : it->second) {
-            std::string value = python_str(tuple_item(args, index));
+            // None is an argument left out (sendmsg without an address), not a target named "None".
+            PyObject* const item = tuple_item(args, index);
+            if (item == Py_None)
+                continue;
+            std::string value = python_str(item);
             if (!value.empty()) {
                 targets.push_back(std::move(value));
                 break;
@@ -778,8 +821,14 @@ std::vector<std::string> audit_targets(const std::string& event_name, AuditEvent
     return targets;
 }
 
-std::vector<std::string>* permission_list_for(AuditEventCategory category, PluginPermissions& permissions)
+// The saved list that grants an event: its category's target list, or the event-grant list for
+// an event with no target. Kept apart, so that no grant doubles as a target of the same name (an
+// os.fork grant is not an os.exec of a command named "os.fork").
+std::vector<std::string>* permission_list_for(AuditEventCategory category, bool by_event, PluginPermissions& permissions)
 {
+    if (by_event)
+        return &permissions.events;
+
     switch (category) {
     case AuditEventCategory::FsRead:        return &permissions.fs_read;
     case AuditEventCategory::FsReadWrite:   return &permissions.fs_readwrite;
@@ -792,9 +841,30 @@ std::vector<std::string>* permission_list_for(AuditEventCategory category, Plugi
     }
 }
 
+// An event with no target is granted by its effective category and name, e.g. "FsRead:open"
+// for a read of a file descriptor, which does not grant a write of one ("FsReadWrite:open").
+std::string event_grant_key(AuditEventCategory category, const std::string& event_name)
+{
+    return std::string(category_name(category)) + ":" + event_name;
+}
+
 bool has_permission(const std::vector<std::string>& granted, const std::string& target)
 {
     return std::find(granted.begin(), granted.end(), target) != granted.end();
+}
+
+// A sandbox plugin may not have a sidecar yet. Seed the small amount of install metadata the
+// writer needs so clicking Yes still creates the JSON file.
+void seed_install_metadata(const PluginDescriptor& descriptor, PluginInstallState& state)
+{
+    if (!state.plugin_name.empty())
+        return;
+
+    state.installed_from    = descriptor.is_cloud_plugin() ? "cloud" : "local";
+    state.installed_version = !descriptor.installed_version.empty() ? descriptor.installed_version : descriptor.version;
+    state.plugin_name       = descriptor.name;
+    state.cloud_uuid        = descriptor.cloud_uuid();
+    state.enabled           = true;
 }
 
 bool persist_permission(const std::string&        plugin_key,
@@ -806,15 +876,7 @@ bool persist_permission(const std::string&        plugin_key,
     if (!PluginManager::instance().try_get_plugin_descriptor(plugin_key, descriptor) || descriptor.plugin_root.empty())
         return false;
 
-    // A sandbox plugin may not have a sidecar yet.  Seed the small amount of install metadata
-    // needed by the writer so clicking Yes still creates the JSON file.
-    if (state.plugin_name.empty()) {
-        state.installed_from    = descriptor.is_cloud_plugin() ? "cloud" : "local";
-        state.installed_version = !descriptor.installed_version.empty() ? descriptor.installed_version : descriptor.version;
-        state.plugin_name       = descriptor.name;
-        state.cloud_uuid        = descriptor.cloud_uuid();
-        state.enabled            = true;
-    }
+    seed_install_metadata(descriptor, state);
 
     if (!has_permission(permission_list, target))
         permission_list.push_back(target);
@@ -900,84 +962,380 @@ bool prompt_for_targets(AuditEventCategory category, const std::string& plugin_n
     return dialog.ShowModal() == wxID_YES;
 }
 
+// Shows a prompt whose body may cover several permission buckets. Must run on the GUI thread.
+bool prompt_for_permission_message(const wxString& message)
+{
+    wxMessageDialog dialog(nullptr, message, _L("Plugin permissions"), wxYES_NO | wxICON_WARNING);
+    return dialog.ShowModal() == wxID_YES;
+}
+
 // Records a grant in the plugin's sidecar so it is not asked again. Reads the install state
 // freshly because the async prompt outlives the caller's stack copy of it.
-void persist_grant(const std::string& plugin_key, AuditEventCategory category, const std::vector<std::string>& targets)
+void persist_grant(const std::string& plugin_key, AuditEventCategory category, bool by_event, const std::vector<std::string>& keys)
 {
     PluginInstallState state;
     if (!PluginManager::instance().get_install_state(plugin_key, state))
         return;
 
-    std::vector<std::string>* permission_list = permission_list_for(category, state.permissions);
+    std::vector<std::string>* permission_list = permission_list_for(category, by_event, state.permissions);
     if (!permission_list)
         return;
 
-    for (const auto& target : targets)
-        persist_permission(plugin_key, state, *permission_list, target);
+    for (const auto& key : keys)
+        persist_permission(plugin_key, state, *permission_list, key);
 }
 
-// Requests permission for an audited event, returning true when it is already granted or the user
-// approves an inline prompt.
+static PluginAuditManager::PermissionPrompt s_permission_prompt_for_testing;
+
+static const char* audit_category_name(AuditEventCategory category)
+{
+    switch (category) {
+    case AuditEventCategory::FsRead: return "FsRead";
+    case AuditEventCategory::FsReadWrite: return "FsReadWrite";
+    case AuditEventCategory::FsCreate: return "FsCreate";
+    case AuditEventCategory::FsDelete: return "FsDelete";
+    case AuditEventCategory::Http: return "Http";
+    case AuditEventCategory::Socket: return "Socket";
+    case AuditEventCategory::ProcessCreate: return "ProcessCreate";
+    case AuditEventCategory::ProcessReplace: return "ProcessReplace";
+    case AuditEventCategory::Threading: return "Threading";
+    default: return "None";
+    }
+}
+
+// Asks the user to grant an audited event, returning true when they approve an inline prompt.
+// `keys` are what a Yes saves: the unresolved targets, or the event-grant key when the event has
+// no target (by_event), which the prompt does not show as a target.
 //
 // An audited event can fire on a thread the UI thread may itself be blocked waiting on: the
 // SlicingPipeline hook runs on the slicing worker thread (see PluginHooks.cpp), and
 // BackgroundSlicingProcess::stop()/stop_internal() park the UI thread until that worker stops.
 // Blocking the worker on a marshaled modal -- which is safe for the plugin-load worker that
-// request_filesystem_read_permissions runs on -- would therefore deadlock the application (the
+// request_permissions runs on -- would therefore deadlock the application (the
 // invariant PluginHostUi.cpp documents for slicing-hook UI calls). Off the main thread the prompt
 // is therefore posted asynchronously and the current event denied (fail closed, like an unanswered
 // prompt); the grant is persisted once the user accepts, so a later attempt succeeds without
 // re-prompting.
 bool request_permission(AuditEventCategory category, const std::string& plugin_key, const std::string& plugin_name,
-                        const std::string& event_name, const std::vector<std::string>& unresolved)
+                        const std::string& event_name, bool by_event, const std::vector<std::string>& keys)
 {
+    const std::vector<std::string> shown = by_event ? std::vector<std::string>{} : keys;
+    std::string targets_text = by_event ? "<none>" : "";
+    for (const auto& target : shown) {
+        if (!targets_text.empty())
+            targets_text += ", ";
+        targets_text += target;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "[AUDIT PROMPT] plugin=" << plugin_key << " event=" << event_name
+                            << " category=" << audit_category_name(category) << " targets=[" << targets_text << "]"
+                            << (by_event && !keys.empty() ? " grant=" + keys.front() : std::string{});
+
+    if (s_permission_prompt_for_testing)
+        return s_permission_prompt_for_testing(event_name, shown);
+
     if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
         return false;
 
     if (wxIsMainThread())
-        return prompt_for_targets(category, plugin_name, event_name, unresolved);
+        return prompt_for_targets(category, plugin_name, event_name, shown);
 
-    GUI::wxGetApp().CallAfter([category, plugin_key, plugin_name, event_name, unresolved]() {
+    GUI::wxGetApp().CallAfter([category, plugin_key, plugin_name, event_name, by_event, keys, shown]() {
         if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
             return;
-        if (prompt_for_targets(category, plugin_name, event_name, unresolved))
-            persist_grant(plugin_key, category, unresolved);
+        if (prompt_for_targets(category, plugin_name, event_name, shown))
+            persist_grant(plugin_key, category, by_event, keys);
     });
     return false;
 }
 
+// Decides an event that no allowed root or running operation covers: a saved grant allows it,
+// otherwise the user is asked and a Yes is saved.
 int decide_audited_event(PluginAuditManager&             mgr,
                          PluginInstallState&              state,
                          const std::string&                plugin_key,
                          const std::string&                plugin_name,
                          const std::string&                event_name,
                          AuditEventCategory                category,
-                         const std::vector<std::string>&   targets,
-                         std::vector<std::string>*         permission_list,
-                         const std::vector<std::string>&   call_site_ids)
+                         const std::vector<std::string>&   targets)
 {
-    std::vector<std::string> unresolved = targets;
+    const bool                     by_event = targets.empty();
+    const std::vector<std::string> keys     = by_event ? std::vector<std::string>{event_grant_key(category, event_name)} : targets;
+    std::vector<std::string>*      permission_list = permission_list_for(category, by_event, state.permissions);
+
+    std::vector<std::string> unresolved = keys;
     if (permission_list) {
         unresolved.clear();
-        for (const auto& target : targets)
-            if (!has_permission(*permission_list, target))
-                unresolved.push_back(target);
-        if (!targets.empty() && unresolved.empty())
+        for (const auto& key : keys)
+            if (!has_permission(*permission_list, key))
+                unresolved.push_back(key);
+        if (unresolved.empty())
             return 0;
     }
 
-    if (!request_permission(category, plugin_key, plugin_name, event_name, unresolved))
+    // Letting a root frame go runs finalizers inside a scope destructor or another event's hook,
+    // where no dialog may open: what they do must already be granted.
+    if (mgr.releasing_frames())
+        return report_denied(mgr, event_name, {false, "audit permission required"});
+
+    if (!request_permission(category, plugin_key, plugin_name, event_name, by_event, unresolved))
         return report_denied(mgr, event_name, {false, "audit permission required"});
 
     if (permission_list)
-        for (const auto& target : unresolved)
-            persist_permission(plugin_key, state, *permission_list, target);
-
-    mgr.record_approved_call_sites(plugin_key, call_site_ids);
+        for (const auto& key : unresolved)
+            persist_permission(plugin_key, state, *permission_list, key);
     return 0;
 }
 
+// Judges an audited event raised while a plugin context is active.
+int audit_plugin_event(PluginAuditManager& mgr, const std::string& event_name, AuditEventCategory event_type, PyObject* args)
+{
+    const bool                      fs_category = is_fs_category(event_type);
+    const std::vector<std::string>  targets      = audit_targets(event_name, event_type, args);
+
+    // A denied path (secrets, certificates, config files -- see is_denied_path) is an
+    // unconditional block: checked before the running-operation check below, so no granted
+    // operation can launder access to one, and before the allowed-root shortcut further down,
+    // so an allowed root (e.g. the read-only resources folder) cannot make a denied path
+    // underneath it reachable.
+    if (fs_category) {
+        for (const auto& target : targets) {
+            if (mgr.is_denied_path(boost::filesystem::path(target)))
+                return report_denied(mgr, event_name, {false, "denied path"}, target);
+        }
+    }
+
+    // A nested event of an operation already granted, e.g. socket.connect inside an approved
+    // urlopen(), is not asked again. urllib.Request is always judged on its own URL, so a
+    // redirect or a nested urlopen() inside a running request is not covered by it.
+    if (event_name != "urllib.Request" && mgr.covered_by_root_frame())
+        return 0;
+
+    // A filesystem target that resolves entirely inside a pre-determined allowed root -- the
+    // plugin system's own data_dir() tree (which holds each plugin's storage folder and the
+    // installed/system profile cache), the read-only bundled resources folder, or a per-call
+    // scoped root such as the current G-code folder -- is part of the plugin system's normal
+    // workflow and does not need a prompt.
+    if (fs_category && !targets.empty()) {
+        const bool is_write = event_type != AuditEventCategory::FsRead;
+        const bool all_inside_allowed_root =
+            std::all_of(targets.begin(), targets.end(), [&](const std::string& target) {
+                return mgr.check_path_access(boost::filesystem::path(target), is_write).allowed;
+            });
+        if (all_inside_allowed_root)
+            return 0;
+    }
+
+    PluginInstallState state;
+    const bool have_install_state = PluginManager::instance().get_install_state(mgr.current_plugin(), state);
+    if (!have_install_state) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Failed to get install state for " << mgr.current_plugin();
+    }
+
+    const std::string plugin_name = state.plugin_name.empty() ? mgr.current_plugin() : state.plugin_name;
+
+    const int result = decide_audited_event(mgr, state, mgr.current_plugin(), plugin_name, event_name, event_type, targets);
+
+    // A granted operation covers its nested events while it runs. A targetless grant names no
+    // operation, so it covers nothing else.
+    if (result == 0 && !targets.empty() && operation_root_events.count(event_name))
+        mgr.record_root_frame();
+    return result;
+}
+
 } // namespace PluginAuditDetail
+
+bool PluginAuditManager::request_permissions(const std::string& plugin_key, const PluginPermissions& requested)
+{
+    if (plugin_key.empty())
+        return true;
+
+    PluginDescriptor descriptor;
+    if (!PluginManager::instance().try_get_plugin_descriptor(plugin_key, descriptor) || descriptor.plugin_root.empty())
+        return false;
+
+    PluginInstallState state;
+    read_install_state(boost::filesystem::path(descriptor.plugin_root), state);
+
+    // Per bucket, keep only the targets that no earlier grant already covers. Dropping these
+    // before prompting keeps a repeated declaration from asking again for what is on disk.
+    struct MissingBucket {
+        AuditEventCategory       category;
+        std::vector<std::string> targets;
+    };
+    std::vector<MissingBucket> missing_buckets;
+
+    const auto collect_missing = [&missing_buckets](AuditEventCategory category,
+                                                    const std::vector<std::string>& requested_targets,
+                                                    const std::vector<std::string>& granted_targets) {
+        MissingBucket bucket{category, {}};
+        for (const std::string& target : requested_targets) {
+            if (target.empty())
+                continue;
+            if (std::find(granted_targets.begin(), granted_targets.end(), target) == granted_targets.end() &&
+                std::find(bucket.targets.begin(), bucket.targets.end(), target) == bucket.targets.end())
+                bucket.targets.push_back(target);
+        }
+        if (!bucket.targets.empty())
+            missing_buckets.push_back(std::move(bucket));
+    };
+
+    collect_missing(AuditEventCategory::FsRead, requested.fs_read, state.permissions.fs_read);
+    collect_missing(AuditEventCategory::FsReadWrite, requested.fs_readwrite, state.permissions.fs_readwrite);
+    collect_missing(AuditEventCategory::Http, requested.network_http, state.permissions.network_http);
+    collect_missing(AuditEventCategory::Socket, requested.network_socket, state.permissions.network_socket);
+    collect_missing(AuditEventCategory::ProcessCreate, requested.process, state.permissions.process);
+    collect_missing(AuditEventCategory::Threading, requested.threading, state.permissions.threading);
+
+    if (missing_buckets.empty())
+        return true;
+
+    if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
+        return false;
+
+    const auto build_message = [](const std::string& plugin_name, const std::vector<MissingBucket>& buckets) {
+        wxString message;
+        for (const MissingBucket& bucket : buckets) {
+            wxString targets;
+            for (const std::string& target : bucket.targets)
+                targets += wxString::FromUTF8(target.c_str()) + "\n";
+
+            if (!message.IsEmpty())
+                message += "\n\n";
+            message += PluginAuditDetail::audit_message(bucket.category, wxString::FromUTF8(plugin_name.c_str()),
+                                                        wxEmptyString, targets, bucket.targets.size());
+        }
+        return message;
+    };
+
+    bool granted = false;
+    if (wxIsMainThread()) {
+        granted = PluginAuditDetail::prompt_for_permission_message(build_message(descriptor.name, missing_buckets));
+    } else {
+        auto result = std::make_shared<std::promise<bool>>();
+        auto future = result->get_future();
+        GUI::wxGetApp().CallAfter([result, plugin_name = descriptor.name, missing_buckets, build_message]() {
+            result->set_value(PluginAuditDetail::prompt_for_permission_message(build_message(plugin_name, missing_buckets)));
+        });
+        granted = future.get();
+    }
+
+    if (!granted)
+        return false;
+
+    // The dialog can stay open while another grant is persisted; re-read before saving so this
+    // request adds to the current state instead of replacing it.
+    PluginInstallState latest_state;
+    if (read_install_state(boost::filesystem::path(descriptor.plugin_root), latest_state))
+        state = std::move(latest_state);
+
+    PluginAuditDetail::seed_install_metadata(descriptor, state);
+
+    for (const MissingBucket& bucket : missing_buckets) {
+        std::vector<std::string>* permission_list =
+            PluginAuditDetail::permission_list_for(bucket.category, /*by_event=*/false, state.permissions);
+        if (!permission_list)
+            continue;
+        for (const std::string& target : bucket.targets)
+            if (std::find(permission_list->begin(), permission_list->end(), target) == permission_list->end())
+                permission_list->push_back(target);
+    }
+
+    return write_install_state(boost::filesystem::path(descriptor.plugin_root), state);
+}
+
+void PluginAuditManager::record_root_frame()
+{
+    PyObject* frame = reinterpret_cast<PyObject*>(PyEval_GetFrame()); // borrowed reference
+    if (!frame || !PluginAuditDetail::is_stdlib_frame(frame))
+        return;
+    if (std::find(m_root_frames.begin(), m_root_frames.end(), frame) != m_root_frames.end())
+        return; // glob.glob and glob.glob/2 share a frame
+    Py_INCREF(frame);
+    m_root_frames.push_back(frame);
+}
+
+bool PluginAuditManager::covered_by_root_frame() const
+{
+    if (m_root_frames.empty())
+        return false;
+
+    // Only stdlib frames may sit between the event and the operation: plugin or library code
+    // the operation calls back into (an os.walk onerror, a urllib handler) acts on its own.
+    for (PyObject* frame : PluginAuditDetail::stack_frames()) {
+        if (std::find(m_root_frames.begin(), m_root_frames.end(), frame) != m_root_frames.end())
+            return true;
+        if (!PluginAuditDetail::is_stdlib_frame(frame))
+            return false;
+    }
+    return false;
+}
+
+bool PluginAuditManager::releasing_frames() const { return m_releasing_frames > 0; }
+
+bool PluginAuditManager::is_stdlib_file(const std::string& filename)
+{
+    // Frozen stdlib modules (os, posixpath, codecs, ...) carry a pseudo filename.
+    if (boost::algorithm::starts_with(filename, "<frozen "))
+        return true;
+    if (filename.empty() || filename.front() == '<')
+        return false;
+
+    // Both sides are resolved: co_filename follows the Python home as it was given, which may
+    // be a symlink.
+    const auto [it, inserted] = PluginAuditDetail::s_stdlib_file_verdicts.try_emplace(filename, false);
+    if (inserted) {
+        const boost::filesystem::path file(filename);
+        const auto inside_any = [&file](const std::vector<boost::filesystem::path>& dirs) {
+            return std::any_of(dirs.begin(), dirs.end(),
+                               [&file](const boost::filesystem::path& dir) { return is_inside_allowed_root(file, dir); });
+        };
+        it->second = inside_any(PluginAuditDetail::s_stdlib_dirs) && !inside_any(PluginAuditDetail::s_site_package_dirs);
+    }
+    return it->second;
+}
+
+bool PluginAuditManager::is_stdlib_path(const boost::filesystem::path& path)
+{
+    if (path.empty())
+        return false;
+
+    const auto inside_any = [&path](const std::vector<boost::filesystem::path>& dirs) {
+        return std::any_of(dirs.begin(), dirs.end(),
+                           [&path](const boost::filesystem::path& dir) { return is_inside_allowed_root(path, dir); });
+    };
+    return inside_any(PluginAuditDetail::s_stdlib_dirs) && !inside_any(PluginAuditDetail::s_site_package_dirs);
+}
+
+void PluginAuditManager::release_frames(std::vector<PyObject*>& frames)
+{
+    if (frames.empty())
+        return;
+
+    // A finalizer's own denial must neither replace the PermissionError of the event being
+    // decided nor leave a stale denial behind for the next call.
+    PyObject* const      error          = PyErr_GetRaisedException();
+    const bool           denial_pending = m_audit_denial_pending;
+    const bool           has_violation  = m_has_last_violation;
+    const AuditViolation violation      = m_last_violation;
+
+    std::vector<PyObject*> released;
+    released.swap(frames);
+    ++m_releasing_frames;
+    for (PyObject* frame : released)
+        Py_DECREF(frame);
+    --m_releasing_frames;
+
+    m_audit_denial_pending = denial_pending;
+    m_has_last_violation   = has_violation;
+    m_last_violation       = violation;
+    PyErr_SetRaisedException(error);
+}
+
+void PluginAuditManager::set_permission_prompt_for_testing(PermissionPrompt prompt)
+{
+    PluginAuditDetail::s_permission_prompt_for_testing = std::move(prompt);
+}
 
 int PluginAuditManager::audit_hook(const char* event, PyObject* args, void* user_data)
 {
@@ -1006,62 +1364,20 @@ int PluginAuditManager::audit_hook(const char* event, PyObject* args, void* user
     if (event_type == AuditEventCategory::None)
         return 0;
 
-    const bool                      fs_category = is_fs_category(event_type);
-    const std::vector<std::string>  targets      = PluginAuditDetail::audit_targets(event_name, event_type, args);
-
-    // A denied path (secrets, certificates, config files -- see is_denied_path) is an
-    // unconditional block: checked before the ancestor-cascade check below, so a cascade
-    // approval recorded for an unrelated action can never launder access to one, and before
-    // the allowed-root shortcut further down, so an allowed root (e.g. the read-only resources
-    // folder) cannot make a denied path underneath it reachable.
-    if (fs_category) {
-        for (const auto& target : targets) {
-            if (mgr->is_denied_path(boost::filesystem::path(target)))
-                return PluginAuditDetail::report_denied(*mgr, event_name, {false, "denied path"}, target);
-        }
-    }
-
-    PluginDescriptor plugin_descriptor;
-    PluginManager::instance().try_get_plugin_descriptor(mgr->current_plugin(), plugin_descriptor);
-
-    // Some plugins call other audited events, e.g. urlib.request will call socket.connect. So this is so that if urlib.request
-    // was already approved, socket.connect won't trigger another permission dialog.
-    const std::vector<std::string> call_site_ids =
-        PluginAuditDetail::call_site_identities(plugin_descriptor.plugin_root);
-    if (mgr->has_approved_ancestor(mgr->current_plugin(), call_site_ids))
-        return 0;
-
-    // A filesystem target that resolves entirely inside a pre-determined allowed root -- the
-    // plugin system's own data_dir() tree (which holds each plugin's storage folder and the
-    // installed/system profile cache), the read-only bundled resources folder, or a per-call
-    // scoped root such as the current G-code folder -- is part of the plugin system's normal
-    // workflow and does not need a prompt.
-    if (fs_category && !targets.empty()) {
-        const bool is_write = event_type != AuditEventCategory::FsRead;
-        const bool all_inside_allowed_root =
-            std::all_of(targets.begin(), targets.end(), [&](const std::string& target) {
-                return mgr->check_path_access(boost::filesystem::path(target), is_write).allowed;
-            });
-        if (all_inside_allowed_root)
-            return 0;
-    }
-
-    PluginInstallState state;
-    const bool have_install_state = PluginManager::instance().get_install_state(mgr->current_plugin(), state);
-    if (!have_install_state) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Failed to get install state for " << mgr->current_plugin();
-    }
-
-    const std::string plugin_name = state.plugin_name.empty() ? mgr->current_plugin() : state.plugin_name;
-
-    std::vector<std::string>* permission_list = PluginAuditDetail::permission_list_for(event_type, state.permissions);
-
-    return PluginAuditDetail::decide_audited_event(*mgr, state, mgr->current_plugin(), plugin_name, event_name,
-                                                    event_type, targets, permission_list, call_site_ids);
+    // Root frames whose operation has returned are let go once this event is decided, so that a
+    // finalizer they run re-enters a hook whose held frames are already consistent.
+    std::vector<PyObject*> returned_frames;
+    PluginAuditDetail::take_returned_frames(m_root_frames, returned_frames);
+    const int result = PluginAuditDetail::audit_plugin_event(*mgr, event_name, event_type, args);
+    mgr->release_frames(returned_frames);
+    return result;
 }
 
 void PluginAuditManager::install_hook()
 {
+    // Identifies stdlib frames for operation roots and stdlib paths for read-only access.
+    PluginAuditDetail::collect_stdlib_dirs();
+
     // data_dir() is the primary globally-allowed root during plugin execution: read+write. It
     // covers the plugin system's own workflow needs -- each plugin's storage folder
     // (data_dir()/orca_plugins) and the installed/system profile cache (data_dir()/system) --
@@ -1076,8 +1392,9 @@ void PluginAuditManager::install_hook()
     // "cert" denied-path keyword seeded below.
     add_global_allowed_root(resources_dir(), /*allow_write=*/false);
 
-    // The user's app config and cloud credentials live directly inside data_dir(), so the
-    // root just granted would otherwise expose them to any plugin.  Deny them by name.
+    // The user's app config and cloud credentials live directly inside data_dir(), and plugin
+    // install state lives beneath it, so the root just granted would otherwise expose them to
+    // plugins. Deny them by name.
     //
     // Seeded here rather than by each secret's owner because install_hook() runs during lazy
     // interpreter init and therefore provably precedes any plugin bytecode, whereas
@@ -1088,10 +1405,12 @@ void PluginAuditManager::install_hook()
     for (const auto& name : default_denied_filenames())
         add_denied_filename(name);
 
-    // Categorical denies on top of the exact-name list above: no path a plugin can reach may
-    // contain a "secret", "cert"(ificate), or "conf"(ig) path component, regardless of which
-    // allowed root it happens to sit inside. default_denied_path_keywords() is the single
-    // source of this list; the tests seed from it too.
+    // Categorical denies on top of the exact-name list above: a path a plugin reaches must not
+    // have a "secret", "cert"(ificate), or "conf"(ig) component below data_dir() -- or anywhere
+    // in the path outside data_dir(), whose own location may legitimately contain one (Flatpak
+    // keeps it under .../config/OrcaSlicer). This holds regardless of which allowed root the
+    // path happens to sit inside. default_denied_path_keywords() is the single source of this
+    // list; the tests seed from it too.
     for (const auto& keyword : default_denied_path_keywords())
         add_denied_path_keyword(keyword);
 

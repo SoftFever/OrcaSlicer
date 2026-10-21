@@ -1205,6 +1205,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "change_filament_gcode";
     } else if (opt_key == "bridge_fan_speed") {
         opt_key = "overhang_fan_speed";
+    } else if (opt_key == "tpms_adaptive") {
+        opt_key = "adaptive_infill_mode";
+    } else if (opt_key == "tpms_interior_density") {
+        opt_key = "adaptive_infill_interior_density";
+    } else if (opt_key == "tpms_adaptive_gradient") {
+        opt_key = "adaptive_infill_gradient";
     } else if (opt_key == "infill_extruder" || opt_key == "sparse_infill_filament") {
         // ORCA: legacy feature-filament selector. Pre-2.4.0-dev these keys were 1-based and the
         // default value "1" meant "the first/active filament". The current scheme uses a dedicated
@@ -1564,12 +1570,18 @@ const std::vector<std::string> filament_extruder_override_keys = {
 };
 
 // Some filament override parameters are generated from filament_extruder_override_keys,
-// while filament_retract_length_nc is defined separately. Keep the generator list
-// unchanged and use this helper for behavior checks that need the full override set.
+// while filament_retract_length_nc and the ironing overrides are defined separately.
+// Keep the generator list unchanged and use this helper for behavior checks that need
+// the full override set. A nil in one of these keys means the override is disabled, so
+// child presets store and load it verbatim instead of treating nil as "inherit".
 bool is_filament_extruder_override_key(const std::string &opt_key)
 {
     return std::find(filament_extruder_override_keys.begin(), filament_extruder_override_keys.end(), opt_key) != filament_extruder_override_keys.end() ||
-           opt_key == "filament_retract_length_nc";
+           opt_key == "filament_retract_length_nc" ||
+           opt_key == "filament_ironing_flow" ||
+           opt_key == "filament_ironing_spacing" ||
+           opt_key == "filament_ironing_inset" ||
+           opt_key == "filament_ironing_speed";
 }
 
 const PrintConfigDef print_config_def;

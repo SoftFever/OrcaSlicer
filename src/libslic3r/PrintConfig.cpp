@@ -325,24 +325,24 @@ static t_config_enum_values s_keys_map_SurfaceFillOrder{
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SurfaceFillOrder)
 
 //Orca
-static t_config_enum_values s_keys_map_TpmsAdaptiveMode{
-    { "disabled",       int(TpmsAdaptiveMode::Disabled) },
-    { "distance_warp",  int(TpmsAdaptiveMode::DistanceWarp) },
-    { "smooth_blend",   int(TpmsAdaptiveMode::SmoothBlend) },
-    { "stepped_shells", int(TpmsAdaptiveMode::SteppedShells) },
-    { "lobes",          int(TpmsAdaptiveMode::Lobes) },
-    { "normal_z",       int(TpmsAdaptiveMode::NormalZ) },
-    { "normal_y",       int(TpmsAdaptiveMode::NormalY) },
-    { "normal_x",       int(TpmsAdaptiveMode::NormalX) },
+static t_config_enum_values s_keys_map_AdaptiveInfillMode{
+    { "disabled",       int(AdaptiveInfillMode::Disabled) },
+    { "distance_warp",  int(AdaptiveInfillMode::DistanceWarp) },
+    { "smooth_blend",   int(AdaptiveInfillMode::SmoothBlend) },
+    { "stepped_shells", int(AdaptiveInfillMode::SteppedShells) },
+    { "lobes",          int(AdaptiveInfillMode::Lobes) },
+    { "normal_z",       int(AdaptiveInfillMode::NormalZ) },
+    { "normal_y",       int(AdaptiveInfillMode::NormalY) },
+    { "normal_x",       int(AdaptiveInfillMode::NormalX) },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TpmsAdaptiveMode)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AdaptiveInfillMode)
 
-static t_config_enum_values s_keys_map_TpmsAdaptiveGradient{
-    { "linear",      int(TpmsAdaptiveGradient::Linear) },
-    { "quadratic",   int(TpmsAdaptiveGradient::Quadratic) },
-    { "exponential", int(TpmsAdaptiveGradient::Exponential) },
+static t_config_enum_values s_keys_map_AdaptiveInfillGradient{
+    { "linear",      int(AdaptiveInfillGradient::Linear) },
+    { "quadratic",   int(AdaptiveInfillGradient::Quadratic) },
+    { "exponential", int(AdaptiveInfillGradient::Exponential) },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TpmsAdaptiveGradient)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AdaptiveInfillGradient)
 
 //BBS
 static t_config_enum_values s_keys_map_PrintSequence {
