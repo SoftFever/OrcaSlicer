@@ -850,6 +850,7 @@ if (SLIC3R_CAD)
         GUI/CAD/DesignPanel.hpp
         GUI/CAD/DesignImGuiUi.cpp
         GUI/CAD/DesignImGuiUi.hpp
+        GUI/CAD/DesignCardModel.hpp
         GUI/CAD/DesignRibbonTable.hpp
         GUI/CAD/DesignRowList.cpp
         GUI/CAD/DesignSidebarMirror.cpp

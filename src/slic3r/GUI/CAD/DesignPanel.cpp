@@ -1838,74 +1838,57 @@ DesignPanel::DesignPanel(wxWindow* parent)
     m_cards->SetSizer(cards);
     root->Add(m_cards, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
 
+    // The first four tool cards are TABLES (DesignCardModel.hpp), not wx controls: the ImGui sidebar draws them from here.
+    // The empty sizer each keeps in `cards` only places the card in the stack and shows or hides it.
+    auto add_card = [this, cards](wxSizer*& box, const char* icon, const wxString& title) -> CardModel* {
+        box = new wxBoxSizer(wxVERTICAL);
+        box->AddSpacer(0);   // a sizer with nothing in it counts as hidden, whatever Show() says
+        cards->Add(box, 0, wxEXPAND);
+        auto& slot = m_card_models[box];
+        slot = std::make_unique<CardModel>(icon, title);
+        slot->set_sink(m_form);
+        return slot.get();
+    };
+
     // --- Sketch dialog (shape definition only — no distance/mode) ---
-    auto* form = two_col_form();
+    {
+        CardModel* c = add_card(m_box_sketch, "design_sketch", _L("Sketch"));
+        m_hdr_sketch = c->title();
 
-    m_shape = make_combo(m_cards);
-    m_shape->Append(_L("Rectangle"));
-    m_shape->Append(_L("Circle"));
-    m_shape->SetSelection(0);
-    form->Add(new wxStaticText(m_cards, wxID_ANY, _L("Shape")), 0, wxALIGN_CENTER_VERTICAL);
-    form->Add(m_shape, 0, wxEXPAND);
+        m_shape = c->combo(_L("Shape"));
+        m_shape->Append(_L("Rectangle"));
+        m_shape->Append(_L("Circle"));
+        m_shape->SetSelection(0);
 
-    // NO plane row. A sketch takes its plane from what is picked in the VIEWPORT — a planar face
-    // on a solid, or one of the reference-plane ghosts clicked in 3D — resolved by
-    // sketch_plane_from_selection(). A three-row XY/XZ/YZ combo could not express either of those
-    // targets, so it displayed a value that was at best redundant and at worst false. e1p.
+        // NO plane row. A sketch takes its plane from what is picked in the VIEWPORT — a planar face
+        // on a solid, or one of the reference-plane ghosts clicked in 3D — resolved by
+        // sketch_plane_from_selection(). A three-row XY/XZ/YZ combo could not express either of those
+        // targets, so it displayed a value that was at best redundant and at worst false. e1p.
 
-    m_width = make_spin(m_cards, 20);
-    form->Add(new wxStaticText(m_cards, wxID_ANY, _L("Width / X")), 0, wxALIGN_CENTER_VERTICAL);
-    form->Add(spin_frame(m_width), 0, wxEXPAND);
-
-    m_height = make_spin(m_cards, 20);
-    form->Add(new wxStaticText(m_cards, wxID_ANY, _L("Height / Y")), 0, wxALIGN_CENTER_VERTICAL);
-    form->Add(spin_frame(m_height), 0, wxEXPAND);
-
-    m_radius = make_spin(m_cards, 10);
-    form->Add(new wxStaticText(m_cards, wxID_ANY, _L("Radius")), 0, wxALIGN_CENTER_VERTICAL);
-    form->Add(spin_frame(m_radius), 0, wxEXPAND);
-
-    m_box_sketch = new wxBoxSizer(wxVERTICAL);
-    m_box_sketch->Add(card_header(m_cards, "design_sketch", _L("Sketch"), m_hdr_sketch), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_sketch->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_sketch->Add(form, 0, wxEXPAND | wxALL, 12);
-    cards->Add(m_box_sketch, 0, wxEXPAND);
+        m_width  = c->spin(_L("Width / X"), 20);
+        m_height = c->spin(_L("Height / Y"), 20);
+        m_radius = c->spin(_L("Radius"), 10);
+    }
 
     // --- Move / Rotate body ---
     {
-        auto* mform = two_col_form();
-        m_move_dx = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Distance X")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(spin_frame(m_move_dx), 0, wxEXPAND);
-        m_move_dy = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Distance Y")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(spin_frame(m_move_dy), 0, wxEXPAND);
-        m_move_dz = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Distance Z")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(spin_frame(m_move_dz), 0, wxEXPAND);
+        CardModel* c = add_card(m_box_move, "design_move", _L("Move / Rotate"));
+        m_hdr_move = c->title();
+        m_move_dx = c->spin(_L("Distance X"), 0.0, -100000.0, 100000.0);
+        m_move_dy = c->spin(_L("Distance Y"), 0.0, -100000.0, 100000.0);
+        m_move_dz = c->spin(_L("Distance Z"), 0.0, -100000.0, 100000.0);
 
-        m_move_axis = make_combo(m_cards);
+        m_move_axis = c->combo(_L("Rotation axis"));
         m_move_axis->Append(_L_CONTEXT("X", "Axis"));
         m_move_axis->Append(_L_CONTEXT("Y", "Axis"));
         m_move_axis->Append(_L_CONTEXT("Z", "Axis"));
         m_move_axis->SetSelection(2);
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Rotation axis")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(m_move_axis, 0, wxEXPAND);
 
-        m_move_angle = make_spin(m_cards, 0.0, -360.0, 360.0);
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Angle (°)")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(spin_frame(m_move_angle), 0, wxEXPAND);
+        m_move_angle = c->spin(_L("Angle (°)"), 0.0, -360.0, 360.0);
 
-        for (wxSpinCtrlDouble* sp : { m_move_dx, m_move_dy, m_move_dz, m_move_angle })
+        for (NumField* sp : { m_move_dx, m_move_dy, m_move_dz, m_move_angle })
             sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent& e) { apply_move_card(); e.Skip(); });
         m_move_axis->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) { apply_move_card(); e.Skip(); });
-
-        m_box_move = new wxBoxSizer(wxVERTICAL);
-        m_box_move->Add(card_header(m_cards, "design_move", _L("Move / Rotate"), m_hdr_move), 0,
-                        wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_move->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-        m_box_move->Add(mform, 0, wxEXPAND | wxALL, 12);
-        cards->Add(m_box_move, 0, wxEXPAND);
     }
 
     // --- Polygon (sketch tool options) ---
@@ -1918,41 +1901,29 @@ DesignPanel::DesignPanel(wxWindow* parent)
     }
 
     // --- Extrude dialog (consumes the selected sketch) ---
-    m_box_extrude = new wxBoxSizer(wxVERTICAL);
-    m_box_extrude->Add(card_header(m_cards, "design_extrude", _L_CONTEXT("Extrude", "Design"), m_hdr_extrude), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_extrude->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_extrude_sketch_label = new wxStaticText(m_cards, wxID_ANY, _L("Sketch: —"));
-    m_box_extrude->Add(m_extrude_sketch_label, 0, wxLEFT | wxRIGHT | wxTOP, 12);
     {
-        auto* eform = two_col_form();
+        CardModel* c = add_card(m_box_extrude, "design_extrude", _L_CONTEXT("Extrude", "Design"));
+        m_hdr_extrude = c->title();
+        m_extrude_sketch_label = c->note(_L("Sketch: —"));
 
         // A negative distance extrudes the other way — Onshape behaviour, where a negative
         // depth IS the flip. The default 0.1 floor made that impossible to type, so the only
         // way inward was the Flip box, and a user who typed "-5" silently got +0.1 instead.
         // Flip and a negative distance double-negate, which is what setting both asked for.
-        m_distance = make_spin(m_cards, 10, -1000.0, 1000.0);
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Extrude dist")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(spin_frame(m_distance), 0, wxEXPAND);
+        m_distance = c->spin(_L("Extrude dist"), 10, -1000.0, 1000.0);
 
         // End condition (order MUST match ExtrudeEnd: Blind/Symmetric/TwoSided/ThroughAll/
         // UpToFace/UpToVertex). Up-to-face uses the currently click-selected solid face.
-        m_extrude_end = make_combo(m_cards);
+        m_extrude_end = c->combo(_L("End"));
         for (const char* s : { L("Blind"), L("Symmetric"), L("Two-sided"), L("Through all"),
                                L("Up to face"), L("Up to vertex") })
             m_extrude_end->Append(_L(s));
         m_extrude_end->SetSelection(0);
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("End")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(m_extrude_end, 0, wxEXPAND);
 
-        m_distance2 = make_spin(m_cards, 5, 0.0, 100000.0);   // second-side depth (Two-sided)
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("2nd dist")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(spin_frame(m_distance2), 0, wxEXPAND);
+        m_distance2 = c->spin(_L("2nd dist"), 5, 0.0, 100000.0);   // second-side depth (Two-sided)
+        m_taper     = c->spin(_L("Taper (°)"), 0.0, -89.0, 89.0);   // draft angle (deg)
 
-        m_taper = make_spin(m_cards, 0.0, -89.0, 89.0);       // draft angle (deg)
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Taper (°)")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(spin_frame(m_taper), 0, wxEXPAND);
-
-        m_mode = make_combo(m_cards);
+        m_mode = c->combo(_L("Result"));
         // Order is load-bearing: index maps to BooleanMode (New=0, Add=1, Cut=2, Intersect=3).
         // Labels use Onshape wording so the choice reads as the user thinks of it.
         m_mode->Append(_L("New body"));   // separate coexisting solid
@@ -1960,90 +1931,64 @@ DesignPanel::DesignPanel(wxWindow* parent)
         m_mode->Append(_L_CONTEXT("Cut", "Boolean Mode"));        // subtract from the target body
         m_mode->Append(_L("Intersect"));  // keep only the overlap
         m_mode->SetSelection(0);
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Result")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(m_mode, 0, wxEXPAND);
 
-        m_flip = new CheckBox(m_cards);
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Flip direction")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(m_flip, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+        m_flip = c->check(_L("Flip direction"));
 
         // Thin extrude: a wall around the closed outline instead of the filled area (0 and 0 = a normal extrude).
-        m_thin_in = make_spin(m_cards, 0.0, 0.0, 1000.0);
-        m_thin_out = make_spin(m_cards, 0.0, 0.0, 1000.0);
-        for (wxSpinCtrlDouble* sp : { m_thin_in, m_thin_out })
+        m_thin_in  = c->spin(_L("Wall inside"), 0.0, 0.0, 1000.0);
+        m_thin_out = c->spin(_L("Wall outside"), 0.0, 0.0, 1000.0);
+        for (NumField* sp : { m_thin_in, m_thin_out })
             sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Wall inside")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(spin_frame(m_thin_in), 0, wxEXPAND);
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Wall outside")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(spin_frame(m_thin_out), 0, wxEXPAND);
-
-        m_box_extrude->Add(eform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
     }
-    cards->Add(m_box_extrude, 0, wxEXPAND);
 
     // --- Dress-up (Fillet / Chamfer) ---
-    auto* dform = two_col_form();
+    {
+        CardModel* c = add_card(m_box_dressup, "design_dressup", _L("Fillet / Chamfer"));
+        m_hdr_dressup = c->title();
 
-    m_dressup_type = make_combo(m_cards);
-    m_dressup_type->Append(_L("Fillet"));
-    m_dressup_type->Append(_L("Chamfer"));
-    m_dressup_type->SetSelection(0);
-    dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Type")), 0, wxALIGN_CENTER_VERTICAL);
-    dform->Add(m_dressup_type, 0, wxEXPAND);
+        m_dressup_type = c->combo(_L("Type"));
+        m_dressup_type->Append(_L("Fillet"));
+        m_dressup_type->Append(_L("Chamfer"));
+        m_dressup_type->SetSelection(0);
 
-    // The card can dress ONE picked edge or a whole face-group, and which one it will do is
-    // decided by a viewport pick the card previously said nothing about — so a user who had not
-    // picked an edge saw only the group combo and concluded per-edge rounding did not exist,
-    // while a user who HAD picked one saw the combo still reading "All" and was told the opposite
-    // of what Confirm would do. This row states the actual target, as Shell and Draft already do.
-    m_dressup_edge_label = new wxStaticText(m_cards, wxID_ANY, _L("(no edge picked — group below)"));
-    dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Target")), 0, wxALIGN_CENTER_VERTICAL);
-    dform->Add(m_dressup_edge_label, 0, wxALIGN_CENTER_VERTICAL);
+        // The card can dress ONE picked edge or a whole face-group, and which one it will do is
+        // decided by a viewport pick the card previously said nothing about — so a user who had not
+        // picked an edge saw only the group combo and concluded per-edge rounding did not exist,
+        // while a user who HAD picked one saw the combo still reading "All" and was told the opposite
+        // of what Confirm would do. This row states the actual target, as Shell and Draft already do.
+        m_dressup_edge_label = c->text(_L("Target"), _L("(no edge picked — group below)"));
 
-    m_face_group = make_combo(m_cards);
-    m_face_group->Append(_L("Top"));      // index 0 -> FaceGroup::Top
-    m_face_group->Append(_L("Bottom"));   // 1 -> Bottom
-    // TRN Fillet/Chamfer edge group used when no edge is picked: the side edges, as opposed to the top and bottom ones.
-    m_face_group->Append(_L("Lateral"));  // 2 -> Lateral
-    m_face_group->Append(_L("All"));      // 3 -> All
-    m_face_group->SetSelection(3);
-    dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Edges")), 0, wxALIGN_CENTER_VERTICAL);
-    dform->Add(m_face_group, 0, wxEXPAND);
+        m_face_group = c->combo(_L("Edges"));
+        m_face_group->Append(_L("Top"));      // index 0 -> FaceGroup::Top
+        m_face_group->Append(_L("Bottom"));   // 1 -> Bottom
+        // TRN Fillet/Chamfer edge group used when no edge is picked: the side edges, as opposed to the top and bottom ones.
+        m_face_group->Append(_L("Lateral"));  // 2 -> Lateral
+        m_face_group->Append(_L("All"));      // 3 -> All
+        m_face_group->SetSelection(3);
 
-    m_dressup_size = make_spin(m_cards, 2.0);
-    dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Size (r/dist)")), 0, wxALIGN_CENTER_VERTICAL);
-    dform->Add(spin_frame(m_dressup_size), 0, wxEXPAND);
+        m_dressup_size = c->spin(_L("Size (r/dist)"), 2.0);
 
-    // Fillet size law. Constant radius is the plain fillet; Variable runs the radius linearly along the edge from "Size" at the
-    // edge's start to the end radius; Chord length reads "Size" as the width of the round measured across it.
-    m_dressup_law = make_combo(m_cards);
-    m_dressup_law->Append(_L("Constant radius"));
-    m_dressup_law->Append(_L("Variable radius"));
-    m_dressup_law->Append(_L("Chord length"));
-    m_dressup_law->SetSelection(0);
-    m_dressup_size2 = make_spin(m_cards, 4.0, 0.0, 1000.0);
-    m_dressup_size2->Enable(false);
-    m_dressup_law->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) {
-        m_dressup_size2->Enable(m_dressup_law->GetSelection() == 1 && m_dressup_type->GetSelection() == 0);
-        refresh_preview();
-    });
-    m_dressup_size2->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-    m_dressup_type->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) {   // a chamfer has no size law
-        const bool fillet = m_dressup_type->GetSelection() == 0;
-        m_dressup_law->Enable(fillet);
-        m_dressup_size2->Enable(fillet && m_dressup_law->GetSelection() == 1);
-        e.Skip();
-    });
-    dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Size law")), 0, wxALIGN_CENTER_VERTICAL);
-    dform->Add(m_dressup_law, 0, wxEXPAND);
-    dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("End radius")), 0, wxALIGN_CENTER_VERTICAL);
-    dform->Add(spin_frame(m_dressup_size2), 0, wxEXPAND);
-
-    m_box_dressup = new wxBoxSizer(wxVERTICAL);
-    m_box_dressup->Add(card_header(m_cards, "design_dressup", _L("Fillet / Chamfer"), m_hdr_dressup), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_dressup->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_dressup->Add(dform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-    cards->Add(m_box_dressup, 0, wxEXPAND);
+        // Fillet size law. Constant radius is the plain fillet; Variable runs the radius linearly along the edge from "Size" at the
+        // edge's start to the end radius; Chord length reads "Size" as the width of the round measured across it.
+        m_dressup_law = c->combo(_L("Size law"));
+        m_dressup_law->Append(_L("Constant radius"));
+        m_dressup_law->Append(_L("Variable radius"));
+        m_dressup_law->Append(_L("Chord length"));
+        m_dressup_law->SetSelection(0);
+        m_dressup_size2 = c->spin(_L("End radius"), 4.0, 0.0, 1000.0);
+        m_dressup_size2->Enable(false);
+        m_dressup_law->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) {
+            m_dressup_size2->Enable(m_dressup_law->GetSelection() == 1 && m_dressup_type->GetSelection() == 0);
+            refresh_preview();
+        });
+        m_dressup_size2->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
+        m_dressup_type->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) {   // a chamfer has no size law
+            const bool fillet = m_dressup_type->GetSelection() == 0;
+            m_dressup_law->Enable(fillet);
+            m_dressup_size2->Enable(fillet && m_dressup_law->GetSelection() == 1);
+            e.Skip();
+        });
+    }
 
     // --- Hole (positioned circular cut) ---
     auto* hform = two_col_form();
@@ -11621,8 +11566,8 @@ bool DesignPanel::mcp_card_check_feature(int feature_index, bool on)
 
 bool DesignPanel::mcp_card_set(const std::string& key, double v)
 {
-    auto spin = [&](wxSpinCtrlDouble* s) { if (!s) return false; s->SetValue(v); refresh_preview(); return true; };
-    auto combo = [&](ComboBox* c) { if (!c || int(v) < 0 || int(v) >= int(c->GetCount())) return false; c->SetSelection(int(v)); return true; };
+    auto spin = [&](auto* s) { if (!s) return false; s->SetValue(v); refresh_preview(); return true; };
+    auto combo = [&](auto* c) { if (!c || int(v) < 0 || int(v) >= int(c->GetCount())) return false; c->SetSelection(int(v)); return true; };
     if (key == "size")            return spin(m_dressup_size);
     if (key == "size2")           return spin(m_dressup_size2);
     if (key == "law")             { if (!combo(m_dressup_law)) return false; m_dressup_size2->Enable(int(v) == 1); refresh_preview(); return true; }

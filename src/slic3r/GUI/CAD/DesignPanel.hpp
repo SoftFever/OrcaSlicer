@@ -23,6 +23,7 @@
 #include <map>
 
 #include "libslic3r/CAD/CadDocument.hpp"
+#include "slic3r/GUI/CAD/DesignCardModel.hpp"
 #include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
 #include "slic3r/GUI/CAD/DesignInteraction.hpp"   // CadLevel: what one Esc press means
 #include "slic3r/GUI/AuiMgr.hpp"
@@ -481,6 +482,8 @@ private:
     void build_toolbox();
     void update_toolbox();
     wxSizer*  m_tb_doc{nullptr};      // toolbar document/view actions (new, commit, export, section, place)
+    // The tool cards that are tables, by the (empty) sizer that places each in the card stack.
+    std::map<wxSizer*, std::unique_ptr<CardModel>> m_card_models;
     wxSizer*  m_box_move{nullptr};      // Move/Rotate numeric options (distance, axis, angle)
     wxSizer*  m_box_sketch{nullptr};
     wxSizer*  m_box_extrude{nullptr};
@@ -541,15 +544,15 @@ private:
 
     // Onshape-style dialog-card title rows (icon + bold feature name), retitled
     // per tool in open_tool() (edit-mode shows the feature's actual name).
-    wxStaticText* m_hdr_move{nullptr};
-    wxStaticText* m_hdr_sketch{nullptr};
+    CardText* m_hdr_move{nullptr};
+    CardText* m_hdr_sketch{nullptr};
     // Onshape sketch-entry card (plane/orientation) that opens on "New sketch" and
     // persists until Finish (Phase 3).
     wxSizer*      m_box_sketch_session{nullptr};
     wxStaticText* m_hdr_sketch_session{nullptr};
     wxStaticText* m_sketch_hint{nullptr};   // "click a plane" / "drawing on X" — must match the status
-    wxStaticText* m_hdr_extrude{nullptr};
-    wxStaticText* m_hdr_dressup{nullptr};
+    CardText* m_hdr_extrude{nullptr};
+    CardText* m_hdr_dressup{nullptr};
     wxStaticText* m_hdr_hole{nullptr};
     wxStaticText* m_hdr_thread{nullptr};
     wxStaticText* m_hdr_shell{nullptr};
@@ -648,6 +651,7 @@ private:
     void              set_imgui_sidebar(bool on);
     void              draw_sidebar_imgui();
     void              mirror_sizer(wxSizer* s, SidebarCtx& cx);
+    void              mirror_card(CardModel& card, SidebarCtx& cx);
     void              mirror_item(wxSizerItem* it, SidebarCtx& cx, float width);
     void              mirror_window(wxWindow* w, SidebarCtx& cx, float width);
     bool              m_imgui_sidebar{false};
@@ -667,11 +671,11 @@ private:
     bool              m_imgui_menu{false};
     bool              m_imgui_ribbon{false};
     void              start_sketch3d();          // free 3D curve: click points, Tab cycles the working plane
-    wxSpinCtrlDouble* m_move_dx{nullptr};        // Move/Rotate card: world translation
-    wxSpinCtrlDouble* m_move_dy{nullptr};
-    wxSpinCtrlDouble* m_move_dz{nullptr};
-    ComboBox*         m_move_axis{nullptr};      // rotation axis: X/Y/Z
-    wxSpinCtrlDouble* m_move_angle{nullptr};     // rotation angle (deg)
+    NumField* m_move_dx{nullptr};        // Move/Rotate card: world translation
+    NumField* m_move_dy{nullptr};
+    NumField* m_move_dz{nullptr};
+    ChoiceField*         m_move_axis{nullptr};      // rotation axis: X/Y/Z
+    NumField* m_move_angle{nullptr};     // rotation angle (deg)
     // Polygon's two parameters are chosen FROM THE TOOL, in the offer's Polygon submenu, not
     // from a card on the left: the side count cannot be edited after drawing (the inline editor
     // offers Side and Angle only), so it has to be settled at the moment the tool is armed —
@@ -701,18 +705,18 @@ private:
     // The Feature tree's Toolbar row: shows or hides the ribbon (or the wx tool groups). A view
     // preference (AppConfig "design_show_toolbar", absent = shown). Confirm/Cancel are never hidden.
     bool              m_show_toolbar{true};
-    ComboBox*         m_shape{nullptr};
-    ComboBox*         m_mode{nullptr};
-    wxSpinCtrlDouble* m_width{nullptr};
-    wxSpinCtrlDouble* m_height{nullptr};
-    wxSpinCtrlDouble* m_radius{nullptr};
-    wxSpinCtrlDouble* m_distance{nullptr};
-    ComboBox*         m_extrude_end{nullptr};   // Blind/Symmetric/TwoSided/ThroughAll/UpTo*
-    wxSpinCtrlDouble* m_distance2{nullptr};     // second-side depth (Two-sided)
-    wxSpinCtrlDouble* m_taper{nullptr};         // draft angle (deg)
-    CheckBox*         m_flip{nullptr};          // reverse extrude direction
+    ChoiceField*         m_shape{nullptr};
+    ChoiceField*         m_mode{nullptr};
+    NumField* m_width{nullptr};
+    NumField* m_height{nullptr};
+    NumField* m_radius{nullptr};
+    NumField* m_distance{nullptr};
+    ChoiceField*         m_extrude_end{nullptr};   // Blind/Symmetric/TwoSided/ThroughAll/UpTo*
+    NumField* m_distance2{nullptr};     // second-side depth (Two-sided)
+    NumField* m_taper{nullptr};         // draft angle (deg)
+    ToggleField*         m_flip{nullptr};          // reverse extrude direction
 
-    wxStaticText*     m_extrude_sketch_label{nullptr};
+    CardText*     m_extrude_sketch_label{nullptr};
     int               m_extrude_sketch_ref{-1};
     int               m_extrude_auto_body{-1};   // body the profile touches: the inferred Join target
 
@@ -895,8 +899,8 @@ private:
     void fill_feature_pattern(CadFeature& f) const;
     void populate_pattern_features();
     // Thin extrude (wall around the outline)
-    wxSpinCtrlDouble* m_thin_in{nullptr};
-    wxSpinCtrlDouble* m_thin_out{nullptr};
+    NumField* m_thin_in{nullptr};
+    NumField* m_thin_out{nullptr};
     // Boolean controls (combine two existing bodies).
     ComboBox*         m_bool_op{nullptr};            // 0 = Union, 1 = Subtract, 2 = Intersect
     ComboBox*         m_bool_target{nullptr};        // body that survives (selection == body index)
@@ -995,13 +999,13 @@ private:
     // -1 = ordinary sketch/loop extrude. Set when opening the Extrude card, consumed on add.
     int               m_extrude_face_src{-1};
 
-    ComboBox*         m_dressup_type{nullptr};
-    ComboBox*         m_face_group{nullptr};
-    wxSpinCtrlDouble* m_dressup_size{nullptr};
-    ComboBox*         m_dressup_law{nullptr};        // fillet size law: 0 constant radius, 1 variable (start -> end), 2 chord length
-    wxSpinCtrlDouble* m_dressup_size2{nullptr};      // the end radius of a variable fillet
+    ChoiceField*         m_dressup_type{nullptr};
+    ChoiceField*         m_face_group{nullptr};
+    NumField* m_dressup_size{nullptr};
+    ChoiceField*         m_dressup_law{nullptr};        // fillet size law: 0 constant radius, 1 variable (start -> end), 2 chord length
+    NumField* m_dressup_size2{nullptr};      // the end radius of a variable fillet
     void apply_dressup_law(CadFeature& f) const;
-    wxStaticText*     m_dressup_edge_label{nullptr}; // shows the picked edge, or the group fallback
+    CardText*     m_dressup_edge_label{nullptr}; // shows the picked edge, or the group fallback
 
     ComboBox*         m_hole_plane{nullptr};
     wxSpinCtrlDouble* m_hole_diameter{nullptr};
