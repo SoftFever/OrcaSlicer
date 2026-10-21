@@ -577,6 +577,12 @@ TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer
     REQUIRE(stats.model_volumes_per_extruder.size() == 2);
     REQUIRE(stats.layer_volumes_per_extruder.size() == 2);
 
+    // The volume of filament an extruder move pushes out: its E delta times the filament's cross section.
+    const auto filament_area = [&config](size_t filament_id) {
+        const double diameter = config.option<ConfigOptionFloats>("filament_diameter")->get_at(filament_id);
+        return PI * 0.25 * diameter * diameter;
+    };
+
     // The model volume of every filament in every layer, as the legend's Usage column counts it:
     // what is not support or wipe tower.
     std::map<size_t, std::map<unsigned int, double>> extruded;
@@ -584,7 +590,7 @@ TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer
         if (move.type != EMoveType::Extrude || move.extrusion_role == erSupportMaterial || move.extrusion_role == erSupportMaterialInterface ||
             move.extrusion_role == erSupportTransition || move.extrusion_role == erWipeTower)
             continue;
-        extruded[move.extruder_id][move.layer_id] += double(move.mm3_per_mm) * double(move.travel_dist);
+        extruded[move.extruder_id][move.layer_id] += double(move.delta_extruder) * filament_area(move.extruder_id);
     }
 
     for (const auto &[filament_id, total] : stats.model_volumes_per_extruder) {
@@ -648,6 +654,10 @@ TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusion
     const auto is_support = [](ExtrusionRole role) {
         return role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition;
     };
+    const auto filament_area = [&config](size_t filament_id) {
+        const double diameter = config.option<ConfigOptionFloats>("filament_diameter")->get_at(filament_id);
+        return PI * 0.25 * diameter * diameter;
+    };
     const auto check = [&](Kind kind, const std::map<size_t, std::vector<double>> &all_series, const std::map<size_t, double> &totals) {
         for (const auto &[filament_id, cumulative] : all_series) {
             DYNAMIC_SECTION("filament " << filament_id)
@@ -665,7 +675,7 @@ TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusion
                         continue;
                     const bool wanted = kind == Kind::Support ? is_support(move.extrusion_role) : move.extrusion_role == erWipeTower;
                     if (wanted)
-                        extruded[move.layer_id] += double(move.mm3_per_mm) * double(move.travel_dist);
+                        extruded[move.layer_id] += double(move.delta_extruder) * filament_area(filament_id);
                 }
                 const size_t layers = cumulative.size() - 1;
                 for (size_t layer_id = 0; layer_id < layers; ++layer_id) {
