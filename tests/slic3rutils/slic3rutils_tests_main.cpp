@@ -7,6 +7,7 @@
 #include <slic3r/plugin/PluginManager.hpp>
 #include <slic3r/plugin/PythonInterpreter.hpp>
 
+#include "catch2/interfaces/catch_interfaces_reporter.hpp"
 #include "slic3r/Utils/Http.hpp"
 
 namespace {
