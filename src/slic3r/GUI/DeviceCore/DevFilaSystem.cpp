@@ -1,12 +1,34 @@
+#include <array>
+#include <cstddef>
+#include <cassert>
+#include <exception>
+#include <boost/log/trivial.hpp>
+#include <map>
+#include <ctime>
+#include <cstdlib>
+#include <chrono>
 #include <nlohmann/json.hpp>
+#include <wx/colour.h>
+#include <string>
+#include <wx/string.h>
+#include <optional>
+#include <unordered_map>
+#include <vector>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include <set>
+#include <utility>
 #include "DevFilaSystem.h"
+#include "slic3r/Utils/NetworkAgent.hpp"
 #include "DevNozzleSystem.h" // DevNozzle / DevNozzleSystem for GetNozzleFlowStringByAmsId
 
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
-#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 #include "DevUtil.h"
+#include "DevUtilBackend.h"
+#include "slic3r/GUI/DeviceCore/DevFilaAmsSetting.h"
+#include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 
 using namespace nlohmann;
 
@@ -94,9 +116,19 @@ std::string DevAmsTray::get_filament_type()
     if (m_fila_type == "Sup.ABS") { return "ABS-S"; }
     if (m_fila_type == "Support W") { return "PLA-S"; }
     if (m_fila_type == "Support G") { return "PA-S"; }
-    if (m_fila_type == "Support") { if (setting_id == "GFS00") { m_fila_type = "PLA-S"; } else if (setting_id == "GFS01") { m_fila_type = "PA-S"; } else { return "PLA-S"; } }
+    // setting_id is our OF id; GFS00/GFS01 are the printer's own support-filament ids.
+    if (m_fila_type == "Support") {
+        auto* agent = GUI::wxGetApp().getAgent();
+        const std::string printer_filament_id = agent ? agent->from_orca_filament_id(setting_id) : setting_id;
+        if (printer_filament_id == "GFS00") { m_fila_type = "PLA-S"; } else if (printer_filament_id == "GFS01") { m_fila_type = "PA-S"; } else { return "PLA-S"; }
+    }
 
     return m_fila_type;
+}
+
+std::optional<Slic3r::DevFilamentDryingPreset> DevAmsTray::get_ams_drying_preset() const
+{
+    return DevUtilBackend::GetFilamentDryingPreset(setting_id);
 }
 
 
@@ -112,7 +144,7 @@ DevAms::DevAms(const std::string& ams_id, int nozzle_id, int type)
     m_ams_id = ams_id;
     m_ext_id = nozzle_id;
     m_ams_type = (AmsType)type;
-    assert(DUMMY < type && m_ams_type <= AMS_LITE_MIXED);
+    assert(EXT_SPOOL < type && m_ams_type <= AMS_LITE_MIXED);
 }
 
 DevAms::~DevAms()
@@ -128,7 +160,7 @@ DevAms::~DevAms()
     m_trays.clear();
 }
 
-static unordered_map<int, wxString> s_ams_display_formats = {
+static std::unordered_map<int, wxString> s_ams_display_formats = {
     {DevAms::AMS,      "AMS-%d"},
     {DevAms::AMS_LITE, "AMS Lite-%d"},
     {DevAms::N3F,      "AMS 2 PRO-%d"},
@@ -191,6 +223,27 @@ DevAmsTray* DevAms::GetTray(const std::string& tray_id) const
     }
 
     return nullptr;
+}
+
+bool DevAms::IsSupportRemoteDry(const MachineObject* obj) const
+{
+    if (obj && obj->is_support_remote_dry) {
+        return SupportDrying();
+    }
+
+    return false;
+}
+
+bool DevAms::AmsIsDrying()
+{
+    if (!GetDryStatus().has_value()) {
+        return false;
+    }
+
+    return GetDryStatus().value() == DevAms::DryStatus::Checking
+        || GetDryStatus().value() == DevAms::DryStatus::Drying
+        || GetDryStatus().value() == DevAms::DryStatus::Error
+        || GetDryStatus().value() == DevAms::DryStatus::CannotStopHeatOutofControl;
 }
 
 DevFilaSystem::~DevFilaSystem()
@@ -515,9 +568,18 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                         ;
                     }
 
-                    if (it->contains("dry_time") && (*it)["dry_time"].is_number())
+
+                    if (it->contains("temp"))
                     {
-                        curr_ams->m_left_dry_time = (*it)["dry_time"].get<int>();
+                        std::string temp = (*it)["temp"].get<std::string>();
+                        try
+                        {
+                            curr_ams->m_current_temperature = DevUtil::string_to_float(temp);
+                        }
+                        catch (...)
+                        {
+                            curr_ams->m_current_temperature = INVALID_AMS_TEMPERATURE;
+                        }
                     }
 
                     if (it->contains("humidity"))
@@ -546,17 +608,32 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                         }
                     }
 
-
-                    if (it->contains("temp"))
+                    if (it->contains("dry_time") && (*it)["dry_time"].is_number())
                     {
-                        std::string temp = (*it)["temp"].get<std::string>();
-                        try
-                        {
-                            curr_ams->m_current_temperature = DevUtil::string_to_float(temp);
+                        curr_ams->m_left_dry_time = (*it)["dry_time"].get<int>();
+                    }
+
+                    // Drying status — only parse if printer supports remote drying
+                    if (obj->is_support_remote_dry) {
+                        if (it->contains("info")) {
+                            const std::string& info = (*it)["info"].get<std::string>();
+                            curr_ams->m_dry_status = (DevAms::DryStatus)DevUtil::get_flag_bits(info, 4, 4);
+                            curr_ams->m_dry_fan1_status = (DevAms::DryFanStatus)DevUtil::get_flag_bits(info, 18, 2);
+                            curr_ams->m_dry_fan2_status = (DevAms::DryFanStatus)DevUtil::get_flag_bits(info, 20, 2);
+                            curr_ams->m_dry_sub_status = (DevAms::DrySubStatus)DevUtil::get_flag_bits(info, 22, 2);
                         }
-                        catch (...)
-                        {
-                            curr_ams->m_current_temperature = INVALID_AMS_TEMPERATURE;
+
+                        if (it->contains("dry_setting")) {
+                            const auto& j_dry_settings = (*it)["dry_setting"];
+                            DevAms::DrySettings dry_settings;
+                            DevJsonValParser::ParseVal(j_dry_settings, "dry_filament", dry_settings.dry_filament);
+                            DevJsonValParser::ParseVal(j_dry_settings, "dry_temperature", dry_settings.dry_temp);
+                            DevJsonValParser::ParseVal(j_dry_settings, "dry_duration", dry_settings.dry_hour);
+                            curr_ams->m_dry_settings = dry_settings;
+                        }
+
+                        if (it->contains("dry_sf_reason")) {
+                            curr_ams->m_dry_cannot_reasons = DevJsonValParser::GetVal<std::vector<DevAms::CannotDryReason>>((*it), "dry_sf_reason");
                         }
                     }
 
@@ -603,11 +680,14 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                                 curr_tray->setting_id = (*tray_it)["tray_info_idx"].get<std::string>();
                                 //std::string type            = (*tray_it)["tray_type"].get<std::string>();
                                 std::string type = MachineObject::setting_id_to_type(curr_tray->setting_id, (*tray_it)["tray_type"].get<std::string>());
-                                if (curr_tray->setting_id == "GFS00")
+                                // curr_tray->setting_id is our OF id; GFS00/GFS01 are the printer's own support-filament ids.
+                                auto* agent = GUI::wxGetApp().getAgent();
+                                const std::string printer_filament_id = agent ? agent->from_orca_filament_id(curr_tray->setting_id) : curr_tray->setting_id;
+                                if (printer_filament_id == "GFS00")
                                 {
                                     curr_tray->m_fila_type = "PLA-S";
                                 }
-                                else if (curr_tray->setting_id == "GFS01")
+                                else if (printer_filament_id == "GFS01")
                                 {
                                     curr_tray->m_fila_type = "PA-S";
                                 }
@@ -701,9 +781,9 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                             {
                                 curr_tray->remain = -1;
                             }
-                            if (tray_it->contains("tray_slot_placeholder")) {
-                                curr_tray->is_slot_placeholder = true;
-                            }
+                            // The tray objects are reused across status updates. Reset this
+                            // state when a previously empty slot receives a filament again.
+                            curr_tray->is_slot_placeholder = tray_it->contains("tray_slot_placeholder");
                             int ams_id_int = 0;
                             int tray_id_int = 0;
                             try
@@ -784,6 +864,156 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                     }
                 }
             }
+        }
+    }
+}
+
+static DevAms::AmsType ams_type_from_string(const std::string& s)
+{
+    if (s == "ams_lite" || s == "ams-lite") return DevAms::AMS_LITE;
+    if (s == "n3f")                          return DevAms::N3F;
+    if (s == "n3s")                          return DevAms::N3S;
+    return DevAms::AMS; // default
+}
+
+void DevFilaSystemParser::ParseAgentFilament(const json& data, MachineObject* obj, DevFilaSystem* system)
+{
+    if (!system || !data.is_object())
+        return;
+
+    // --- AMS units ---
+    if (data.contains("units") && data["units"].is_array())
+    {
+        std::set<std::string> seen_units;
+
+        for (const auto& u : data["units"])
+        {
+            if (!u.is_object() || !u.contains("id"))
+                continue;
+            const std::string ams_id = u.value("id", std::string());
+            if (ams_id.empty())
+                continue;
+            seen_units.insert(ams_id);
+
+            const int             ext_id = u.value("extruder", MAIN_EXTRUDER_ID);
+            const DevAms::AmsType type   = ams_type_from_string(u.value("type", std::string("ams")));
+
+            DevAms* ams = nullptr;
+            auto    it  = system->amsList.find(ams_id);
+            if (it == system->amsList.end())
+            {
+                ams = new DevAms(ams_id, ext_id, type);
+                system->amsList.insert(std::make_pair(ams_id, ams));
+            }
+            else
+            {
+                ams           = it->second;
+                ams->m_ext_id = ext_id;
+                ams->SetAmsType(type);
+            }
+
+            ams->m_exist               = true;
+            ams->m_current_temperature = u.value("temperature", (float) INVALID_AMS_TEMPERATURE);
+            ams->m_humidity_percent    = u.value("humidity_percent", -1);
+            ams->m_left_dry_time       = u.value("dry_time_min", 0);
+
+            // --- slots / trays ---
+            std::set<std::string> seen_slots;
+            if (u.contains("slots") && u["slots"].is_array())
+            {
+                for (const auto& s : u["slots"])
+                {
+                    if (!s.is_object())
+                        continue;
+                    const std::string tray_id = std::to_string(s.value("index", -1));
+                    seen_slots.insert(tray_id);
+
+                    DevAmsTray* tray = nullptr;
+                    auto        tit  = ams->m_trays.find(tray_id);
+                    if (tit == ams->m_trays.end())
+                    {
+                        tray = new DevAmsTray(tray_id);
+                        ams->m_trays.insert(std::make_pair(tray_id, tray));
+                    }
+                    else
+                    {
+                        tray = tit->second;
+                    }
+
+                    tray->is_exists       = s.value("loaded", false);
+                    tray->m_fila_type     = s.value("material", std::string());
+                    tray->setting_id      = s.value("preset_id", std::string());
+                    tray->UpdateColorFromStr(s.value("color", std::string()));
+                    tray->nozzle_temp_min = std::to_string(s.value("nozzle_temp_min", 0));
+                    tray->nozzle_temp_max = std::to_string(s.value("nozzle_temp_max", 0));
+                    tray->remain          = s.value("remain_percent", -1);
+                    tray->k               = s.value("k", 0.0f);
+                    if (s.contains("diameter_mm") && s["diameter_mm"].is_number())
+                        tray->diameter = std::to_string(s["diameter_mm"].get<double>());
+                    if (s.contains("weight_g") && s["weight_g"].is_number())
+                        tray->weight = std::to_string(s["weight_g"].get<int>());
+
+                    tray->cols.clear();
+                    if (s.contains("colors") && s["colors"].is_array())
+                    {
+                        for (const auto& c : s["colors"])
+                            if (c.is_string())
+                                tray->cols.push_back(c.get<std::string>());
+                    }
+                    tray->ctype = tray->cols.size() > 1 ? 1 : 0;
+                }
+            }
+
+            // prune trays no longer reported
+            for (auto tit = ams->m_trays.begin(); tit != ams->m_trays.end();)
+            {
+                if (seen_slots.count(tit->first) == 0)
+                {
+                    delete tit->second;
+                    tit = ams->m_trays.erase(tit);
+                }
+                else
+                {
+                    ++tit;
+                }
+            }
+        }
+
+        // prune units no longer reported
+        for (auto it = system->amsList.begin(); it != system->amsList.end();)
+        {
+            if (seen_units.count(it->first) == 0)
+            {
+                delete it->second;
+                it = system->amsList.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+
+    // --- external / direct spools -> obj->vt_slot ---
+    // extruder 0 -> main virtual slot, extruder >0 -> deputy.
+    if (obj && data.contains("external") && data["external"].is_array())
+    {
+        obj->vt_slot.clear();
+        for (const auto& e : data["external"])
+        {
+            if (!e.is_object())
+                continue;
+            const int  ext   = e.value("extruder", MAIN_EXTRUDER_ID);
+            const int  vt_id = (ext == MAIN_EXTRUDER_ID) ? VIRTUAL_TRAY_MAIN_ID : VIRTUAL_TRAY_DEPUTY_ID;
+            DevAmsTray tray(std::to_string(vt_id));
+            tray.is_exists       = e.value("loaded", false);
+            tray.m_fila_type     = e.value("material", std::string());
+            tray.setting_id      = e.value("preset_id", std::string());
+            tray.UpdateColorFromStr(e.value("color", std::string()));
+            tray.nozzle_temp_min = std::to_string(e.value("nozzle_temp_min", 0));
+            tray.nozzle_temp_max = std::to_string(e.value("nozzle_temp_max", 0));
+            tray.remain          = e.value("remain_percent", -1);
+            obj->vt_slot.push_back(tray);
         }
     }
 }

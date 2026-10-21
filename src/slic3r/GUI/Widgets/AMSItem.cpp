@@ -1,8 +1,9 @@
 #include "AMSItem.hpp"
 #include "Label.hpp"
-#include "../BitmapCache.hpp"
 #include "../I18N.hpp"
+#include "../format.hpp"
 #include "../GUI_App.hpp"
+#include "../FilamentBitmapUtils.hpp"
 #include "../Utils/WxFontUtils.hpp"
 
 #include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
@@ -11,12 +12,43 @@
 #include "slic3r/GUI/DeviceCore/DevConfig.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 
+#include <wx/anybutton.h>
+#include <wx/colour.h>
+#include <wx/event.h>
+#include <string>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
+#include <wx/checklst.h>
+#include <wx/gdicmn.h>
+#include "slic3r/GUI/Widgets/StateColor.hpp"
+#include <wx/dcclient.h>
+#include <wx/dc.h>
+#include <wx/peninfobase.h>
+#include <cstdlib>
+#include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
+#include "slic3r/GUI/DeviceManager.hpp"
+#include <vector>
+#include "libslic3r/libslic3r.h"
+#include <cmath>
+#include <algorithm>
+#include <wx/chartype.h>
+#include "slic3r/GUI/Widgets/Button.hpp"
+#include <optional>
+#include <utility>
+#include <cstddef>
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
+#include <wx/graphics.h>
+#include <memory>
 
 #include <boost/log/trivial.hpp>
+#include <wx/timer.h>
+#include <wx/sizer.h>
 
 #include "CalibUtils.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
+
+namespace Slic3r::GUI { struct SimpleEvent; }
 
 
 
@@ -64,6 +96,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     this->ams_type = AMSModel(ams->GetAmsType());
 
     nozzle_id = ams->GetExtruderId();
+    switch_pos = ams->GetSwitcherPos(); // Orca: carry the switch inlet for inlet-aware panel placement
     cans.clear();
     for (int i = 0; i < ams->GetTrays().size(); i++) {
         auto    it = ams->GetTrays().find(std::to_string(i));
@@ -112,7 +145,6 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
                 info.ctype = 0;
                 info.material_colour = AMS_TRAY_DEFAULT_COL;
                 info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
-                wxColour(255, 255, 255);
             }
 
             if (it->second->is_tray_info_ready() && obj->cali_version >= 0) {
@@ -169,7 +201,6 @@ void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
         info.filament_id = "";
         info.ctype = 0;
         info.material_colour = AMS_TRAY_DEFAULT_COL;
-        wxColour(255, 255, 255);
     }
     info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
     if (tray.is_tray_info_ready() && obj->cali_version >= 0) {
@@ -232,6 +263,19 @@ int AMSinfo::get_humidity_display_idx() const
 
     //assert(false && "Invalid AMS type for humidity display");
     return 1;
+}
+
+// Orca: inlet-aware panel routing. REF placed AMS by switch inlet (POS_IN_A/B) via a tray-level binding
+// that Orca's pull-mode fila model does not carry; the AMS-level DevAms::GetSwitcherPos() does, and it is
+// stashed in switch_pos. When a Filament Track Switch is installed the device pins nozzle_id to MAIN for
+// command consumers, so placement follows the inlet here instead (POS_IN_B -> main/right, POS_IN_A ->
+// deputy/left). switch_pos is empty on switch-less machines and for ext spools (no tray-level inlet in the
+// kept model), so this reduces to the original nozzle_id == MAIN_EXTRUDER_ID test — identical behavior.
+bool AMSinfo::routes_to_main_extruder() const
+{
+    if (switch_pos.has_value())
+        return switch_pos.value() == DevFilaSwitch::SwitchPos::POS_IN_B;
+    return nozzle_id == MAIN_EXTRUDER_ID;
 }
 
 /*************************************************
@@ -310,7 +354,7 @@ AMSrefresh::AMSrefresh(wxWindow *parent, std::string ams_id, wxString can_id, Ca
     m_can_id = can_id.ToStdString();
     create(parent, wxID_ANY, pos, size);
 
-    Update(ams_id, info);
+    UpdateInfo(ams_id, info);
 }
 
 AMSrefresh::AMSrefresh(wxWindow *parent, std::string ams_id, int can_id, Caninfo info, const wxPoint &pos, const wxSize &size) : AMSrefresh()
@@ -318,7 +362,7 @@ AMSrefresh::AMSrefresh(wxWindow *parent, std::string ams_id, int can_id, Caninfo
     m_can_id = wxString::Format("%d", can_id).ToStdString();
     create(parent, wxID_ANY, pos, size);
 
-    Update(ams_id, info);
+    UpdateInfo(ams_id, info);
 }
 
  AMSrefresh::~AMSrefresh()
@@ -467,7 +511,7 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     dc.DrawText(m_refresh_id, pot);
 }
 
-void AMSrefresh::Update(std::string ams_id, Caninfo info)
+void AMSrefresh::UpdateInfo(std::string ams_id, Caninfo info)
 {
     if (m_ams_id == ams_id && m_info == info)
     {
@@ -592,7 +636,7 @@ void AMSextruderImage::doRender(wxDC &dc)
 }
 
 
-AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, string file_name, const wxSize& size, const wxPoint &pos)
+AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, std::string file_name, const wxSize& size, const wxPoint &pos)
 {
     wxWindow::Create(parent, id, pos, size);
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -781,7 +825,7 @@ void SwitcherImage::doRender(wxDC &dc)
     Layout();
 }
 
-SwitcherImage::SwitcherImage(wxWindow *parent, wxWindowID id, string file_name, const wxSize& size, const wxPoint &pos)
+SwitcherImage::SwitcherImage(wxWindow *parent, wxWindowID id, std::string file_name, const wxSize& size, const wxPoint &pos)
 {
     wxWindow::Create(parent, id, pos, size);
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -857,7 +901,7 @@ void AMSextruder::OnAmsLoading(bool load, int nozzle_id, wxColour col /*= AMS_CO
 }
 
 /*return true if something is updated*/
-bool AMSextruder::updateNozzleNum(int nozzle_num, const string& series_name)
+bool AMSextruder::updateNozzleNum(int nozzle_num, const std::string& series_name)
 {
     if (m_nozzle_num == nozzle_num && m_series_name == series_name) return false;
     m_series_name = series_name;
@@ -930,7 +974,7 @@ AMSLib::AMSLib(wxWindow *parent, std::string ams_idx, Caninfo info, AMSModelOrig
     Bind(wxEVT_LEAVE_WINDOW, &AMSLib::on_leave_window, this);
     Bind(wxEVT_LEFT_DOWN, &AMSLib::on_left_down, this);
 
-    Update(info, ams_idx, false);
+    UpdateInfo(info, ams_idx, false);
 }
 
 AMSLib::~AMSLib()
@@ -1139,9 +1183,9 @@ void AMSLib::render_lite_text(wxDC& dc)
     }
 
     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
-        auto tsize = dc.GetMultiLineTextExtent(_L("/"));
+        auto tsize = dc.GetMultiLineTextExtent("/");
         auto pot = wxPoint((libsize.x - tsize.x) / 2 + FromDIP(2), (libsize.y - tsize.y) / 2 + FromDIP(3));
-        dc.DrawText(_L("/"), pot);
+        dc.DrawText("/", pot);
     }
 }
 
@@ -1360,24 +1404,24 @@ void AMSLib::render_lite_lib(wxDC& dc)
         }
     }
 
+    // View-only mode forces the read-only (eye) icon even for third-party spools.
+    if (m_view_only) {
+        temp_bitmap_third = temp_bitmap_brand;
+    }
+
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     if (m_info.material_cols.size() > 1) {
-        int left = FromDIP(10);
-        int gwidth = std::round(libsize.x / (m_info.material_cols.size() - 1));
-        //gradient
+        wxRect color_rect(FromDIP(10), FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18));
         if (m_info.ctype == 0) {
-            for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
-                auto rect = wxRect(left, FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18));
-                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
-                left += gwidth;
-            }
+            fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
         }
         else {
             int cols_size = m_info.material_cols.size();
             for (int i = 0; i < cols_size; i++) {
                 dc.SetBrush(wxBrush(m_info.material_cols[i]));
-                float x = FromDIP(10) + ((float)libsize.x - FromDIP(18)) * i / cols_size;
-                dc.DrawRoundedRectangle(x, FromDIP(10), ((float)libsize.x - FromDIP(17)) / cols_size, libsize.y - FromDIP(20), 0);
+                int x = color_rect.x + color_rect.width * i / cols_size;
+                int next_x = color_rect.x + color_rect.width * (i + 1) / cols_size;
+                dc.DrawRectangle(x, color_rect.y, next_x - x, color_rect.height);
             }
             dc.SetBrush(wxBrush(tmp_lib_colour));
         }
@@ -1451,6 +1495,11 @@ void AMSLib::render_generic_lib(wxDC &dc)
         temp_bitmap_brand = m_bitmap_readonly;
     }
 
+    // View-only mode forces the read-only (eye) icon even for third-party spools.
+    if (m_view_only) {
+        temp_bitmap_third = temp_bitmap_brand;
+    }
+
     dc.SetPen(wxPen(tmp_lib_colour, 1, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(tmp_lib_colour));
 
@@ -1464,7 +1513,27 @@ void AMSLib::render_generic_lib(wxDC &dc)
     int top = height - curr_height;
 
     if (m_ams_model == EXT_AMS){
-        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius - 1);
+        wxRect color_rect(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1));
+        if ((m_info.ctype == 0 || m_info.ctype == 1) && m_info.material_cols.size() > 1 && alpha != 0) {
+            if (m_info.ctype == 0) {
+                fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
+            }
+            else {
+                int cols_size = static_cast<int>(m_info.material_cols.size());
+                for (int i = 0; i < cols_size; i++) {
+                    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+                    dc.SetBrush(wxBrush(m_info.material_cols[i]));
+                    int x      = color_rect.x + color_rect.width * i / cols_size;
+                    int next_x = color_rect.x + color_rect.width * (i + 1) / cols_size;
+                    dc.DrawRectangle(x, color_rect.y, next_x - x, color_rect.height);
+                }
+            }
+            dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+            dc.SetBrush(wxBrush(tmp_lib_colour));
+        }
+        else {
+            dc.DrawRoundedRectangle(color_rect.x, color_rect.y, color_rect.width, color_rect.height, m_radius - 1);
+        }
         if (alpha == 0) {
             dc.DrawBitmap(m_bitmap_transparent_def.bmp(), FromDIP(2), FromDIP(2));
         }
@@ -1561,7 +1630,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
                     }
 
                     auto rect = wxRect(left, height - curr_height, gwidth, curr_height);
-                    dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
+                    fill_gradient_rect_east(dc, rect, m_info.material_cols[i], m_info.material_cols[i + 1]);
                     left += gwidth;
                 }
             }
@@ -1705,7 +1774,7 @@ void AMSLib::on_pass_road(bool pass)
     }
 }
 
-void AMSLib::Update(Caninfo info, std::string ams_idx, bool refresh)
+void AMSLib::UpdateInfo(Caninfo info, std::string ams_idx, bool refresh)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -1843,7 +1912,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
 
 void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { wxWindow::Create(parent, id, pos, size); }
 
-void AMSRoad::Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan)
+void AMSRoad::UpdateInfo(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan)
 {
     m_amsinfo = amsinfo;
     m_info     = info;
@@ -2058,9 +2127,6 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
     }
 }
 
-/*
-
-
 /*************************************************
 Description:AMSRoadUpPart
 **************************************************/
@@ -2099,7 +2165,7 @@ void AMSRoadUpPart::create(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     Refresh();
 }
 
-void AMSRoadUpPart::Update(AMSinfo amsinfo)
+void AMSRoadUpPart::UpdateInfo(AMSinfo amsinfo)
 {
     if (m_amsinfo != amsinfo)
     {
@@ -2591,7 +2657,7 @@ void AMSPreview::Close()
     Hide();
 }
 
-void AMSPreview::Update(AMSinfo amsinfo)
+void AMSPreview::UpdateInfo(AMSinfo amsinfo)
 {
     if (m_amsinfo == amsinfo)
     {
@@ -2735,7 +2801,7 @@ void AMSPreview::doRender(wxDC &dc)
                         }
 
                         auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
-                        dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
+                        fill_gradient_rect_east(dc, rect, iter->material_cols[i], iter->material_cols[i + 1]);
                         fleft += gwidth;
                     }
                 }
@@ -2795,30 +2861,38 @@ void AMSPreview::doRender(wxDC &dc)
         //dc.DrawRoundedRectangle((size.x - rec_size.x) / 2, (size.y - rec_size.y) / 2, rec_size.x, rec_size.y, FromDIP(2));
         if (iter.material_cols.size() > 1)
         {
-            int fleft = (size.x - AMS_ITEM_CUBE_SIZE.x) / 2;
-
-            float total_width = AMS_ITEM_CUBE_SIZE.x;
-            int gwidth = (total_width / (iter.material_cols.size()));
-            if (iter.ctype == 0) {
-                for (int i = 0; i < iter.material_cols.size() - 1; i++) {
-
-                    if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
-                        gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
-                    }
-
-                    auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
-                    dc.GradientFillLinear(rect, iter.material_cols[i], iter.material_cols[i + 1], wxEAST);
-                    fleft += gwidth;
-                }
+            const wxSize swatch_size = m_ams_item_type == AMSModel::N3S_AMS ? AMS_ITEM_CUBE_SIZE : AMS_ITEM_CUBE_SIZE2;
+            const wxRect rect((size.x - swatch_size.x) / 2, (size.y - swatch_size.y) / 2, swatch_size.x, swatch_size.y);
+            const int radius = m_ams_item_type == AMSModel::N3S_AMS ? 0 : FromDIP(3);
+            std::unique_ptr<wxGraphicsContext> owned_gc;
+            wxGraphicsContext* gc = dc.GetGraphicsContext();
+            if (!gc) {
+                owned_gc.reset(wxGraphicsContext::CreateFromUnknownDC(dc));
+                gc = owned_gc.get();
             }
-            else {
-                int cols_size = iter.material_cols.size();
-                for (int i = 0; i < cols_size; i++) {
-                    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-                    dc.SetBrush(wxBrush(iter.material_cols[i]));
-                    float x = (size.x - AMS_ITEM_CUBE_SIZE.x) / 2 + total_width * i / cols_size;
-                    dc.DrawRectangle(x, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, total_width / cols_size, AMS_ITEM_CUBE_SIZE.y);
+            if (gc) {
+                wxGraphicsGradientStops stops(iter.material_cols.front(), iter.material_cols.back());
+                const size_t count = iter.material_cols.size();
+                if (iter.ctype == 0) {
+                    for (size_t i = 1; i + 1 < count; ++i)
+                        stops.Add(iter.material_cols[i], static_cast<float>(i) / (count - 1));
+                } else {
+                    // Two stops at each boundary keep multicolour bands distinct.
+                    for (size_t i = 1; i < count; ++i) {
+                        const float position = static_cast<float>(i) / count;
+                        stops.Add(iter.material_cols[i - 1], position);
+                        stops.Add(iter.material_cols[i], position);
+                    }
                 }
+                gc->PushState();
+                gc->SetPen(*wxTRANSPARENT_PEN);
+                gc->SetBrush(gc->CreateLinearGradientBrush(rect.x, rect.y, rect.x + rect.width, rect.y, stops));
+                gc->DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, radius);
+                gc->PopState();
+            } else {
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.SetBrush(iter.material_colour);
+                dc.DrawRoundedRectangle(rect, radius);
             }
         }
         else {
@@ -2929,7 +3003,7 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
         }
         });
 
-    Update(info);
+    UpdateInfo(info);
 }
 
 void AMSHumidity::create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) {
@@ -2938,7 +3012,7 @@ void AMSHumidity::create(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 }
 
 
-void AMSHumidity::Update(AMSinfo amsinfo)
+void AMSHumidity::UpdateInfo(AMSinfo amsinfo)
 {
     if (m_amsinfo != amsinfo)
     {
@@ -3355,7 +3429,7 @@ void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
     //m_can_road_list[caninfo.can_id] = m_panel_road;
 }
 
-void AmsItem::Update(AMSinfo info)
+void AmsItem::UpdateInfo(AMSinfo info)
 {
     if (m_info == info)
     {
@@ -3367,7 +3441,7 @@ void AmsItem::Update(AMSinfo info)
 
     if (m_humidity)
     {
-        m_humidity->Update(m_info);
+        m_humidity->UpdateInfo(m_info);
     }
 
     for (int i = 0; i < m_can_count; i++) {
@@ -3376,7 +3450,7 @@ void AmsItem::Update(AMSinfo info)
 
         auto refresh = it->second;
         if (refresh != nullptr){
-            refresh->Update(info.ams_id, info.cans[i]);
+            refresh->UpdateInfo(info.ams_id, info.cans[i]);
             refresh->Show();
         }
     }
@@ -3385,7 +3459,7 @@ void AmsItem::Update(AMSinfo info)
         AMSLib* lib = m_can_lib_list[std::to_string(i)];
         if (lib != nullptr){
             if (i < m_can_count){
-                lib->Update(info.cans[i], info.ams_id);
+                lib->UpdateInfo(info.cans[i], info.ams_id);
                 lib->Show();
             }
             else{
@@ -3394,12 +3468,7 @@ void AmsItem::Update(AMSinfo info)
         }
     }
     if (m_panel_road != nullptr){
-        m_panel_road->Update(m_info);
-    }
-
-    if (true || m_ams_model == AMSModel::GENERIC_AMS) {
-        /*m_panel_road->Update(m_info, info.cans[0]);
-        m_panel_road->Show();*/
+        m_panel_road->UpdateInfo(m_info);
     }
 
     Layout();
@@ -4012,7 +4081,7 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
             m_extruderImage->setExtruderUsed("left");
             m_load_extruder_id = 1;
             {
-                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
+                SetTitle(format_wxstr(_L("Load %1% to %2%"), m_filament_id, _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase))));
             }
         }
         else if (clicked == m_rightRadio)
@@ -4021,7 +4090,7 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
             m_extruderImage->setExtruderUsed("right");
             m_load_extruder_id = 0;
             {
-                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
+                SetTitle(format_wxstr(_L("Load %1% to %2%"), m_filament_id, _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase))));
             }
         }
     }
@@ -4081,7 +4150,7 @@ void FeedDirectionDialog::SetExtruderMapping(MachineObject* obj,
         return;
 
     m_filament_id = filamentID;
-    SetTitle(wxString::Format(_L("Load %s to "), filamentID));
+    SetTitle(wxString::Format(_L("Load %s"), filamentID));
 
     std::vector<wxString> extruderMapping(extruderSlots.size());
     for (size_t i = 0; i < extruderSlots.size(); ++i) {
