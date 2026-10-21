@@ -96,6 +96,43 @@ TEST_CASE("Inactive rules preserve first apply normalization of the base profile
     REQUIRE(print.default_region_config().wall_loops.value == baseline.default_region_config().wall_loops.value);
 }
 
+TEST_CASE("Completed slices retain conditional settings after filament mapping", "[ConditionalSettings][RuleSlicePersistence]")
+{
+    const bool multi_color = GENERATE(false, true);
+    const bool enabled = GENERATE(false, true);
+    auto config = conditional_config();
+    config.set_deserialize_strict("filament_retraction_length", "0.2,0.3");
+    ConditionalSettingRule rule;
+    rule.enabled = enabled;
+    rule.conditions = {{"multi_color", "eq", "1"}};
+    rule.effects = {{"z_hop", "0.6"}, {"retraction_length", "0.8"}};
+    rules(config, {rule});
+    auto model = model_with_colors(multi_color);
+    Print print;
+    print.is_BBL_printer() = false;
+    print.set_plate_origin(Vec3d::Zero());
+    print.set_status_silent();
+    print.apply(model, config);
+    const auto expected = print.full_print_config();
+    const auto retraction = print.config().retraction_length.serialize();
+    REQUIRE_FALSE(Test::gcode(print).empty());
+    REQUIRE(print.finished());
+    for (const auto *key : {"conditional_settings_matches", "z_hop", "filament_z_hop",
+                            "retraction_length", "filament_retraction_length"}) {
+        INFO(key);
+        const auto *actual = print.full_print_config().option(key);
+        CHECK(actual != nullptr);
+        if (actual) CHECK(actual->serialize() == expected.option(key)->serialize());
+    }
+    CHECK(print.config().retraction_length.serialize() == retraction);
+    // Mirror the GUI's readback of the engine-selected maps before refreshing settings.
+    config.set_key_value("filament_map", new ConfigOptionInts(print.get_filament_maps()));
+    config.set_key_value("filament_volume_map", new ConfigOptionInts(print.get_filament_volume_maps()));
+    config.set_key_value("filament_nozzle_map", new ConfigOptionInts(print.get_filament_nozzle_maps()));
+    CHECK(print.apply(model, config) == Print::APPLY_STATUS_UNCHANGED);
+    CHECK(print.finished());
+}
+
 TEST_CASE("Blank conditional rules preserve empty selections until completed", "[ConditionalSettings]")
 {
     ConditionalSettingRule rule;

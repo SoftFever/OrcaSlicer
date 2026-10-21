@@ -1586,6 +1586,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     if (conditional_original.has("conditional_settings")) {
         auto matches = apply_conditional_settings(new_full_config, conditional_original, conditional_context, ConditionalSettingsStage::Printer);
         new_full_config.set_key_value("conditional_settings_matches", new ConfigOptionStrings(matches));
+        if (!extruder_applied) {
+            // Filament mapping rebuilds the effective config from this pre-expansion snapshot.
+            apply_conditional_settings(m_ori_full_print_config, conditional_original, conditional_context, ConditionalSettingsStage::Printer);
+            m_ori_full_print_config.set_key_value("conditional_settings_matches", new ConfigOptionStrings(matches));
+        }
     }
 
     auto opt_filament_map = new_full_config.option<ConfigOptionInts>("filament_map");
