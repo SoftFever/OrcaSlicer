@@ -1481,6 +1481,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "alternate_extra_wall"
             || opt_key == "top_one_wall_type"
             || opt_key == "min_width_top_surface"
+            || opt_key == "one_wall_top_surface_inset"
             || opt_key == "only_one_wall_first_layer"
             || opt_key == "extra_perimeters_on_overhangs"
             || opt_key == "detect_overhang_wall"

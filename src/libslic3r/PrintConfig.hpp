@@ -1562,6 +1562,7 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     //SoftFever
     ((ConfigOptionFloatOrPercent,       min_width_top_surface))
+    ((ConfigOptionPercent,              one_wall_top_surface_inset))
     ((ConfigOptionBool,                 only_one_wall_first_layer))
     ((ConfigOptionFloat,                print_flow_ratio))
     ((ConfigOptionFloatOrPercent,       seam_gap))

@@ -1840,6 +1840,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(300, true));
 
+    def           = this->add("one_wall_top_surface_inset", coPercent);
+    def->label    = L("Top surface inset");
+    def->category = L("Quality");
+    def->tooltip  = L("The inset amount of the top surface pattern under the wall. \n"
+                      "Specify 0% to make the pattern completely visible. \n"
+                      "The 100% value will be place the pattern side under for the external perimeter." );
+    def->sidetext = "%";
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
+
     def = this->add("only_one_wall_first_layer", coBool);
     def->label = L("Only one wall on first layer");
     def->category = L("Quality");

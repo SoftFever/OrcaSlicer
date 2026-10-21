@@ -1253,7 +1253,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // (0% surface density) is still a surface, so these are gated on the layer counts alone.
     toggle_line("only_one_wall_first_layer", has_bottom_shell);
     toggle_line("top_one_wall_type", has_top_shell_layers);
-    toggle_line("min_width_top_surface", (has_top_shell_layers && config->opt_enum<TopOneWallType>("top_one_wall_type") != TopOneWallType::None) || ((config->opt_float("min_length_factor") > 0.5f) && have_arachne)); // 0.5 is default value
+    bool has_one_wall = has_top_shell_layers && have_perimeters && config->opt_enum<TopOneWallType>("top_one_wall_type") != TopOneWallType::None;
+    toggle_line("min_width_top_surface", has_one_wall || ((config->opt_float("min_length_factor") > 0.5f) && have_arachne)); // 0.5 is default value
+    toggle_line("one_wall_top_surface_inset", has_one_wall);
 
     for (auto el : { "hole_to_polyhole_threshold", "hole_to_polyhole_twisted", "hole_to_polyhole_max_edges" })
         toggle_line(el, config->opt_bool("hole_to_polyhole"));
