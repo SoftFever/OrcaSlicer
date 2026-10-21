@@ -2587,7 +2587,9 @@ void GLCanvas3D::_render_frame(bool scene_dirty, bool only_init)
 
     // An overlay-only frame reuses the last scene pass. The overlay is rebuilt either way, and drawn
     // below once it is known whether the frame differs from the one on screen.
-    const bool reuse_scene = !scene_dirty && _can_reuse_cached_scene(camera);
+    // The Design canvas hosts its ImGui overlays (top bar, left panel, labels) inside the scene pass, so a frame that skips the pass
+    // would draw none of them: it never reuses the cached scene.
+    const bool reuse_scene = !scene_dirty && m_design_sketch_tool == nullptr && _can_reuse_cached_scene(camera);
     // Only frames that redraw the scene are profiled.
     if (!reuse_scene && (_is_render_timings_enabled() || m_frame_profiler.is_averaging()))
         m_frame_profiler.begin_frame();
