@@ -462,9 +462,8 @@ private:
     std::map<int, std::function<void()>> m_keys_sketch;
     std::map<int, std::function<void()>> m_keys_feature;
 
-    StaticBox* m_tree_box{nullptr};   // framed feature-tree section
-    StaticBox* m_parts_box{nullptr};  // framed bodies section (hidden while empty)
-    StaticBox* m_cards{nullptr};      // one framed panel holding every tool dialog (one visible at a time)
+    CardModel* m_tree_box{nullptr};   // framed feature-tree section
+    CardModel* m_parts_box{nullptr};  // framed bodies section (hidden while empty)
     void      update_cards_frame();     // show that frame iff some card inside it is visible
     void      show_move_card(bool show);
     void      apply_move_card();       // numeric move/rotate -> same xform the gizmo builds
@@ -483,42 +482,43 @@ private:
     void update_toolbox();
     wxSizer*  m_tb_doc{nullptr};      // toolbar document/view actions (new, commit, export, section, place)
     // The tool cards that are tables, by the (empty) sizer that places each in the card stack.
-    std::map<wxSizer*, std::unique_ptr<CardModel>> m_card_models;
-    wxSizer*  m_box_move{nullptr};      // Move/Rotate numeric options (distance, axis, angle)
-    wxSizer*  m_box_sketch{nullptr};
-    wxSizer*  m_box_extrude{nullptr};
-    wxSizer*  m_box_dressup{nullptr};
-    wxSizer*  m_box_hole{nullptr};
-    wxSizer*  m_box_thread{nullptr};
-    wxSizer*  m_box_shell{nullptr};
-    wxSizer*  m_box_revolve{nullptr};
-    wxSizer*  m_box_sweep{nullptr};
-    wxSizer*  m_box_pattern{nullptr};
-    wxSizer*  m_box_plane{nullptr};
-    wxSizer*  m_box_loft{nullptr};
-    wxSizer*  m_box_draft{nullptr};
-    wxSizer*  m_box_boolean{nullptr};
-    wxSizer*  m_box_cut{nullptr};
-    wxSizer*  m_box_axis{nullptr};
-    wxSizer*  m_box_coordsys{nullptr};
-    wxSizer*  m_box_surf_extrude{nullptr};
-    wxSizer*  m_box_surf_revolve{nullptr};
-    wxSizer*  m_box_surf_loft{nullptr};
-    wxSizer*  m_box_surf_fill{nullptr};
-    wxSizer*  m_box_surf_offset{nullptr};
-    wxSizer*  m_box_surf_thicken{nullptr};
-    wxSizer*  m_box_transform{nullptr};
-    wxSizer*  m_box_mirror{nullptr};
-    wxSizer*  m_box_thicken{nullptr};
-    wxSizer*  m_box_rib{nullptr};
-    wxSizer*  m_box_sheet{nullptr};
-    wxBoxSizer* m_sheet_body{nullptr};   // everything under the Sheet metal header: what its fold chevron hides
-    wxSizer*  m_box_project{nullptr};
-    wxSizer*  m_box_delete_face{nullptr};
-    wxSizer*  m_box_helix{nullptr};
-    wxSizer*  m_box_mate{nullptr};
-    wxSizer*  m_box_insert{nullptr};   // Confirm/Cancel card for placing Text/SVG art
-    wxSizer*  m_box_expr{nullptr};     // expression binding card (visible during edit only)
+    std::vector<std::unique_ptr<CardModel>> m_card_models;   // the tool cards, in the order the sidebar draws them
+    std::vector<std::unique_ptr<CardModel>> m_list_cards;    // the feature tree, the bodies and the variables
+    std::unique_ptr<CardText> m_status_text, m_dof_status_text;
+    CardModel*  m_box_move{nullptr};      // Move/Rotate numeric options (distance, axis, angle)
+    CardModel*  m_box_sketch{nullptr};
+    CardModel*  m_box_extrude{nullptr};
+    CardModel*  m_box_dressup{nullptr};
+    CardModel*  m_box_hole{nullptr};
+    CardModel*  m_box_thread{nullptr};
+    CardModel*  m_box_shell{nullptr};
+    CardModel*  m_box_revolve{nullptr};
+    CardModel*  m_box_sweep{nullptr};
+    CardModel*  m_box_pattern{nullptr};
+    CardModel*  m_box_plane{nullptr};
+    CardModel*  m_box_loft{nullptr};
+    CardModel*  m_box_draft{nullptr};
+    CardModel*  m_box_boolean{nullptr};
+    CardModel*  m_box_cut{nullptr};
+    CardModel*  m_box_axis{nullptr};
+    CardModel*  m_box_coordsys{nullptr};
+    CardModel*  m_box_surf_extrude{nullptr};
+    CardModel*  m_box_surf_revolve{nullptr};
+    CardModel*  m_box_surf_loft{nullptr};
+    CardModel*  m_box_surf_fill{nullptr};
+    CardModel*  m_box_surf_offset{nullptr};
+    CardModel*  m_box_surf_thicken{nullptr};
+    CardModel*  m_box_transform{nullptr};
+    CardModel*  m_box_mirror{nullptr};
+    CardModel*  m_box_thicken{nullptr};
+    CardModel*  m_box_rib{nullptr};
+    CardModel*  m_box_sheet{nullptr};
+    CardModel*  m_box_project{nullptr};
+    CardModel*  m_box_delete_face{nullptr};
+    CardModel*  m_box_helix{nullptr};
+    CardModel*  m_box_mate{nullptr};
+    CardModel*  m_box_insert{nullptr};   // Confirm/Cancel card for placing Text/SVG art
+    CardModel*  m_box_expr{nullptr};     // expression binding card (visible during edit only)
     int       m_insert_feat{-1};       // provisional imported-art feature awaiting Confirm
     // The open Text dialog, the feature it draws into (-1 until there is text to draw) and,
     // for a new text, where it goes: plane, offset in that plane, and the body of the face it
@@ -548,9 +548,9 @@ private:
     CardText* m_hdr_sketch{nullptr};
     // Onshape sketch-entry card (plane/orientation) that opens on "New sketch" and
     // persists until Finish (Phase 3).
-    wxSizer*      m_box_sketch_session{nullptr};
-    wxStaticText* m_hdr_sketch_session{nullptr};
-    wxStaticText* m_sketch_hint{nullptr};   // "click a plane" / "drawing on X" — must match the status
+    CardModel*      m_box_sketch_session{nullptr};
+    CardText* m_hdr_sketch_session{nullptr};
+    CardText* m_sketch_hint{nullptr};   // "click a plane" / "drawing on X" — must match the status
     CardText* m_hdr_extrude{nullptr};
     CardText* m_hdr_dressup{nullptr};
     CardText* m_hdr_hole{nullptr};
@@ -576,7 +576,7 @@ private:
     CardText* m_hdr_mirror{nullptr};
     CardText* m_hdr_thicken{nullptr};
     CardText* m_hdr_rib{nullptr};
-    wxStaticText* m_hdr_sheet{nullptr};
+    CardText* m_hdr_sheet{nullptr};
     CardText* m_hdr_project{nullptr};
     CardText* m_hdr_delete_face{nullptr};
     CardText* m_hdr_helix{nullptr};
@@ -650,16 +650,12 @@ private:
     // the model, so every handler runs as before (DesignSidebarMirror.cpp). Off = the wx pane, as before.
     void              set_imgui_sidebar(bool on);
     void              draw_sidebar_imgui();
-    void              mirror_sizer(wxSizer* s, SidebarCtx& cx);
     void              mirror_card(CardModel& card, SidebarCtx& cx);
-    void              mirror_item(wxSizerItem* it, SidebarCtx& cx, float width);
-    void              mirror_window(wxWindow* w, SidebarCtx& cx, float width);
     bool              m_imgui_sidebar{false};
     DesignRowList*    m_sb_rename_list{nullptr};   // a row being renamed in the ImGui view
     int               m_sb_rename_row{-1};
     std::string       m_sb_rename_text;
     bool              m_sb_rename_focus{false};
-    std::map<const wxWindow*, std::string> m_ctl_icon;   // icon name of a wxStaticBitmap, for the ImGui view
     bool              m_imgui_topbar{false};
     bool              action_bar_active() const;   // a tool or mode is open: the Confirm / Cancel pair shows
     // Is this verb usable right now, and if not why: ONE rule for the ribbon, the palette and the offer.
@@ -813,17 +809,17 @@ private:
     NumField* m_rib_thickness{nullptr};
     NumField* m_rib_depth{nullptr};
     // Sheet metal card.
-    ComboBox*         m_sheet_mode{nullptr};         // 0 rule, 1 base flange, 2 edge flange, 3 contour flange, 4 hem, 5 unfold, 6 refold
-    ComboBox*         m_sheet_sketch{nullptr};       // base / contour sketch (feature index in client data)
-    ComboBox*         m_sheet_unfold{nullptr};       // refold: the Unfold feature (feature index in client data)
-    wxSpinCtrlDouble *m_sheet_t{nullptr}, *m_sheet_r{nullptr}, *m_sheet_k{nullptr}, *m_sheet_gap{nullptr};
-    wxSpinCtrlDouble *m_sheet_height{nullptr}, *m_sheet_angle{nullptr}, *m_sheet_len{nullptr};
-    CheckBox*         m_sheet_flip{nullptr};
-    wxStaticText*     m_sheet_edges_label{nullptr};
-    wxStaticText*     m_sheet_len_label{nullptr};
-    wxStaticText*     m_sheet_hint{nullptr};
-    wxSizer *m_sheet_g_rule{nullptr}, *m_sheet_g_sketch{nullptr}, *m_sheet_g_edges{nullptr}, *m_sheet_g_flange{nullptr},
-            *m_sheet_g_len{nullptr}, *m_sheet_g_flip{nullptr}, *m_sheet_g_unfold{nullptr};
+    ChoiceField*         m_sheet_mode{nullptr};         // 0 rule, 1 base flange, 2 edge flange, 3 contour flange, 4 hem, 5 unfold, 6 refold
+    ChoiceField*         m_sheet_sketch{nullptr};       // base / contour sketch (feature index in client data)
+    ChoiceField*         m_sheet_unfold{nullptr};       // refold: the Unfold feature (feature index in client data)
+    NumField *m_sheet_t{nullptr}, *m_sheet_r{nullptr}, *m_sheet_k{nullptr}, *m_sheet_gap{nullptr};
+    NumField *m_sheet_height{nullptr}, *m_sheet_angle{nullptr}, *m_sheet_len{nullptr};
+    ToggleField*         m_sheet_flip{nullptr};
+    CardText*     m_sheet_edges_label{nullptr};
+    CardText*     m_sheet_len_label{nullptr};
+    CardText*     m_sheet_hint{nullptr};
+    CardGroup *m_sheet_g_rule{nullptr}, *m_sheet_g_sketch{nullptr}, *m_sheet_g_edges{nullptr}, *m_sheet_g_flange{nullptr},
+              *m_sheet_g_len{nullptr}, *m_sheet_g_flip{nullptr}, *m_sheet_g_unfold{nullptr};
 
     // Project controls (project body edges onto a plane as sketch entities).
     ChoiceField*         m_proj_source_body{nullptr};   // source body
@@ -855,28 +851,24 @@ private:
     CardText*     m_angle_label{nullptr};
 
     // Expression binding (per-feature, visible during edit only)
-    ComboBox*         m_expr_field{nullptr};     // field-name picker (editable)
-    wxTextCtrl*       m_expr_text{nullptr};      // expression string
-    ::Button*         m_expr_set_btn{nullptr};   // Apply / bind
-    ::Button*         m_expr_clear_btn{nullptr}; // Remove binding
-    wxStaticText*     m_expr_status{nullptr};    // shows current bindings for the edited feature
+    ChoiceField*         m_expr_field{nullptr};     // field-name picker (editable)
+    TextField*       m_expr_text{nullptr};      // expression string
+    ButtonField*         m_expr_set_btn{nullptr};   // Apply / bind
+    ButtonField*         m_expr_clear_btn{nullptr}; // Remove binding
+    CardText*     m_expr_status{nullptr};    // shows current bindings for the edited feature
     void              populate_expr_fields(Tool t);   // fill m_expr_field from feature-type fields
     void              on_set_expr();                   // checkpoint + write -> recompute -> undo on fail
     void              on_clear_expr();                 // remove selected binding
 
     // Document variables panel (below the feature tree / parts)
-    StaticBox*        m_var_box{nullptr};
-    wxListCtrl*       m_var_list{nullptr};
-    ::Button*         m_btn_add_var{nullptr};
-    ::Button*         m_btn_edit_var{nullptr};
-    ::Button*         m_btn_del_var{nullptr};
+    CardModel*        m_var_box{nullptr};
+    TableField*       m_var_list{nullptr};
     void              refresh_variables();            // rebuild m_var_list from m_doc.variables
     void              on_add_variable();
     void              on_edit_variable();
     void              on_remove_variable();
 
     // Feature-tree button
-    ::Button*         m_btn_interfere{nullptr};
 
     // Pattern controls (replicate the target body: linear or circular).
     ChoiceField*         m_pattern_type{nullptr};      // 0 = Linear, 1 = Circular
@@ -1080,9 +1072,9 @@ private:
     CoordSysPick m_coordsys_pick{CoordSysPick::None};
 
     // Onshape-style docked value-entry card (Angle/Radius/Diameter/Offset/Fillet).
-    wxSizer*          m_box_value{nullptr};
-    wxStaticText*     m_value_label{nullptr};
-    wxTextCtrl*       m_value_input{nullptr};   // plain text field: forces en ('.') decimals
+    CardModel*          m_box_value{nullptr};
+    CardText*     m_value_label{nullptr};
+    TextField*       m_value_input{nullptr};   // plain text field: forces en ('.') decimals
     double            m_value_min{0.0};         // range for confirm-time clamping
     double            m_value_max{0.0};
     std::function<void(double)> m_value_cont;   // deferred apply, run on Confirm
@@ -1113,11 +1105,8 @@ private:
     // Bodies list under the feature tree: one row per body (parallel to m_doc.bodies). Selecting
     // one highlights that body and makes it the target for the next op.
     DesignRowList*            m_parts{nullptr};
-    wxStaticText*             m_parts_label{nullptr};  // its "Bodies" caption (hidden when empty)
-    wxBoxSizer*               m_parts_hdr{nullptr};    // Bodies card header (icon + title + body actions)
-    wxStaticLine*             m_parts_rule{nullptr};   // rule under that header
-    wxBoxSizer*               m_hdr_tree_row{nullptr}; // Feature tree header: title + list actions
-    wxStaticText*             m_hdr_tree{nullptr};     // its title label
+    CardText*             m_parts_label{nullptr};  // its "Bodies" caption (hidden when empty)
+    CardText*             m_hdr_tree{nullptr};     // its title label
 
     // Section views (non-destructive): named "Section View N" entries listed in the tree, each a
     // horizontal clip height. View-only — NOT bodies/features, never serialized. Key X adds one;
@@ -1164,7 +1153,7 @@ private:
     void set_tree_selection(int row);
     static const char* tree_icon_for(CadFeatureType t);
 
-    wxStaticText*     m_status{nullptr};
+    CardText*     m_status{nullptr};
     // m_status's foreground as created, captured before any caller touches it. Callers signal
     // "no opinion" by setting wxNullColour, which restores exactly this — so it is the only
     // reliable way to tell a chosen colour (the error red) from the default. See set_status().
@@ -1176,7 +1165,7 @@ private:
     // mode is a DesignSketchTool::Mode; passed as an int because this header deliberately does
     // not include the tool's, and the .cpp (which does) casts it back.
     void              on_sketch_step(int mode, int step, int picks);
-    wxStaticText*     m_dof_status{nullptr};   // DoF / constraint-state readout (P3)
+    CardText*     m_dof_status{nullptr};   // DoF / constraint-state readout (P3)
     // Last live-solve result, so entering Constrain can restore the readout without a solve.
     int               m_dof_last{-1};
     bool              m_dof_last_ok{true};
@@ -1196,23 +1185,18 @@ private:
     int               m_constrain_feat{-1};
 
     // Constraint-manager card (C3.4): header + a rebuildable list of constraint rows.
-    wxSizer*          m_box_constraints{nullptr};
-    wxStaticText*     m_hdr_constraints{nullptr};
-    wxScrolledWindow* m_constraint_scroll{nullptr};   // bounded, scrolling home of the constraint rows
+    CardModel*          m_box_constraints{nullptr};
+    CardText*     m_hdr_constraints{nullptr};
     // Collapsible side-panel sections (Constraints, Feature tree, Bodies, Variables).
     struct FoldSection {
         std::string                              key;
-        wxStaticText*                            chevron{nullptr};
-        std::function<std::vector<wxWindow*>()>  body;   // what folds, resolved at toggle time
         bool                                     collapsed{false};
     };
     std::vector<FoldSection> m_folds;
-    void add_fold(wxSizer* header, wxWindow* card, wxStaticText* title, const char* key,
-                  std::function<std::vector<wxWindow*>()> body);
+    void add_fold_key(const char* key);
     bool is_folded(const char* key) const;
     void toggle_fold(const std::string& key);
-    void apply_fold(const std::string& key, bool relayout = true);
-    wxSizer*          m_constraint_rows{nullptr};
+    ListField*        m_constraint_list{nullptr};
     int               m_constraint_sel{-1};   // highlighted constraint row, or -1
 };
 

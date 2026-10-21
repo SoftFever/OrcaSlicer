@@ -16,6 +16,8 @@
 #include <wx/bitmap.h>
 #include <wx/checklst.h>
 #include <wx/colour.h>
+#include "slic3r/GUI/CAD/DesignRowList.hpp"
+
 #include <wx/event.h>
 #include <wx/string.h>
 #include <wx/combobox.h>
@@ -23,6 +25,7 @@
 #include <wx/tglbtn.h>
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -32,7 +35,7 @@ namespace Slic3r { namespace GUI {
 class CardField : public wxEvtHandler
 {
 public:
-    enum class Kind { Num, Choice, Toggle, Text, Button, CheckList };
+    enum class Kind { Num, Choice, Toggle, Text, Button, CheckList, Edit, List, Rows, Table };
     virtual Kind kind() const = 0;
 
     bool IsEnabled() const { return m_enabled; }
@@ -97,12 +100,18 @@ public:
     unsigned GetCount() const { return unsigned(m_items.size()); }
     wxString GetString(unsigned i) const { return i < m_items.size() ? m_items[i] : wxString(); }
     int  GetSelection() const { return m_sel; }
-    void SetSelection(int i) { m_sel = i; }
+    void SetSelection(int i) { m_sel = i; if (i >= 0 && i < int(m_items.size())) m_text = m_items[size_t(i)]; }
+    // An editable choice takes typed text as well (a field name the list does not hold).
+    void SetEditable(bool on) { m_editable = on; }
+    bool IsEditable() const { return m_editable; }
+    wxString GetValue() const { return m_editable ? m_text : GetString(unsigned(std::max(m_sel, 0))); }
+    void     SetValue(const wxString& s) { m_text = s; }
 
     void user_select(int i)
     {
         if (i == m_sel || i < 0 || i >= int(m_items.size())) return;
         m_sel = i;
+        m_text = m_items[size_t(i)];
         wxCommandEvent e(wxEVT_COMBOBOX, 0);
         e.SetInt(i);
         e.SetString(m_items[size_t(i)]);
@@ -113,6 +122,8 @@ private:
     std::vector<wxString> m_items;
     std::vector<void*>    m_data;
     int                   m_sel{-1};
+    wxString              m_text;
+    bool                  m_editable{false};
 };
 
 class ToggleField : public CardField
@@ -143,6 +154,10 @@ public:
     void     SetLabel(const wxString& s) { m_text = s; }
     wxString GetLabel() const { return m_text; }
     void     Refresh() {}   // drawn every frame
+    void     Update() {}
+    void     Hide() { Show(false); }
+    bool     UseForegroundColour() const { return m_fg.IsOk(); }
+    wxColour GetForegroundColour() const { return m_fg; }
     // a status colour (green, red); the default is the panel's text colour
     void     SetForegroundColour(const wxColour& c) { m_fg = c; }
     const wxColour& colour() const { return m_fg; }
@@ -150,6 +165,31 @@ public:
 private:
     wxString m_text;
     wxColour m_fg;
+};
+
+// A line the user types in; Enter sends wxEVT_TEXT_ENTER, as the wx text control did.
+class TextField : public CardField
+{
+public:
+    Kind kind() const override { return Kind::Edit; }
+    wxString GetValue() const { return m_v; }
+    void     SetValue(const wxString& s) { m_v = s; }
+    void     ChangeValue(const wxString& s) { m_v = s; }
+    void     Clear() { m_v.clear(); }
+    void     SetFocus() { m_want_focus = true; }
+    void     SetSelection(long, long) {}   // a field takes the focus with its text selected
+    bool     take_focus() { const bool f = m_want_focus; m_want_focus = false; return f; }
+
+    void user_enter()
+    {
+        wxCommandEvent e(wxEVT_TEXT_ENTER, 0);
+        e.SetString(m_v);
+        post(e);
+    }
+
+private:
+    wxString m_v;
+    bool     m_want_focus{false};
 };
 
 class ButtonField : public CardField
@@ -198,6 +238,80 @@ private:
     std::vector<bool>     m_on;
 };
 
+// A list the code refills (the constraints of a sketch): a label per row, a delete cross and a click on each.
+class ListField : public CardField
+{
+public:
+    Kind kind() const override { return Kind::List; }
+    void     Clear() { m_rows.clear(); m_sel = -1; }
+    void     Add(const wxString& s) { m_rows.push_back(s); }
+    unsigned GetCount() const { return unsigned(m_rows.size()); }
+    wxString GetString(unsigned i) const { return i < m_rows.size() ? m_rows[i] : wxString(); }
+    int      GetSelection() const { return m_sel; }
+    void     SetSelection(int i) { m_sel = i; }
+    void     SetEmptyText(const wxString& s) { m_empty = s; }
+    const wxString& empty_text() const { return m_empty; }
+
+    std::function<void(int)> on_click;    // a row's label
+    std::function<void(int)> on_delete;   // a row's cross
+    // from the ImGui frame: the handler runs after it, since both rebuild the rows
+    void user_click(int i)  { CallAfter([this, i] { if (on_click) on_click(i); }); }
+    void user_delete(int i) { CallAfter([this, i] { if (on_delete) on_delete(i); }); }
+
+private:
+    std::vector<wxString> m_rows;
+    wxString              m_empty;
+    int                   m_sel{-1};
+};
+
+// The rows of the feature tree or the bodies: the list is a DesignRowList the panel talks to.
+class RowsField : public CardField
+{
+public:
+    RowsField(int max_visible, bool selectable) : m_list(new DesignRowList(max_visible, selectable)) {}
+    Kind kind() const override { return Kind::Rows; }
+    DesignRowList* list() { return m_list.get(); }
+private:
+    std::unique_ptr<DesignRowList> m_list;
+};
+
+// A table of text (the document variables), with the slice of the wxListCtrl API the panel's code uses.
+class TableField : public CardField
+{
+public:
+    Kind kind() const override { return Kind::Table; }
+    void AppendColumn(const wxString& name, int = 0, int = 0) { m_cols.push_back(name); }
+    void DeleteAllItems() { m_rows.clear(); m_sel = -1; }
+    long InsertItem(long i, const wxString& s)
+    {
+        i = std::clamp(i, 0L, long(m_rows.size()));
+        m_rows.insert(m_rows.begin() + i, std::vector<wxString>(std::max<size_t>(m_cols.size(), 1)));
+        m_rows[size_t(i)][0] = s;
+        return i;
+    }
+    void SetItem(long i, int col, const wxString& s) { if (i >= 0 && i < long(m_rows.size()) && col < int(m_rows[size_t(i)].size())) m_rows[size_t(i)][size_t(col)] = s; }
+    wxString GetItemText(long i, int col = 0) const { return (i >= 0 && i < long(m_rows.size()) && col < int(m_rows[size_t(i)].size())) ? m_rows[size_t(i)][size_t(col)] : wxString(); }
+    int  GetItemCount() const { return int(m_rows.size()); }
+    // the selected row, or -1 (the wx call took more arguments: next item after `from` in some state)
+    long GetNextItem(long, int = 0, int = 0) const { return m_sel; }
+    const std::vector<wxString>& columns() const { return m_cols; }
+    int  GetSelection() const { return m_sel; }
+
+    std::function<void()> on_activate;   // a double click on a row
+    void user_select(int i, bool activate)
+    {
+        CallAfter([this, i, activate] {
+            m_sel = i;
+            if (activate && on_activate) on_activate();
+        });
+    }
+
+private:
+    std::vector<wxString>              m_cols;
+    std::vector<std::vector<wxString>> m_rows;
+    int                                m_sel{-1};
+};
+
 // Rows that show and hide together (a mode of a card that needs only some of its inputs).
 struct CardGroup {
     bool shown{true};
@@ -207,8 +321,8 @@ struct CardGroup {
 
 struct CardRow {
     // Field: a label and its control. Note: a text across the card. Wide: a control across the card (a list).
-    // Pick: a button in the label column and a text in the control column.
-    enum class Kind { Field, Note, Wide, Pick };
+    // Pick: a button in the label column and a text in the control column. Buttons: two buttons side by side.
+    enum class Kind { Field, Note, Wide, Pick, Buttons };
     Kind        kind{Kind::Field};
     wxString    label;
     CardField*  field{nullptr};        // owned by the card
@@ -224,6 +338,16 @@ public:
     // The panel's form takes the events the fields queue (its handlers refresh the preview).
     void set_sink(wxEvtHandler* sink) { m_sink = sink; for (auto& f : m_fields) f->SetNextHandler(sink); }
 
+    // The card's header carries a fold arrow; the panel keeps the state under this key.
+    void         foldable(const std::string& key) { m_fold_key = key; }
+    const std::string& fold_key() const { return m_fold_key; }
+    // A card the panel shows and hides (a tool card is open or it is not).
+    void Show(bool on = true) { m_shown = on; }
+    bool IsShown() const { return m_shown; }
+    // An icon button at the right end of the header.
+    struct HeaderButton { std::string icon; wxString tip; std::function<void()> fn; };
+    void header_button(const std::string& icon, const wxString& tip, std::function<void()> fn) { m_header_buttons.push_back({icon, tip, std::move(fn)}); }
+    const std::vector<HeaderButton>& header_buttons() const { return m_header_buttons; }
     CardText*    title() { return m_title.get(); }
     const std::string& icon() const { return m_icon; }
     const std::vector<CardRow>& rows() const { return m_rows; }
@@ -247,6 +371,22 @@ public:
     ToggleField* make_check() { return own(new ToggleField()); }
     CardText*    make_text(const wxString& s = wxString()) { return own(new CardText(s)); }
     CheckListField* make_checklist() { return own(new CheckListField()); }
+    // a list of rows across the card (the tree, the bodies)
+    DesignRowList* make_rows(int max_visible, bool selectable = true)
+    {
+        RowsField* f = own(new RowsField(max_visible, selectable));
+        m_rows.push_back({CardRow::Kind::Wide, wxString(), f, nullptr, m_group});
+        return f->list();
+    }
+    TableField*  make_table()
+    {
+        TableField* t = own(new TableField());
+        m_rows.push_back({CardRow::Kind::Wide, wxString(), t, nullptr, m_group});
+        return t;
+    }
+    ListField*   make_list() { return own(new ListField()); }
+    TextField*   make_edit() { return own(new TextField()); }
+    void         buttons(ButtonField* a, ButtonField* b) { m_rows.push_back({CardRow::Kind::Buttons, wxString(), a, b, m_group}); }
     ButtonField* make_button(const wxString& s) { return own(new ButtonField(s)); }
     void         row(const wxString& label, CardField* f) { m_rows.push_back({CardRow::Kind::Field, label, f, nullptr, m_group}); }
     void         row_t(CardText* label, CardField* f) { m_rows.push_back({CardRow::Kind::Field, wxString(), f, label, m_group}); }
@@ -294,6 +434,9 @@ private:
     }
 
     std::string                             m_icon;
+    bool                                    m_shown{true};
+    std::vector<HeaderButton>               m_header_buttons;
+    std::string                             m_fold_key;
     std::unique_ptr<CardText>               m_title;
     std::vector<std::unique_ptr<CardField>> m_fields;
     std::vector<CardRow>                    m_rows;

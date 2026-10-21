@@ -141,31 +141,6 @@ static constexpr double MESH_IMPORT_MERGE_ANGLE_DEG  = 5.0;
 // Above this, warn before converting: the build is one OCCT face per triangle.
 static constexpr size_t MESH_IMPORT_TRIANGLE_WARN    = 50000;
 
-// Two-column parameter form (label left, control right), matching Prepare's row idiom. The
-// control column grows, so every control lines up on the panel's right edge instead of sitting
-// at its natural width beside the label — the forms used a plain non-growable grid before, which
-// is why Design's rows looked nothing like Prepare's.
-static wxFlexGridSizer* two_col_form()
-{
-    auto* f = new wxFlexGridSizer(2, 6, 8);
-    f->AddGrowableCol(1, 1);
-    f->SetFlexibleDirection(wxHORIZONTAL);
-    return f;
-}
-
-
-// Orca's dropdown, sized like Prepare's sidebar combos. Read-only: every Design
-// picker is a fixed list, never free text.
-static ComboBox* make_combo(wxWindow* parent)
-{
-    // Explicit width: ComboBox's natural best size is its widest item, which inflated the
-  // sidebar's virtual width past the viewport and left the panel horizontally scrolled —
-  // that is what clipped the first letter of every label. The form column grows anyway.
-    auto* c = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                           wxSize(parent->FromDIP(90), parent->FromDIP(24)), 0, nullptr, wxCB_READONLY);
-    c->SetMinSize(wxSize(parent->FromDIP(90), parent->FromDIP(24)));
-    return c;
-}
 
 // Append a row that carries a feature/body index as client data.
 //
@@ -239,19 +214,6 @@ static wxColour dp_retheme(const wxColour& c, bool to_dark)
     for (const DpToken& t : kDpTokens)
         if (c == (to_dark ? t.light : t.dark))
             return to_dark ? t.dark : t.light;
-    return c;
-}
-
-// A tool card: Prepare's rounded white-bordered panel (Plater.cpp's panel_printer_preset
-// idiom — radius 8, #EEEEEE border, green on hover). Every card's controls are parented
-// to it, so the border actually encloses them.
-static StaticBox* make_card(wxWindow* parent)
-{
-    auto* c = new StaticBox(parent);
-    c->SetCornerRadius(8);
-    // The light literal in a StateColor is mapped to the dark one at paint time, so the frame
-    // follows a theme switch by itself. No hover accent: the frame is not clickable.
-    c->SetBorderColor(StateColor(kDpTokens[TokBorder].light));
     return c;
 }
 
@@ -450,13 +412,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
     body_panel->SetBackgroundColour(dp_panel_bg());
     m_form->SetBackgroundColour(dp_panel_bg());
 
-    auto* root = new wxBoxSizer(wxVERTICAL);
-    {
-        auto* hdr = new wxStaticText(m_form, wxID_ANY, _L("Design"));
-        hdr->SetFont(Label::Head_16);   // Orca shared HarmonyOS section-title font
-        root->Add(hdr, 0, wxLEFT | wxRIGHT | wxTOP, 12);
-        root->AddSpacer(2);
-    }
+    auto* root = new wxBoxSizer(wxVERTICAL);   // the form holds nothing now: the sidebar is drawn from the tables
 
     // === Top contextual toolbar (Onshape-style icon strip) ===
     // Parented to the panel (sits above the form/viewport row). Only the active
@@ -1815,39 +1771,17 @@ DesignPanel::DesignPanel(wxWindow* parent)
     // in, and feed_bodies() has not run yet on a fresh tab.
     update_body_gates();
 
-    // Onshape-style dialog-card header: feature icon + bold title. out receives
-    // the title control so open_tool() can retitle it per feature.
-    auto card_header = [this](wxWindow* card, const char* icon, const wxString& title, wxStaticText*& out) -> wxSizer* {
-        auto* h  = new wxBoxSizer(wxHORIZONTAL);
-        auto* ic = new wxStaticBitmap(card, wxID_ANY, create_scaled_bitmap(icon, card, 18));
-        m_ctl_icon[ic] = icon;
-        m_icon_refresh.push_back([ic, card, name = std::string(icon)] {
-            ic->SetBitmap(create_scaled_bitmap(name, card, 18)); });
-        out = new wxStaticText(card, wxID_ANY, title);
-        out->SetFont(Label::Head_14);   // Orca shared HarmonyOS card-title font
-        h->Add(ic,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
-        h->Add(out, 0, wxALIGN_CENTER_VERTICAL);
-        return h;
-    };
-
     // Every tool dialog lives inside ONE framed card (only one is ever visible), so the
     // active dialog reads as a bordered panel like Prepare's sidebar boxes instead of
     // free-floating rows. `cards` is the frame's sizer; open_tool() shows/hides within it.
-    m_cards = make_card(m_form);
-    auto* cards = new wxBoxSizer(wxVERTICAL);
-    m_cards->SetSizer(cards);
-    root->Add(m_cards, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
 
     // The first four tool cards are TABLES (DesignCardModel.hpp), not wx controls: the ImGui sidebar draws them from here.
-    // The empty sizer each keeps in `cards` only places the card in the stack and shows or hides it.
-    auto add_card = [this, cards](wxSizer*& box, const char* icon, const wxString& title) -> CardModel* {
-        box = new wxBoxSizer(wxVERTICAL);
-        box->AddSpacer(0);   // a sizer with nothing in it counts as hidden, whatever Show() says
-        cards->Add(box, 0, wxEXPAND);
-        auto& slot = m_card_models[box];
-        slot = std::make_unique<CardModel>(icon, title);
-        slot->set_sink(m_form);
-        return slot.get();
+    // Each is shown or hidden by CardModel::Show; the sidebar draws the shown ones in this order.
+    auto add_card = [this](CardModel*& box, const char* icon, const wxString& title) -> CardModel* {
+        m_card_models.emplace_back(new CardModel(icon, title));
+        box = m_card_models.back().get();
+        box->set_sink(m_form);
+        return box;
     };
 
     // --- Sketch dialog (shape definition only — no distance/mode) ---
@@ -2623,24 +2557,18 @@ DesignPanel::DesignPanel(wxWindow* parent)
     }
 
     // --- Sheet metal (rule, base flange, edge flange, contour flange, hem, unfold, refold) ---
-    m_box_sheet = new wxBoxSizer(wxVERTICAL);
-    wxSizer* sheet_hdr = card_header(m_cards, "design_sheet", _L("Sheet metal"), m_hdr_sheet);
-    add_fold(sheet_hdr, m_cards, m_hdr_sheet, "sheet", [] { return std::vector<wxWindow*>{}; });   // folded through apply_fold: its rows are sizers
-    m_box_sheet->Add(sheet_hdr, 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_sheet->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_sheet_body = new wxBoxSizer(wxVERTICAL);
-    m_box_sheet->Add(m_sheet_body, 0, wxEXPAND);
     {
-        auto lab = [&](const wxString& s) { return new wxStaticText(m_cards, wxID_ANY, s); };
-        auto spin = [&](double v, double lo, double hi) {
-            auto* sp = make_spin(m_cards, v, lo, hi);
+        CardModel* c = add_card(m_box_sheet, "design_sheet", _L("Sheet metal"));
+        m_hdr_sheet = c->title();
+        c->foldable("sheet");   // the arrow hides every row below; the groups pick which rows the mode shows
+        add_fold_key("sheet");
+        auto spin = [this, c](const wxString& label, double v, double lo, double hi) {
+            NumField* sp = c->spin(label, v, lo, hi);
             sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
             return sp;
         };
-        auto group = [&]() { auto* g = two_col_form(); m_sheet_body->Add(g, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12); return g; };
 
-        auto* gm = group();
-        m_sheet_mode = make_combo(m_cards);
+        m_sheet_mode = c->combo(_L("Operation"));
         m_sheet_mode->Append(_L("Rule"));
         m_sheet_mode->Append(_L("Base flange"));
         m_sheet_mode->Append(_L("Edge flange"));
@@ -2651,60 +2579,49 @@ DesignPanel::DesignPanel(wxWindow* parent)
         m_sheet_mode->SetSelection(1);
         m_sheet_mode->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) {
             sheet_sync_mode();
-            m_form->Layout(); m_form->FitInside();
             refresh_preview();
         });
-        gm->Add(lab(_L("Operation")), 0, wxALIGN_CENTER_VERTICAL);
-        gm->Add(m_sheet_mode, 0, wxEXPAND);
 
-        auto* gr = group(); m_sheet_g_rule = gr;
-        m_sheet_t = spin(2.5, 0.01, 1000.0);
-        gr->Add(lab(_L("Thickness")), 0, wxALIGN_CENTER_VERTICAL);  gr->Add(spin_frame(m_sheet_t), 0, wxEXPAND);
-        m_sheet_r = spin(0.0, 0.0, 1000.0);
-        gr->Add(lab(_L("Bend radius (0 = thickness)")), 0, wxALIGN_CENTER_VERTICAL);  gr->Add(spin_frame(m_sheet_r), 0, wxEXPAND);
-        m_sheet_k = spin(0.44, 0.0, 1.0);
-        gr->Add(lab(_L("K-factor")), 0, wxALIGN_CENTER_VERTICAL);  gr->Add(spin_frame(m_sheet_k), 0, wxEXPAND);
-        m_sheet_gap = spin(0.01, 0.0, 100.0);
-        gr->Add(lab(_L("Hem gap")), 0, wxALIGN_CENTER_VERTICAL);  gr->Add(spin_frame(m_sheet_gap), 0, wxEXPAND);
+        m_sheet_g_rule = c->begin_group();
+        m_sheet_t   = spin(_L("Thickness"), 2.5, 0.01, 1000.0);
+        m_sheet_r   = spin(_L("Bend radius (0 = thickness)"), 0.0, 0.0, 1000.0);
+        m_sheet_k   = spin(_L("K-factor"), 0.44, 0.0, 1.0);
+        m_sheet_gap = spin(_L("Hem gap"), 0.01, 0.0, 100.0);
+        c->end_group();
 
-        auto* gs = group(); m_sheet_g_sketch = gs;
-        m_sheet_sketch = make_combo(m_cards);
+        m_sheet_g_sketch = c->begin_group();
+        m_sheet_sketch = c->combo(_L("Sketch"));
         m_sheet_sketch->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        gs->Add(lab(_L("Sketch")), 0, wxALIGN_CENTER_VERTICAL);  gs->Add(m_sheet_sketch, 0, wxEXPAND);
+        c->end_group();
 
-        auto* ge = group(); m_sheet_g_edges = ge;
-        m_sheet_edges_label = lab(_L("(click the sheet's end edge)"));
-        ge->Add(lab(_L("Edges")), 0, wxALIGN_CENTER_VERTICAL);  ge->Add(m_sheet_edges_label, 0, wxALIGN_CENTER_VERTICAL);
+        m_sheet_g_edges = c->begin_group();
+        m_sheet_edges_label = c->text(_L("Edges"), _L("(click the sheet's end edge)"));
+        c->end_group();
 
-        auto* gf = group(); m_sheet_g_flange = gf;
-        m_sheet_height = spin(20.0, 0.01, 100000.0);
-        gf->Add(lab(_L("Height")), 0, wxALIGN_CENTER_VERTICAL);  gf->Add(spin_frame(m_sheet_height), 0, wxEXPAND);
-        m_sheet_angle = spin(90.0, 1.0, 170.0);
-        gf->Add(lab(_L("Angle")), 0, wxALIGN_CENTER_VERTICAL);  gf->Add(spin_frame(m_sheet_angle), 0, wxEXPAND);
+        m_sheet_g_flange = c->begin_group();
+        m_sheet_height = spin(_L("Height"), 20.0, 0.01, 100000.0);
+        m_sheet_angle  = spin(_L("Angle"), 90.0, 1.0, 170.0);
+        c->end_group();
 
-        auto* gl = group(); m_sheet_g_len = gl;
-        m_sheet_len = spin(20.0, 0.01, 100000.0);
-        m_sheet_len_label = lab(_L("Width"));
-        gl->Add(m_sheet_len_label, 0, wxALIGN_CENTER_VERTICAL);  gl->Add(spin_frame(m_sheet_len), 0, wxEXPAND);
+        m_sheet_g_len = c->begin_group();
+        m_sheet_len_label = c->make_text(_L("Width"));
+        m_sheet_len = c->make_spin(20.0, 0.01, 100000.0);
+        m_sheet_len->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
+        c->row_t(m_sheet_len_label, m_sheet_len);
+        c->end_group();
 
-        auto* gu = group(); m_sheet_g_unfold = gu;
-        m_sheet_unfold = make_combo(m_cards);
+        m_sheet_g_unfold = c->begin_group();
+        m_sheet_unfold = c->combo(_L("Unfold"));
         m_sheet_unfold->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        gu->Add(lab(_L("Unfold")), 0, wxALIGN_CENTER_VERTICAL);  gu->Add(m_sheet_unfold, 0, wxEXPAND);
+        c->end_group();
 
-        m_sheet_flip = new CheckBox(m_cards);
+        m_sheet_g_flip = c->begin_group();
+        m_sheet_flip = c->check(_L("Flip direction"));
         m_sheet_flip->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) { refresh_preview(); });
-        auto* frow = new wxBoxSizer(wxHORIZONTAL);
-        frow->Add(lab(_L("Flip direction")), 0, wxALIGN_CENTER_VERTICAL);
-        frow->AddStretchSpacer();
-        frow->Add(m_sheet_flip, 0, wxALIGN_CENTER_VERTICAL);
-        m_sheet_g_flip = frow;
-        m_sheet_body->Add(frow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+        c->end_group();
 
-        m_sheet_hint = lab(wxString());
-        m_sheet_body->Add(m_sheet_hint, 0, wxLEFT | wxRIGHT | wxTOP, 12);
+        m_sheet_hint = c->note(wxString());
     }
-    cards->Add(m_box_sheet, 0, wxEXPAND);
 
     // --- Project (project body edges onto a plane as sketch entities) ---
     CardModel* c_m_box_project = add_card(m_box_project, "design_sketch", _L_CONTEXT("Project", "Design"));
@@ -2948,82 +2865,46 @@ DesignPanel::DesignPanel(wxWindow* parent)
     // Lets the user bind a numeric field to a document-variable expression. Field-name
     // combo is populated per feature type and is editable for power users. Set applies
     // the binding with checkpoint+recompute+undo-on-failure; Clear removes it.
-    m_box_expr = new wxBoxSizer(wxVERTICAL);
     {
-        wxStaticText* expr_hdr = nullptr;
-        m_box_expr->Add(card_header(m_cards, "design_constrain", _L("Expression"), expr_hdr), 0,
-                        wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_expr->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
+        CardModel* c = add_card(m_box_expr, "design_constrain", _L("Expression"));
 
-        auto* eform = two_col_form();
+        // The only editable choice in this panel: what the user types names a field the list does not
+        // hold, which is what makes the feature types without a mapped list reachable at all.
+        m_expr_field = c->make_combo();
+        m_expr_field->SetEditable(true);
+        c->row(_L("Field"), m_expr_field);
 
-        // The only editable combo in this panel, hence not make_combo(): that passes
-        // wxCB_READONLY, and Orca's ComboBox HIDES its text ctrl under that style
-        // (ComboBox.cpp:51), so there is nothing to type into and no SetEditable() to
-        // turn it back on. Constructed with style 0, the ctrl is shown with
-        // wxTE_PROCESS_ENTER and GetTextLabel() returns what the user typed — which is
-        // what makes the 21 unmapped feature types reachable at all.
-        m_expr_field = new ComboBox(m_cards, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                                    wxSize(FromDIP(90), FromDIP(24)), 0, nullptr, 0);
-        m_expr_field->SetMinSize(wxSize(FromDIP(90), FromDIP(24)));
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Field")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(m_expr_field, 0, wxEXPAND);
-
-        m_expr_text = new wxTextCtrl(m_cards, wxID_ANY, "", wxDefaultPosition,
-                                     wxSize(FromDIP(120), FromDIP(24)),
-                                     wxTE_PROCESS_ENTER | wxBORDER_SIMPLE);
+        m_expr_text = c->make_edit();
         m_expr_text->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) { on_set_expr(); });
-        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Expr")), 0, wxALIGN_CENTER_VERTICAL);
-        eform->Add(m_expr_text, 0, wxEXPAND);
+        c->row(_L("Expr"), m_expr_text);
 
-        m_box_expr->Add(eform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-
-        auto* brow = new wxBoxSizer(wxHORIZONTAL);
-        m_expr_set_btn   = new ::Button(m_cards, _L("Set"));
-        m_expr_clear_btn = new ::Button(m_cards, _L("Clear"));
-        m_expr_set_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Parameter);
-        m_expr_clear_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+        m_expr_set_btn   = c->make_button(_L("Set"));
+        m_expr_clear_btn = c->make_button(_L("Clear"));
         m_expr_set_btn->Bind(wxEVT_BUTTON,   [this](wxCommandEvent&) { on_set_expr(); });
         m_expr_clear_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_clear_expr(); });
-        brow->Add(m_expr_set_btn,   0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
-        brow->Add(m_expr_clear_btn, 0, wxALIGN_CENTER_VERTICAL);
-        brow->AddStretchSpacer();
-        m_box_expr->Add(brow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+        c->buttons(m_expr_set_btn, m_expr_clear_btn);
 
-        m_expr_status = new wxStaticText(m_cards, wxID_ANY, _L("(no bindings)"));
+        m_expr_status = c->note(_L("(no bindings)"));
         m_expr_status->SetForegroundColour(dp_sec_text());
-        m_box_expr->Add(m_expr_status, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
     }
-    cards->Add(m_box_expr, 0, wxEXPAND);
 
     // --- Docked value-entry card (Onshape Button->Dialog->Confirm for dimensions) ---
-    m_box_value = new wxBoxSizer(wxVERTICAL);
     {
         // Header title doubles as the operation label (set by request_value()).
-        m_box_value->Add(card_header(m_cards, "design_constrain", _L("Value"), m_value_label), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_value->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-        auto* vrow = new wxBoxSizer(wxHORIZONTAL);
-        // wxTE_PROCESS_ENTER so the user can just type a value and press Enter to
-        // apply it (the natural CAD-dimension gesture), not only click Confirm.
-        // Plain text field (not a spin control): on wxGTK the native GtkSpinButton
-        // formats per the user locale (comma) with no clean override, so we own the
-        // formatting here to guarantee international '.' decimals.
-        m_value_input = new wxTextCtrl(m_cards, wxID_ANY, "", wxDefaultPosition,
-                                       FromDIP(wxSize(90, -1)), wxTE_PROCESS_ENTER);
+        CardModel* c = add_card(m_box_value, "design_constrain", _L("Value"));
+        m_value_label = c->title();
+        // Enter applies it (the natural CAD-dimension gesture), not only the Confirm button. A plain text
+        // field, not a spin: the value is formatted here, so the decimals are always '.'.
+        m_value_input = c->make_edit();
         m_value_input->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) { confirm_value(); });
-        vrow->Add(new wxStaticText(m_cards, wxID_ANY, _L("Value")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
-        vrow->Add(m_value_input, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_value->Add(vrow, 0, wxLEFT | wxRIGHT | wxTOP, 12);
+        c->row(_L("Value"), m_value_input);
     }
-    cards->Add(m_box_value, 0, wxEXPAND);
 
     // --- Sketch-entry card (Phase 3): plane/orientation, opens on "New sketch",
     //     persists until Finish. The toolbar holds only the drawing tools. ---
-    m_box_sketch_session = new wxBoxSizer(wxVERTICAL);
-    m_box_sketch_session->Add(card_header(m_cards, "design_sketch", _L("Sketch"), m_hdr_sketch_session),
-                              0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_sketch_session->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
     {
+        CardModel* c = add_card(m_box_sketch_session, "design_sketch", _L("Sketch"));
+        m_hdr_sketch_session = c->title();
         // NO plane dropdown. The sketch plane comes from what is picked in the VIEWPORT — a face
         // on a solid, or one of the reference-plane ghosts — because that is where the user is
         // looking and pointing. A combo duplicated that decision somewhere the geometry could not
@@ -3031,72 +2912,43 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // contradicted the real target. e1p.
         // A member, not a local: it names the plane the session opened on, which is known only
         // when it opens (start_sketch_on_target writes it), so the card and the status line agree.
-        m_sketch_hint = new wxStaticText(m_cards, wxID_ANY, _L("Pick a tool, or press Menu for the list."));
+        m_sketch_hint = c->note(_L("Pick a tool, or press Menu for the list."));
         m_sketch_hint->SetForegroundColour(dp_sec_text());
-        m_box_sketch_session->Add(m_sketch_hint, 0, wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, 12);
     }
-    cards->Add(m_box_sketch_session, 0, wxEXPAND);
 
     // --- Constraint-manager card (C3.4): list of the constrained sketch's
     //     entity-constraints; each row selects (highlights) + deletes. Shown only
     //     in Constrain mode; rebuilt by rebuild_constraint_list().
-    m_box_constraints = new wxBoxSizer(wxVERTICAL);
-    wxSizer* con_hdr = card_header(m_cards, "design_constrain", _L("Constraints"), m_hdr_constraints);
-    add_fold(con_hdr, m_cards, m_hdr_constraints, "constraints", [] { return std::vector<wxWindow*>{}; });
-    m_box_constraints->Add(con_hdr, 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_constraints->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    // The rows live in their own scrolled window, sized to at most 8 rows (rebuild_constraint_list):
-    // a constrained sketch has dozens, and an unbounded list pushed the whole panel off screen.
-    m_constraint_scroll = new wxScrolledWindow(m_cards, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-                                               wxVSCROLL | wxBORDER_NONE);
-    m_constraint_scroll->SetScrollRate(0, FromDIP(8));
-    m_constraint_scroll->SetBackgroundColour(dp_panel_bg());
-    m_constraint_rows = new wxBoxSizer(wxVERTICAL);
-    m_constraint_scroll->SetSizer(m_constraint_rows);
-    m_box_constraints->Add(m_constraint_scroll, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
-    cards->Add(m_box_constraints, 0, wxEXPAND);
-
-    // Wrap every card label now that the whole stack exists. wxStaticText never wraps on its
-    // own, so a one-sentence help line under a card sets that card's sizer min width to the
-    // width of the entire sentence — the same failure make_combo's explicit width fixes above,
-    // and with the same symptom: the card is wider than the sidebar, so every control in it is
-    // clipped at the panel's right edge. Found by click-testing Transform, Mirror and Coord Sys,
-    // whose hints are the longest. 240 px sits under m_form's 264 px minimum, so a wrapped hint
-    // always fits; the short two-column labels are far below it and Wrap() leaves them alone.
-    for (wxWindow* w : m_cards->GetChildren())
-        if (auto* t = dynamic_cast<wxStaticText*>(w))
-            t->Wrap(240);
-
-    // Feature tree card. Same idiom as Prepare's sections (icon + Head_14 title + rule) via the
-    // shared card_header helper, instead of the bare micro-label this used to be. What acts on one
-    // feature sits on that feature's row; the header keeps reordering and the interference check.
-    m_tree_box = make_card(m_form);
-    auto* tree_inner = new wxBoxSizer(wxVERTICAL);
-    m_tree_box->SetSizer(tree_inner);
-    root->Add(m_tree_box, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
-
-    m_hdr_tree_row = new wxBoxSizer(wxHORIZONTAL);
     {
-        wxSizer* h = card_header(m_tree_box, "design_sketch", _L("Feature tree"), m_hdr_tree);
-        add_fold(h, m_tree_box, m_hdr_tree, "tree", [this] { return std::vector<wxWindow*>{m_pinned, m_tree}; });
-        m_hdr_tree_row->Add(h, 0, wxALIGN_CENTER_VERTICAL);
+        CardModel* c = add_card(m_box_constraints, "design_constrain", _L("Constraints"));
+        m_hdr_constraints = c->title();
+        c->foldable("constraints");
+        add_fold_key("constraints");
+        // The rows scroll past eight: a constrained sketch has dozens, and an unbounded list pushed the whole panel off screen.
+        m_constraint_list = c->make_list();
+        m_constraint_list->SetEmptyText(_L("No constraints yet"));
+        m_constraint_list->on_delete = [this](int i) { delete_constraint(i); };
+        m_constraint_list->on_click  = [this](int i) { highlight_constraint_entities(i); };
+        c->wide(m_constraint_list);
     }
-    m_hdr_tree_row->AddStretchSpacer();
-    tree_inner->Add(m_hdr_tree_row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP,
-              FromDIP(SidebarProps::ContentMargin()));
-    tree_inner->Add(new wxStaticLine(m_tree_box), 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP,
-              FromDIP(SidebarProps::TitlebarMargin()));
-    // The Origin and Bed switches sit on the card itself, unframed, above the features' own framed
-    // list: view switches, not history. A list of their own so they stay put while the features
-    // scroll, and a non-selectable one because selecting them would do nothing: only their eyes
-    // answer. 13 = the feature list's margin plus its frame, so the two lists' icons line up.
-    m_pinned = new DesignRowList(m_tree_box, 3, false, wxBORDER_NONE);
-    m_pinned->SetBackgroundColour(dp_panel_bg());
-    tree_inner->Add(m_pinned, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 13);
-    // Sized to its rows, so a short history wastes no block, and scrolling past 9 features.
-    m_tree = new DesignRowList(m_tree_box, 9);
-    m_tree->SetBackgroundColour(dp_panel_bg());
-    tree_inner->Add(m_tree, 0, wxEXPAND | wxALL, 12);
+
+
+    // Feature tree card. What acts on one feature sits on that feature's row; the header keeps reordering and the
+    // interference check.
+    {
+        m_list_cards.emplace_back(new CardModel("design_sketch", _L("Feature tree")));
+        m_tree_box = m_list_cards.back().get();
+        m_tree_box->set_sink(m_form);
+        m_hdr_tree = m_tree_box->title();
+        m_tree_box->foldable("tree");
+        add_fold_key("tree");
+        // The Origin and Bed switches sit on the card itself, above the features' own list: view switches, not history. A
+        // list of their own so they stay put while the features scroll, and a non-selectable one because selecting them
+        // would do nothing: only their eyes answer.
+        m_pinned = m_tree_box->make_rows(3, false);
+        // Sized to its rows, so a short history wastes no block, and scrolling past 9 features.
+        m_tree = m_tree_box->make_rows(9);
+    }
 
     m_pinned->on_action = [this](int row, int) {
         if (row == kBedRow)
@@ -3118,7 +2970,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
             else if (row == kToolbarRow) toggle_toolbar();
             else toggle_origin();
         }, id_toggle);
-        m_pinned->PopupMenu(&menu, m_pinned->ScreenToClient(screen));
+        PopupMenu(&menu, ScreenToClient(screen));
     };
 
     // Selecting a feature that leaves a body (Extrude, Fillet, Chamfer, Hole, ...) lights the
@@ -3216,7 +3068,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
             menu.Bind(wxEVT_MENU, [this, row](wxCommandEvent&) { on_transform_imported(row); }, id_art);
         if (zoom)
             menu.Bind(wxEVT_MENU, [this, row](wxCommandEvent&) { zoom_to_feature(row); }, id_zoom);
-        m_tree->PopupMenu(&menu, m_tree->ScreenToClient(screen));
+        PopupMenu(&menu, ScreenToClient(screen));
     };
 
     // In-place rename of a feature row (F2, the offer's Rename verb, or the row's menu). The name
@@ -3229,77 +3081,35 @@ DesignPanel::DesignPanel(wxWindow* parent)
         refresh_tree();   // which syncs the recipe, so the save path persists the name
     };
 
-    // The header keeps what is not one row's own action: reordering, which moves the selected
-    // feature among the others, and the interference check, which reports on every body.
-    {
-        wxBoxSizer* trow = m_hdr_tree_row;
-        // NO Move here. Moving a body is not a feature-row action — this header sits over the
-        // FEATURE tree, and the button had to guess its subject from whatever happened to be
-        // selected, answering a feature row with an instruction about bodies. It lives where a
-        // body lives: on each body's row in the Bodies list, and in the offer for a selected body.
-        // Scaling imported artwork, which shared this button, moved to the row's own menu.
-        auto* up   = sidebar_icon_btn(m_tree_box, "design_moveup", _L("Move up"));
-        up->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_move_feature(-1); });
-        auto* down = sidebar_icon_btn(m_tree_box, "design_movedown", _L("Move down"));
-        down->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_move_feature(+1); });
-        m_btn_interfere = sidebar_icon_btn(m_tree_box, "color_palette", _L("Check interference — find overlapping bodies"));
-        m_btn_interfere->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_check_interference(); });
-        const int gap = FromDIP(SidebarProps::ElementSpacing());
-        trow->Add(up,   0, wxALIGN_CENTER_VERTICAL | wxRIGHT, gap);
-        trow->Add(down, 0, wxALIGN_CENTER_VERTICAL);
-        // Interference check sits after a rule: it reports, it does not edit the recipe.
-        trow->AddSpacer(8);
-        trow->Add(new wxStaticLine(m_tree_box, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(1, 22)), wxLI_VERTICAL),
-                  0, wxALIGN_CENTER_VERTICAL);
-        trow->AddSpacer(8);
-        trow->Add(m_btn_interfere, 0, wxALIGN_CENTER_VERTICAL);
-        // trow IS the header sizer — already added to root above the tree.
-    }
+    // The header keeps what is not one row's own action: reordering, which moves the selected feature among the others,
+    // and the interference check, which reports on every body.
+    // NO Move here. Moving a body is not a feature-row action — this header sits over the FEATURE tree, and the button had
+    // to guess its subject from whatever happened to be selected. It lives where a body lives: on each body's row in the
+    // Bodies list, and in the offer for a selected body. Scaling imported artwork, which shared this button, moved to the
+    // row's own menu.
+    m_tree_box->header_button("design_moveup",   _L("Move up"),   [this] { on_move_feature(-1); });
+    m_tree_box->header_button("design_movedown", _L("Move down"), [this] { on_move_feature(+1); });
+    m_tree_box->header_button("color_palette",   _L("Check interference — find overlapping bodies"), [this] { on_check_interference(); });
 
-    // Parts list (Onshape's Features + Parts split). Bodies used to be appended after the
-    // features INSIDE the feature tree, so they were pushed out of view as the history grew —
-    // with no way to select a body at all. Their own list keeps them reachable regardless.
-    m_parts_box = make_card(m_form);
-    auto* parts_inner = new wxBoxSizer(wxVERTICAL);
-    m_parts_box->SetSizer(parts_inner);
-    root->Add(m_parts_box, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
-
-    m_parts_hdr = new wxBoxSizer(wxHORIZONTAL);
+    // Parts list (Onshape's Features + Parts split). Bodies used to be appended after the features INSIDE the feature tree,
+    // so they were pushed out of view as the history grew — with no way to select a body at all. Their own list keeps them
+    // reachable regardless.
     {
-        wxSizer* h = card_header(m_parts_box, "design_extrude", _L("Bodies"), m_parts_label);
-        add_fold(h, m_parts_box, m_parts_label, "bodies", [this] { return std::vector<wxWindow*>{m_parts}; });
-        m_parts_hdr->Add(h, 0, wxALIGN_CENTER_VERTICAL);
+        m_list_cards.emplace_back(new CardModel("design_extrude", _L("Bodies")));
+        m_parts_box = m_list_cards.back().get();
+        m_parts_box->set_sink(m_form);
+        m_parts_label = m_parts_box->title();
+        m_parts_box->foldable("bodies");
+        add_fold_key("bodies");
+        // The bodies card header carries the body actions that are not one row's own. Boolean is the one body-body operation,
+        // gated through on_boolean_tool, and Colour recolours the selected body, resolving it itself (on_set_body_color), so
+        // nothing here decides policy. Move, Show/hide and Delete act on one body, so they sit on its row.
+        m_parts_box->header_button("design_boolean", _L("Boolean — join, subtract or intersect with another body"), [this] { on_boolean_tool(); });
+        m_parts_box->header_button("color_palette",  _L("Color"), [this] { on_set_body_color(); });
+        m_parts = m_parts_box->make_rows(6);   // scrolls past 6
+        // Start hidden: a fresh document has no bodies, and refresh_parts() only runs on the first tree rebuild.
+        m_parts_box->Show(false);
     }
-    // The bodies card header carries the body actions that are not one row's own. Boolean is the
-    // one body-body operation, gated through on_boolean_tool, and Colour recolours the selected
-    // body, resolving it itself (on_set_body_color), so nothing here decides policy. Move,
-    // Show/hide and Delete act on one body, so they sit on its row, as a feature's actions do.
-    {
-        // Boolean lives here as well as on the toolbar: combining two bodies is a body action,
-        // and a user working in the body list should not have to leave it to find this.
-        auto* bbool = sidebar_icon_btn(m_parts_box, "design_boolean", _L("Boolean — join, subtract or intersect with another body"));
-        bbool->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_boolean_tool(); });
-        auto* bcol  = sidebar_icon_btn(m_parts_box, "color_palette", _L("Color"));
-        bcol->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_set_body_color(); });
-        const int bgap = FromDIP(SidebarProps::ElementSpacing());
-        m_parts_hdr->AddStretchSpacer(1);
-        m_parts_hdr->Add(bbool, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, bgap);
-        m_parts_hdr->Add(bcol,  0, wxALIGN_CENTER_VERTICAL);
-    }
-    parts_inner->Add(m_parts_hdr, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP,
-              FromDIP(SidebarProps::ContentMargin()));
-    m_parts_rule = new wxStaticLine(m_parts_box);
-    parts_inner->Add(m_parts_rule, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP,
-              FromDIP(SidebarProps::TitlebarMargin()));
-    m_parts_hdr->ShowItems(false);   // no bodies yet on a fresh document
-    m_parts_rule->Hide();
-    m_parts = new DesignRowList(m_parts_box, 6);   // scrolls past 6
-    m_parts->SetBackgroundColour(dp_panel_bg());
-    parts_inner->Add(m_parts, 0, wxEXPAND | wxALL, 12);
-    // Start hidden: a fresh document has no bodies, and refresh_parts() only runs on the first
-    // tree rebuild — until then an empty box would sit under the header.
-    m_parts->Hide();
-    m_parts_label->Hide();
     // Taking a body from the list means the SAME state change however it was asked for, so the
     // normalisation lives here and not inside a selection handler. That distinction is not
     // pedantry: selecting a row that is ALREADY selected notifies nobody, so a version of this
@@ -3362,60 +3172,35 @@ DesignPanel::DesignPanel(wxWindow* parent)
     // Below the feature tree + parts, always visible. wxListCtrl in report mode with two
     // columns (Name, Expression). Add / edit open a small dialog; delete removes the
     // selected row. Every mutation goes through checkpoint+recompute+undo-on-failure.
-    m_var_box = make_card(m_form);
-    auto* var_inner = new wxBoxSizer(wxVERTICAL);
-    m_var_box->SetSizer(var_inner);
     {
-        auto* var_hdr = new wxBoxSizer(wxHORIZONTAL);
-        wxStaticText* var_hdr_title = nullptr;
-        {
-            wxSizer* h = card_header(m_var_box, "design_constrain", _L("Variables"), var_hdr_title);
-            add_fold(h, m_var_box, var_hdr_title, "variables", [this] { return std::vector<wxWindow*>{m_var_list}; });
-            var_hdr->Add(h, 0, wxALIGN_CENTER_VERTICAL);
-        }
-        var_hdr->AddStretchSpacer();
+        m_list_cards.emplace_back(new CardModel("design_constrain", _L("Variables")));
+        m_var_box = m_list_cards.back().get();
+        m_var_box->set_sink(m_form);
+        m_var_box->foldable("variables");
+        add_fold_key("variables");
         // Icon actions in the card header, as the Feature tree and Bodies cards have them.
-        m_btn_add_var  = sidebar_icon_btn(m_var_box, "add",           _L("Add variable"));
-        m_btn_edit_var = sidebar_icon_btn(m_var_box, "design_edit",   _L("Edit variable"));
-        m_btn_del_var  = sidebar_icon_btn(m_var_box, "design_delete", _L("Delete variable"));
-        m_btn_add_var->Bind(wxEVT_BUTTON,  [this](wxCommandEvent&) { on_add_variable(); });
-        m_btn_edit_var->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_edit_variable(); });
-        m_btn_del_var->Bind(wxEVT_BUTTON,  [this](wxCommandEvent&) { on_remove_variable(); });
-        const int vhgap = FromDIP(SidebarProps::ElementSpacing());
-        var_hdr->Add(m_btn_add_var,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, vhgap);
-        var_hdr->Add(m_btn_edit_var, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, vhgap);
-        var_hdr->Add(m_btn_del_var,  0, wxALIGN_CENTER_VERTICAL);
-        var_inner->Add(var_hdr, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP,
-                       FromDIP(SidebarProps::ContentMargin()));
-        var_inner->Add(new wxStaticLine(m_var_box), 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP,
-                       FromDIP(SidebarProps::TitlebarMargin()));
-
-        m_var_list = new wxListCtrl(m_var_box, wxID_ANY, wxDefaultPosition,
-                                    wxSize(-1, FromDIP(64)), wxLC_REPORT | wxLC_SINGLE_SEL);
-        m_var_list->SetBackgroundColour(dp_panel_bg());
-        m_var_list->AppendColumn(_L("Name"),       wxLIST_FORMAT_LEFT, FromDIP(90));
-        m_var_list->AppendColumn(_L("Expression"), wxLIST_FORMAT_LEFT, FromDIP(120));
-        var_inner->Add(m_var_list, 0, wxEXPAND | wxALL, FromDIP(SidebarProps::ContentMargin()));
+        m_var_box->header_button("add",           _L("Add variable"),    [this] { on_add_variable(); });
+        m_var_box->header_button("design_edit",   _L("Edit variable"),   [this] { on_edit_variable(); });
+        m_var_box->header_button("design_delete", _L("Delete variable"), [this] { on_remove_variable(); });
+        m_var_list = m_var_box->make_table();
+        m_var_list->AppendColumn(_L("Name"));
+        m_var_list->AppendColumn(_L("Expression"));
+        m_var_list->on_activate = [this] { on_edit_variable(); };
     }
-    root->Add(m_var_box, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
 
     // Orca-styled full-width buttons (ButtonType::Expanded), so the Design sidebar reads like
     // Prepare's instead of showing raw OS-default wxButtons.
     const int cm = FromDIP(SidebarProps::ContentMargin());
 
-    m_status = new wxStaticText(m_form, wxID_ANY, "");
-    m_status->Hide();   // storage only — the line is drawn over the viewport, see set_status()
-    root->Add(m_status, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+    // The status line is drawn over the viewport (see set_status()); this holds its text and colour.
+    m_status_text.reset(new CardText());
+    m_status = m_status_text.get();
 
-    // DoF / constraint-state readout (P3). Dedicated line so it never clobbers the
-    // tool hint in m_status; updated by the on_solve_state callback after each solve.
-    m_dof_status = new wxStaticText(m_form, wxID_ANY, "");
-    {
-        wxFont f = m_dof_status->GetFont();
-        f.SetWeight(wxFONTWEIGHT_BOLD);
-        m_dof_status->SetFont(f);
-    }
-    root->Add(m_dof_status, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+    // DoF / constraint-state readout (P3). Dedicated line so it never clobbers the tool hint in m_status; updated by the
+    // on_solve_state callback after each solve.
+    m_dof_status_text.reset(new CardText());
+    m_dof_status = m_dof_status_text.get();
+    m_dof_status->Show(false);
 
 
     m_shape->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) { on_shape_changed(); e.Skip(); });
@@ -3431,50 +3216,47 @@ DesignPanel::DesignPanel(wxWindow* parent)
     m_form->SetSizer(root);
 
     // Start with every tool dialog hidden (only the toolbar + tree + Commit show).
-    root->Show(m_parts_box, false, false);   // no bodies on a fresh document
-    for (const FoldSection& f : m_folds) apply_fold(f.key, false);   // saved fold state
-    root->Show(m_cards,     false, false);   // no tool open yet: don't draw an empty frame
-    cards->Show(m_box_sketch,  false, true);
-    cards->Show(m_box_move,    false, true);
-    cards->Show(m_box_extrude, false, true);
-    cards->Show(m_box_revolve, false, true);
-    cards->Show(m_box_sweep, false, true);
-    cards->Show(m_box_pattern, false, true);
-    cards->Show(m_box_plane, false, true);
-    cards->Show(m_box_axis, false, true);
-    cards->Show(m_box_coordsys, false, true);
-    cards->Show(m_box_loft, false, true);
-    cards->Show(m_box_draft, false, true);
-    cards->Show(m_box_boolean, false, true);
-    cards->Show(m_box_cut,     false, true);
-    cards->Show(m_box_insert,  false, true);
-    cards->Show(m_box_dressup, false, true);
-    cards->Show(m_box_hole,    false, true);
-    cards->Show(m_box_thread,  false, true);
-    cards->Show(m_box_shell,   false, true);
-    cards->Show(m_box_surf_extrude, false, true);
-    cards->Show(m_box_surf_revolve, false, true);
-    cards->Show(m_box_surf_loft,    false, true);
-    cards->Show(m_box_surf_fill,    false, true);
-    cards->Show(m_box_surf_offset,  false, true);
-    cards->Show(m_box_surf_thicken, false, true);
-    cards->Show(m_box_value,   false, true);
-    cards->Show(m_box_sketch_session, false, true);
-    cards->Show(m_box_constraints,    false, true);
-    cards->Show(m_box_expr,          false, true);
+    m_box_sketch->Show(false);
+    m_box_move->Show(false);
+    m_box_extrude->Show(false);
+    m_box_revolve->Show(false);
+    m_box_sweep->Show(false);
+    m_box_pattern->Show(false);
+    m_box_plane->Show(false);
+    m_box_axis->Show(false);
+    m_box_coordsys->Show(false);
+    m_box_loft->Show(false);
+    m_box_draft->Show(false);
+    m_box_boolean->Show(false);
+    m_box_cut->Show(false);
+    m_box_insert->Show(false);
+    m_box_dressup->Show(false);
+    m_box_hole->Show(false);
+    m_box_thread->Show(false);
+    m_box_shell->Show(false);
+    m_box_surf_extrude->Show(false);
+    m_box_surf_revolve->Show(false);
+    m_box_surf_loft->Show(false);
+    m_box_surf_fill->Show(false);
+    m_box_surf_offset->Show(false);
+    m_box_surf_thicken->Show(false);
+    m_box_value->Show(false);
+    m_box_sketch_session->Show(false);
+    m_box_constraints->Show(false);
+    m_box_expr->Show(false);
     // A card added to the cards sizer is VISIBLE until something hides it. close_tool()'s
     // hide-all only runs on a tool switch, so any card missing from THIS block renders
     // stacked in the sidebar from the moment the tab opens. These eight were wired into
     // close_tool() but not here, which is what bloated the panel.
-    cards->Show(m_box_transform,   false, true);
-    cards->Show(m_box_mirror,      false, true);
-    cards->Show(m_box_thicken,     false, true);
-    cards->Show(m_box_rib,         false, true);
-    cards->Show(m_box_sheet,       false, true);   // missing here and in close_tool(): the card was on screen from startup and stayed after the tool ended
-    cards->Show(m_box_project,     false, true);
-    cards->Show(m_box_delete_face, false, true);
-    cards->Show(m_box_helix,       false, true);
-    cards->Show(m_box_mate,        false, true);
+    m_box_transform->Show(false);
+    m_box_mirror->Show(false);
+    m_box_thicken->Show(false);
+    m_box_rib->Show(false);
+    m_box_sheet->Show(false);   // missing here and in close_tool(): the card was on screen from startup and stayed after the tool ended
+    m_box_project->Show(false);
+    m_box_delete_face->Show(false);
+    m_box_helix->Show(false);
+    m_box_mate->Show(false);
 
     m_form->FitInside();
     m_form->SetScrollRate(0, FromDIP(20));   // vertical only, like Prepare's sidebar: never scroll labels out
@@ -4551,19 +4333,19 @@ void DesignPanel::set_ui_mode(UiMode m)
     set_active_tool_btn(nullptr);   // no tool selected right after a mode switch
     // Phase 3: the docked Sketch card (plane/orientation) shows for the whole Sketch
     // session and hides on Finish/Constrain.
-    if (m_box_sketch_session != nullptr && m_form != nullptr && m_cards->GetSizer() != nullptr) {
+    if (m_box_sketch_session != nullptr && m_form != nullptr) {
         if (m == UiMode::Sketch && m_hdr_sketch_session != nullptr)
             m_hdr_sketch_session->SetLabel(wxString::Format(_L("Sketch %d"), m_feature_counter + 1));
-        m_cards->GetSizer()->Show(m_box_sketch_session, m == UiMode::Sketch, true);
+    m_box_sketch_session->Show(m == UiMode::Sketch);
         update_cards_frame(); m_form->Layout();
         m_form->FitInside();
     }
     // Constraint-manager card follows Constrain mode; rebuilt from the active feature.
-    if (m_box_constraints != nullptr && m_form != nullptr && m_cards->GetSizer() != nullptr) {
+    if (m_box_constraints != nullptr && m_form != nullptr) {
         if (m == UiMode::Constrain || m == UiMode::Sketch)
             rebuild_constraint_list();   // Sketch too: a live session has its own constraints
         else
-            m_cards->GetSizer()->Show(m_box_constraints, false, true);
+    m_box_constraints->Show(false);
         update_cards_frame(); m_form->Layout();
         m_form->FitInside();
     }
@@ -5199,8 +4981,7 @@ void DesignPanel::open_insert_card(const wxString& base_name)
     m_active = Tool::Insert;
     end_sketch_plane_choice();
     if (m_hdr_insert) m_hdr_insert->SetLabel(base_name);
-    wxSizer* s = m_cards->GetSizer();
-    s->Show(m_box_insert, true, true);
+    m_box_insert->Show(true);
     update_cards_frame(); m_form->Layout();
     m_form->FitInside();
     update_action_bar();   // surface the unified ✓/✗
@@ -5890,7 +5671,7 @@ void DesignPanel::sheet_sync_edges()
 void DesignPanel::sheet_sync_mode()
 {
     const int mode = std::clamp(m_sheet_mode->GetSelection(), 0, 6);
-    auto show = [&](wxSizer* g, bool on) { m_box_sheet->Show(g, on, true); };
+    auto show = [&](CardGroup* g, bool on) { g->Show(on); };
     show(m_sheet_g_rule,   mode == 0);
     show(m_sheet_g_sketch, mode == 1 || mode == 3);
     show(m_sheet_g_edges,  mode == 2 || mode == 4);
@@ -5900,7 +5681,6 @@ void DesignPanel::sheet_sync_mode()
     show(m_sheet_g_unfold, mode == 6);
     m_sheet_len_label->SetLabel(mode == 4 ? _L("Hem length") : _L("Width"));
     m_sheet_mode->Enable(m_edit_index < 0);   // a feature keeps its kind while it is edited
-    if (is_folded("sheet") && m_sheet_body != nullptr) m_box_sheet->Show(m_sheet_body, false, true);
     static const wxString hints[7] = {
         _L("Sets the thickness, bend radius, K-factor and hem gap for every sheet-metal feature after it."),
         _L("Pick a closed sketch: the plate grows along the sketch normal by the rule thickness."),
@@ -7735,9 +7515,7 @@ void DesignPanel::refresh_icons()
             b->Rescale();
             if (b->GetName() == "design_icon_btn")
                 style_sidebar_icon_btn(b);   // pixel sizes and the panel colour, for the new scale and theme
-        } else if (auto* l = dynamic_cast<DesignRowList*>(w))
-            l->Rescale();
-        else if (auto* c = dynamic_cast<::CheckBox*>(w))
+        } else if (auto* c = dynamic_cast<::CheckBox*>(w))
             c->Rescale();
         else if (auto* c = dynamic_cast<::ComboBox*>(w))
             c->Rescale();
@@ -8036,12 +7814,7 @@ void DesignPanel::refresh_parts()
     // Hide the whole block until there is something to list, so an empty document doesn't
     // show a stray empty box.
     const bool any = m_parts->GetItemCount() > 0;
-    m_parts->Show(any && !is_folded("bodies"));
-    if (m_parts_label) m_parts_label->Show(any);
-    if (m_parts_hdr)   m_parts_hdr->ShowItems(any);   // icon + title live in this sizer
-    if (m_parts_rule)  m_parts_rule->Show(any);
-    // ...and the frame with it, or an empty bordered box floats there.
-    if (m_parts_box && m_form && m_form->GetSizer()) m_form->GetSizer()->Show(m_parts_box, any, false);
+    if (m_parts_box) m_parts_box->Show(any);
 
     if (any)
         m_parts->select(keep);
@@ -9055,27 +8828,14 @@ bool DesignPanel::live_constraint_scope() const
 }
 
 // ---- collapsible side-panel sections --------------------------------------------------------
-// A chevron at the left of a card header (and a click on its title) folds the card's list. The
-// state persists per section in design_fold_<key>. Constraints is the odd one: its card is shown
-// and hidden by the tool modes, so folding it goes through rebuild_constraint_list(), which owns
-// that visibility, instead of Show()ing the list directly into a card that may be hidden.
-void DesignPanel::add_fold(wxSizer* header, wxWindow* card, wxStaticText* title, const char* key,
-                           std::function<std::vector<wxWindow*>()> body)
+// An arrow at the left of a card header folds the card's rows. The state persists per section in design_fold_<key>.
+// The card draws its own arrow and skips its rows while the state says folded.
+void DesignPanel::add_fold_key(const char* key)
 {
-    auto* chev = new wxStaticText(card, wxID_ANY, "");
-    chev->SetCursor(wxCursor(wxCURSOR_HAND));
-    chev->SetToolTip(_L("Collapse or expand"));
-    header->Insert(0, chev, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
     FoldSection f;
     f.key       = key;
-    f.chevron   = chev;
-    f.body      = std::move(body);
     f.collapsed = wxGetApp().app_config->get_bool(std::string("design_fold_") + key);
     m_folds.push_back(std::move(f));
-    const std::string k = key;
-    auto toggle = [this, k](wxMouseEvent&) { toggle_fold(k); };
-    chev->Bind(wxEVT_LEFT_UP, toggle);
-    if (title) { title->SetCursor(wxCursor(wxCURSOR_HAND)); title->Bind(wxEVT_LEFT_UP, toggle); }
 }
 
 bool DesignPanel::is_folded(const char* key) const
@@ -9092,32 +8852,7 @@ void DesignPanel::toggle_fold(const std::string& key)
         f.collapsed = !f.collapsed;
         wxGetApp().app_config->set_bool("design_fold_" + key, f.collapsed);
     }
-    CallAfter([this, key] { apply_fold(key, true); });   // not while this very click is being dispatched
-}
-
-void DesignPanel::apply_fold(const std::string& key, bool relayout)
-{
-    for (FoldSection& f : m_folds) {
-        if (f.key != key) continue;
-        f.chevron->SetLabel(wxString::FromUTF8(f.collapsed ? "\u25B8" : "\u25BE"));
-        if (key == "sheet") {   // a whole sizer of rows: showing it again shows every row, so the mode's rows are chosen anew
-            if (m_box_sheet != nullptr && m_sheet_body != nullptr) {
-                m_box_sheet->Show(m_sheet_body, !f.collapsed, true);
-                if (!f.collapsed) sheet_sync_mode();
-            }
-            continue;
-        }
-        if (key == "constraints") {
-            if (relayout) rebuild_constraint_list();
-            return;
-        }
-        for (wxWindow* w : f.body()) {
-            if (w == nullptr) continue;
-            // Bodies has no list at all while the document has no body.
-            w->Show(!f.collapsed && !(w == m_parts && m_parts->GetItemCount() == 0));
-        }
-    }
-    if (relayout && m_form) { update_cards_frame(); m_form->Layout(); m_form->FitInside(); }
+    CallAfter([this] { if (m_viewport) m_viewport->force_repaint(); });   // the card reads the state when it is drawn
 }
 
 // Rebuild the constraint-row list. Source depends on scope: a LIVE sketch session owns its
@@ -9126,9 +8861,9 @@ void DesignPanel::apply_fold(const std::string& key, bool relayout)
 // no row, no ✗, and no name anywhere in the UI.
 void DesignPanel::rebuild_constraint_list()
 {
-    if (m_constraint_rows == nullptr || m_form == nullptr)
+    if (m_constraint_list == nullptr || m_form == nullptr)
         return;
-    m_constraint_rows->Clear(true /* delete windows */);
+    m_constraint_list->Clear();
     m_constraint_sel = -1;
 
     const bool live   = live_constraint_scope();
@@ -9141,43 +8876,14 @@ void DesignPanel::rebuild_constraint_list()
     if (m_hdr_constraints)
         m_hdr_constraints->SetLabel(wxString::Format(_L("Constraints (%d)"), int(cons.size())));
 
-    const bool folded = is_folded("constraints");
-    int visible_h = 0;   // height of the first kMaxRows rows: the list scrolls past that
-    constexpr int kMaxRows = 8;
-    if (cons.empty()) {
-        auto* none = new wxStaticText(m_constraint_scroll, wxID_ANY, _L("No constraints yet"));
-        none->SetForegroundColour(dp_sec_text());
-        m_constraint_rows->Add(none, 0, wxTOP, 4);
-        visible_h = none->GetBestSize().y + 4;
-    }
-    for (int i = 0; i < int(cons.size()) && !folded; ++i) {
-        auto* row = new wxBoxSizer(wxHORIZONTAL);
-        // Delete button first (fixed left position, always visible — long labels can
-        // horizontally scroll but ✗ stays put and clickable).
-        auto* del = sidebar_icon_btn(m_constraint_scroll, "design_delete", _L("Delete constraint"), 16);
-        // After the click: deleting rebuilds these rows, and with them this button, which must
-        // not be destroyed while its own click is still being dispatched.
-        del->Bind(wxEVT_BUTTON, [this, i](wxCommandEvent&) { CallAfter([this, i] { delete_constraint(i); }); });
-        // Clickable label: selecting it highlights the referenced entities.
-        auto* lbl = new wxStaticText(m_constraint_scroll, wxID_ANY, constraint_label(cons[i]));
-        lbl->SetCursor(wxCursor(wxCURSOR_HAND));
-        lbl->Bind(wxEVT_LEFT_UP, [this, i](wxMouseEvent&) { highlight_constraint_entities(i); });
-        row->Add(del, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
-        row->Add(lbl, 1, wxALIGN_CENTER_VERTICAL);
-        m_constraint_rows->Add(row, 0, wxEXPAND | wxTOP, 2);
-        if (i < kMaxRows) visible_h += row->CalcMin().y + 2;
-    }
-    m_constraint_scroll->SetMinSize(wxSize(-1, visible_h));
-    m_constraint_scroll->FitInside();
-    m_constraint_scroll->Scroll(0, 0);
+    for (const SketchEntityConstraintDef& d : cons)
+        m_constraint_list->Add(constraint_label(d));
 
     // Feed the same list to the viewport for the on-sketch glyph badges (C3.4b).
     if (m_viewport)
         m_viewport->set_constraint_glyphs(cons);
 
-    m_cards->GetSizer()->Show(m_box_constraints,
-                              m_ui_mode == UiMode::Constrain || live, true);
-    if (folded) m_constraint_scroll->Show(false);   // the recursive Show above re-showed it
+    m_box_constraints->Show(m_ui_mode == UiMode::Constrain || live);
     update_cards_frame(); m_form->Layout();
     m_form->FitInside();
 }
@@ -9197,10 +8903,12 @@ void DesignPanel::highlight_constraint_entities(int idx)
         return;
     if (m_constraint_sel == idx) {     // second click clears
         m_constraint_sel = -1;
+        m_constraint_list->SetSelection(-1);
         m_viewport->set_constraint_highlight({});
         return;
     }
     m_constraint_sel = idx;
+    m_constraint_list->SetSelection(idx);
     const SketchEntityConstraintDef& d = cons[idx];
     std::vector<int> ents;
     for (int e : { d.ea, d.eb, d.ec })
@@ -9972,7 +9680,7 @@ void DesignPanel::request_value(const wxString& label, double def, double mn, do
     m_value_max = mx;
     m_value_label->SetLabel(label);
     m_value_input->ChangeValue(en_format(def));   // '.' decimals, no EVT_TEXT feedback
-    m_cards->GetSizer()->Show(m_box_value, true, true);
+    m_box_value->Show(true);
     update_cards_frame(); m_form->Layout();
     m_form->FitInside();
     m_value_input->SetFocus();
@@ -9990,7 +9698,7 @@ void DesignPanel::confirm_value()
     auto cont = m_value_cont;            // copy, then clear before running so a
     m_value_cont = nullptr;              // re-entrant request_value can re-arm cleanly
     m_value_cancel = nullptr;            // confirmed: drop the cancel action
-    m_cards->GetSizer()->Show(m_box_value, false, true);
+    m_box_value->Show(false);
     update_cards_frame(); m_form->Layout();
     m_form->FitInside();
     cont(v);                            // run the deferred constraint / edit-op apply
@@ -10003,7 +9711,7 @@ void DesignPanel::cancel_value()
     auto on_cancel = m_value_cancel;     // copy, clear, then run (re-entrancy safe)
     m_value_cancel = nullptr;
     if (m_box_value)
-        m_cards->GetSizer()->Show(m_box_value, false, true);
+    m_box_value->Show(false);
     update_cards_frame(); m_form->Layout();
     m_form->FitInside();
     if (was_open) {
@@ -11072,7 +10780,7 @@ CadFeature DesignPanel::build_candidate(Tool t) const
                                                  CadFeatureType::SmRefold };
         const int mode = std::clamp(m_sheet_mode->GetSelection(), 0, 6);
         f.type = kTypes[mode];
-        auto picked = [](ComboBox* c) {
+        auto picked = [](auto* c) {
             const int sel = c->GetSelection();
             return sel != wxNOT_FOUND ? int(reinterpret_cast<intptr_t>(c->GetClientData(sel))) : -1;
         };
@@ -11244,7 +10952,6 @@ void DesignPanel::sync_pattern_mode()
     m_pattern_spacing2->Enable(linear);
     m_pattern_axis2->Enable(linear);
     m_pattern_mirror_off->Enable(mirror);
-    if (m_cards) { m_cards->Layout(); m_cards->FitInside(); }
 }
 
 // Feature-pattern fields of a pattern feature from the card (no-op in whole-body mode). Model coordinates -> world via the origin.
@@ -12507,10 +12214,7 @@ void DesignPanel::set_imgui_tree(bool on)
         CallAfter([this, evs = std::move(evs)] { apply_tree_events(evs); });
     };
     m_viewport->set_tree_overlay(on);
-    if (m_tree_box) {
-        m_tree_box->Show(!on);
-        if (m_form && m_form->GetSizer()) { m_form->Layout(); m_form->FitInside(); }
-    }
+    if (m_tree_box) m_tree_box->Show(!on);
 }
 
 void DesignPanel::push_grid_snap()
@@ -12552,7 +12256,6 @@ void DesignPanel::start_sketch_on_target(bool offer_tools)
     if (m_sketch_hint) {   // the card must agree with the status line, not argue with it
         m_sketch_hint->SetLabel(wxString::Format(_L("Sketch plane: %s.\nPick a tool, or press Menu for the list."), on));
         m_sketch_hint->Refresh();
-        m_cards->Layout();
     }
     // Hand over the tools rather than naming them in a status line: the sketch bar carries none.
     // CallAfter so the mode change has settled, and the pick that got here has returned, before a
@@ -12775,13 +12478,6 @@ void DesignPanel::refresh_preview()
 // otherwise an empty bordered box floats above the feature tree.
 void DesignPanel::update_cards_frame()
 {
-    if (m_cards == nullptr || m_cards->GetSizer() == nullptr) return;
-    wxSizer* root = m_form ? m_form->GetSizer() : nullptr;
-    if (root == nullptr) return;
-    bool any = false;
-    for (const wxSizerItem* it : m_cards->GetSizer()->GetChildren())
-        if (it->IsShown()) { any = true; break; }
-    root->Show(m_cards, any, false);   // non-recursive: don't re-show the hidden cards inside
 }
 
 // Move/Rotate card: numeric entry that composes the same transform the drag gizmo builds —
@@ -12816,8 +12512,8 @@ void DesignPanel::apply_move_card()
 
 void DesignPanel::show_move_card(bool show)
 {
-    if (m_box_move == nullptr || m_cards == nullptr || m_cards->GetSizer() == nullptr) return;
-    m_cards->GetSizer()->Show(m_box_move, show, true);
+    if (m_box_move == nullptr) return;
+    m_box_move->Show(show);
     update_cards_frame();
     if (m_form) { m_form->Layout(); m_form->FitInside(); }
 }
@@ -12846,41 +12542,39 @@ void DesignPanel::open_tool(Tool t)
     // showing "Body N" while picking stayed unrestricted.
     if (m_viewport) { m_viewport->set_body_translucent(false); m_viewport->set_body_hidden(false);
                       m_viewport->set_xray_focus(t == Tool::CoordSys && m_cs_body ? m_cs_body->GetSelection() - 1 : -1); }
-    wxSizer* s = m_cards->GetSizer();
-    s->Show(m_box_sketch,  t == Tool::Sketch,  true);
-    s->Show(m_box_extrude, t == Tool::Extrude, true);
-    s->Show(m_box_dressup, t == Tool::Dressup, true);
-    s->Show(m_box_hole,    t == Tool::Hole,    true);
-    s->Show(m_box_thread,  t == Tool::Thread,  true);
-    s->Show(m_box_shell,   t == Tool::Shell,   true);
-    s->Show(m_box_revolve, t == Tool::Revolve, true);
-    s->Show(m_box_sweep,   t == Tool::Sweep,   true);
-    s->Show(m_box_pattern, t == Tool::Pattern, true);
-    s->Show(m_box_plane,   t == Tool::Plane,   true);
-    s->Show(m_box_axis,   t == Tool::Axis,   true);
-    s->Show(m_box_coordsys, t == Tool::CoordSys, true);
-    s->Show(m_box_loft,    t == Tool::Loft,    true);
-    s->Show(m_box_boolean, t == Tool::Boolean, true);
-    s->Show(m_box_cut,     t == Tool::Cut,     true);
-    s->Show(m_box_draft,   t == Tool::Draft,   true);
-    s->Show(m_box_surf_extrude, t == Tool::SurfaceExtrude, true);
-    s->Show(m_box_surf_revolve, t == Tool::SurfaceRevolve, true);
-    s->Show(m_box_surf_loft,    t == Tool::SurfaceLoft,    true);
-    s->Show(m_box_surf_fill,    t == Tool::SurfaceFill,    true);
-    s->Show(m_box_surf_offset,  t == Tool::SurfaceOffset,  true);
-    s->Show(m_box_surf_thicken, t == Tool::ThickenSurface,  true);
-    s->Show(m_box_transform,    t == Tool::Transform,      true);
-    s->Show(m_box_mirror,       t == Tool::Mirror,         true);
-    s->Show(m_box_thicken,      t == Tool::Thicken,        true);
-    s->Show(m_box_rib,          t == Tool::Rib,            true);
-    s->Show(m_box_sheet,        t == Tool::Sheet,          true);
-    if (t == Tool::Sheet) apply_fold("sheet", false);   // Show(..., recursive) just showed every row, folded or not
-    s->Show(m_box_project,      t == Tool::Project,        true);
-    s->Show(m_box_delete_face,  t == Tool::DeleteFace,     true);
-    s->Show(m_box_helix,        t == Tool::Helix,          true);
-    s->Show(m_box_mate,         t == Tool::Mate,           true);
-    s->Show(m_box_insert,  t == Tool::Insert,  true);
-    s->Show(m_box_expr,   m_edit_index >= 0,  true);   // expression binding available during edit only
+    m_box_sketch->Show(t == Tool::Sketch);
+    m_box_extrude->Show(t == Tool::Extrude);
+    m_box_dressup->Show(t == Tool::Dressup);
+    m_box_hole->Show(t == Tool::Hole);
+    m_box_thread->Show(t == Tool::Thread);
+    m_box_shell->Show(t == Tool::Shell);
+    m_box_revolve->Show(t == Tool::Revolve);
+    m_box_sweep->Show(t == Tool::Sweep);
+    m_box_pattern->Show(t == Tool::Pattern);
+    m_box_plane->Show(t == Tool::Plane);
+    m_box_axis->Show(t == Tool::Axis);
+    m_box_coordsys->Show(t == Tool::CoordSys);
+    m_box_loft->Show(t == Tool::Loft);
+    m_box_boolean->Show(t == Tool::Boolean);
+    m_box_cut->Show(t == Tool::Cut);
+    m_box_draft->Show(t == Tool::Draft);
+    m_box_surf_extrude->Show(t == Tool::SurfaceExtrude);
+    m_box_surf_revolve->Show(t == Tool::SurfaceRevolve);
+    m_box_surf_loft->Show(t == Tool::SurfaceLoft);
+    m_box_surf_fill->Show(t == Tool::SurfaceFill);
+    m_box_surf_offset->Show(t == Tool::SurfaceOffset);
+    m_box_surf_thicken->Show(t == Tool::ThickenSurface);
+    m_box_transform->Show(t == Tool::Transform);
+    m_box_mirror->Show(t == Tool::Mirror);
+    m_box_thicken->Show(t == Tool::Thicken);
+    m_box_rib->Show(t == Tool::Rib);
+    m_box_sheet->Show(t == Tool::Sheet);
+    m_box_project->Show(t == Tool::Project);
+    m_box_delete_face->Show(t == Tool::DeleteFace);
+    m_box_helix->Show(t == Tool::Helix);
+    m_box_mate->Show(t == Tool::Mate);
+    m_box_insert->Show(t == Tool::Insert);
+    m_box_expr->Show(m_edit_index >= 0);   // expression binding available during edit only
 
     if (t == Tool::Mate) {
         // Populate both CoordSys pickers with every CoordSys feature; store the real
@@ -13136,40 +12830,39 @@ void DesignPanel::close_tool()
         m_xf_gizmo_body = -1;
     }
     if (m_viewport) { m_viewport->set_body_translucent(false); m_viewport->set_body_hidden(false); m_viewport->set_xray_focus(-1); }   // restore the opaque solid
-    wxSizer* s = m_cards->GetSizer();
-    s->Show(m_box_sketch,  false, true);
-    s->Show(m_box_extrude, false, true);
-    s->Show(m_box_dressup, false, true);
-    s->Show(m_box_hole,    false, true);
-    s->Show(m_box_thread,  false, true);
-    s->Show(m_box_shell,   false, true);
-    s->Show(m_box_revolve, false, true);
-    s->Show(m_box_sweep,   false, true);
-    s->Show(m_box_pattern, false, true);
-    s->Show(m_box_plane,   false, true);
-    s->Show(m_box_axis,   false, true);
-    s->Show(m_box_coordsys, false, true);
-    s->Show(m_box_loft,    false, true);
-    s->Show(m_box_boolean, false, true);
-    s->Show(m_box_cut,     false, true);
-    s->Show(m_box_draft,   false, true);
-    s->Show(m_box_surf_extrude, false, true);
-    s->Show(m_box_surf_revolve, false, true);
-    s->Show(m_box_surf_loft,    false, true);
-    s->Show(m_box_surf_fill,    false, true);
-    s->Show(m_box_surf_offset,  false, true);
-    s->Show(m_box_surf_thicken, false, true);
-    s->Show(m_box_transform,    false, true);
-    s->Show(m_box_mirror,       false, true);
-    s->Show(m_box_thicken,      false, true);
-    s->Show(m_box_rib,          false, true);
-    s->Show(m_box_sheet,        false, true);
-    s->Show(m_box_project,      false, true);
-    s->Show(m_box_delete_face,  false, true);
-    s->Show(m_box_helix,        false, true);
-    s->Show(m_box_mate,         false, true);
-    s->Show(m_box_insert,  false, true);
-    s->Show(m_box_expr,    false, true);
+    m_box_sketch->Show(false);
+    m_box_extrude->Show(false);
+    m_box_dressup->Show(false);
+    m_box_hole->Show(false);
+    m_box_thread->Show(false);
+    m_box_shell->Show(false);
+    m_box_revolve->Show(false);
+    m_box_sweep->Show(false);
+    m_box_pattern->Show(false);
+    m_box_plane->Show(false);
+    m_box_axis->Show(false);
+    m_box_coordsys->Show(false);
+    m_box_loft->Show(false);
+    m_box_boolean->Show(false);
+    m_box_cut->Show(false);
+    m_box_draft->Show(false);
+    m_box_surf_extrude->Show(false);
+    m_box_surf_revolve->Show(false);
+    m_box_surf_loft->Show(false);
+    m_box_surf_fill->Show(false);
+    m_box_surf_offset->Show(false);
+    m_box_surf_thicken->Show(false);
+    m_box_transform->Show(false);
+    m_box_mirror->Show(false);
+    m_box_thicken->Show(false);
+    m_box_rib->Show(false);
+    m_box_sheet->Show(false);
+    m_box_project->Show(false);
+    m_box_delete_face->Show(false);
+    m_box_helix->Show(false);
+    m_box_mate->Show(false);
+    m_box_insert->Show(false);
+    m_box_expr->Show(false);
     m_viewport->clear_preview();
     m_viewport->clear_extrude_gizmo();
     m_viewport->clear_fillet_gizmo();
@@ -13538,14 +13231,6 @@ void DesignPanel::refresh_variables()
         m_var_list->InsertItem(row, wxString::FromUTF8(name));
         m_var_list->SetItem(row, 1, wxString::FromUTF8(expr));
         ++row;
-    }
-    // Sized to its rows (2..8), scrolling past that: the fixed 64 px showed two rows of a long list.
-    wxRect r;
-    const int rh = (row > 0 && m_var_list->GetItemRect(0, r)) ? std::max(r.height, 16) : m_var_list->FromDIP(22);
-    const int h  = m_var_list->FromDIP(30) + std::clamp(row, 2, 8) * rh;
-    if (m_var_list->GetMinSize().y != h) {
-        m_var_list->SetMinSize(wxSize(-1, h));
-        if (m_form) { m_form->Layout(); m_form->FitInside(); }
     }
 }
 

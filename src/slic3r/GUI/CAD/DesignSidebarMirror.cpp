@@ -1,12 +1,10 @@
-// The Design tab's left panel drawn with ImGui.
+// The Design tab's left panel drawn with ImGui, straight from the card tables (DesignCardModel.hpp): each tool card, the feature
+// tree, the bodies and the variables is a CardModel (a title, header buttons and rows of label + field), the lists are
+// DesignRowLists, and the panel reads and writes the fields through the same small API the wx controls had. A change made in the
+// panel is queued as the event the field would have sent, so the handlers (preview, validation, undo) run on the next turn of the
+// event loop and not inside the ImGui frame.
 //
-// The panel's wx form stays alive, hidden, as the MODEL: every card, list and button it builds keeps its handlers, its
-// enable rules and its values. This file walks that form each frame and draws what is shown in it with ImGui; a click or an
-// edit changes the wx control and queues the very event the wx control would have sent, so the handlers (preview, validation,
-// undo) run exactly as they do from the wx panel, on the next turn of the event loop and not inside the ImGui frame.
-//
-// Controls it knows: labels, rules, icons, number spins, combos, check boxes, buttons, text fields, the row lists of the
-// feature tree and the bodies, and the variables table. Anything else is skipped (and named once in the log).
+// To add a control to a card: one line in the card's builder in DesignPanel.cpp. Nothing here has to know about it.
 
 #include "slic3r/GUI/CAD/DesignPanel.hpp"
 #include "slic3r/GUI/CAD/DesignCanvas.hpp"
@@ -132,139 +130,11 @@ bool text_field(const void* owner, const char* id, const std::string& shown, std
     return commit;
 }
 
-float text_w(const std::string& s) { return ImGui::CalcTextSize(s.c_str()).x; }
-
-// How wide an item will be drawn, for a row that right-aligns what follows a stretch spacer.
-float estimate_width(wxSizerItem* it, float em)
-{
-    if (it == nullptr || !it->IsShown()) return 0.f;
-    if (it->IsSpacer()) return it->GetSpacer().x > 0 ? float(it->GetSpacer().x) : 0.f;
-    if (it->IsSizer()) {
-        float w = 0.f;
-        wxSizer* s = it->GetSizer();
-        for (wxSizerItem* c : s->GetChildren()) w += estimate_width(c, em) + 4.f * em;
-        return w;
-    }
-    wxWindow* win = it->GetWindow();
-    if (win == nullptr || !win->IsShown()) return 0.f;
-    if (dynamic_cast<CheckBox*>(win)) return 24.f * em;
-    if (dynamic_cast<ScalableButton*>(win)) return 28.f * em;
-    if (auto* b = dynamic_cast<::Button*>(win)) return text_w(u8(b->GetLabel())) + 18.f * em;
-    if (auto* st = dynamic_cast<wxStaticText*>(win)) return text_w(u8(st->GetLabel()));
-    return 110.f * em;
-}
-
 } // namespace
 
 // ---- one control ---------------------------------------------------------------------------------------------------
 
 namespace {
-
-void draw_label(wxStaticText* st, DesignPanel& panel, SidebarCtx& cx, const std::vector<std::pair<const wxWindow*, std::string>>& folds)
-{
-    (void) panel; (void) cx; (void) folds;
-    const std::string t = u8(st->GetLabel());
-    if (t.empty()) return;
-    const wxColour c = st->GetForegroundColour();
-    const bool bold = st->GetFont().GetWeight() >= wxFONTWEIGHT_SEMIBOLD;
-    if (is_accent(c)) ImGui::PushStyleColor(ImGuiCol_Text, col_of(c));
-    else if (bold)    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
-    ImGui::TextWrapped("%s", t.c_str());
-    if (is_accent(c) || bold) ImGui::PopStyleColor();
-    tip_of(st);
-}
-
-void draw_spin(wxSpinCtrlDouble* sp, float em, float width)
-{
-    ImGui::PushID(sp);
-    const bool en = sp->IsEnabled();
-    if (!en) { ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); }
-    const double lo = sp->GetMin(), hi = sp->GetMax(), inc = sp->GetIncrement() > 0.0 ? sp->GetIncrement() : 1.0;
-    const int    digits = sp->GetDigits();
-    const double v = sp->GetValue();
-    const float  bw = ImGui::GetFrameHeight();
-    const float  total = width > 0.f ? width : ImGui::GetContentRegionAvail().x;
-    auto apply = [&](double nv) {
-        nv = std::clamp(nv, lo, hi);
-        if (std::abs(nv - v) < 1e-12) return;
-        sp->SetValue(nv);
-        wxSpinDoubleEvent e(wxEVT_SPINCTRLDOUBLE, sp->GetId());
-        e.SetValue(nv);
-        post(sp, e);
-    };
-    std::string typed;
-    if (text_field(sp, "##v", fmt_number(v, digits), typed, std::max(total - 2.f * bw - 2.f * ImGui::GetStyle().ItemSpacing.x, 40.f * em), ImGuiInputTextFlags_CharsDecimal)) {
-        char* end = nullptr;
-        const double nv = std::strtod(typed.c_str(), &end);
-        if (end != typed.c_str()) apply(nv);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("-", ImVec2(bw, 0.f))) apply(v - inc);
-    ImGui::SameLine(0.f, 2.f);
-    if (ImGui::Button("+", ImVec2(bw, 0.f))) apply(v + inc);
-    if (!en) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
-    ImGui::PopID();
-    tip_of(sp);
-}
-
-void draw_combo(ComboBox* cb, float width)
-{
-    ImGui::PushID(cb);
-    const bool en = cb->IsEnabled();
-    if (!en) { ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); }
-    const int n = int(cb->GetCount()), sel = cb->GetSelection();
-    const std::string preview = (sel >= 0 && sel < n) ? u8(cb->GetString(unsigned(sel))) : std::string();
-    ImGui::SetNextItemWidth(width > 0.f ? width : -1.f);
-    if (ImGui::BeginCombo("##c", preview.c_str())) {
-        for (int i = 0; i < n; ++i) {
-            const std::string s = u8(cb->GetString(unsigned(i)));
-            ImGui::PushID(i);
-            if (ImGui::Selectable(s.c_str(), i == sel) && i != sel) {
-                cb->SetSelection(i);
-                post_command(cb, wxEVT_COMBOBOX, i, cb->GetString(unsigned(i)));
-            }
-            ImGui::PopID();
-        }
-        ImGui::EndCombo();
-    }
-    if (!en) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
-    ImGui::PopID();
-    tip_of(cb);
-}
-
-void draw_check(CheckBox* cb)
-{
-    ImGui::PushID(cb);
-    const bool en = cb->IsEnabled();
-    if (!en) { ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); }
-    bool v = cb->GetValue();
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);   // an unchecked box has to be seen on the dark panel
-    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.55f, 0.56f, 0.60f, 1.f));
-    const bool toggled = ImGui::Checkbox("##k", &v);
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar();
-    if (toggled) {
-        cb->SetValue(v);
-        post_command(cb, wxEVT_TOGGLEBUTTON, v ? 1 : 0);
-    }
-    if (!en) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
-    ImGui::PopID();
-    tip_of(cb);
-}
-
-void draw_text_ctrl(wxTextCtrl* tc, float width)
-{
-    ImGui::PushID(tc);
-    const bool en = tc->IsEnabled() && tc->IsEditable();
-    if (!en) { ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); }
-    std::string typed;
-    if (text_field(tc, "##t", u8(tc->GetValue()), typed, width > 0.f ? width : -1.f, ImGuiInputTextFlags_None)) {
-        tc->ChangeValue(wxString::FromUTF8(typed));
-        post_command(tc, wxEVT_TEXT, 0, wxString::FromUTF8(typed));
-    }
-    if (!en) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
-    ImGui::PopID();
-}
 
 // ---- the card tables (DesignCardModel.hpp): the fields are drawn and set directly, with no wx control behind them ----------
 
@@ -338,6 +208,77 @@ void draw_toggle_field(ToggleField* cb)
     field_tip(cb);
 }
 
+void draw_list_field(ListField* l, float em)
+{
+    ImGui::PushID(l);
+    constexpr int kMaxRows = 8;   // the list scrolls past that
+    const int n = int(l->GetCount());
+    if (n == 0) {
+        ImGui::TextDisabled("%s", u8(l->empty_text()).c_str());
+        ImGui::PopID();
+        return;
+    }
+    const float h = float(std::min(n, kMaxRows)) * ImGui::GetFrameHeightWithSpacing() + 4.f * em;
+    if (ImGui::BeginChild("##rows", ImVec2(0.f, h), false)) {
+        const ImTextureID tex = (ImTextureID) design_icon_texture("design_delete");
+        const float isz = 14.f * em;
+        for (int i = 0; i < n; ++i) {
+            ImGui::PushID(i);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+            const bool del = tex ? ImGui::ImageButton(tex, ImVec2(isz, isz), ImVec2(0, 0), ImVec2(1, 1), 1) : ImGui::SmallButton("x");
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _u8L("Delete constraint").c_str());
+            if (del) l->user_delete(i);
+            ImGui::SameLine();
+            if (ImGui::Selectable(u8(l->GetString(unsigned(i))).c_str(), i == l->GetSelection())) l->user_click(i);
+            ImGui::PopID();
+        }
+    }
+    ImGui::EndChild();
+    ImGui::PopID();
+}
+
+void draw_edit_field(TextField* t, float width)
+{
+    ImGui::PushID(t);
+    DisabledScope dis(t->IsEnabled());
+    if (t->take_focus()) ImGui::SetKeyboardFocusHere();
+    char buf[256];
+    std::snprintf(buf, sizeof(buf), "%s", u8(t->GetValue()).c_str());
+    ImGui::SetNextItemWidth(width > 0.f ? width : -1.f);
+    const bool enter = ImGui::InputText("##e", buf, sizeof(buf), ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+    if (ImGui::IsItemActive()) wxGetApp().imgui()->set_requires_extra_frame();   // keep frames coming while a field is being typed in
+    const wxString nv = wxString::FromUTF8(buf);
+    if (nv != t->GetValue()) t->ChangeValue(nv);
+    if (enter) t->user_enter();
+    ImGui::PopID();
+}
+
+// A choice the user may also type in: the text, and an arrow that lists what is known.
+void draw_editable_choice(ChoiceField* cb, float width)
+{
+    ImGui::PushID(cb);
+    DisabledScope dis(cb->IsEnabled());
+    const float bw = ImGui::GetFrameHeight();
+    char buf[256];
+    std::snprintf(buf, sizeof(buf), "%s", u8(cb->GetValue()).c_str());
+    ImGui::SetNextItemWidth(std::max((width > 0.f ? width : ImGui::GetContentRegionAvail().x) - bw - ImGui::GetStyle().ItemSpacing.x, 40.f));
+    if (ImGui::InputText("##t", buf, sizeof(buf)))
+        cb->SetValue(wxString::FromUTF8(buf));
+    if (ImGui::IsItemActive()) wxGetApp().imgui()->set_requires_extra_frame();
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("##d", ImGuiDir_Down)) ImGui::OpenPopup("##list");
+    if (ImGui::BeginPopup("##list")) {
+        for (unsigned i = 0; i < cb->GetCount(); ++i) {
+            ImGui::PushID(int(i));
+            if (ImGui::Selectable(u8(cb->GetString(i)).c_str(), int(i) == cb->GetSelection())) cb->user_select(int(i));
+            ImGui::PopID();
+        }
+        ImGui::EndPopup();
+    }
+    ImGui::PopID();
+}
+
 void draw_button_field(ButtonField* b, float em)
 {
     (void) em;
@@ -378,38 +319,6 @@ void draw_card_text(CardText* t)
     if (accent) ImGui::PushStyleColor(ImGuiCol_Text, col_of(c));
     ImGui::TextWrapped("%s", u8(t->GetLabel()).c_str());
     if (accent) ImGui::PopStyleColor();
-}
-
-bool draw_button(wxWindow* w, float em)
-{
-    ImGui::PushID(w);
-    const bool en = w->IsEnabled();
-    if (!en) { ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); }
-    bool clicked = false;
-    if (auto* sb = dynamic_cast<ScalableButton*>(w)) {
-        const ImTextureID tex = (ImTextureID) design_icon_texture(sb->GetBmpName());
-        const float isz = 18.f * em;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
-        clicked = tex ? ImGui::ImageButton(tex, ImVec2(isz, isz)) : ImGui::Button(u8(sb->GetLabel()).empty() ? "?" : u8(sb->GetLabel()).c_str());
-        ImGui::PopStyleColor();
-    } else {
-        const std::string label = u8(w->GetLabel());
-        const auto* ob = dynamic_cast<::Button*>(w);
-        const ImTextureID tex = (ob != nullptr && label.empty() && !ob->GetIconName().empty()) ? (ImTextureID) design_icon_texture(ob->GetIconName()) : nullptr;
-        if (tex) {   // an icon-only button of the panel's headers
-            const float isz = 18.f * em;
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
-            clicked = ImGui::ImageButton(tex, ImVec2(isz, isz));
-            ImGui::PopStyleColor();
-        } else {
-            clicked = ImGui::Button((label.empty() ? std::string("?") : label).c_str());
-        }
-    }
-    if (!en) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
-    ImGui::PopID();
-    tip_of(w);
-    if (clicked && en) post_command(w, wxEVT_BUTTON);
-    return clicked && en;
 }
 
 // The rows of a DesignRowList (the feature tree, the Origin / Bed rows, the bodies): the owner's own callbacks do the work.
@@ -503,30 +412,29 @@ void draw_rows(DesignRowList* list, float em, SidebarCtx& cx)
 }
 
 // The variables table (name, expression); a double click edits through the panel's own dialog.
-void draw_variables(wxListCtrl* lc, std::function<void()> edit, float em, std::function<void()> refocus)
+void draw_table_field(TableField* t, float em, std::function<void()> refocus)
 {
     (void) em;
-    ImGui::PushID(lc);
-    const int n = lc->GetItemCount();
-    const long sel = lc->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if (ImGui::BeginTable("##vars", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
-        ImGui::TableSetupColumn(_u8L("Name").c_str(), ImGuiTableColumnFlags_WidthStretch, 0.4f);
-        ImGui::TableSetupColumn(_u8L("Expression").c_str(), ImGuiTableColumnFlags_WidthStretch, 0.6f);
+    ImGui::PushID(t);
+    const int n = t->GetItemCount();
+    const int sel = t->GetSelection();
+    const int cols = int(t->columns().size());
+    if (cols > 0 && ImGui::BeginTable("##vars", cols, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+        for (int c = 0; c < cols; ++c)
+            ImGui::TableSetupColumn(u8(t->columns()[size_t(c)]).c_str(), ImGuiTableColumnFlags_WidthStretch, c == 0 ? 0.4f : 0.6f);
         ImGui::TableHeadersRow();
         for (int i = 0; i < n; ++i) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             ImGui::PushID(i);
-            const bool dbl_before = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
-            if (ImGui::Selectable(u8(lc->GetItemText(i, 0)).c_str(), i == sel, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
-                lc->CallAfter([lc, i, dbl_before, edit, refocus] {
-                    lc->SetItemState(i, wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED, wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED);
-                    if (dbl_before && edit) edit();
-                    if (refocus) refocus();
-                });
+            if (ImGui::Selectable(u8(t->GetItemText(i, 0)).c_str(), i == sel, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
+                t->user_select(i, ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left));
+                if (refocus) t->CallAfter(refocus);
             }
-            ImGui::TableSetColumnIndex(1);
-            ImGui::TextUnformatted(u8(lc->GetItemText(i, 1)).c_str());
+            for (int c = 1; c < cols; ++c) {
+                ImGui::TableSetColumnIndex(c);
+                ImGui::TextUnformatted(u8(t->GetItemText(i, c)).c_str());
+            }
             ImGui::PopID();
         }
         ImGui::EndTable();
@@ -542,50 +450,21 @@ namespace {
 std::set<std::string>& warned() { static std::set<std::string> s; return s; }
 }
 
-void DesignPanel::mirror_window(wxWindow* w, SidebarCtx& cx, float width)
-{
-    if (w == nullptr || !w->IsShown()) return;
-    const float em = cx.em;
-    ImGui::PushID(w);
-    if (auto* rl = dynamic_cast<DesignRowList*>(w))          draw_rows(rl, em, cx);
-    else if (auto* lc = dynamic_cast<wxListCtrl*>(w))        draw_variables(lc, [this] { on_edit_variable(); }, em, cx.refocus);
-    else if (auto* sp = dynamic_cast<wxSpinCtrlDouble*>(w))  draw_spin(sp, em, width);
-    else if (auto* cb = dynamic_cast<ComboBox*>(w))          draw_combo(cb, width);
-    else if (auto* ck = dynamic_cast<CheckBox*>(w))          draw_check(ck);
-    else if (dynamic_cast<ScalableButton*>(w) || dynamic_cast<::Button*>(w) || dynamic_cast<wxButton*>(w)) draw_button(w, em);
-    else if (auto* tc = dynamic_cast<wxTextCtrl*>(w))        draw_text_ctrl(tc, width);
-    else if (auto* st = dynamic_cast<wxStaticText*>(w)) {
-        bool chevron = false;
-        for (FoldSection& f : m_folds)
-            if (f.chevron == st) {   // the fold arrow of a card header
-                chevron = true;
-                const std::string key = f.key;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
-                if (ImGui::ArrowButtonEx("##fold", f.collapsed ? ImGuiDir_Right : ImGuiDir_Down, ImVec2(ImGui::GetFrameHeight() * 0.8f, ImGui::GetFrameHeight() * 0.8f)))
-                    CallAfter([this, key] { toggle_fold(key); });
-                ImGui::PopStyleColor();
-                break;
-            }
-        if (!chevron) draw_label(st, *this, cx, {});
-    }
-    else if (auto* bm = dynamic_cast<wxStaticBitmap*>(w)) {
-        const auto it = m_ctl_icon.find(bm);
-        if (it != m_ctl_icon.end())
-            if (const ImTextureID tex = (ImTextureID) design_icon_texture(it->second)) ImGui::Image(tex, ImVec2(18.f * em, 18.f * em));
-    }
-    else if (dynamic_cast<wxStaticLine*>(w)) ImGui::Separator();
-    else if (wxSizer* s = w->GetSizer()) {   // a card or a panel: its own layout
-        if (cx.depth < 24) { ++cx.depth; mirror_sizer(s, cx); --cx.depth; }
-    }
-    else if (warned().insert(typeid(*w).name()).second)
-        BOOST_LOG_TRIVIAL(info) << "Design sidebar: no ImGui view for " << typeid(*w).name();
-    ImGui::PopID();
-}
-
 // One card of the tables: its header, then a label and its field per row (the same 42 % / 58 % split the wx forms had).
 void DesignPanel::mirror_card(CardModel& card, SidebarCtx& cx)
 {
     const float em = cx.em;
+    const bool folded = !card.fold_key().empty() && is_folded(card.fold_key().c_str());
+    if (!card.fold_key().empty()) {
+        const std::string key = card.fold_key();
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+        ImGui::PushID(key.c_str());
+        if (ImGui::ArrowButtonEx("##fold", folded ? ImGuiDir_Right : ImGuiDir_Down, ImVec2(ImGui::GetFrameHeight() * 0.8f, ImGui::GetFrameHeight() * 0.8f)))
+            CallAfter([this, key] { toggle_fold(key); });
+        ImGui::PopID();
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+    }
     if (const ImTextureID tex = (ImTextureID) design_icon_texture(card.icon())) {
         ImGui::Image(tex, ImVec2(18.f * em, 18.f * em));
         ImGui::SameLine();
@@ -593,13 +472,34 @@ void DesignPanel::mirror_card(CardModel& card, SidebarCtx& cx)
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
     ImGui::TextUnformatted(u8(card.title()->GetLabel()).c_str());
     ImGui::PopStyleColor();
+    if (!card.header_buttons().empty()) {   // icon buttons at the right end of the header
+        const float isz = 16.f * em, cell_w = isz + 8.f * em;
+        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - cell_w * float(card.header_buttons().size()));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+        for (size_t i = 0; i < card.header_buttons().size(); ++i) {
+            const CardModel::HeaderButton& hb = card.header_buttons()[i];
+            ImGui::PushID(int(i));
+            if (i > 0) ImGui::SameLine(0.f, 0.f);
+            const ImTextureID tex = (ImTextureID) design_icon_texture(hb.icon);
+            const bool clicked = tex ? ImGui::ImageButton(tex, ImVec2(isz, isz)) : ImGui::Button("?");
+            if (ImGui::IsItemHovered() && !hb.tip.IsEmpty()) ImGui::SetTooltip("%s", u8(hb.tip).c_str());
+            if (clicked) CallAfter(hb.fn);
+            ImGui::PopID();
+        }
+        ImGui::PopStyleColor();
+    }
     ImGui::Separator();
+    if (folded) return;
     const float lw = ImGui::GetContentRegionAvail().x * 0.42f;
     auto cell = [&](CardField* f) {
         const float w = std::max(ImGui::GetContentRegionAvail().x, 60.f * em);
         switch (f->kind()) {
         case CardField::Kind::Num:      draw_num_field(static_cast<NumField*>(f), em, w);       break;
-        case CardField::Kind::Choice:   draw_choice_field(static_cast<ChoiceField*>(f), w);     break;
+        case CardField::Kind::Choice:   if (static_cast<ChoiceField*>(f)->IsEditable()) draw_editable_choice(static_cast<ChoiceField*>(f), w); else draw_choice_field(static_cast<ChoiceField*>(f), w); break;
+        case CardField::Kind::Edit:     draw_edit_field(static_cast<TextField*>(f), w);          break;
+        case CardField::Kind::List:     draw_list_field(static_cast<ListField*>(f), em);         break;
+        case CardField::Kind::Rows:     draw_rows(static_cast<RowsField*>(f)->list(), em, cx);   break;
+        case CardField::Kind::Table:    draw_table_field(static_cast<TableField*>(f), em, cx.refocus); break;
         case CardField::Kind::Toggle:   draw_toggle_field(static_cast<ToggleField*>(f));        break;
         case CardField::Kind::Button:   draw_button_field(static_cast<ButtonField*>(f), em);    break;
         case CardField::Kind::CheckList: draw_check_list(static_cast<CheckListField*>(f), em);  break;
@@ -614,6 +514,10 @@ void DesignPanel::mirror_card(CardModel& card, SidebarCtx& cx)
             draw_card_text(static_cast<CardText*>(f));
         } else if (row.kind == CardRow::Kind::Wide) {
             cell(f);
+        } else if (row.kind == CardRow::Kind::Buttons) {
+            draw_button_field(static_cast<ButtonField*>(f), em);
+            ImGui::SameLine();
+            draw_button_field(static_cast<ButtonField*>(row.field2), em);
         } else if (row.kind == CardRow::Kind::Pick) {
             draw_button_field(static_cast<ButtonField*>(f), em);
             ImGui::SameLine(lw + ImGui::GetStyle().WindowPadding.x);
@@ -632,83 +536,8 @@ void DesignPanel::mirror_card(CardModel& card, SidebarCtx& cx)
     }
 }
 
-void DesignPanel::mirror_item(wxSizerItem* it, SidebarCtx& cx, float width)
-{
-    if (it == nullptr || !it->IsShown()) return;
-    if (it->IsSizer()) {
-        const auto cm = m_card_models.find(it->GetSizer());
-        if (cm != m_card_models.end()) mirror_card(*cm->second, cx);
-        else                           mirror_sizer(it->GetSizer(), cx);
-    }
-    else if (it->IsWindow())  { mirror_window(it->GetWindow(), cx, width); }
-    else if (it->IsSpacer())  { const wxSize sz = it->GetSpacer(); if (sz.y > 0) ImGui::Dummy(ImVec2(1.f, std::min(float(sz.y), 12.f))); }
-}
-
-void DesignPanel::mirror_sizer(wxSizer* s, SidebarCtx& cx)
-{
-    if (s == nullptr) return;
-    const float em = cx.em;
-    std::vector<wxSizerItem*> items;
-    for (wxSizerItem* c : s->GetChildren()) items.push_back(c);
-    if (auto* grid = dynamic_cast<wxGridSizer*>(s)) {   // the two-column forms: a label, then its control
-        const int cols = std::max(1, grid->GetEffectiveColsCount());
-        const float avail = ImGui::GetContentRegionAvail().x;
-        const float lw = avail * 0.42f;
-        int k = 0;
-        for (wxSizerItem* it : items) {
-            if (it == nullptr) continue;
-            const bool shown = it->IsShown();
-            if (cols == 2) {
-                if (k % 2 == 0) {   // label cell
-                    if (shown) {
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + lw - 6.f * em);
-                        mirror_item(it, cx, 0.f);
-                        ImGui::PopTextWrapPos();
-                    }
-                } else if (shown) {
-                    ImGui::SameLine(lw + ImGui::GetStyle().WindowPadding.x);
-                    mirror_item(it, cx, std::max(ImGui::GetContentRegionAvail().x, 60.f * em));
-                }
-            } else if (shown) {
-                mirror_item(it, cx, 0.f);
-            }
-            ++k;
-        }
-        return;
-    }
-    const auto* box = dynamic_cast<wxBoxSizer*>(s);
-    if (box != nullptr && box->GetOrientation() == wxHORIZONTAL) {   // a row: items side by side, what follows a stretch spacer at the right end
-        bool first = true, placed = false;   // placed: the next item already has its x (after a stretch), so no SameLine
-        for (size_t i = 0; i < items.size(); ++i) {
-            wxSizerItem* it = items[i];
-            if (it == nullptr || !it->IsShown()) continue;
-            if (it->IsSpacer()) {
-                if (it->GetProportion() > 0) {   // stretch: align the rest to the right
-                    float rest = 0.f;
-                    for (size_t j = i + 1; j < items.size(); ++j) rest += estimate_width(items[j], em) + 4.f * em;
-                    const float x = ImGui::GetWindowContentRegionMax().x - rest;
-                    if (!first && x > ImGui::GetCursorPosX()) { ImGui::SameLine(x); placed = true; }
-                    else if (first) { ImGui::SetCursorPosX(std::max(x, ImGui::GetCursorPosX())); first = false; placed = true; }
-                } else if (it->GetSpacer().x > 0 && !first) {
-                    ImGui::SameLine(0.f, float(it->GetSpacer().x));
-                    placed = true;
-                }
-                continue;
-            }
-            if (!first && !placed) ImGui::SameLine();
-            first = false;
-            placed = false;
-            mirror_item(it, cx, 0.f);
-        }
-        return;
-    }
-    for (wxSizerItem* it : items) mirror_item(it, cx, 0.f);   // a column
-}
-
 void DesignPanel::draw_sidebar_imgui()
 {
-    if (m_form == nullptr || m_form->GetSizer() == nullptr) return;
     SidebarCtx cx;
     cx.em = wxGetApp().imgui()->get_style_scaling();
     cx.refocus      = [this] { if (m_viewport != nullptr) m_viewport->SetFocus(); };
@@ -731,12 +560,17 @@ void DesignPanel::draw_sidebar_imgui()
         CallAfter([this] { collapse_sidebar(true); });
     ImGui::PopStyleColor();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _u8L("Collapse sidebar").c_str());
-    // the root of the form: its cards one under the other
-    for (wxSizerItem* it : m_form->GetSizer()->GetChildren()) {
-        if (it == nullptr || !it->IsShown()) continue;
-        mirror_item(it, cx, 0.f);
-        ImGui::Spacing();
-    }
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+    ImGui::TextUnformatted(_u8L("Design").c_str());
+    ImGui::PopStyleColor();
+    ImGui::Spacing();
+    // the tool cards (one is open at a time), then the tree, the bodies and the variables
+    for (const auto& c : m_card_models)
+        if (c->IsShown()) { mirror_card(*c, cx); ImGui::Spacing(); }
+    for (CardModel* c : { m_tree_box, m_parts_box, m_var_box })
+        if (c != nullptr && c->IsShown()) { mirror_card(*c, cx); ImGui::Spacing(); }
+    if (m_dof_status != nullptr && m_dof_status->IsShown() && !m_dof_status->GetLabel().IsEmpty())
+        draw_card_text(m_dof_status);
 }
 
 }} // namespace Slic3r::GUI
