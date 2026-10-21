@@ -61,7 +61,10 @@ private:
     SearchableDropDownList* search_list = nullptr;
     Label*             search_empty = nullptr;
     bool               search_enabled = false;
+    bool               flat_mode = false; // the filtered list is showing instead of stock rows
+    int                top_inset = 0;     // search header height; stock rows scroll below it
     void filterSearch();
+    void showFlat(bool flat);
     void acceptSearch();
     void searchKeyDown(wxKeyEvent& event);
 
