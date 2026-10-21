@@ -392,9 +392,9 @@ static t_config_enum_values s_keys_map_AdaptiveInfillGradient{
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AdaptiveInfillGradient)
 
 static t_config_enum_values s_keys_map_InfillSmoothCurve{
-    { "g1", int(InfillSmoothCurve::Arc) },
-    { "g2", int(InfillSmoothCurve::Quintic) },
-    { "g3", int(InfillSmoothCurve::Septic) },
+    { "tangent_arc", int(InfillSmoothCurve::Arc) },
+    { "continuous_curvature", int(InfillSmoothCurve::Quintic) },
+    { "smooth_curvature", int(InfillSmoothCurve::Septic) },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillSmoothCurve)
 
@@ -3828,17 +3828,17 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Sparse infill smooth curve");
     def->category = L("Strength");
     def->tooltip = L("The curve that rounds the sparse infill corners, named by how smoothly it joins the straight lines.\n"
-                     "G1: a circular arc, whose curvature starts at once at both ends. It takes the fewest moves, for a smaller "
-                     "G-code file but a slower infill.\n"
-                     "G2: the curvature grows from zero, so the toolhead eases into the turn.\n"
-                     "G3: the rate of the curvature also starts from zero. The smoothest.");
+                     "Tangent arc: a circular arc, whose curvature starts at once at both ends. It takes the fewest moves, "
+                     "for a smaller G-code file but a slower infill.\n"
+                     "Continuous curvature: the curvature grows from zero, so the toolhead eases into the turn.\n"
+                     "Smooth curvature: the rate of the curvature also starts from zero. The smoothest.");
     def->enum_keys_map = &ConfigOptionEnum<InfillSmoothCurve>::get_enum_values();
-    def->enum_values.push_back("g1");
-    def->enum_values.push_back("g2");
-    def->enum_values.push_back("g3");
-    def->enum_labels.push_back(L("G1 (arc)"));
-    def->enum_labels.push_back(L("G2 (quintic)"));
-    def->enum_labels.push_back(L("G3 (septic)"));
+    def->enum_values.push_back("tangent_arc");
+    def->enum_values.push_back("continuous_curvature");
+    def->enum_values.push_back("smooth_curvature");
+    def->enum_labels.push_back(L("Tangent arc"));
+    def->enum_labels.push_back(L("Continuous curvature"));
+    def->enum_labels.push_back(L("Smooth curvature"));
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionEnum<InfillSmoothCurve>(InfillSmoothCurve::Quintic));
 

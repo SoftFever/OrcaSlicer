@@ -21,12 +21,16 @@ Each corner is replaced by a curve that runs from `reach` before it along the
 incoming leg to `reach` after it along the outgoing one, `reach` being the factor
 times half of the shorter leg, so the curves of two corners never overlap.
 
-- G1 is the circular arc tangent to both legs. It has the lowest peak curvature
-  for a reach, but its curvature jumps from zero at both legs.
-- G2 is a quintic Bézier curve whose first three control points on each leg are
-  equally spaced, which makes its curvature zero at the legs.
-- G3 is a septic Bézier curve with four control points on each leg, which also
-  makes the rate of its curvature zero there.
+- Tangent arc is the circular arc tangent to both legs, a G1 join. It has the
+  lowest peak curvature for a reach, but its curvature jumps from zero at both legs.
+- Continuous curvature is a quintic Bézier curve whose first three control points
+  on each leg are equally spaced, which makes its curvature zero at the legs, a
+  G2 join.
+- Smooth curvature is a septic Bézier curve with four control points on each leg,
+  which also makes the rate of its curvature zero there, a G3 join.
+
+The choices are named for what they do rather than their continuity class, as G1,
+G2 and G3 are also the G-code moves.
 
 The control points are 0.3 (quintic) and 0.2 (septic) of the reach apart. Tuning
 the spacing to the turn angle lowers the peak curvature of sharp turns but made

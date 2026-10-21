@@ -160,11 +160,11 @@ TEST_CASE("Smoothed Hilbert corners turn by the same angle at every vertex", "[F
     }
 }
 
-TEST_CASE("Hilbert smoothing eases into the turn with the G2 and G3 curves", "[FillPlanePath]")
+TEST_CASE("Hilbert smoothing eases into the turn with the continuous and smooth curvature curves", "[FillPlanePath]")
 {
     // Every vertex turns by the same angle, so the edges are as long as the curve is gentle: the arc keeps a
-    // constant curvature, G2 starts it from zero at the legs, and G3 also starts its rate from zero, so its
-    // edges shorten even faster away from the legs.
+    // constant curvature, continuous curvature starts it from zero at the legs, and smooth curvature also starts
+    // its rate from zero, so its edges shorten even faster away from the legs.
     auto first_to_second = [](InfillSmoothCurve curve) {
         const std::vector<double> edges = first_corner_edges(TestableHilbertCurve().generate_points(0.0002, 1., 1, curve));
         REQUIRE(edges.size() >= 16);
