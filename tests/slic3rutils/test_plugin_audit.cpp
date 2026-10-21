@@ -1,22 +1,48 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/system/error_code.hpp>
 #include <catch2/catch_all.hpp>
 
 #include <libslic3r/Utils.hpp>
 #include <libslic3r/libslic3r.h>         // GCODEVIEWER_APP_KEY, SLIC3R_APP_KEY (via libslic3r_version.h)
 #include <slic3r/plugin/PluginAuditManager.hpp>
+#include <slic3r/plugin/PluginFsUtils.hpp>
+#include <slic3r/plugin/PluginManager.hpp>
+#include <slic3r/plugin/PythonInterpreter.hpp>
+#include <slic3r/plugin/PythonPluginBridge.hpp>
+#include <slic3r/plugin/PythonPluginInterface.hpp>
+#include <slic3r/Utils/IPrinterAgent.hpp>
 #include <slic3r/Utils/OrcaCloudServiceAgent.hpp> // secret_constants::USER_SECRET_FILENAME
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include "libslic3r_version.h"
 #include "plugin_test_utils.hpp"
+#include "test_utils.hpp"
 
 #include <boost/filesystem.hpp>
+#include <nlohmann/json.hpp>
+#include <pybind11/cast.h>
+#include <pybind11/embed.h>
+#include <pybind11/eval.h>
+#include <pybind11/gil.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
+#include <pybind11/stl.h>
 
+#include <fstream>
+#include <functional>
+#include <ios>
+#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 using namespace Slic3r;
 namespace fs = boost::filesystem;
+namespace py = pybind11;
 
 namespace {
 
@@ -43,7 +69,7 @@ void seed_denied_keywords()
 
 } // namespace
 
-TEST_CASE("Plugin audit denies app config and token filenames anywhere", "[audit]")
+TEST_CASE("Plugin audit denies host-managed filenames anywhere", "[audit]")
 {
     seed_denied_names();
     const PluginAuditManager& mgr = PluginAuditManager::instance();
@@ -55,6 +81,7 @@ TEST_CASE("Plugin audit denies app config and token filenames anywhere", "[audit
         CHECK(mgr.is_denied_filename(fs::path(SLIC3R_APP_KEY ".ini")));
         CHECK(mgr.is_denied_filename(fs::path(GCODEVIEWER_APP_KEY ".ini")));
         CHECK(mgr.is_denied_filename(fs::path(secret_constants::USER_SECRET_FILENAME)));
+        CHECK(mgr.is_denied_filename(fs::path(".install_state.json")));
     }
 
     SECTION("companions holding the same secrets are denied by the prefix rule")
@@ -110,6 +137,7 @@ TEST_CASE("Plugin audit deny beats allowed roots", "[audit]")
 
     const fs::path conf  = fs::path(data_dir()) / (SLIC3R_APP_KEY ".conf");
     const fs::path token = fs::path(data_dir()) / secret_constants::USER_SECRET_FILENAME;
+    const fs::path install_state = fs::path(data_dir()) / "plugins" / "example" / ".install_state.json";
 
     SECTION("a non-denied file inside the allowed root is writable (root really grants writes)")
     {
@@ -148,6 +176,17 @@ TEST_CASE("Plugin audit deny beats allowed roots", "[audit]")
     {
         AuditDecision decision = mgr.check_open((token.string() + ".tmp"), "w");
         CHECK_FALSE(decision.allowed);
+    }
+
+    SECTION("plugin install state is blocked for reads and writes despite the allowed root")
+    {
+        AuditDecision read_decision = mgr.check_open(install_state.string(), "r");
+        CHECK_FALSE(read_decision.allowed);
+        CHECK(read_decision.reason == "denied filename");
+
+        AuditDecision write_decision = mgr.check_open(install_state.string(), "w");
+        CHECK_FALSE(write_decision.allowed);
+        CHECK(write_decision.reason == "denied filename");
     }
 
     SECTION("a traversal path resolving to the config is blocked")
@@ -262,6 +301,67 @@ TEST_CASE("Plugin audit denies secret/certificate/config-like paths by keyword",
     }
 }
 
+TEST_CASE("Plugin audit checks denied keywords below data_dir, not in the directories above it", "[PluginAudit]")
+{
+    // Flatpak keeps the app's data folder under <home>/.var/app/<app-id>/config/OrcaSlicer, so
+    // data_dir() itself has a "config" component. That ancestor describes the sandbox's layout,
+    // not what the folder holds, and must not hard-deny every path inside it.
+    ScopedDataDir data_dir_guard("plugin-audit-data-dir-keyword");
+    const fs::path flatpak_data_dir = data_dir_guard.dir / "config" / "OrcaSlicer";
+    set_data_dir(flatpak_data_dir.string());
+
+    seed_denied_names();
+    seed_denied_keywords();
+
+    PluginAuditManager& mgr = PluginAuditManager::instance();
+    // Reproduce install_hook()'s grant: data_dir() is a global allowed root.
+    mgr.add_global_allowed_root(data_dir());
+
+    ScopedPluginAuditContext ctx("test_plugin", "");
+
+    SECTION("the root and the paths below it that carry no keyword are allowed")
+    {
+        CHECK_FALSE(mgr.is_denied_path_keyword(flatpak_data_dir / "orca_plugins" / "state.json"));
+        CHECK(mgr.check_open(data_dir(), "r").allowed);
+        CHECK(mgr.check_open((flatpak_data_dir / "orca_plugins" / "test_plugin" / "state.json").string(), "r").allowed);
+        CHECK(mgr.check_open((flatpak_data_dir / "orca_plugins" / "test_plugin" / "state.json").string(), "w").allowed);
+        CHECK(mgr.check_open((flatpak_data_dir / "system" / "profiles" / "vendor.json").string(), "r").allowed);
+    }
+
+    SECTION("a 'secrets' component below data_dir() is still denied")
+    {
+        AuditDecision decision = mgr.check_open((flatpak_data_dir / "secrets" / "token.json").string(), "r");
+        CHECK_FALSE(decision.allowed);
+        CHECK(decision.reason == "denied path keyword");
+    }
+
+    SECTION("a 'config' component below data_dir() is still denied")
+    {
+        AuditDecision decision = mgr.check_open((flatpak_data_dir / "config" / "settings.json").string(), "r");
+        CHECK_FALSE(decision.allowed);
+        CHECK(decision.reason == "denied path keyword");
+    }
+
+    SECTION("the app config below data_dir() is still denied by name")
+    {
+        AuditDecision decision = mgr.check_open((flatpak_data_dir / (SLIC3R_APP_KEY ".conf")).string(), "r");
+        CHECK_FALSE(decision.allowed);
+        CHECK(decision.reason == "denied filename");
+    }
+
+    SECTION("an unrelated resources root keeps the full-path keyword check")
+    {
+        ScopedResourcesDir resources_dir_guard("plugin-audit-data-dir-keyword-resources");
+        mgr.add_global_allowed_root(resources_dir(), /*allow_write=*/false);
+
+        CHECK(mgr.check_open((fs::path(resources_dir()) / "profiles" / "vendor.json").string(), "r").allowed);
+
+        AuditDecision decision = mgr.check_open((fs::path(resources_dir()) / "cert" / "slicer_base64.cer").string(), "r");
+        CHECK_FALSE(decision.allowed);
+        CHECK(decision.reason == "denied path keyword");
+    }
+}
+
 TEST_CASE("Plugin audit is_denied_path combines the filename and keyword registries", "[audit]")
 {
     seed_denied_names();
@@ -348,4 +448,782 @@ TEST_CASE("Plugin audit a scoped root can also be registered read-only", "[audit
     {
         CHECK_FALSE(mgr.check_open((readonly_dir / "vendor.json").string(), "w").allowed);
     }
+}
+
+// ---------------------------------------------------------------------------
+// The audit hook, run in the embedded interpreter
+// ---------------------------------------------------------------------------
+//
+// Each TEST_CASE runs in its own process (catch_discover_tests), so each brings the plugin system
+// up with the audit hook installed, once, and shuts it down at the end. The tests loop over their
+// cases instead of using SECTIONs, which would restart the interpreter for every section.
+
+namespace {
+
+// Discovered, never loaded: the hook only needs the plugin's root and its sidecar.
+const char* const AUDIT_PLUGIN_SOURCE = R"PY(# /// script
+# requires-python = ">=3.12"
+#
+# [tool.orcaslicer.plugin]
+# name = "Audit Plugin"
+# description = "Plugin audit hook fixture"
+# author = "OrcaSlicer"
+# version = "1.0"
+# type = "script"
+# ///
+)PY";
+
+// A third-party library, installed outside the stdlib and outside the plugin.
+const char* const LIBRARY_SOURCE = R"PY(
+import socket
+import urllib.request
+
+def read_all(paths):
+    for path in paths:
+        with open(path) as f:
+            f.read()
+
+def connect_from_host(port):
+    socket.gethostname()
+    socket.create_connection(("127.0.0.1", port)).close()
+
+def fetch(url):
+    with urllib.request.urlopen(url) as response:
+        return response.read()
+
+def fetch_each(urls):
+    for url in urls:
+        yield fetch(url)
+
+class ReadingHandler(urllib.request.BaseHandler):
+    """Reads a file while each response is processed."""
+    def __init__(self, path):
+        self.path = path
+        self.outcome = None
+
+    def http_response(self, request, response):
+        try:
+            open(self.path).close()
+            self.outcome = "ok"
+        except PermissionError:
+            self.outcome = "denied"
+        return response
+)PY";
+
+// Test-side Python, run outside any plugin context: files outside every allowed root, a local
+// HTTP server, the library, and every module the tests use imported up front, so that no import
+// happens inside a plugin context. Code from exec() runs as "<string>", which is not stdlib, so
+// attempt() and fetch() stand in for plugin code.
+const char* const AUDIT_SETUP = R"PY(
+import http.client, http.server, os, pathlib, shutil, socket, subprocess, sys, tempfile, threading
+import urllib.request, zipfile
+if os.name != "nt":
+    import pty
+
+APPROVED = os.path.join(OUTSIDE, "approved.txt")
+PRIVATE = os.path.join(OUTSIDE, "private.txt")
+MISSING = os.path.join(OUTSIDE, "missing")
+TREE = os.path.join(OUTSIDE, "tree")
+TRUE_COMMAND = ["cmd", "/c", "exit 0"] if os.name == "nt" else ["true"]
+for path in (APPROVED, PRIVATE):
+    with open(path, "w") as f:
+        f.write("x")
+for sub in ("one", "two"):
+    os.makedirs(os.path.join(TREE, sub))
+    with open(os.path.join(TREE, sub, "f.txt"), "w") as f:
+        f.write("x")
+
+LIBRARY = os.path.join(OUTSIDE, "library")
+os.makedirs(LIBRARY)
+with open(os.path.join(LIBRARY, "netlib.py"), "w") as f:
+    f.write(LIBRARY_SOURCE)
+sys.path.insert(0, LIBRARY)
+import netlib
+
+class Handler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/redirect":
+            self.send_response(302)
+            self.send_header("Location", URL_B)
+            body = b""
+        else:
+            self.send_response(200)
+            body = b"ok"
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *args):
+        pass
+
+server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+threading.Thread(target=server.serve_forever, daemon=True).start()
+PORT = server.server_address[1]
+BASE = "http://127.0.0.1:%d" % PORT
+URL_A, URL_B, URL_REDIRECT = BASE + "/a", BASE + "/b", BASE + "/redirect"
+urllib.request.install_opener(urllib.request.build_opener(urllib.request.ProxyHandler({})))
+
+def fetch(url):
+    with urllib.request.urlopen(url) as response:
+        return response.read()
+
+fetch(URL_A)  # urllib imports some modules on its first request
+
+def attempt(action):
+    try:
+        action()
+        return "ok"
+    except PermissionError:
+        return "denied"
+
+def spawn_checked(argv):
+    parent = os.getpid()
+    try:
+        return pty.spawn(argv)
+    finally:
+        if os.getpid() != parent:
+            os._exit(1)  # a child whose exec was refused must not go on running the tests
+
+finalizer_outcomes = []
+
+class TrackedRequest(urllib.request.Request):
+    def __del__(self):
+        finalizer_outcomes.append(attempt(lambda: open(PRIVATE).close()))
+)PY";
+
+struct Prompt
+{
+    std::string              plugin;
+    std::string              event;
+    std::vector<std::string> targets;
+};
+
+// One line per prompt, "event: target ...", so a failed check shows every prompt.
+std::string describe(const std::vector<Prompt>& prompts)
+{
+    std::string text;
+    for (const Prompt& prompt : prompts) {
+        text += prompt.event + ":";
+        for (const std::string& target : prompt.targets)
+            text += " " + target;
+        text += "\n";
+    }
+    return text;
+}
+
+// The plugin system with the audit hook installed, and the permission dialog replaced by a
+// recorder that answers with `approve`. Declare it first in a test, so it is destroyed last.
+struct AuditHarness
+{
+    // Before initialize(): the interpreter creates {data_dir}/python/packages and {data_dir}/log.
+    // data_dir() is a global allowed root from then on, so the test files live in `outside`.
+    ScopedDataDir                      data{"plugin-audit-hook"};
+    bool                               initialized = PluginManager::instance().initialize();
+    ScopedTemporaryDir                 outside{"orca-plugin-audit-outside"};
+    std::vector<Prompt>                prompts;
+    std::function<bool(const Prompt&)> approve = [](const Prompt&) { return false; };
+
+    AuditHarness()
+    {
+        PluginAuditManager::set_permission_prompt_for_testing(
+            [this](const std::string& event, const std::vector<std::string>& targets) {
+                prompts.push_back({PluginAuditManager::instance().current_plugin(), event, targets});
+                return approve(prompts.back());
+            });
+    }
+
+    ~AuditHarness()
+    {
+        PluginAuditManager::set_permission_prompt_for_testing(nullptr);
+        PluginManager::instance().shutdown();
+        PythonInterpreter::instance().shutdown();
+    }
+
+    // Call before taking the GIL: discovery is not Python work.
+    void add_plugin(const std::string& key)
+    {
+        const fs::path root = data.plugins_dir() / key;
+        fs::create_directories(root);
+        std::ofstream((root / (key + ".py")).string(), std::ios::binary) << AUDIT_PLUGIN_SOURCE;
+        save_permissions(key, {});
+        PluginManager::instance().discover_plugins(/*async=*/false, /*clear=*/true);
+    }
+
+    // Grants as if saved in an earlier session.
+    void save_permissions(const std::string& key, const PluginPermissions& permissions)
+    {
+        PluginInstallState state;
+        state.installed_from    = "local";
+        state.installed_version = "1.0";
+        state.plugin_name       = key;
+        state.permissions       = permissions;
+        REQUIRE(write_install_state(data.plugins_dir() / key, state));
+    }
+
+    PluginPermissions saved_permissions(const std::string& key) const
+    {
+        PluginInstallState state;
+        read_install_state(data.plugins_dir() / key, state);
+        return state.permissions;
+    }
+};
+
+// The test-side Python globals. Construct and destroy it with the GIL held; it stops the HTTP
+// server before the interpreter shuts down.
+struct PythonSide
+{
+    py::dict globals;
+
+    explicit PythonSide(const AuditHarness& harness)
+    {
+        globals["OUTSIDE"]        = harness.outside.path().string();
+        globals["LIBRARY_SOURCE"] = LIBRARY_SOURCE;
+        exec(AUDIT_SETUP);
+    }
+
+    // A Python error fails the test here, as text: an error_already_set left to propagate would
+    // outlive the interpreter the harness shuts down.
+    void exec(const char* code)
+    {
+        std::string error;
+        try {
+            py::exec(code, globals);
+        } catch (py::error_already_set& raised) {
+            error = raised.what();
+        }
+        if (!error.empty())
+            FAIL(error);
+    }
+
+    ~PythonSide()
+    {
+        try {
+            globals["server"].attr("shutdown")();
+            globals["server"].attr("server_close")();
+        } catch (...) {
+        }
+    }
+
+    std::string              str(const char* name) const { return py::str(globals[name]).cast<std::string>(); }
+    std::string              eval(const char* expression) const { return py::str(py::eval(expression, globals)).cast<std::string>(); }
+    std::vector<std::string> strings(const char* name) const { return globals[name].cast<std::vector<std::string>>(); }
+
+    // Runs `code` as `plugin_key`, as a trampoline call does: inside the caller's GIL, in an
+    // audit scope of its own.
+    void run_as(const std::string& plugin_key, const char* code)
+    {
+        ScopedPluginAuditContext audit(plugin_key);
+        exec(code);
+    }
+};
+
+PluginPermissions http_grants(std::vector<std::string> urls)
+{
+    PluginPermissions permissions;
+    permissions.network_http = std::move(urls);
+    return permissions;
+}
+
+const char* const PLUGIN = "AuditPlugin";
+
+} // namespace
+
+TEST_CASE("A saved request grant covers the request's own connection in a later session", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    harness.save_permissions(PLUGIN, http_grants({python.str("URL_A")}));
+
+    python.run_as(PLUGIN, "outcome = attempt(lambda: fetch(URL_A))");
+
+    CHECK(python.str("outcome") == "ok");
+    CHECK(describe(harness.prompts).empty());
+}
+
+TEST_CASE("A saved request grant does not cover another URL or a redirect", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    harness.save_permissions(PLUGIN, http_grants({python.str("URL_A"), python.str("URL_REDIRECT")}));
+
+    python.run_as(PLUGIN, R"PY(
+outcomes = [attempt(lambda: fetch(url)) for url in (URL_A, URL_B, URL_REDIRECT)]
+outcomes += [attempt(lambda: netlib.fetch(url)) for url in (URL_A, URL_B)]
+outcomes.append(attempt(lambda: list(netlib.fetch_each([URL_A, URL_B]))))
+)PY");
+
+    // The redirect target is asked for inside the approved redirecting request, and a library's
+    // wrapper or generator asks for the second URL as plain code does.
+    CHECK(python.strings("outcomes") == std::vector<std::string>{"ok", "denied", "denied", "ok", "denied", "denied"});
+    const std::string url_b = "urllib.Request: " + python.str("URL_B") + "\n";
+    CHECK(describe(harness.prompts) == url_b + url_b + url_b + url_b);
+}
+
+TEST_CASE("Code an approved operation calls back into is judged on its own", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    python.exec(R"PY(
+CALLBACK_COPY = os.path.join(OUTSIDE, "callback-copy")
+handler = netlib.ReadingHandler(PRIVATE)
+handler_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), handler)
+walk_outcomes = []
+copy_outcomes = []
+
+def on_walk_error(error):
+    walk_outcomes.append(attempt(lambda: open(PRIVATE).close()))
+
+def copy_file(source, destination):
+    copy_outcomes.append(attempt(lambda: open(PRIVATE).close()))
+)PY");
+    PluginPermissions permissions = http_grants({python.str("URL_A")});
+    permissions.fs_read           = {python.str("APPROVED"), python.str("MISSING")};
+    permissions.fs_readwrite      = {python.str("TREE"), python.str("CALLBACK_COPY")};
+    harness.save_permissions(PLUGIN, permissions);
+
+    // A library handler that urllib calls while the approved request runs, the plugin's own
+    // os.walk error callback and copytree copy function (called once per file), and a library
+    // loop over a saved file and an unsaved one.
+    python.run_as(PLUGIN, R"PY(
+request_outcome = attempt(lambda: handler_opener.open(URL_A).read())
+for _ in os.walk(MISSING, onerror=on_walk_error):
+    pass
+shutil.copytree(TREE, CALLBACK_COPY, copy_function=copy_file)
+loop_outcome = attempt(lambda: netlib.read_all([APPROVED, PRIVATE]))
+)PY");
+
+    CHECK(python.str("request_outcome") == "ok");
+    CHECK(python.eval("handler.outcome") == "denied");
+    CHECK(python.strings("walk_outcomes") == std::vector<std::string>{"denied"});
+    CHECK(python.strings("copy_outcomes") == std::vector<std::string>{"denied", "denied"});
+    CHECK(python.str("loop_outcome") == "denied");
+    const std::string private_file = "open: " + python.str("PRIVATE") + "\n";
+    CHECK(describe(harness.prompts) == private_file + private_file + private_file + private_file + private_file);
+}
+
+TEST_CASE("A saved directory walk covers each directory it lists", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    PluginPermissions permissions;
+    permissions.fs_read = {python.str("TREE"), python.str("APPROVED")};
+    harness.save_permissions(PLUGIN, permissions);
+
+    // The walk lists the tree's two subdirectories on later resumes, after the plugin's own
+    // audited reads in between. Abandoned walks leave frames whose generator is gone, which the
+    // next audited event lets go.
+    python.run_as(PLUGIN, R"PY(
+walked = []
+for root, dirs, files in os.walk(TREE):
+    walked.append(root)
+    open(APPROVED).close()
+globbed = list(pathlib.Path(TREE).glob("**/*"))
+
+abandoned = os.walk(TREE)
+next(abandoned)
+del abandoned
+open(APPROVED).close()
+for _ in pathlib.Path(TREE).glob("*"):
+    break
+open(APPROVED).close()
+)PY");
+
+    CHECK(py::len(python.globals["walked"]) == 3);
+    CHECK(py::len(python.globals["globbed"]) == 4);
+    CHECK(describe(harness.prompts).empty());
+}
+
+TEST_CASE("A freshly approved operation covers its nested events", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    struct Case
+    {
+        const char* prompts;
+        const char* code;
+    };
+    // Each operation names targets no earlier one saved, so each is asked once. FsCreate and
+    // FsDelete grants are never saved, so those operations are asked every time. Only the
+    // expected prompts are approved, so a nested event left uncovered fails the operation.
+    std::vector<Case> cases = {
+        {"shutil.copytree", "shutil.copytree(TREE, os.path.join(OUTSIDE, 'copy'))"},
+        {"shutil.copyfile", "shutil.copyfile(APPROVED, os.path.join(OUTSIDE, 'copied.txt'))"},
+        {"shutil.move", "shutil.move(os.path.join(OUTSIDE, 'copied.txt'), os.path.join(OUTSIDE, 'moved.txt'))"},
+        {"shutil.copystat", "shutil.copystat(os.path.join(TREE, 'one', 'f.txt'), PRIVATE)"},
+        {"shutil.make_archive", "shutil.make_archive(os.path.join(OUTSIDE, 'archive'), 'zip', root_dir=TREE)"},
+        {"shutil.unpack_archive", "shutil.unpack_archive(os.path.join(OUTSIDE, 'archive.zip'), os.path.join(OUTSIDE, 'unpacked'))"},
+        {"pathlib.Path.glob", "list(pathlib.Path(TREE).glob('**/*'))"},
+        {"subprocess.Popen", "subprocess.run(TRUE_COMMAND, check=True)"},
+        {"tempfile.mkdtemp", "tempfile.mkdtemp(dir=OUTSIDE)"},
+        {"tempfile.mkstemp", "os.close(tempfile.mkstemp(dir=OUTSIDE)[0])"},
+        {"shutil.rmtree", "shutil.rmtree(os.path.join(OUTSIDE, 'copy'))"},
+        // send() runs after connect() has returned, so its own grant is asked once.
+        {"http.client.connect\nhttp.client.send",
+         "connection = http.client.HTTPConnection('127.0.0.1', PORT)\n"
+         "connection.request('GET', '/a')\n"
+         "connection.getresponse().read()\n"
+         "connection.close()"},
+    };
+#ifndef _WIN32
+    cases.push_back({"os.fwalk", "list(os.fwalk(os.path.join(OUTSIDE, 'unpacked')))"});
+    // The forked child's exec is covered by the spawn too: had it prompted, the child's own
+    // denial would end it with status 1.
+    cases.push_back({"pty.spawn", "spawn_status = spawn_checked(TRUE_COMMAND + ['spawned'])"});
+#endif
+
+    for (const Case& operation : cases) {
+        INFO(operation.code);
+        const std::string expected = std::string(operation.prompts) + "\n";
+        harness.approve = [&expected](const Prompt& prompt) {
+            return expected.find(prompt.event + "\n") != std::string::npos;
+        };
+        harness.prompts.clear();
+        python.run_as(PLUGIN, operation.code);
+
+        std::string asked;
+        for (const Prompt& prompt : harness.prompts)
+            asked += (asked.empty() ? "" : "\n") + prompt.event;
+        CHECK(asked == operation.prompts);
+    }
+#ifndef _WIN32
+    CHECK(python.eval("spawn_status") == "0");
+#endif
+}
+
+TEST_CASE("An event with no target is granted by name and remembered", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    harness.approve = [](const Prompt& prompt) { return prompt.event != "socket.sendto"; };
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    python.run_as(PLUGIN, R"PY(
+socket.socket().close()
+udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sendto_outcome = attempt(lambda: udp.sendto(b"x", ("127.0.0.1", 9)))
+udp.close()
+)PY");
+
+    // The socket is asked for once, without a target to show; the datagram's address is a target.
+    CHECK(python.str("sendto_outcome") == "denied");
+    CHECK(describe(harness.prompts) == "socket.__new__:\nsocket.sendto: ('127.0.0.1', 9)\n");
+    CHECK(harness.saved_permissions(PLUGIN).events == std::vector<std::string>{"Socket:socket.__new__"});
+    CHECK(harness.saved_permissions(PLUGIN).network_socket.empty());
+
+    harness.prompts.clear();
+    python.run_as(PLUGIN, "socket.socket().close()");
+    CHECK(describe(harness.prompts).empty());
+
+    // A grant for an event with no target covers nothing else: a library's approved
+    // gethostname() does not carry the connection it makes next.
+    harness.approve = [](const Prompt& prompt) { return prompt.event == "socket.gethostname"; };
+    python.run_as(PLUGIN, "connect_outcome = attempt(lambda: netlib.connect_from_host(PORT))");
+    CHECK(python.str("connect_outcome") == "denied");
+    CHECK(describe(harness.prompts) == "socket.gethostname:\nsocket.getaddrinfo: 127.0.0.1\n");
+    harness.prompts.clear();
+    harness.approve = [](const Prompt&) { return true; };
+
+#ifndef _WIN32
+    // sendmsg() without an address names no target either.
+    python.run_as(PLUGIN, R"PY(
+left, right = socket.socketpair()
+left.sendmsg([b"x"])
+left.close()
+right.close()
+)PY");
+    CHECK(describe(harness.prompts) == "socket.sendmsg:\n");
+    CHECK(harness.saved_permissions(PLUGIN).events ==
+          std::vector<std::string>{"Socket:socket.__new__", "Socket:socket.gethostname", "Socket:socket.sendmsg"});
+#endif
+}
+
+TEST_CASE("An event grant does not stand in for another access or a target of the same name", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    harness.approve = [asked = 0](const Prompt&) mutable { return asked++ == 0; };
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    python.exec(R"PY(
+READ_FD = os.open(APPROVED, os.O_RDONLY)
+WRITE_FD = os.open(os.path.join(OUTSIDE, "scratch.txt"), os.O_WRONLY | os.O_CREAT)
+)PY");
+
+    // A file descriptor has no path to show or save: a granted read of one is not a write.
+    python.run_as(PLUGIN, R"PY(
+fd_outcomes = [attempt(lambda: open(READ_FD, "r", closefd=False).close()),
+               attempt(lambda: open(WRITE_FD, "w", closefd=False).close())]
+)PY");
+    CHECK(python.strings("fd_outcomes") == std::vector<std::string>{"ok", "denied"});
+    CHECK(describe(harness.prompts) == "open:\nopen:\n");
+    CHECK(harness.saved_permissions(PLUGIN).events == std::vector<std::string>{"FsRead:open"});
+
+    // A saved os.fork event grant is not an os.system command named "os.fork".
+    PluginPermissions permissions;
+    permissions.events = {"FsRead:open", "ProcessCreate:os.fork"};
+    harness.save_permissions(PLUGIN, permissions);
+    harness.prompts.clear();
+    python.run_as(PLUGIN, R"PY(
+reread_outcome = attempt(lambda: open(READ_FD, "r", closefd=False).close())
+system_outcome = attempt(lambda: os.system("os.fork"))
+os.close(READ_FD)
+os.close(WRITE_FD)
+)PY");
+    CHECK(python.str("reread_outcome") == "ok");
+    CHECK(python.str("system_outcome") == "denied");
+    REQUIRE(harness.prompts.size() == 1);
+    CHECK(harness.prompts.front().event == "os.system");
+    CHECK(harness.saved_permissions(PLUGIN).process.empty());
+}
+
+TEST_CASE("A finalizer run when a root frame is let go is judged as the plugin without a prompt", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    PluginPermissions permissions = http_grants({python.str("URL_A")});
+    permissions.fs_read           = {python.str("APPROVED")};
+    harness.save_permissions(PLUGIN, permissions);
+    PluginAuditManager& mgr = PluginAuditManager::instance();
+
+    // Once the request returns, only its held frame keeps the request object alive, and the
+    // request's finalizer reads a file the plugin was never granted.
+    python.run_as(PLUGIN, "fetch(TrackedRequest(URL_A))");
+    CHECK(python.strings("finalizer_outcomes") == std::vector<std::string>{"denied"}); // at scope end
+    CHECK(describe(harness.prompts).empty());
+    CHECK_FALSE(mgr.audit_denial_pending());
+
+    python.exec("finalizer_outcomes.clear()");
+    python.run_as(PLUGIN, R"PY(
+fetch(TrackedRequest(URL_A))
+open(APPROVED).close()  # the next event lets the returned request's frame go
+outcomes_before_scope_end = list(finalizer_outcomes)
+)PY");
+    CHECK(python.strings("outcomes_before_scope_end") == std::vector<std::string>{"denied"});
+    CHECK(describe(harness.prompts).empty());
+
+    // The finalizer's denial during another event's decision leaves that event's own denial intact.
+    python.exec("finalizer_outcomes.clear()");
+    python.run_as(PLUGIN, R"PY(
+fetch(TrackedRequest(URL_A))
+try:
+    os.listdir(OUTSIDE)
+    outer_error = ""
+except PermissionError as error:
+    outer_error = str(error)
+)PY");
+    CHECK(python.strings("finalizer_outcomes") == std::vector<std::string>{"denied"});
+    CHECK_THAT(python.str("outer_error"), Catch::Matchers::ContainsSubstring("os.listdir"));
+    CHECK(describe(harness.prompts) == "os.listdir: " + python.str("OUTSIDE") + "\n");
+    AuditViolation violation;
+    REQUIRE(mgr.last_violation(violation));
+    CHECK(violation.event_name == "os.listdir");
+    CHECK(mgr.audit_denial_pending());
+}
+
+TEST_CASE("A nested audit scope does not see the outer scope's running operations", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin("PluginA");
+    harness.add_plugin("PluginB");
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    PluginPermissions permissions;
+    permissions.fs_read = {python.str("TREE")};
+    harness.save_permissions("PluginA", permissions);
+
+    {
+        // Two walks plugin A started and suspended after listing the tree itself.
+        ScopedPluginAuditContext plugin_a("PluginA");
+        python.exec("first = os.walk(TREE)\nnext(first)\nsecond = os.walk(TREE)\nnext(second)");
+        {
+            // Plugin B resuming one of them is asked for each subdirectory, as plugin B.
+            ScopedPluginAuditContext plugin_b("PluginB");
+            python.exec("listed_by_b = len(list(first))");
+        }
+        // Back in plugin A's scope, its walks are covered again.
+        python.exec("listed_by_a = len(list(second))");
+    }
+
+    CHECK(python.globals["listed_by_b"].cast<int>() == 0);
+    CHECK(python.globals["listed_by_a"].cast<int>() == 2);
+    REQUIRE(harness.prompts.size() == 2);
+    for (const Prompt& prompt : harness.prompts) {
+        CHECK(prompt.plugin == "PluginB");
+        CHECK(prompt.event == "os.scandir");
+    }
+}
+
+TEST_CASE("Root frames held when a capability call ends are let go with the GIL, as the plugin", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.approve = [](const Prompt& prompt) { return prompt.event == "os.walk"; };
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    (void) PythonPluginBridge::instance(); // force the embedded module registration into the binary
+    python.globals["orca"] = py::module_::import("orca");
+
+    // walk_and_drop() leaves a returned walk's frame held by the audit scope alone, with a marker
+    // in its locals; the frame is let go when the capability call ends, which runs the marker's
+    // finalizer.
+    python.exec(R"PY(
+class Marker:
+    def __init__(self, action=None):
+        self.action = action
+    def __del__(self):
+        finalized.append(self.action() if self.action else "ran")
+
+finalized = []
+
+def walk_and_drop(marker):
+    walker = os.walk(TREE, onerror=marker)
+    next(walker)
+    del walker
+
+class ConfigCapability(orca.PythonPluginBase):
+    def get_name(self):
+        return "config_cap"
+    def get_default_config(self):
+        walk_and_drop(Marker())
+        return {"finalized_during_call": len(finalized)}
+    def has_config_ui(self):
+        walker = os.walk(TREE, onerror=Marker(lambda: attempt(lambda: open(PRIVATE).close())))
+        next(walker)
+        attempt(lambda: os.listdir(OUTSIDE))  # denied: the trampoline clears the plugin key
+        del walker  # the walk's frame is now held by the audit scope alone
+        raise RuntimeError("the capability fails after a denial")
+
+class TicketAgent(orca.printer_agent.PrinterAgentBase):
+    def get_name(self):
+        return "ticket_agent"
+    def request_bind_ticket(self):
+        walk_and_drop(Marker())
+        return (0, "ticket")
+)PY");
+
+    py::object config_instance = python.globals["ConfigCapability"]();
+    auto       config_cap      = config_instance.cast<std::shared_ptr<PluginCapabilityInterface>>();
+    config_cap->set_audit_plugin_key("GilPlugin");
+    config_cap->set_resolved_identity("config_cap", PluginCapabilityType::Script);
+
+    py::object agent_instance = python.globals["TicketAgent"]();
+    auto       agent_cap      = agent_instance.cast<std::shared_ptr<PluginCapabilityInterface>>();
+    agent_cap->set_audit_plugin_key("GilPlugin");
+    agent_cap->set_resolved_identity("ticket_agent", PluginCapabilityType::PrinterConnection);
+    auto agent = std::dynamic_pointer_cast<IPrinterAgent>(agent_cap);
+    REQUIRE(agent);
+
+    // A host call arrives without the GIL; both calls take it before their audit scope.
+    nlohmann::json config;
+    int            ticket_result = -1;
+    std::string    ticket;
+    {
+        py::gil_scoped_release released;
+        config        = config_cap->get_default_config();
+        ticket_result = agent->request_bind_ticket(&ticket);
+    }
+    CHECK(config == nlohmann::json{{"finalized_during_call", 0}});
+    CHECK(ticket_result == 0);
+    CHECK(ticket == "ticket");
+    CHECK(python.strings("finalized") == std::vector<std::string>{"ran", "ran"});
+
+    // On the trampoline's denial path the frame is let go as the plugin, though the ambient key
+    // was cleared: the finalizer's read is audited and denied without a prompt.
+    python.exec("finalized.clear()");
+    harness.prompts.clear();
+    CHECK_THROWS_AS(config_cap->has_config_ui(), py::error_already_set);
+    CHECK(python.strings("finalized") == std::vector<std::string>{"denied"});
+    CHECK(describe(harness.prompts) == "os.walk: " + python.str("TREE") + "\nos.listdir: " + python.str("OUTSIDE") + "\n");
+}
+
+TEST_CASE("Stdlib code is recognized through a symlinked Python home", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    py::gil_scoped_acquire gil;
+
+    const py::dict paths   = py::module_::import("sysconfig").attr("get_paths")();
+    const fs::path stdlib  = py::str(paths["stdlib"]).cast<std::string>();
+    const fs::path purelib = py::str(paths["purelib"]).cast<std::string>();
+    const fs::path link    = harness.outside.path() / "linked-stdlib";
+    boost::system::error_code ec;
+    fs::create_directory_symlink(stdlib, link, ec);
+    if (ec)
+        SKIP("Cannot create a directory symlink here: " + ec.message());
+
+    CHECK(PluginAuditManager::is_stdlib_file((stdlib / "os.py").string()));
+    CHECK(PluginAuditManager::is_stdlib_file((link / "urllib" / "request.py").string()));
+    CHECK(PluginAuditManager::is_stdlib_file("<frozen os>"));
+    CHECK_FALSE(PluginAuditManager::is_stdlib_file((purelib / "requests" / "api.py").string()));
+    CHECK_FALSE(PluginAuditManager::is_stdlib_file((link / "site-packages" / "requests" / "api.py").string()));
+    CHECK_FALSE(PluginAuditManager::is_stdlib_file((harness.outside.path() / "plugin.py").string()));
+    CHECK_FALSE(PluginAuditManager::is_stdlib_file("<string>"));
+}
+
+TEST_CASE("A plugin may read the CPython stdlib without a prompt, but not site-packages or for writing", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    const py::dict paths   = py::module_::import("sysconfig").attr("get_paths")();
+    const fs::path stdlib  = py::str(paths["stdlib"]).cast<std::string>();
+    const fs::path purelib = py::str(paths["purelib"]).cast<std::string>();
+    // os.py ships with every CPython installation. A site-packages path is third-party code even
+    // when the directory is empty: the prompt must come before the missing file is noticed.
+    const fs::path stdlib_file = stdlib / "os.py";
+    REQUIRE(fs::exists(stdlib_file));
+
+    python.globals["STDLIB_FILE"]       = stdlib_file.string();
+    python.globals["SITE_PACKAGE_FILE"] = (purelib / "regression_probe.py").string();
+    python.run_as(PLUGIN, R"PY(
+read_outcome = attempt(lambda: open(STDLIB_FILE).read())
+write_outcome = attempt(lambda: open(STDLIB_FILE, "r+").close())
+site_packages_outcome = attempt(lambda: open(SITE_PACKAGE_FILE).close())
+)PY");
+
+    CHECK(python.str("read_outcome") == "ok");
+    CHECK(python.str("write_outcome") == "denied");
+    CHECK(python.str("site_packages_outcome") == "denied");
+    // Only the write and the site-packages read are asked about; the stdlib read is implicit.
+    const std::string write_prompt         = "open: " + python.str("STDLIB_FILE") + "\n";
+    const std::string site_packages_prompt = "open: " + python.str("SITE_PACKAGE_FILE") + "\n";
+    CHECK(describe(harness.prompts) == write_prompt + site_packages_prompt);
 }
