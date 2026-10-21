@@ -1392,6 +1392,27 @@ TEST_CASE("Gyroid infill of an object matches the infill of a larger object with
     }
 }
 
+TEST_CASE("Multiline infill keeps its lines parallel around a corner", "[Fill]")
+{
+    // A left turn by 135 degrees, drawn as two lines half of the 0.4 mm spacing to each side of it.
+    const double turn = 0.75 * PI;
+    Polylines paths{ Polyline{ Point::new_scale(0., 0.), Point::new_scale(10., 0.),
+                               Point::new_scale(10. + 10. * std::cos(turn), 10. * std::sin(turn)) } };
+    FillParams params;
+    params.multiline = 2;
+    multiline_fill(paths, params, 0.4f);
+    REQUIRE(paths.size() == 1);
+
+    // The outer line turns at the miter point, where the lines 0.2 mm out from both legs meet.
+    const Point miter = Point::new_scale(10. + 0.2 * std::tan(0.5 * turn), -0.2);
+    double nearest = std::numeric_limits<double>::max();
+    for (const Point &point : paths.front().points)
+        nearest = std::min(nearest, (point - miter).cast<double>().norm());
+    REQUIRE(nearest < scaled<double>(0.001));
+    // The round ends are flattened to a fraction of the offset rather than to the integer grid.
+    REQUIRE(paths.front().size() < 100);
+}
+
 TEST_CASE("Multiline cubic infill follows the cubic lines without crossing itself", "[Fill]")
 {
     const int    multiline = GENERATE(2, 3);

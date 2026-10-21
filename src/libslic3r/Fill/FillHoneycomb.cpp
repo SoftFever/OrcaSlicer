@@ -81,7 +81,7 @@ void FillHoneycomb::_fill_surface_single(
             p.rotate(-direction.first, m.hex_center);
             // Orca: round the corners of the honeycomb cells. Done before the clipping, so that the
             // curves are cut by the region boundary just like the sharp path would be.
-            smooth_polyline_corners(p, params.smooth_factor, scaled<double>(params.resolution));
+            smooth_polyline_corners(p, params.corner_smoothing());
             all_polylines.push_back(p);
         }
     }
