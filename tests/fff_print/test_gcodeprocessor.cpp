@@ -565,7 +565,7 @@ TEST_CASE("Each extrusion weighs its filament's density", "[GCodeProcessor]")
 TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer", "[GCodeProcessor]")
 {
     // Two cubes, one per filament, so the second filament's series has to line up with the first's.
-    DynamicPrintConfig config = Test::multifilament_config(2, { { "skirt_loops", 0 }, { "brim_type", "no_brim" } });
+    DynamicPrintConfig config = Test::multifilament_config(2, { { "skirt_loops", 0 }, { "brim_type", "no_brim" }, { "wipe_tower_x", "150" }, { "wipe_tower_y", "150" } }); // prime tower inside the 200x200 bed
     const std::vector<std::vector<ConfigBase::SetDeserializeItem>> overrides{ { { "extruder", 1 } }, { { "extruder", 2 } } };
     Print print;
     Model model;
@@ -633,7 +633,7 @@ TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer
 TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusions of each layer", "[GCodeProcessor]")
 {
     // An overhang that needs support and a cube in the other filament, with a prime tower between them.
-    DynamicPrintConfig config = Test::multifilament_config(2, { { "enable_support", 1 }, { "enable_prime_tower", 1 }, { "skirt_loops", 0 }, { "brim_type", "no_brim" } });
+    DynamicPrintConfig config = Test::multifilament_config(2, { { "enable_support", 1 }, { "enable_prime_tower", 1 }, { "wipe_tower_x", "150" }, { "wipe_tower_y", "150" }, { "skirt_loops", 0 }, { "brim_type", "no_brim" } }); // prime tower inside the 200x200 bed
     const std::vector<std::vector<ConfigBase::SetDeserializeItem>> overrides{ { { "extruder", 1 } }, { { "extruder", 2 } } };
     Print print;
     Model model;
