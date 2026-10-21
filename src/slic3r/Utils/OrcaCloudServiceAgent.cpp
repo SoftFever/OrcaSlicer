@@ -147,6 +147,7 @@ public:
         m_fd = ::open(path.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0600);
         if (m_fd == -1) { m_locked = true; return; }              // can't open -> don't block
         int rc;
+        // An fcntl lock would not block other threads in this process, and any close() of this file would release it.
         do { rc = ::flock(m_fd, LOCK_EX); } while (rc == -1 && errno == EINTR); // blocks in kernel
         m_locked = (rc != -1);
 #endif
