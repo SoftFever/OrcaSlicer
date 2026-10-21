@@ -1352,17 +1352,11 @@ void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
         []() { return obj_list()->can_merge_to_single_object(); }, m_parent);
 }
 
-wxMenu* MenuFactory::append_menu_item_transform(wxMenu* menu, bool multi_selection, bool show_drop, bool show_mirror, bool convert_unit)
+wxMenu* MenuFactory::append_menu_item_transform(wxMenu* menu, bool multi_selection, bool show_mirror, bool convert_unit)
 {
     wxMenu* sub_menu = new wxMenu();
 
-    if(show_drop){
-        // Object Drop
-        append_menu_item_drop(sub_menu);
-    }
-
     if(show_mirror){
-        sub_menu->AppendSeparator();
         // Mirror
         append_menu_item(sub_menu, wxID_ANY, _L("Mirror") + ":", "", [](wxCommandEvent&){}, "", menu, [](){return false;}, m_parent);
         append_menu_item(sub_menu, wxID_ANY, _L("Along X axis"), _L("Mirror along the X axis"),
@@ -1694,7 +1688,7 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
     append_menu_items_instance_manipulation(menu);
     
     // Object Split / Mirror / Mesh Tools
-    append_menu_item_transform(menu, false /*multi_selection*/, false /*show_drop*/, true /*mirror*/, false /*convert_unit*/);
+    append_menu_item_transform(menu, false /*multi_selection*/, true /*mirror*/, false /*convert_unit*/);
     append_menu_item_modify(menu, false /*multi_selection*/, true /*splittable*/, true /*mesh*/, false /*mesh_boolean*/);
 
     // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
@@ -1738,9 +1732,12 @@ void MenuFactory::create_extra_object_menu()
 
     // Object Center
     append_menu_item_center(&m_object_menu);
+
+    append_menu_item_drop(&m_object_menu);
+
     // Object Align/Distribute
+    m_object_transform_menu = append_menu_item_transform(&m_object_menu, false /*multi_selection*/, true /*mirror*/, true /*convert_unit*/);
     append_menu_item_align_distribute(&m_object_menu);
-    m_object_transform_menu = append_menu_item_transform(&m_object_menu, false /*multi_selection*/, true /*show_drop*/, true /*mirror*/, true /*convert_unit*/);
     append_menu_item_modify(&m_object_menu, false /*multi_selection*/, true /*splittable*/, true /*mesh*/, true /*mesh_boolean*/);
     m_object_geometry_pos = m_object_menu.GetMenuItemCount(); // pos for property related items
     // Delete
@@ -1797,7 +1794,7 @@ void MenuFactory::create_text_part_menu()
 
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
-    append_menu_item_transform(&m_text_part_menu, false /*multi_selection*/, false /*show_drop*/, true /*mirror*/, true /*convert_unit*/);
+    append_menu_item_transform(&m_text_part_menu, false /*multi_selection*/, true /*mirror*/, true /*convert_unit*/);
     append_menu_item_modify(&m_text_part_menu, false /*multi_selection*/, false /*splittable*/, true /*mesh*/, false /*mesh_boolean*/);
     append_menu_item_edit_text(menu);
     //m_text_geometry_pos = m_text_part_menu.GetMenuItemCount(); // pos for geometry related items
@@ -1820,7 +1817,7 @@ void MenuFactory::create_svg_part_menu()
 
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
-    append_menu_item_transform(&m_svg_part_menu, false /*multi_selection*/, false /*show_drop*/, true /*mirror*/, true /*convert_unit*/);
+    append_menu_item_transform(&m_svg_part_menu, false /*multi_selection*/, true /*mirror*/, true /*convert_unit*/);
     append_menu_item_modify(&m_svg_part_menu, false /*multi_selection*/, false /*splittable*/, true /*mesh*/, false /*mesh_boolean*/);
     append_menu_item_edit_svg(menu);
     //m_svg_geometry_pos = m_svg_part_menu.GetMenuItemCount(); // pos for geometry related items
@@ -1842,8 +1839,10 @@ void MenuFactory::create_bbl_part_menu()
     wxMenu* menu = &m_part_menu;
 
     append_menu_item_center(menu);
+    append_menu_item_drop(&m_part_menu);
+
+    m_part_transform_menu = append_menu_item_transform(&m_part_menu, false /*multi_selection*/, true /*mirror*/, true /*convert_unit*/);
     append_menu_item_align_distribute(menu);
-    m_part_transform_menu = append_menu_item_transform(&m_part_menu, false /*multi_selection*/, true /*show_drop*/, true /*mirror*/, true /*convert_unit*/);
     append_menu_item_modify(&m_part_menu, false /*multi_selection*/, true /*splittable*/, true /*mesh*/, false /*mesh_boolean*/);
     append_menu_item_edit_text(menu);
     //m_part_geometry_pos = m_part_menu.GetMenuItemCount(); // pos for geometry related items
@@ -2165,11 +2164,12 @@ wxMenu* MenuFactory::multi_selection_menu()
             index++;
         }
         append_menu_item_center(menu);
+        append_menu_item_drop(menu);
+
         append_menu_item_align_distribute(menu);
         //ORCA switch to sub menus if new items added
-        //append_menu_item_transform(menu, true /*multi_selection*/, true /*show_drop*/, false /*mirror*/, true /*convert_unit*/);
+        //append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*convert_unit*/);
         //append_menu_item_modify(menu, true /*multi_selection*/, false /*splittable*/, true /*is_mesh*/, false /*mesh_boolean*/);
-        append_menu_item_drop(menu);
         append_menu_item_fix_through_cgal(menu);
         append_menu_items_convert_unit(menu);
         //append_menu_item_simplify(menu);
@@ -2190,9 +2190,11 @@ wxMenu* MenuFactory::multi_selection_menu()
     }
     else {
         append_menu_item_center(menu);
-        append_menu_item_align_distribute(menu);
+        append_menu_item_drop(menu);
+
         //ORCA switch to sub menus if new items added
-        auto transform_menu = append_menu_item_transform(menu, true /*multi_selection*/, true /*show_drop*/, false /*mirror*/, true /*convert_unit*/);
+        auto transform_menu = append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*convert_unit*/);
+        append_menu_item_align_distribute(menu);
         append_menu_item_modify(menu, true /*multi_selection*/, true /*splittable*/, true /*is_mesh*/, false /*mesh_boolean*/);
         //append_menu_item_drop(menu);
         //append_menu_item_fix_through_cgal(menu);
