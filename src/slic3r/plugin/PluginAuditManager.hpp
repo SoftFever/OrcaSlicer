@@ -173,6 +173,11 @@ private:
 
     static int audit_hook(const char* event, PyObject* args, void* user_data);
 
+    // True for paths inside the interpreter's stdlib, excluding site-packages. Unlike
+    // is_stdlib_file(), this query is not cached because filesystem paths may resolve through
+    // symlinks that can change.
+    static bool is_stdlib_path(const boost::filesystem::path& path);
+
     // Drops the references in `frames`, keeping the caller's error and denial state intact.
     void release_frames(std::vector<PyObject*>& frames);
 

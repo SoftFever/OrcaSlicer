@@ -191,7 +191,11 @@ protected:
 
     // Methods that derived classes may need to override or access
     virtual bool init_device_info(const PrinterConnectionParams& params);
-    virtual bool fetch_device_info(const ConnectionSettings& connection, MoonrakerDeviceInfo& info, std::string& error) const;
+    // An override must give up its request once `cancelled` returns true, or the destructor waits out its timeout
+    virtual bool fetch_device_info(const ConnectionSettings&    connection,
+                                   MoonrakerDeviceInfo&         info,
+                                   std::string&                 error,
+                                   const std::function<bool()>& cancelled) const;
     ConnectionSettings get_connection_settings() const;
     // Copy of the mutable connection state, taken under connect_mutex. Background threads
     // must use this instead of reading device_info directly.
@@ -251,7 +255,10 @@ private:
     int send_access_code(const std::string& dev_id);
 
     bool fetch_object_list(const ConnectionSettings& connection, std::set<std::string>& objects, std::string& error) const;
-    bool query_printer_status(const ConnectionSettings& connection, nlohmann::json& status, std::string& error) const;
+    bool query_printer_status(const ConnectionSettings&    connection,
+                              nlohmann::json&              status,
+                              std::string&                 error,
+                              const std::function<bool()>& cancelled) const;
     bool send_gcode_sync(const std::string& dev_id, const std::string& gcode) const;
     void send_gcode_async(const std::string& dev_id, const std::string& gcode,
                           std::function<void(bool)> on_result = {}) const;
