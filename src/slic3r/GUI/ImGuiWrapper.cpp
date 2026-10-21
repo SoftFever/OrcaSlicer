@@ -14,6 +14,7 @@
 #include <utility>
 #include <string_view>
 #include <cstring>
+#include <chrono>
 #include "libslic3r/Point.hpp"
 #include <functional>
 #include <optional>
