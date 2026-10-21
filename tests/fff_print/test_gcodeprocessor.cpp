@@ -605,6 +605,12 @@ TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer
             CHECK_THAT(cumulative.back(), Catch::Matchers::WithinRel(total, 1e-9));
             CHECK(cumulative.size() == stats.layer_volumes_per_extruder.begin()->second.size());
 
+            // The moves add up to the filament's total, so a mismatch below is in the layers, not the volume.
+            double moves_total = 0.0;
+            for (const auto &[layer_id, volume] : extruded[filament_id])
+                moves_total += volume;
+            CHECK_THAT(moves_total, Catch::Matchers::WithinRel(total, 1e-3));
+
             // Layers are given by MoveVertex::layer_id, and each holds what its moves extruded. The moves
             // before the first layer change carry layer id 0 as well, but belong to entry 0 of the series.
             const size_t layers = cumulative.size() - 1;
