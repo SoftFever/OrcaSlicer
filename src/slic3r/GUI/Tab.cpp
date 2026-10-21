@@ -566,7 +566,6 @@ public:
         layout->Add(m_rows, 0, wxEXPAND);
         auto *add = new ScalableButton(this, wxID_ANY, "add", _L("Add rule"));
         layout->Add(add, 0);
-        layout->SetSizeHints(this);
         add->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
             ConditionalSettingRule rule;
             rule.conditions = {{"", "eq", ""}};
