@@ -2003,7 +2003,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_flat_ironing(config.prime_tower_flat_ironing.value),
     m_enable_tower_interface_features(config.enable_tower_interface_features.value),
     m_physical_extruder_map(config.physical_extruder_map.values),
-    m_enable_arc_fitting(config.enable_arc_fitting.value)
+    m_enable_arc_fitting(config.enable_arc_fitting.value == ArcFittingMode::Enabled)
     // Orca: has_filament_switcher is a device-set dynamic key, not a PrintConfig member;
     // it is pushed in from Print via set_has_filament_switcher() instead of read here.
 {
