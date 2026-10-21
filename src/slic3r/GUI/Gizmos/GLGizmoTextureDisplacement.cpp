@@ -512,6 +512,7 @@ void GLGizmoTextureDisplacement::on_shutdown()
 {
     m_parent.toggle_model_objects_visibility(true);
     m_preview_glmodel.reset();
+    m_part_previews.clear();
     m_shaded_preview_glmodel.reset();
     m_paint_overlay_glmodel.reset();
     m_paint_overlay_dirty = false;
@@ -628,8 +629,7 @@ void GLGizmoTextureDisplacement::render_painter_gizmo()
     // why those two modes looked like they did nothing. Leave it out and let the undisplaced volume show
     // through instead (toggle_model_objects_visibility below) - that one *is* coincident with the
     // overlay, which is what the offset assumes, and it is the surface whose mapping is being inspected.
-    const bool use_true_preview = !use_shaded && m_uv_check_mode == UVCheckMode::None &&
-                                  m_preview_glmodel.is_initialized();
+    const bool use_true_preview = !use_shaded && m_uv_check_mode == UVCheckMode::None && has_true_preview();
     // In Checker/Distortion mode the UV-check overlay *is* the surface visualization the user is
     // looking at, so the opaque paint-selection highlight must not be drawn on top of it - same
     // reasoning as skipping it for the shaded preview (see bug #12). Without this the painted area
@@ -640,10 +640,23 @@ void GLGizmoTextureDisplacement::render_painter_gizmo()
     // put it back. Getting this wrong leaves an invisible model, so it is decided once, here, rather
     // than per branch below.
     ModelVolume *mv = texture_volume();
+    // The parts a preview is standing in for, and whose real volumes therefore have to be hidden and
+    // whose selectors must not be drawn over it. The shaded view only ever shades the layer stack's own
+    // part; the true-displacement view covers every painted part of a multibody object.
+    std::vector<const ModelVolume *> previewed;
+    if (use_shaded && mv != nullptr) {
+        previewed.push_back(mv);
+    } else if (use_true_preview) {
+        if (mv != nullptr && m_preview_glmodel.is_initialized())
+            previewed.push_back(mv);
+        for (const std::unique_ptr<PartPreview> &preview : m_part_previews)
+            if (const ModelVolume *part = preview_part(*preview); part != nullptr)
+                previewed.push_back(part);
+    }
     m_parent.toggle_model_objects_visibility(true);
-    if ((use_shaded || use_true_preview) && mv != nullptr)
+    for (const ModelVolume *volume : previewed)
         m_parent.toggle_model_objects_visibility(false, m_c->selection_info()->model_object(),
-                                                  m_c->selection_info()->get_active_instance(), mv);
+                                                  m_c->selection_info()->get_active_instance(), volume);
 
     // Over a preview, the paint feedback - the selectors' highlight in the Normal view, the tint in both -
     // is drawn only while a mouse button is down: during a stroke, a fill click included. Between strokes
@@ -657,14 +670,15 @@ void GLGizmoTextureDisplacement::render_painter_gizmo()
     if (use_shaded) {
         render_shaded_preview_mesh();
         // The shaded mesh is the textured volume alone, so the other model parts are still the selectors' to draw.
-        render_triangles(selection, mv);
+        render_triangles(selection, previewed);
         textured_selector_drawn = false;
     } else if (use_true_preview) {
         render_preview_mesh();
         glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
         glsafe(::glPolygonOffset(-1.0f, -1.0f));
-        // Without paint feedback, only the other model parts: render_preview_mesh() draws the textured one.
-        render_triangles(selection, paint_feedback ? nullptr : mv);
+        // Without paint feedback, only the parts with no preview over them: render_preview_mesh() draws
+        // the rest.
+        render_triangles(selection, paint_feedback ? std::vector<const ModelVolume *>{} : previewed);
         glsafe(::glDisable(GL_POLYGON_OFFSET_FILL));
         textured_selector_drawn = paint_feedback;
     } else {
@@ -1167,34 +1181,59 @@ void GLGizmoTextureDisplacement::render_seam_overlay()
 void GLGizmoTextureDisplacement::render_preview_mesh()
 {
     const ModelObject *mo = m_c->selection_info()->model_object();
-    const ModelVolume  *mv = texture_volume();
-    if (mo == nullptr || mv == nullptr)
+    if (mo == nullptr)
         return;
-
-    const Selection  &selection    = m_parent.get_selection();
-    const Transform3d trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
 
     auto *shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
+
+    const Selection   &selection       = m_parent.get_selection();
+    const Transform3d  instance_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix();
+    const Camera      &camera          = wxGetApp().plater()->get_camera();
+    const Transform3d &view_matrix     = camera.get_view_matrix();
+
     shader->start_using();
-    const Camera      &camera      = wxGetApp().plater()->get_camera();
-    const Transform3d &view_matrix = camera.get_view_matrix();
-    shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
-    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-    shader->set_uniform("view_normal_matrix", view_normal_matrix);
-    if (m_preview_color_runs.empty()) {
-        m_preview_glmodel.render();
-    } else {
-        // set_color() writes the uniform the shader reads, so one call per group is all the
-        // per-triangle colour this needs.
-        for (const PreviewColorRun &run : m_preview_color_runs) {
-            m_preview_glmodel.set_color(run.color);
-            m_preview_glmodel.render(run.range, shader);
+    // Each part is drawn through its own matrix: a multibody object's parts sit in different places
+    // inside the object, so one matrix for all of them would pile every preview onto the first part.
+    const auto draw = [&](const ModelVolume &volume, GLModel &model, const std::vector<PreviewColorRun> &runs) {
+        if (!model.is_initialized())
+            return;
+        const Transform3d trafo_matrix = instance_matrix * volume.get_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) *
+                                            trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        if (runs.empty()) {
+            model.render();
+        } else {
+            // set_color() writes the uniform the shader reads, so one call per group is all the
+            // per-triangle colour this needs.
+            for (const PreviewColorRun &run : runs) {
+                model.set_color(run.color);
+                model.render(run.range, shader);
+            }
         }
-    }
+    };
+
+    if (const ModelVolume *owner = texture_volume(); owner != nullptr)
+        draw(*owner, m_preview_glmodel, m_preview_color_runs);
+    for (const std::unique_ptr<PartPreview> &preview : m_part_previews)
+        if (const ModelVolume *part = preview_part(*preview); part != nullptr)
+            draw(*part, preview->glmodel, preview->color_runs);
     shader->stop_using();
+}
+
+const ModelVolume *GLGizmoTextureDisplacement::preview_part(const PartPreview &preview) const
+{
+    const ModelObject *mo = m_c->selection_info()->model_object();
+    if (mo == nullptr)
+        return nullptr;
+    for (const ModelVolume *mv : mo->volumes)
+        if (mv->id() == preview.volume_id)
+            return mv;
+    return nullptr; // the part was removed, or its mesh replaced, since the preview was built
 }
 
 float GLGizmoTextureDisplacement::layer_texture_aspect(const TextureDisplacementLayer &layer)
@@ -2245,8 +2284,9 @@ void GLGizmoTextureDisplacement::rebuild_preview()
         return;
 
     const ModelVolume *mv = texture_volume();
-    if (mv == nullptr || !mv->is_texture_displacement_painted()) {
+    if (mv == nullptr || !any_part_painted()) {
         m_preview_glmodel.reset();
+        m_part_previews.clear();
         m_preview_its = indexed_triangle_set{}; // no displaced mesh; wireframe falls back to the base
         m_preview_job_pending = false;
         refresh_wireframe();
@@ -2267,14 +2307,44 @@ void GLGizmoTextureDisplacement::rebuild_preview()
     queue_preview_job();
 }
 
+indexed_triangle_set GLGizmoTextureDisplacement::group_preview_by_color(const indexed_triangle_set   &its,
+                                                                        const std::vector<uint8_t>   &triangle_color,
+                                                                        const std::vector<ColorRGBA> &entry_colors,
+                                                                        std::vector<PreviewColorRun> &runs)
+{
+    runs.clear();
+    if (triangle_color.size() != its.indices.size() || entry_colors.empty())
+        return its;
+
+    indexed_triangle_set sorted;
+    sorted.vertices = its.vertices;
+    sorted.indices.reserve(its.indices.size());
+    for (int want = 0; want <= int(entry_colors.size()); ++want) {
+        const size_t first = sorted.indices.size();
+        for (size_t i = 0; i < its.indices.size(); ++i)
+            if (int(triangle_color[i]) == want)
+                sorted.indices.push_back(its.indices[i]);
+        if (sorted.indices.size() == first)
+            continue;
+        runs.push_back({ { first * 3, sorted.indices.size() * 3 },
+                         want == 0 ? GLVolume::NEUTRAL_COLOR : entry_colors[size_t(want - 1)] });
+    }
+    return sorted;
+}
+
 void GLGizmoTextureDisplacement::queue_preview_job()
 {
     // A job in flight when the gizmo closes still runs its completion handler, which would otherwise
     // happily queue the follow-up run it was holding - against a gizmo nobody is looking at any more.
     if (m_state != On)
         return;
-    const ModelVolume *mv = texture_volume();
-    if (mv == nullptr || !mv->is_texture_displacement_painted())
+    const ModelVolume *owner = texture_volume();
+    if (owner == nullptr)
+        return;
+    // Every painted part, so the preview shows the whole of what Bake will do rather than its first
+    // part - the same set bake() displaces.
+    const std::vector<ModelVolume *> parts = painted_parts();
+    if (parts.empty())
         return;
 
     // One in flight at a time; everything requested meanwhile collapses into a single follow-up run
@@ -2287,20 +2357,32 @@ void GLGizmoTextureDisplacement::queue_preview_job()
     const uint64_t generation = m_preview_generation->load();
 
     TextureDisplacementPreviewInput input;
-    input.base_mesh = mv->mesh().its;
-    input.layers    = mv->texture_displacement_layers;
-    input.options   = mv->texture_displacement_options;
-    // The preview is looked at, not printed or sliced: skip the simplification and the repair that
-    // follows it, which are most of the one-run pipeline's time. The relief is the same.
-    if (input.options.pipeline_v2)
-        input.options.v2_max_triangles_k = 0;
-    input.volume_to_world = texture_displacement_volume_to_world(*mv);
-    for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
-        input.facets_data[size_t(i)] = mv->texture_displacement_facet(i).get_data();
     // Captured here rather than read in the handler: the palette is main-thread state, and the preview
     // has to be grouped against the same palette it was computed with, not whatever it is by the time
-    // the result lands.
-    input.color = color_settings_for(*mv);
+    // the result lands. Read off the layer stack's own part, since that is where the stack lives.
+    input.color = color_settings_for(*owner);
+    input.volumes.reserve(parts.size());
+    // Which part each result belongs to, so the handler can tell the layer stack's own preview - the one
+    // the overlays and the wireframe are keyed to - from the rest.
+    std::vector<ObjectID> part_ids;
+    part_ids.reserve(parts.size());
+    for (const ModelVolume *part : parts) {
+        TextureDisplacementPreviewVolume entry;
+        entry.base_mesh = part->mesh().its;
+        entry.layers    = layers_for_part(*part);
+        entry.options   = owner->texture_displacement_options;
+        // The preview is looked at, not printed or sliced: skip the simplification and the repair that
+        // follows it, which are most of the one-run pipeline's time. The relief is the same.
+        if (entry.options.pipeline_v2)
+            entry.options.v2_max_triangles_k = 0;
+        entry.volume_to_world = texture_displacement_volume_to_world(*part);
+        for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
+            entry.facets_data[size_t(i)] = part->texture_displacement_facet(i).get_data();
+        input.volumes.push_back(std::move(entry));
+        part_ids.push_back(part->id());
+    }
+    const ObjectID owner_id = owner->id();
+
     // The result names a palette entry per triangle (index + 1), so these are the colours to draw it in:
     // a single filament's own, or for a mix the colour its slot will show once a bake creates it.
     std::vector<ColorRGBA> entry_colors;
@@ -2311,43 +2393,52 @@ void GLGizmoTextureDisplacement::queue_preview_job()
     m_preview_job_running = true;
     auto &worker = wxGetApp().plater()->get_ui_job_worker();
     queue_job(worker, std::make_unique<TextureDisplacementPreviewJob>(std::move(input), generation, m_preview_generation,
-        [this, entry_colors](TextureDisplacementPreviewResult result, uint64_t result_generation) {
-            indexed_triangle_set its = std::move(result.mesh);
+        [this, entry_colors, part_ids, owner_id](std::vector<TextureDisplacementPreviewResult> results,
+                                                 uint64_t result_generation) {
             m_preview_job_running = false;
             if (result_generation != m_preview_generation->load()) {
                 // Superseded while this was computing (it will have aborted early and come back
                 // empty). Whatever the newest state is, it still needs a run.
                 m_preview_job_pending = true;
-            } else if (its.indices.empty()) {
+            } else if (results.empty()) {
                 // Aborted or cancelled rather than finished - the handler runs on every outcome so
                 // the in-flight latch above always clears. Keep whatever preview is already on screen
                 // rather than blanking it; there is no new result to show, not a new empty one.
             } else {
+                // A finished run carries the whole object, so it replaces the previous one outright: a
+                // part that is no longer painted must lose its preview, or its flat volume would stay
+                // hidden behind geometry from before.
                 m_preview_glmodel.reset();
                 m_preview_color_runs.clear();
-                if (result.triangle_color.size() == its.indices.size() && !entry_colors.empty()) {
-                    indexed_triangle_set sorted;
-                    sorted.vertices = its.vertices;
-                    sorted.indices.reserve(its.indices.size());
-                    for (int want = 0; want <= int(entry_colors.size()); ++want) {
-                        const size_t first = sorted.indices.size();
-                        for (size_t i = 0; i < its.indices.size(); ++i)
-                            if (int(result.triangle_color[i]) == want)
-                                sorted.indices.push_back(its.indices[i]);
-                        if (sorted.indices.size() == first)
-                            continue;
-                        m_preview_color_runs.push_back(
-                            { { first * 3, sorted.indices.size() * 3 },
-                              want == 0 ? GLVolume::NEUTRAL_COLOR : entry_colors[size_t(want - 1)] });
+                m_preview_its = indexed_triangle_set{};
+                m_part_previews.clear();
+
+                for (size_t i = 0; i < results.size() && i < part_ids.size(); ++i) {
+                    indexed_triangle_set its = std::move(results[i].mesh);
+                    if (its.indices.empty())
+                        continue; // this part's layers moved nothing; its own volume is drawn instead
+
+                    std::vector<PreviewColorRun> runs;
+                    indexed_triangle_set         grouped =
+                        group_preview_by_color(its, results[i].triangle_color, entry_colors, runs);
+
+                    if (part_ids[i] == owner_id) {
+                        m_preview_color_runs = std::move(runs);
+                        m_preview_glmodel.init_from(grouped);
+                        m_preview_glmodel.set_color(GLVolume::NEUTRAL_COLOR);
+                        // Keep the displaced mesh so the wireframe overlay can be drawn on the raised
+                        // surface actually shown in the true-displacement view.
+                        m_preview_its = std::move(its);
+                    } else {
+                        auto preview        = std::make_unique<PartPreview>();
+                        preview->volume_id  = part_ids[i];
+                        preview->color_runs = std::move(runs);
+                        preview->glmodel.init_from(grouped);
+                        preview->glmodel.set_color(GLVolume::NEUTRAL_COLOR);
+                        m_part_previews.push_back(std::move(preview));
                     }
-                    m_preview_glmodel.init_from(sorted);
-                } else {
-                    m_preview_glmodel.init_from(its);
                 }
-                m_preview_glmodel.set_color(GLVolume::NEUTRAL_COLOR);
-                // Keep the displaced mesh so the wireframe overlay can be drawn on it (the
-                // true-displacement view), then refresh the wireframe from it.
-                m_preview_its = std::move(its);
+
                 refresh_wireframe();
                 // The paint tint rides the displaced surface in this view, so it follows the new mesh.
                 m_paint_overlay_dirty = true;
@@ -3556,6 +3647,52 @@ const ModelVolume* GLGizmoTextureDisplacement::texture_volume() const
     return const_cast<GLGizmoTextureDisplacement *>(this)->texture_volume();
 }
 
+std::vector<ModelVolume *> GLGizmoTextureDisplacement::texture_parts()
+{
+    std::vector<ModelVolume *> out;
+    ModelObject               *mo = m_c->selection_info()->model_object();
+    if (mo == nullptr)
+        return out;
+    for (ModelVolume *mv : mo->volumes)
+        if (mv->is_model_part())
+            out.push_back(mv);
+    return out;
+}
+
+std::vector<ModelVolume *> GLGizmoTextureDisplacement::painted_parts()
+{
+    std::vector<ModelVolume *> out;
+    for (ModelVolume *mv : texture_parts())
+        if (mv->is_texture_displacement_painted())
+            out.push_back(mv);
+    return out;
+}
+
+bool GLGizmoTextureDisplacement::any_part_painted() const
+{
+    for (const ModelVolume *mv : const_cast<GLGizmoTextureDisplacement *>(this)->texture_parts())
+        if (mv->is_texture_displacement_painted())
+            return true;
+    return false;
+}
+
+std::vector<TextureDisplacementLayer> GLGizmoTextureDisplacement::layers_for_part(const ModelVolume &part) const
+{
+    const ModelVolume *owner = texture_volume();
+    if (owner == nullptr)
+        return {};
+    std::vector<TextureDisplacementLayer> out = owner->texture_displacement_layers;
+    if (&part == owner)
+        return out;
+    for (TextureDisplacementLayer &layer : out) {
+        layer.lscm_seam_edges.clear();
+        layer.islands.clear();
+        layer.island_groups.clear();
+        layer.lscm_uv_overrides.clear();
+    }
+    return out;
+}
+
 void GLGizmoTextureDisplacement::update_model_object()
 {
     bool         updated = false;
@@ -4204,27 +4341,31 @@ void GLGizmoTextureDisplacement::select_whole_model()
 
 void GLGizmoTextureDisplacement::subdivide_model()
 {
-    ModelVolume *mv = texture_volume();
     ModelObject *mo = m_c->selection_info()->model_object();
-    if (mv == nullptr || mo == nullptr || m_subdivide_count < 1)
+    // Every model part, like the remesh: this is a plain mesh operation on the object, and a part left
+    // coarse is a part no height map can raise relief on.
+    const std::vector<ModelVolume *> parts = texture_parts();
+    if (mo == nullptr || parts.empty() || m_subdivide_count < 1)
         return; // 0 passes means "no subdivision" - don't take a snapshot for a no-op
 
     Plater *plater = wxGetApp().plater();
     Plater::TakeSnapshot snapshot(plater, _u8L("Subdivide model for texture displacement"), UndoRedo::SnapshotType::GizmoAction);
 
-    // Same save/replace/restore-painting dance GLGizmoSimplify uses when it re-tessellates a
-    // volume's mesh: supported/seam/mmu/fuzzy-skin masks get remapped onto the new triangles,
-    // texture-displacement doesn't (no remap support for it yet) and is dropped instead of being
-    // left referring to triangle indices that no longer mean the same thing.
-    std::optional<TriangleSelector::SavedPainting> saved_painting = mv->save_painting();
+    for (ModelVolume *mv : parts) {
+        // Same save/replace/restore-painting dance GLGizmoSimplify uses when it re-tessellates a
+        // volume's mesh: supported/seam/mmu/fuzzy-skin masks get remapped onto the new triangles,
+        // texture-displacement doesn't (no remap support for it yet) and is dropped instead of being
+        // left referring to triangle indices that no longer mean the same thing.
+        std::optional<TriangleSelector::SavedPainting> saved_painting = mv->save_painting();
 
-    // max_edge_length 0 means "no triangle is ever small enough", so every non-degenerate edge is
-    // split on each of the m_subdivide_count passes - i.e. a plain "subdivide the whole mesh N times".
-    TriangleMesh new_mesh(subdivide_mesh_uniform(mv->mesh().its, 0.f, m_subdivide_count));
-    mv->set_mesh(std::move(new_mesh));
-    mv->set_new_unique_id();
-    mv->calculate_convex_hull();
-    mv->restore_painting(saved_painting);
+        // max_edge_length 0 means "no triangle is ever small enough", so every non-degenerate edge is
+        // split on each of the m_subdivide_count passes - i.e. a plain "subdivide the whole mesh N times".
+        TriangleMesh new_mesh(subdivide_mesh_uniform(mv->mesh().its, 0.f, m_subdivide_count));
+        mv->set_mesh(std::move(new_mesh));
+        mv->set_new_unique_id();
+        mv->calculate_convex_hull();
+        mv->restore_painting(saved_painting);
+    }
 
     if (ObjectList *obj_list = wxGetApp().obj_list()) {
         const ModelObjectPtrs &objs = plater->model().objects;
@@ -5048,7 +5189,7 @@ void GLGizmoTextureDisplacement::subdivide_model_adaptive()
 
     update_model_object(); // flush any in-progress stroke into the committed masks first
 
-    if (!mv->is_texture_displacement_painted()) {
+    if (!any_part_painted()) {
         show_error(nullptr, _u8L("Paint the area you want to subdivide first - adaptive subdivision only "
                                  "refines where you have painted."));
         return;
@@ -5210,7 +5351,8 @@ void GLGizmoTextureDisplacement::remesh_model()
     params.remesh_sharp_deg = m_remesh_keep_sharp_edges ? m_remesh_sharp_angle_deg : 0.f;
     queue_prepare(params, _u8L("Remesh model for texture displacement"), /* then_bake */ false,
                   _u8L("Remeshing did not change the model. It may be non-manifold (open edges or edges "
-                       "shared by more than two triangles), or the target edge length may already be met."));
+                       "shared by more than two triangles), or the target edge length may already be met."),
+                  PrepareScope::AllParts);
 }
 
 void GLGizmoTextureDisplacement::rebuild_subdivide_preview()
@@ -5361,23 +5503,33 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
 
 void GLGizmoTextureDisplacement::bake(bool own_snapshot)
 {
-    ModelVolume *mv = texture_volume();
-    if (!mv || m_bake_in_progress)
+    ModelVolume *owner = texture_volume();
+    if (owner == nullptr || m_bake_in_progress)
         return;
 
     // Make sure the currently active layer's in-progress edits are flushed into the model before
     // baking, otherwise the most recent, not-yet-committed strokes would be silently skipped.
     update_model_object();
 
-    if (!mv->is_texture_displacement_painted()) {
+    // Every painted part, not only the one holding the layer stack: the brush paints across all of
+    // them (see update_model_object()), so baking one would leave the user's paint on the others
+    // untouched and their geometry flat.
+    const std::vector<ModelVolume *> parts = painted_parts();
+    if (parts.empty()) {
         show_error(nullptr, _u8L("Nothing is painted, there is nothing to bake."));
         return;
     }
 
+    std::vector<TextureDisplacementBakeVolume> volumes;
+    volumes.reserve(parts.size());
+    for (const ModelVolume *part : parts)
+        volumes.push_back(texture_displacement_bake_volume(*part, layers_for_part(*part),
+                                                           owner->texture_displacement_options));
+
     m_bake_in_progress = true;
-    queue_texture_displacement_bake(*mv, color_settings_for(*mv), [this]() {
+    queue_texture_displacement_bake(std::move(volumes), color_settings_for(*owner), [this]() {
         m_bake_in_progress = false;
-        // Baking replaces the volume's mesh (new id, new topology) without changing the object's
+        // Baking replaces each baked part's mesh (new id, new topology) without changing the object's
         // id or volume count, so GLGizmoPainterBase::data_changed()'s usual change-detection never
         // notices it needs to reload - do it explicitly here, otherwise the gizmo keeps painting
         // and rendering against the stale, pre-bake TriangleSelectorPatch until the object is
@@ -5449,7 +5601,7 @@ void GLGizmoTextureDisplacement::bake_standard()
         return;
 
     update_model_object(); // flush the active layer's in-progress strokes before anything reads them
-    if (!mv->is_texture_displacement_painted()) {
+    if (!any_part_painted()) {
         show_error(nullptr, _u8L("Nothing is painted, there is nothing to bake."));
         return;
     }
@@ -5549,6 +5701,9 @@ void GLGizmoTextureDisplacement::show_debug_stage(int index)
     m_use_shaded_preview = false;
     m_preview_color_runs.clear();
     m_preview_glmodel.reset();
+    // The stage is a capture of one part's run, so the other parts go back to being drawn as themselves
+    // rather than keeping a live preview the captured stages say nothing about.
+    m_part_previews.clear();
 
     indexed_triangle_set its;
     its.vertices = stage.mesh.vertices;
@@ -5673,21 +5828,33 @@ void GLGizmoTextureDisplacement::render_debug_stage_panel(ModelVolume *mv)
 
 void GLGizmoTextureDisplacement::queue_prepare(const TextureDisplacementPrepareParams &params,
                                                const std::string &snapshot_name, bool then_bake,
-                                               const std::string &unchanged_msg)
+                                               const std::string &unchanged_msg, PrepareScope scope)
 {
-    ModelVolume *mv = texture_volume();
-    if (mv == nullptr || m_prepare_in_progress || m_bake_in_progress)
+    ModelVolume *owner = texture_volume();
+    if (owner == nullptr || m_prepare_in_progress || m_bake_in_progress)
+        return;
+
+    // Preparing only the layer stack's own part would hand the displacement a coarse mesh everywhere
+    // else - a height map can only move vertices that already exist, so on a multibody object that is
+    // the difference between relief and a flat face. See PrepareScope for which parts that means.
+    const std::vector<ModelVolume *> parts = scope == PrepareScope::AllParts ? texture_parts() : painted_parts();
+    if (parts.empty())
         return;
 
     TextureDisplacementPrepareInput input;
-    input.volume_id     = mv->id();
-    input.base_mesh     = mv->mesh().its;
-    input.masks         = facets_data_of(*mv);
-    input.layers        = mv->texture_displacement_layers;
     input.params        = params;
     input.snapshot_name = snapshot_name;
+    input.volumes.reserve(parts.size());
+    for (const ModelVolume *part : parts) {
+        TextureDisplacementPrepareVolume entry;
+        entry.volume_id = part->id();
+        entry.base_mesh = part->mesh().its;
+        entry.masks     = facets_data_of(*part);
+        entry.layers    = layers_for_part(*part);
+        input.volumes.push_back(std::move(entry));
+    }
     if (params.subdiv_color_edge_mm > 0.f)
-        input.color = color_settings_for(*mv);
+        input.color = color_settings_for(*owner);
 
     m_prepare_in_progress = true;
     queue_texture_displacement_prepare(std::move(input), [this, then_bake, unchanged_msg](
@@ -7254,9 +7421,20 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     const float footer_top = ImGui::GetCursorScreenPos().y;
     ImGui::Separator();
     {
-        const float x0     = ImGui::GetCursorPosX();
-        const int   base_k = mv != nullptr ? int((mv->mesh().facets_count() + 500) / 1000) : 0;
-        const bool  v2     = mv != nullptr && mv->texture_displacement_options.pipeline_v2;
+        const float x0 = ImGui::GetCursorPosX();
+        // Over every part the bake will act on, not just the one holding the layer stack, so the count
+        // the footer quotes is the count Bake is actually working with on a multibody object. Before
+        // anything is painted there is nothing to bake yet, and the whole object is the honest estimate.
+        size_t base_facets = 0;
+        {
+            std::vector<ModelVolume *> counted = painted_parts();
+            if (counted.empty())
+                counted = texture_parts();
+            for (const ModelVolume *part : counted)
+                base_facets += part->mesh().facets_count();
+        }
+        const int  base_k = int((base_facets + 500) / 1000);
+        const bool v2     = mv != nullptr && mv->texture_displacement_options.pipeline_v2;
 
         // The triangle budget is the one subdivision control Standard mode keeps: its right value depends on
         // the part rather than on the recipe (a big model, or a fine texture, simply needs more of them), and
@@ -7385,7 +7563,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
         ImGui::SameLine(x0 + panel_w - button_w * 2 - style.ItemSpacing.x);
 
-        const bool        can_bake   = !busy && mv != nullptr && mv->is_texture_displacement_painted();
+        const bool        can_bake   = !busy && mv != nullptr && any_part_painted();
         const std::string bake_label = m_prepare_in_progress ? _u8L("Preparing...") :
                                        m_bake_in_progress    ? _u8L("Baking...") :
                                                                into_u8(m_desc.at("bake"));
@@ -7405,7 +7583,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         m_imgui->pop_bold_font();
         GLGizmoUtils::pop_orca_button_style();
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            m_imgui->tooltip(mv != nullptr && !mv->is_texture_displacement_painted() ?
+            m_imgui->tooltip(mv != nullptr && !any_part_painted() ?
                                  (m_seam_edit_mode ? _u8L("Nothing is painted yet. The UV editor's seam tool is on, so "
                                                           "strokes on the model mark seams instead of painting - turn "
                                                           "it off in the pane to paint.") :
@@ -7432,11 +7610,11 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         // What Bake will produce, and which layers it will skip.
         if (mv != nullptr) {
             const std::string base_count = base_k > 0 ? Slic3r::format(_u8L("%1% k"), base_k) :
-                                                        std::to_string(mv->mesh().facets_count());
+                                                        std::to_string(base_facets);
             std::string note = v2         ? Slic3r::format(_u8L("Model: %1% triangles - the bake refines to the resolution above, up to its budget"), base_count) :
                                pro_mode() ? Slic3r::format(_u8L("Bake moves existing vertices - the model stays at %1% triangles"), base_count) :
                                             Slic3r::format(_u8L("Bake result up to ~%1% k triangles"), base_k + m_subdivide_budget_k);
-            if (mv->is_texture_displacement_painted()) {
+            if (any_part_painted()) {
                 std::vector<std::string> skipped;
                 for (const TextureDisplacementLayer &l : mv->texture_displacement_layers)
                     if (!slot_painted(l.slot))

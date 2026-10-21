@@ -30,33 +30,43 @@ namespace Slic3r::GUI {
 // this job adds is the worker thread, the progress notification with its Cancel button, and the commit.
 enum class TextureDisplacementPrepareOutcome
 {
-    Committed, // the volume now carries the prepared mesh and the paint carried onto it
-    Unchanged, // nothing needed doing - the mesh already met the criteria; the model was not touched
-    PaintLost, // the remesh landed but no layer's paint survived it, so nothing was committed
-    Failed,    // cancelled, threw, or the volume went away while the job ran
+    Committed, // the parts now carry the prepared mesh and the paint carried onto it
+    Unchanged, // nothing needed doing - the meshes already met the criteria; the model was not touched
+    PaintLost, // a remesh landed but no layer's paint survived it, so nothing was committed
+    Failed,    // cancelled, threw, or the volumes went away while the job ran
 };
 
-struct TextureDisplacementPrepareInput
+// One model part's share of a prepare. As with the bake, `layers` belongs to the object rather than to
+// the part (see GLGizmoTextureDisplacement::layers_for_part()).
+struct TextureDisplacementPrepareVolume
 {
     ObjectID                              volume_id;
     indexed_triangle_set                  base_mesh;
     TextureDisplacementFacetsData         masks;
     std::vector<TextureDisplacementLayer> layers;
-    TextureDisplacementPrepareParams      params;
+};
+
+struct TextureDisplacementPrepareInput
+{
+    // Every model part to prepare, in the object's own volume order - the same parts the bake that
+    // follows will displace, so a multibody object is refined everywhere its paint reaches rather than
+    // only on its first part.
+    std::vector<TextureDisplacementPrepareVolume> volumes;
+    TextureDisplacementPrepareParams              params;
     // Captured on the main thread. Empty when no layer is colouring, in which case the refinement
     // skips the colour criterion entirely. Only the *quantizer* is used here: refinement follows
     // perceived colour, never the interleaving that realises a mix.
-    TextureColorSettings                  color;
+    TextureColorSettings                          color;
     // The undo step the commit opens. Standard mode's Bake names it after the bake, because the
     // displacement job that follows commits into this same step rather than pushing its own.
-    std::string                           snapshot_name;
+    std::string                                   snapshot_name;
 };
 
 class TextureDisplacementPrepareJob : public Job
 {
-    TextureDisplacementPrepareInput                            m_input;
-    TextureDisplacementPrepareResult                           m_result;
-    std::function<void(TextureDisplacementPrepareOutcome)>     m_on_finished;
+    TextureDisplacementPrepareInput                               m_input;
+    std::vector<TextureDisplacementPrepareResult>                 m_results;
+    std::function<void(TextureDisplacementPrepareOutcome)>        m_on_finished;
 
 public:
     TextureDisplacementPrepareJob(TextureDisplacementPrepareInput                        &&input,
