@@ -797,7 +797,7 @@ bool Preset::save(DynamicPrintConfig* parent_config)
         {
             ConfigOption *opt_src = config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
-            if (opt_dst->is_scalar() || !(opt_dst->nullable()))
+            if (opt_dst->is_scalar() || !(opt_dst->nullable()) || is_filament_extruder_override_key(option))
                 opt_dst->set(opt_src);
             else {
                 ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
@@ -1183,9 +1183,9 @@ static std::vector<std::string> s_Preset_print_options{
     "is_infill_first",
     "sparse_infill_density",
     "fill_multiline",
-    "tpms_adaptive",
-    "tpms_interior_density",
-    "tpms_adaptive_gradient",
+    "adaptive_infill_mode",
+    "adaptive_infill_interior_density",
+    "adaptive_infill_gradient",
     "gyroid_optimized",
     "sparse_infill_pattern",
     "sparse_infill_smooth_factor",
@@ -1422,6 +1422,7 @@ static std::vector<std::string> s_Preset_print_options{
     "initial_layer_travel_acceleration",
     "initial_layer_travel_jerk",
     "exclude_object",
+    "exclude_object_tolerance",
     "slow_down_layers",
     "infill_anchor",
     "infill_anchor_max",
@@ -1823,7 +1824,7 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
     const boost::filesystem::path &file, const std::string &canonical_name,
     const PresetOrigin &load_origin, ForwardCompatibilitySubstitutionRule substitution_rule,
     const std::string &extruder_id_name, const std::string &extruder_variant_name,
-    std::set<std::string> *key_set1, std::set<std::string> *key_set2) const
+    std::set<std::string> *key_set1, std::set<std::string> *key_set2, bool read_only) const
 {
     UserPresetLoad out;
     out.preset = Preset(m_type, canonical_name, false);
@@ -1857,7 +1858,10 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
 
         std::string version_str = key_values[BBL_JSON_KEY_VERSION];
         boost::optional<Semver> version = Semver::parse(version_str);
-        if (!version) return out;
+        if (!version) {
+            out.errors.push_back((boost::format("invalid version %1% in config %2%") % version_str % preset.file).str());
+            return out;
+        }
         preset.version = *version;
 
         if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())
@@ -1878,6 +1882,12 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
             // Orca: try to find if the parent preset has been renamed
             inherit_preset = this->find_preset2(inherits_value);
             Preset::normalize_inherits(config, inherit_preset);
+        }
+        // Local hot reload only supports FFF; no SLA default printer is installed.
+        if (read_only && load_origin.kind == PresetOrigin::Kind::LocalBundle && m_type == Preset::TYPE_PRINTER &&
+            Preset::printer_technology(config) != ptFFF) {
+            out.errors.push_back((boost::format("local bundle printer %1% is not FFF") % preset.file).str());
+            return out;
         }
         const Preset& default_preset = this->default_preset_for(config);
         if (inherit_preset) {
@@ -2043,7 +2053,7 @@ void PresetCollection::load_presets(
     resolve_then_commit<CNumericLocalesSetter>(files.size(),
         [&](size_t i) {
             return this->resolve_user_preset(files[i].path, files[i].canonical_name, resolved_origin, substitution_rule,
-                                             extruder_id_name, extruder_variant_name, key_set1, key_set2);
+                                             extruder_id_name, extruder_variant_name, key_set1, key_set2, read_only);
         },
         [&](size_t i, UserPresetLoad &&loaded) {
             // Resolve read the files without the lock, so another instance may have saved
@@ -2063,7 +2073,7 @@ void PresetCollection::load_presets(
                 if (! (on_disk == loaded.on_disk)) {
                     CNumericLocalesSetter locales_setter;
                     loaded = this->resolve_user_preset(files[i].path, files[i].canonical_name, resolved_origin, substitution_rule,
-                                                       extruder_id_name, extruder_variant_name, key_set1, key_set2);
+                                                       extruder_id_name, extruder_variant_name, key_set1, key_set2, read_only);
                 }
             }
             const bool leave_files = read_only || (! lock_path.empty() && ! instance_lock.locked());
@@ -2123,7 +2133,7 @@ Preset* PresetCollection::get_preset_differed_for_save(Preset& preset)
         {
             ConfigOption *opt_src = preset.config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
-            if (opt_dst->is_scalar() || !(opt_dst->nullable()))
+            if (opt_dst->is_scalar() || !(opt_dst->nullable()) || is_filament_extruder_override_key(option))
                 opt_dst->set(opt_src);
             else {
                 ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
@@ -2190,9 +2200,12 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
         // option's non-nil default (e.g. filament_retract_before_wipe -> 100%), silently
         // resurrecting an override the user turned off. See GitHub issue on Retract Before Wipe.
         if (m_type == Preset::TYPE_FILAMENT) {
-            for (const std::string& opt_key : filament_extruder_override_keys) {
-                if (key_values.count(opt_key))
-                    continue; // already carried by the diff
+            for (const std::string& opt_key : preset.config.keys()) {
+                if (!is_filament_extruder_override_key(opt_key) || key_values.count(opt_key))
+                    continue; // not an override, or already carried by the diff
+                const ConfigOptionDef *def = print_config_def.get(opt_key);
+                if (def == nullptr || !def->default_value || def->default_value->is_nil())
+                    continue; // the option's default is nil too, so an absent key cannot come back as a value
                 const auto* opt_vec = dynamic_cast<const ConfigOptionVectorBase*>(preset.config.option(opt_key));
                 if (opt_vec == nullptr)
                     continue;
@@ -2285,6 +2298,7 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
                 BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset->file;
                 continue;
             }
+            extend_default_config_length(config, false, {});
             preset->config.update_diff_values_to_child_config(config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
             //preset->config.apply(std::move(config));
             Preset::normalize(preset->config);
@@ -3136,7 +3150,9 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     }
     // Insert a new profile.
     //BBS: add project embedded preset logic
-    bool from_project = boost::algorithm::iends_with(name, ".3mf");
+    // A G-code's settings are shown like a project's, so a preset made from them lives with the project
+    // rather than in the user's library.
+    bool from_project = boost::algorithm::iends_with(name, ".3mf") || is_gcode_file(name);
     if (m_type == Preset::TYPE_PRINT)
         cfg.option<ConfigOptionString >("print_settings_id", true)->value  = new_name;
     else if (m_type == Preset::TYPE_FILAMENT)

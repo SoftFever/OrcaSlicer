@@ -4,6 +4,7 @@
 #include "GLGizmoPainterBase.hpp"
 #include "libslic3r/TextureBake/TextureBakeDebug.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
+#include "slic3r/GUI/AnimatedTexture.hpp"
 #include "slic3r/GUI/GLModel.hpp"
 #include "slic3r/GUI/GLTexture.hpp"
 #include "slic3r/GUI/I18N.hpp"
@@ -427,6 +428,10 @@ private:
     void render_texture_library_popup(const ImVec2 &panel_min, const ImVec2 &panel_max);
     int  m_picker_slot         = -1;
     bool m_picker_open_request = false;
+    // Set when the popup opens, so the next layout scrolls the layer's current texture into view.
+    bool  m_picker_reveal_selected = false;
+    float m_picker_scroll_target   = 0.f;  // see ease_wheel_scroll()
+    float m_picker_scroll_applied  = -1.f;
     void set_layer_texture(TextureDisplacementLayer &layer, const TextureLibraryEntry &entry);
     void import_custom_texture(TextureDisplacementLayer &layer);
 
@@ -1061,6 +1066,8 @@ private:
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;
+    // Generation of the library the above were cached against; a change clears them.
+    uint64_t                              m_library_generation = 0;
 
     // Everything the *unwrap* depends on. update_uv_editor() runs from rebuild_preview(), i.e. on
     // every stroke end and every slider release - but depth/tiling/rotation/offset/blend change
@@ -1102,12 +1109,15 @@ private:
     // The config key behind m_undocked.
     static constexpr const char *UNDOCKED_CONFIG_KEY = "texture_displacement_panel_undocked";
 
-    // Smooth scrolling for the panel body (everything between the header and the pinned Bake footer).
-    // ImGui jumps a fixed number of lines per wheel notch, which on tall layer cards reads as a hard
-    // jolt rather than a scroll. The wheel is intercepted (ImGuiWindowFlags_NoScrollWithMouse) and
-    // moves a *target* offset instead; the real scroll is eased toward it over the following frames.
+    // Smooth scrolling for a child window, called inside it: the panel body (everything between the header
+    // and the pinned Bake footer) and the texture library's grid. ImGui jumps a fixed number of lines per
+    // wheel notch, which on tall layer cards reads as a hard jolt rather than a scroll. The child sets
+    // ImGuiWindowFlags_NoScrollWithMouse, and the wheel moves `target` instead; the real scroll is eased
+    // toward it over the following frames. `applied` is what the easing wrote last frame, <0 until the
+    // first one.
+    void  ease_wheel_scroll(float &target, float &applied);
     float m_panel_scroll_target  = 0.f;
-    float m_panel_scroll_applied = -1.f; // what the easing wrote last frame; <0 until the first one
+    float m_panel_scroll_applied = -1.f;
     // Last frame's body content height and footer height. The body is a child window that has to be
     // given its height before its content is laid out, so it is sized from the previous frame: as tall
     // as its content, capped so the footer still fits above the bottom of the canvas.
@@ -1155,6 +1165,50 @@ private:
     std::map<std::string, IconManager::Icons>  m_panel_icon_map; // file name -> [normal, colour, disabled]
     bool                                       m_panel_icons_tried = false;
     void                                       ensure_panel_icons();
+
+    // One illustration under a tooltip's text: a still image or an animation (see AnimatedTexture),
+    // named by file within resources/images/texture_displacement, with a caption under it. Several of
+    // them in one tooltip are laid out side by side, which is how a setting is shown as a comparison -
+    // the same model at two values of it.
+    struct TipMedia
+    {
+        std::string file;
+        wxString    caption;
+    };
+
+    // Every tooltip the panel shows. Placed beside the panel rather than under the mouse: the panel is
+    // pinned to the right edge of the canvas, so a tooltip left to follow the mouse covers the control
+    // it is explaining, and one carrying an illustration covers most of the panel with it.
+    //
+    // `media` is drawn under the text, at the tooltip's full width; files that are missing or will not
+    // decode are skipped, so a tooltip whose illustration has not been drawn yet is exactly the text
+    // tooltip it was before.
+    void panel_tooltip(const std::string &text, const std::vector<TipMedia> &media = {});
+    void panel_tooltip(const wxString &text, const std::vector<TipMedia> &media = {});
+    void render_tip_media(const std::vector<TipMedia> &media, float width);
+
+    // Screen rectangle a tooltip places itself beside: the panel window, or - while the texture picker
+    // is up and tooltips are coming from inside it - the picker popup, which already sits beside the
+    // panel. Both are set from the window's own rectangle as it is drawn.
+    ImVec2 m_tooltip_anchor_min{0.f, 0.f};
+    ImVec2 m_tooltip_anchor_max{0.f, 0.f};
+    // Illustrations any tooltip has shown, decoded and uploaded once (see AnimatedTexture.hpp).
+    AnimatedTextureCache m_tip_media;
+    // Which tooltip's illustrations are on screen, and when they first appeared: an animation plays
+    // from its first frame each time its tooltip opens, rather than from wherever a free-running clock
+    // happened to be.
+    std::string m_tip_media_key;
+    double      m_tip_media_start  = 0.;
+    int         m_tip_media_frame  = -2; // the frame it was last drawn on, to spot the tooltip reopening
+    // How long the pointer has rested on the control a tooltip belongs to, and when one was last on
+    // screen, both on the real clock tip_now() keeps (see the .cpp for why ImGui's own will not do).
+    ImVec2 m_tip_item{-1.f, -1.f};
+    double m_tip_hover_since = 0.;
+    double m_tip_last_shown  = -1e9;
+    // The frame a tooltip was last drawn on, and how many it has been drawn on in a row: ImGui hides
+    // one on its first frame while it measures it, so it has to be kept on screen to be seen at all.
+    int m_tip_shown_frame = -2;
+    int m_tip_settled     = 0;
 };
 
 } // namespace Slic3r::GUI

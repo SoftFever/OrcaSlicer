@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2026-07-20 13:33+0200\n"
 "Last-Translator: Manu Goiogana <mgoiogana@gmail.com>\n"
 "Language-Team: \n"
@@ -685,6 +685,9 @@ msgstr "mm"
 msgid "Part selection"
 msgstr "Pieza hautatzea"
 
+msgid "Select multiple objects"
+msgstr "Hautatu objektu bat baino gehiago"
+
 msgid "Fixed step drag"
 msgstr "Urrats finkoko arrastatzea"
 
@@ -745,8 +748,86 @@ msgstr "Pieza"
 msgid "Relative"
 msgstr "Erlatiboa"
 
+msgid "Selection"
+msgstr "Hautaketa"
+
+msgid "Plate"
+msgstr "Plaka"
+
+# AI Translated
+# Needs human review: Glossary has no Basque rendering; Banatu chosen (command that spaces objects evenly, counterpart of Lerrokatu).
+msgid "Distribute"
+msgstr "Banatu"
+
 msgid "Coordinate system used for transform actions."
 msgstr "Eraldatze-ekintzetan erabilitako koordenatu-sistema."
+
+# AI Translated
+msgid "Reference for alignment"
+msgstr "Lerrokatzeko erreferentzia"
+
+# AI Translated
+msgid "Select at least 3 parts or objects"
+msgstr "Hautatu gutxienez 3 pieza edo objektu"
+
+# AI Translated
+msgid "Align left"
+msgstr "Lerrokatu ezkerrean"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Lerrokatu erdian ezker-eskuin norabidean"
+
+# AI Translated
+msgid "Align right"
+msgstr "Lerrokatu eskuinean"
+
+# AI Translated
+msgid "Align front"
+msgstr "Lerrokatu aurrean"
+
+# AI Translated
+# Needs human review: Object menu item that aligns object centers on the plate's front-back (Y) axis; check that the 'aurre-atze' compound reads naturally.
+msgid "Align front-back center"
+msgstr "Lerrokatu erdian aurre-atze norabidean"
+
+# AI Translated
+msgid "Align back"
+msgstr "Lerrokatu atzean"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Lerrokatu behean"
+
+# AI Translated
+# Needs human review: Object menu item that aligns object centers on the vertical (Z) axis; check that the 'goi-behe' compound reads naturally.
+msgid "Align top-bottom center"
+msgstr "Lerrokatu erdian goi-behe norabidean"
+
+# AI Translated
+msgid "Align top"
+msgstr "Lerrokatu goian"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Banatu ezker-eskuin norabidean"
+
+# AI Translated
+# Needs human review: Object menu item that spaces objects evenly along the plate's front-back (Y) axis; check that the 'aurre-atze' compound reads naturally.
+msgid "Distribute front-back"
+msgstr "Banatu aurre-atze norabidean"
+
+# AI Translated
+# Needs human review: Object menu item that spaces objects evenly along the vertical (Z) axis; check that the 'goi-behe' compound reads naturally.
+msgid "Distribute top-bottom"
+msgstr "Banatu goi-behe norabidean"
+
+msgid "Drop"
+msgstr "Askatu"
+
+# AI Translated
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr "Mugitu hautapena Z ardatzean, bere punturik baxuenak ohea ukitu dezan."
 
 msgid "Absolute"
 msgstr "Absolutua"
@@ -1634,7 +1715,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "(%1%) formaren trazuak onartzen ez direnak ditu: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Egoera baliogabea; jakinarazi erreproduzitzeko urratsak GitHub-en"
 
 # AI Translated
@@ -1642,11 +1723,11 @@ msgid "No embossed file"
 msgstr "Ez dago erliebeko fitxategirik"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "SVG fitxategia falta da erliebeko forman"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "SVG fitxategiaren datuak falta dira"
 
 msgid "Face the camera"
@@ -1967,6 +2048,22 @@ msgstr "Muntaketa tresnan sartzen"
 
 msgid "Leaving Assembly gizmo"
 msgstr "Muntaketa tresnatik irteten"
+
+# AI Translated
+msgid "Parts of a cut object cannot be moved"
+msgstr "Ebakitako objektu baten piezak ezin dira mugitu"
+
+# AI Translated
+msgid "Aligning to the plate is available in X and Y only"
+msgstr "Plakarekin lerrokatzea X eta Y ardatzetan bakarrik dago erabilgarri"
+
+# AI Translated
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr "Desgaitu hautatutako objektuen 'Automatikoki jaitsi' aukera, Z ardatzean mugitzeko"
+
+# AI Translated
+msgid "All selected objects must be on the same plate"
+msgstr "Hautatutako objektu guztiak plaka berean egon behar dute"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -2369,6 +2466,66 @@ msgstr "Sareko pluginean murrizketak"
 
 msgid "Privacy Policy Update"
 msgstr "Pribatutasun politikaren eguneraketa"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Zure filamentu-aurrezarpen guztiak sortu ziren inprimagailuetan daude erabilgarri."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Migratu filamentu-aurrezarpenak"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 bertsioak sistemaren filamentu-aurrezarpen asko berregituratu ditu profil okerrak zuzentzeko eta etorkizuneko funtzioak prestatzeko. Ondorioz, beheko aurrezarpenak ez dira jada agertzen sortu ziren inprimagailu batzuetan. Barkatu eragozpenak; behin bakarrik egin beharreko zuzenketa da.\n"
+"\n"
+"Inprimagailu horiek zure aurrezarpenetan berriro gehitu nahi dituzu orain? Zure aurrezarpenen babeskopia egingo da lehenik. Geroago ere egin dezakezu, Laguntza > Migratu filamentu-aurrezarpenak aukeratik."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (oinarria: %2%)"
+
+msgid "Don't remind me again"
+msgstr "Ez gogorarazi berriro"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "Zure aurrezarpenen babeskopia ezin izan da egin, beraz ez dira migratu."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "Erabiltzailearen aurrezarpenen karpeta ezin izan da blokeatu, beraz ez da ezer migratu. Baliteke OrcaSlicer-en beste instantzia bat aurrezarpenak gordetzen ari izatea; saiatu berriro geroago Laguntza > Migratu filamentu-aurrezarpenak aukeratik."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Zure filamentu-aurrezarpenak ezin izan dira migratu. Zure aurrezarpenen babeskopia hemen gorde da:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Zure filamentu-aurrezarpenak migratu dira. Hautatu berriro filamentu-zerrendan, erabiltzen zenituen lekuetan.\n"
+"\n"
+"Zure aurrezarpenen babeskopia hemen gorde da:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Aurrezarpen hauek ezin izan dira migratu:"
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -3075,8 +3232,13 @@ msgstr "(Kolorea galdu da)"
 msgid "Center"
 msgstr "Zentratu"
 
-msgid "Drop"
-msgstr "Askatu"
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Lerrokatu/Banatu"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Lerrokatu eta banatu objektuak"
 
 msgid "Edit Process Settings"
 msgstr "Editatu Prozesuaren Ezarpenak"
@@ -3429,9 +3591,6 @@ msgstr "Itsaspen ertzik gabe"
 
 msgid "Outer wall speed"
 msgstr "Kanpoko hormako abiadura"
-
-msgid "Plate"
-msgstr "Plaka"
 
 msgid "Brim"
 msgstr "Itsaspen ertza"
@@ -4699,7 +4858,7 @@ msgstr "Mesedez, gorde proiektua eta berrabiarazi programa."
 msgid "Unknown C++ exception."
 msgstr "C++ salbuespen ezezaguna."
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "G-codea prozesatzen aurreko fitxategitik…"
 
 msgid "Slicing complete"
@@ -6223,6 +6382,11 @@ msgstr "Ardatzak"
 msgid "Gridlines"
 msgstr "Sareta-lerroak"
 
+# AI Translated
+# Needs human review: Glossary has no Basque rendering for Focus mode (hides the UI to concentrate on the 3D canvas); check the wording.
+msgid "Focus mode"
+msgstr "Kontzentrazio modua"
+
 msgid "Labels"
 msgstr "Etiketak"
 
@@ -6503,6 +6667,10 @@ msgstr "Konfigurazio-laguntzailea"
 
 msgid "Show Configuration Folder"
 msgstr "Erakutsi konfigurazio-karpeta"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Berreskuratu profil-eguneraketa batek sortu ziren inprimagailuetatik kendutako filamentu-aurrezarpenak"
 
 msgid "Troubleshoot Center"
 msgstr "Arazoak konpontzeko zentroa"
@@ -10535,6 +10703,14 @@ msgstr "Erakutsi onartzen ez diren aurrezarpenak"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Erakutsi bateraezinak edo onartu gabeak diren aurrezarpenak inprimagailuaren eta filamentuaren goitibeherako zerrendetan. Aurrezarpen hauek ezin dira hautatu."
 
+# AI Translated
+msgid "Export statistics with G-code"
+msgstr "Esportatu estatistikak G-codearekin"
+
+# AI Translated
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Gaituta badago, G-code fitxategi bat esportatzean haren estatistikak ere JSON gisa idazten dira alboan, <name>.statistics.json izenarekin, eta esportatutako 3MF xerratu fitxategiak barruan gordetzen ditu: inprimatze-denbora, filamentuaren eta lerro-motaren araberako guztiak, eta gauza bera geruza bakoitzeko eta objektu bakoitzeko."
+
 msgid "Experimental Features"
 msgstr "Ezaugarri esperimentalak"
 
@@ -11377,6 +11553,10 @@ msgstr "Huts egin du fitxategia inprimagailuaren biltegira igotzean. Saiatu berr
 # AI Translated
 msgid "Send Failed"
 msgstr "Bidalketak huts egin du"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Ez dago inprimagailurik erabilgarri"
 
 msgid "The name length exceeds the limit."
 msgstr "Izenaren luzerak muga gainditzen du."
@@ -12365,12 +12545,13 @@ msgstr "Atze-ezkerra"
 msgid "Rear-right"
 msgstr "Atze-eskuina"
 
+# AI Translated
 msgid ""
 "The Retract before wipe option could be only 100% when using the Firmware Retraction mode.\n"
 "\n"
 "Shall I set it to 100% in order to enable Firmware Retraction?"
 msgstr ""
-"'Garbitu aurretik atzera egin' aukerak %100 izan behar du firmware bidezko atzera-egite modua erabiltzean.\n"
+"'Garbiketa aurreko atzera-egite kantitatea' aukerak %100 izan behar du firmware bidezko atzera-egite modua erabiltzean.\n"
 "\n"
 "%100ean ezarri nahi duzu firmware bidezko atzera-egitea gaitzeko?"
 
@@ -12986,9 +13167,6 @@ msgstr "Filamentua aldatzeko purgatze-bolumenak"
 msgid "from/to"
 msgstr "nondik/nora"
 
-msgid "Please choose the filament color"
-msgstr "Hautatu filamentuen kolorea"
-
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Hodeiko agentea ez dago erabilgarri. Berrabiarazi OrcaSlicer eta saiatu berriro."
 
@@ -13197,8 +13375,8 @@ msgid "Left mouse"
 msgstr "Saguaren ezkerreko botoia"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Leihoko edozein tokitan erabilgarri, baita testu-eremu batean idazten ari zarenean ere."
+msgid "Available anywhere in the window."
+msgstr "Leihoko edozein lekutan erabilgarri."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13223,9 +13401,6 @@ msgstr "Erabilgarri Prestatu fitxako 3D ikuspegiak fokua duen bitartean."
 
 msgid "Select a part"
 msgstr "Hautatu pieza bat"
-
-msgid "Select multiple objects"
-msgstr "Hautatu objektu bat baino gehiago"
 
 msgid "Select objects by rectangle"
 msgstr "Hautatu objektuak laukizuzen bidez"
@@ -13312,10 +13487,6 @@ msgstr "%s %s ekintzari esleituta dago. %s ekintzari berriro esleitu?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "%s lehenetsia %s ekintzari esleituta dago. %s ekintzari berriro esleitu?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Lasterbide globalak idazten ari zarenean ere aplikatzen dira."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -13732,6 +13903,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "perimetro bat aldatzaile baten barruan dago osorik; aldatzailea ez zaio aplikatu (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "%1% motako \"%2%\" aldatzaileak (\"%3%\" objektukoak) perimetro oso bat estaltzen du"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "%1% motako \"%2%\" aldatzaileak (\"%3%\" objektukoak, guztira %4%) perimetro oso bat estaltzen du"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "\"%2%\" objektuaren \"%1%\" aldatzaileak ez du eraginik izan josturan (baliteke inprimatutako perimetroaren erdiko lerrora ez iristea)"
@@ -13744,6 +13927,11 @@ msgstr "\"%2%\" objektuaren \"%1%\" aldatzaileak (%3% guztira) ez du eraginik iz
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "Josturaren kokapena espero zena ez bezalakoa izan daiteke."
+
+# AI Translated
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr "Ezin izan dira G-codearen estatistikak idatzi hemen: %1%."
 
 msgid "Internal Bridge"
 msgstr "Barruko zubia"
@@ -14719,18 +14907,20 @@ msgstr ""
 "\n"
 "Erabilitako benetako zubi-fluxua balio hau filamentuen fluxu-erlazioarekin eta, ezarrita badago, objektuaren fluxu-erlazioarekin biderkatuta kalkulatzen da."
 
+# AI Translated
+# Needs human review: po_tool printf heuristic warns (100% or vs %100 edo); false positive, there are no placeholders. Basque writes the percent sign before the number, as elsewhere in this catalog.
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Zubiaren lerro-zabalera. % gisa adierazten bada, pitaren diametroaren arabera kalkulatuko da.\n"
-"Zubi-dentsitate handiagoarekin edo zubiaren fluxu-erlazio handiagoarekin erabiltzea gomendatzen da.\n"
+"Zubien dentsitate handiagoarekin edo zubien fluxu-ratio handiagoarekin erabiltzea gomendatzen da.\n"
 "\n"
 "Gehieneko balioa %100 edo pitaren diametroa da.\n"
-"0 ezartzen bada, lerro-zabalera barruko betegarri solidoaren zabalerarekin bat etorriko da."
+"0 ezartzen bada, lerro-zabalera barruko betegarri solidoaren zabalerarekin bat etorriko da, edo pitaren diametroarekin zubi lodietan."
 
 msgid "Internal bridge flow ratio"
 msgstr "Barruko zubien fluxu-ratioa"
@@ -15000,6 +15190,7 @@ msgstr "Gaitu aukera hau irtenguneak inprimatzean abiadura moteltzeko. Irtengune
 msgid "Slow down for curled perimeters"
 msgstr "Moteldu kiribildutako perimetroetan"
 
+# AI Translated
 #, no-c-format, no-boost-format
 msgid ""
 "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
@@ -15015,7 +15206,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "Gaitu aukera hau perimetroak gorantz kizkurtu daitezkeen eremuetan inprimatze-abiadura moteltzeko.\n"
 "Adibidez, moteltze gehigarria aplikatuko da Benchy ontziaren aurrealdeko ertz zorrotzetan bezalako irtenguneak inprimatzean, geruzaz geruza metatzen den kizkurtzea murrizteko.\n"
@@ -15027,22 +15218,23 @@ msgstr ""
 "Aukera hau gaitzean gomendioak:\n"
 "1. Murriztu Pressure Advance leuntze-denbora 0.015 - 0.02 baliora, estrusoreak abiadura-aldaketei azkar erantzun diezaien.\n"
 "2. Handitu gutxieneko inprimatze-abiadurak moteltzearen neurria eta segmentu azkar eta motelen arteko aldea mugatzeko.\n"
-"3. Akatsak agertzen badira, gaitu Extrusion Rate Smoothing (ERS) fluxu-trantsizioak gehiago leuntzeko.\n"
+"3. Akatsak agertzen badira, gaitu Estrusio-tasaren leuntzea (ERS) fluxu-trantsizioak gehiago leuntzeko.\n"
 "\n"
 "Oharra: aukera hau gaituta dagoenean, irtenguneen perimetroak irtengune gisa tratatzen dira; beraz, irtenguneen abiadura aplikatuko da perimetroa zubi baten parte bada ere.\n"
-"Adibidez, perimetroak %100 irtengunean daudenean eta azpitik eusten dien hormarik ez dagoenean, %100eko irtenguneetako abiadura aplikatuko da."
+"Adibidez, perimetroak %100 irtengunean daudenean eta azpitik eusten dien hormarik ez dagoenean, %75eko irtenguneetako abiadura aplikatuko da, zubi-abiadurak mugatuta."
 
 msgid "mm/s or %"
 msgstr "mm/s edo %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "Kanpotik ikusgai dauden zubi-estrusioen abiadura.\n"
 "\n"
-"Gainera, perimetro kiribilduetarako moteltzea desgaituta badago edo irtengune-modu klasikoa gaituta badago, %13 baino gutxiagoz eutsita dauden irtengune-hormen inprimatze-abiadura izango da, zubi baten edo irtengune baten parte izan."
+"Gainera, \"Moteldu kiribildutako perimetroetan\" desgaituta badago, %13 baino gutxiagoz eutsita dauden irtengune-hormen inprimatze-abiadura izango da, zubi baten zein irtengune baten parte izan."
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "Barru-zubien abiadura. Balioa ehuneko gisa adierazten bada, Zubien abiadura-ren arabera kalkulatuko da. Lehenetsitako balioa % 150ekoa da."
@@ -15597,8 +15789,9 @@ msgstr "Hau piezen kanpoko hormetarako inprimatze-abiadura da. Oro har, barruko 
 msgid "Small perimeters"
 msgstr "Perimetro txikiak"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Ezarpen bereizi honek erradioa <= small_perimeter_threshold duten perimetroen abiaduran eragiten du (normalean zuloak). Ehuneko gisa adierazten bada (adibidez: 80%), goiko kanpoko hormaren abiaduraren arabera kalkulatuko da. Jarri zero automatikoa izateko."
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Ezarpen bereizi honek erradioa <= small_perimeter_threshold duten perimetroen abiaduran eragiten du (normalean zuloak). Ehuneko gisa adierazten bada (adibidez: %80), goiko kanpoko hormaren abiaduraren arabera kalkulatuko da."
 
 msgid "Small perimeters threshold"
 msgstr "Perimetro txikien atalasea"
@@ -15609,8 +15802,9 @@ msgstr "Perimetro txikien luzeraren atalasea ezartzen du. Atalase lehenetsia 0 m
 msgid "Small support perimeters"
 msgstr "Euskarri-perimetro txikiak"
 
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "\"Perimetro txikiak\" ezarpenaren berdina, baina euskarrietarako. Ezarpen honek `small_support_perimeter_threshold` baino txikiagoak edo berdinak diren eremuen euskarri-abiadurari eragingo dio. Ehuneko gisa adierazten bada (adibidez, %80), goiko euskarri- edo euskarri-interfaze abiaduraren arabera kalkulatuko da. Ezarri zero automatikorako."
+# AI Translated
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "\"Perimetro txikiak\" ezarpenaren berdina, baina euskarrietarako. Ezarpen honek `small_support_perimeter_threshold` baino txikiagoak edo berdinak diren eremuen euskarri-abiadurari eragingo dio. Ehuneko gisa adierazten bada (adibidez, %80), goiko euskarri- edo euskarri-interfaze abiaduraren arabera kalkulatuko da."
 
 msgid "Small support perimeters threshold"
 msgstr "Euskarri-perimetro txikien atalasea"
@@ -15621,22 +15815,23 @@ msgstr "Honek euskarri-perimetro txikien luzera-atalasea ezartzen du. Lehenetsit
 msgid "Walls printing order"
 msgstr "Hormen inprimatze-ordena"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
 "Barruko eta kanpoko hormen inprimatze-sekuentzia.\n"
 "\n"
-"Erabili Barru/Kanpo irtengune onenak lortzeko. Irtenguneetan dauden hormak ondoko perimetro bati atxiki daitezke inprimatzean. Hala ere, gainazalaren kalitatea apur bat murriztu daiteke, kanpoko perimetroa barrukoaren kontra zanpatzen delako.\n"
+"Erabili Barrukoa/Kanpokoa irtengune onenak lortzeko. Irtenguneetan dauden hormak ondoko perimetro bati atxiki daitezke inprimatzean. Hala ere, gainazalaren kalitatea apur bat murriztu daiteke, kanpoko perimetroa barrukoaren kontra zanpatzen delako.\n"
 "\n"
-"Erabili Barru/Kanpo/Barru kanpoko gainazalaren akabera eta neurri-zehaztasun onenak lortzeko, kanpoko horma barruko perimetro batek oztopatu gabe inprimatzen baita. Irtenguneen portaera, ordea, okerragoa izango da. Gutxienez 3 horma behar dira: lehenik hirugarrenetik aurrerako barruko hormak, gero kanpokoa eta azkenik lehenengo barrukoa. Kasu gehienetan Kanpo/Barru baino gomendagarriagoa da.\n"
+"Erabili Barrukoa/Kanpokoa/Barrukoa kanpoko gainazalaren akabera eta neurri-zehaztasun onenak lortzeko, kanpoko horma barruko perimetro batek oztopatu gabe inprimatzen baita. Irtenguneen portaera, ordea, okerragoa izango da, kanpoko horma inprimatzeko barruko perimetrorik ez dagoelako. Aukera honek gutxienez 3 horma behar ditu eraginkorra izateko: lehenik hirugarren perimetrotik aurrerako barruko hormak inprimatzen ditu, gero kanpoko perimetroa eta azkenik lehen barruko perimetroa. Kasu gehienetan Kanpokoa/Barrukoa aukera baino gomendagarriagoa da.\n"
 "\n"
-"Erabili Kanpo/Barru Barru/Kanpo/Barru aukeraren kanpoko hormaren kalitate eta neurri-zehaztasun bera lortzeko. Hala ere, Z josturak ez dira hain koherenteak izango, geruza berriaren lehen estrusioa gainazal ikusgai batean hasten delako."
+"Erabili Kanpokoa/Barrukoa Barrukoa/Kanpokoa/Barrukoa aukeraren kanpoko hormaren kalitate eta neurri-zehaztasun bera lortzeko. Hala ere, Z josturak ez dira hain koherenteak izango, geruza berriaren lehen estrusioa gainazal ikusgai batean hasten delako."
 
 msgid "Inner/Outer"
 msgstr "Barrukoa/Kanpokoa"
@@ -16571,14 +16766,16 @@ msgstr "Lehen geruzaren altuera"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Lehen geruzaren altuera. Lehen geruza lodiagoak inprimatze-plakarekiko atxikimendua hobetu dezake."
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "Hau da lehen geruzaren abiadura, betegarri solidoko atalak izan ezik."
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "Hau da lehen geruzako hormen eta itsaspen ertzaren abiadura."
 
 msgid "First layer infill"
 msgstr "Lehen geruzaren betegarria"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "Hau da lehen geruzako betegarri solidoaren atalen abiadura."
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "Hau da lehen geruzaren abiadura, hormak eta itsaspen ertza izan ezik; adibidez, betegarria, hutsuneak betetzea eta euskarria."
 
 msgid "First layer travel speed"
 msgstr "Lehen geruzako mugimendu-abiadura"
@@ -17075,6 +17272,14 @@ msgstr "Baztertu objektuak"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Gaitu aukera hau G-codean EXCLUDE OBJECT komandoa gehitzeko."
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Ingeradaren tolerantzia"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "EXCLUDE_OBJECT_DEFINE-n idatzitako objektuaren ingeradak jatorrizko ingeradarekiko duen gehieneko desbideratzea. Balio handiagoek puntu gutxiago ematen dituzte, eta horrek objektu askoko G-codea aztertzean blokeatzen diren firmwareei laguntzen die. 0 balioak puntu guztiak mantentzen ditu."
+
 msgid "Verbose G-code"
 msgstr "G-code xehea"
 
@@ -17274,16 +17479,18 @@ msgstr "Barruko dentsitate baxuko betegarriaren lerro-zabalera. %-tan adierazten
 msgid "Infill/wall overlap"
 msgstr "Betegarriaren eta hormaren gainjartzea"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "Betegarri-eremua apur bat handitzen du hormekin gainjartzeko eta lotura hobetzeko. Ehunekoa dentsitate baxuko betegarriaren lerro-zabalerarekiko da. Ezarri gutxi gorabehera %10-15, gainestrusioa eta goiko gainazal zakarrak sor ditzakeen material-pilaketa gutxitzeko."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "Betegarri-eremua apur bat handitzen du hormekin gainjartzeko eta lotura hobetzeko. Ehunekoa barruko hormaren lerro-zabalerarekiko da. Ezarri gutxi gorabehera %10-15, gainestrusioa eta goiko gainazal zakarrak sor ditzakeen material-pilaketa gutxitzeko."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "Goiko/Beheko betegarri solidoaren eta hormaren gainjartzea"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "Goiko betegarri solidoaren eremua pixka bat handitzen da hormarekin gainjartzeko, lotura hobetzeko eta goiko betegarria hormekin elkartzen den tokian zulotxoen itxura minimizatzeko. %25-30 inguruko balioa abiapuntu ona da."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "Goiko betegarri solidoaren eremua pixka bat handitzen da hormarekin gainjartzeko, lotura hobetzeko eta goiko betegarria hormekin elkartzen den tokian zulotxoen itxura minimizatzeko. %25-30 inguruko balioa abiapuntu ona da, zulotxoen itxura minimizatuz. Ehunekoa barruko hormaren lerro-zabalerarekiko da."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "Hau da barruko dentsitate baxuko betegarriaren abiadura."
@@ -17309,8 +17516,9 @@ msgstr "Segmentatutako eremu baten gehieneko zabalera. 0 balioak ezaugarria desg
 msgid "Interlocking depth of a segmented region"
 msgstr "Eskualde segmentatu baten elkarblokeatze-sakonera"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "Eskualde segmentatu baten elkarblokeatze-sakonera. Ez da kontuan hartuko \"mmu_segmented_region_max_width\" zero bada edo \"mmu_segmented_region_interlocking_depth\" \"mmu_segmented_region_max_width\" baino handiagoa bada. Zero balioak ezaugarri hau desgaitzen du."
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "Eskualde segmentatu baten elkarblokeatze-sakonera. Bi geruzatik behin, eskualde segmentatua sakonera honetara mugatzen da. Ez da kontuan hartuko \"interlocking_beam\" gaituta badago. Zero balioak ezaugarri hau desgaitzen du."
 
 msgid "Use beam interlocking"
 msgstr "Erabili habeen elkarblokeatzea"
@@ -17413,13 +17621,14 @@ msgstr "Gaitu Z geruzen sestratzea (Z geruzen antialiasing-a ere deitua)."
 msgid "Minimize wall height angle"
 msgstr "Murriztu hormaren altuera-angelua"
 
+# AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "Murriztu goiko gainazaleko perimetroen altuera modeloaren ertzaren altuerarekin bat etor dadin.\n"
-"Angelu hau baino malda txikiagoa duten perimetroei eragiten die (graduetan).\n"
+"Angelu hau baino malda handiagoa duten perimetroei eragiten die (graduetan).\n"
 "35 balio arrazoizkoa da. Ezarri 0 desgaitzeko."
 
 msgid "Don't alternate fill direction"
@@ -18073,14 +18282,17 @@ msgstr "Mugimendu-distantziaren atalasea"
 msgid "Only trigger retraction when the travel distance is longer than this threshold."
 msgstr "Aktibatu atzera-egitea mugimendu-distantzia atalase hau baino handiagoa denean bakarrik."
 
+# AI Translated
 msgid "Retract amount before wipe"
-msgstr "Garbitu aurreko atzera-egite kantitatea"
+msgstr "Garbiketa aurreko atzera-egite kantitatea"
 
+# AI Translated
 msgid "This is the length of fast retraction before a wipe, relative to retraction length."
-msgstr "Hau da garbitu aurreko atzera-egite azkarraren luzera, atzera-egitearen luzerarekiko."
+msgstr "Hau da garbiketa aurreko atzera-egite azkarraren luzera, atzera-egitearen luzerarekiko."
 
+# AI Translated
 msgid "Retract amount after wipe"
-msgstr "Garbitu ondorengo atzera-egite kantitatea"
+msgstr "Garbiketa ondorengo atzera-egite kantitatea"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -18378,12 +18590,12 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "Erabili alaka juntura barruko hormetan ere."
 
 # AI Translated
-msgid "Role base wipe speed"
-msgstr "Eginkizunaren araberako garbitze-abiadura"
+msgid "Role based wipe speed"
+msgstr "Rolaren araberako garbiketa-abiadura"
 
 # AI Translated
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
-msgstr "Garbitze-abiadura uneko estrusio-eginkizunaren abiadurak zehazten du. Adibidez, garbitze-ekintza bat kanpoko hormaren estrusioaren ondoren berehala egiten bada, kanpoko hormaren estrusio-abiadura erabiliko da garbitze-ekintzarako."
+msgstr "Garbiketa-abiadura uneko estrusio-rolaren abiadurak zehazten du. Adibidez, garbiketa-ekintza bat kanpoko hormaren estrusioaren ondoren berehala egiten bada, kanpoko hormaren estrusio-abiadura erabiliko da garbiketa-ekintzarako."
 
 msgid "Wipe on loops"
 msgstr "Garbitu begiztetan"
@@ -18405,13 +18617,13 @@ msgid ""
 msgstr ""
 "Kanpoko hormei soilik aplikatzen zaie, zuloen mugak barne. Garbitzean pita beroa jada inprimatutako barruko hormetarantz mugitzen du, inprimatu berri den plastikoa berriro berotzea eta jostura-markak murrizteko.\n"
 "\n"
-"Bereziki erabilgarria da 0,1 mm-tik beherako geruza-altueretan, non garbitze-markak nabarmenago ikusten diren.\n"
+"Bereziki erabilgarria da 0,1 mm-tik beherako geruza-altueretan, non garbiketa-markak nabarmenago ikusten diren.\n"
 "\n"
 "Garbiketa arrunta erabiltzen du ondoko barruko hormarik jada inprimatuta ez badago (horma bakarreko eremuak edo Kanpokoa/Barrukoa hormen ordena) edo euskarria duen barrurako biderik aurkitzen ez bada, adibidez izkina estuetan edo josturako hutsuneetan."
 
 # AI Translated
 msgid "Wipe inward distance"
-msgstr "Barrurako garbitze-distantzia"
+msgstr "Barrurako garbiketa-distantzia"
 
 # AI Translated
 #, no-c-format, no-boost-format
@@ -18420,9 +18632,9 @@ msgid ""
 "\n"
 "For example, 50% shifts the path by half of the outer-wall width. The effective offset is limited by both the actual outer-wall width and the available spacing to the adjacent wall, so values above 100% or an equivalent absolute distance have no additional effect. Set to 0 to disable the offset."
 msgstr ""
-"Garbitze-bidea kanpoko perimetrotik zenbat desplazatzen den, milimetrotan edo kanpoko hormaren benetako estrusio-zabaleraren ehuneko gisa adierazita.\n"
+"Garbiketa-ibilbidea kanpoko perimetrotik zenbat desplazatzen den, milimetrotan edo kanpoko hormaren benetako estrusio-zabaleraren ehuneko gisa adierazita.\n"
 "\n"
-"Adibidez, 50% bideak kanpoko hormaren zabaleraren erdia desplazatzen du. Desplazamendu eraginkorra mugatuta dago bai kanpoko hormaren benetako zabaleragatik bai ondoko hormarainoko tarte erabilgarriagatik; beraz, 100% baino handiagoko balioek edo baliokidea den distantzia absolutu batek ez dute eragin gehigarririk. Ezarri 0 desplazamendua desgaitzeko."
+"Adibidez, 50% ibilbideak kanpoko hormaren zabaleraren erdia desplazatzen du. Desplazamendu eraginkorra mugatuta dago bai kanpoko hormaren benetako zabaleragatik bai ondoko hormarainoko tarte erabilgarriagatik; beraz, 100% baino handiagoko balioek edo baliokidea den distantzia absolutu batek ez dute eragin gehigarririk. Ezarri 0 desplazamendua desgaitzeko."
 
 msgid "Wipe before external loop"
 msgstr "Garbitu kanpoko begizta baino lehen"
@@ -18438,11 +18650,11 @@ msgstr ""
 
 # AI Translated
 msgid "Wipe speed"
-msgstr "Garbitze-abiadura"
+msgstr "Garbiketa-abiadura"
 
 # AI Translated
 msgid "The wipe speed is determined by the speed setting specified in this configuration. If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above. The default value for this parameter is 80%."
-msgstr "Garbitze-abiadura konfigurazio honetan zehaztutako abiadura-ezarpenak zehazten du. Balioa ehuneko gisa adierazten bada (adibidez, %80), goiko mugimendu-abiaduraren ezarpenaren arabera kalkulatuko da. Parametro honen balio lehenetsia %80 da."
+msgstr "Garbiketa-abiadura konfigurazio honetan zehaztutako abiadura-ezarpenak zehazten du. Balioa ehuneko gisa adierazten bada (adibidez, %80), goiko mugimendu-abiaduraren ezarpenaren arabera kalkulatuko da. Parametro honen balio lehenetsia %80 da."
 
 msgid "Skirt distance"
 msgstr "Gonaren distantzia"
@@ -18471,16 +18683,15 @@ msgstr "Gonaren/haize-babesaren begiztak horma bakarrera mugatzen ditu lehen ger
 msgid "Draft shield"
 msgstr "Aire-korronteen babeslea"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
-"Aire-korronteen babeslea erabilgarria da ABS edo ASA inprimaketa haize-korronteengatik deformatzetik eta inprimatze-ohetik askatzetik babesteko. Normalean egitura irekiko inprimagailuetan bakarrik behar da, hauda, itxiturarik gabe.\n"
+"Aire-korronteen babeslea erabilgarria da ABS edo ASA inprimaketa haize-korronteengatik deformatzetik eta inprimatze-ohetik askatzetik babesteko. Normalean egitura irekiko inprimagailuetan bakarrik behar da, hau da, itxiturarik gabe.\n"
 "\n"
-"Gaituta = gona inprimatutako objekturik altuena bezain altua da. Bestela,'Gonaren altuera' erabiltzen da.\n"
-"Oharra: aire-korronteen babeslea aktibo dagoenean, gona objektutik gonaren distantziara inprimatuko da. Beraz, itsaspen ertzak aktibo badaude, haiekin gurutza daiteke. Hori saihesteko, handitu gonaren distantziaren balioa.\n"
+"Gaituta = gona inprimatutako objekturik altuena bezain altua da. Bestela, 'Gonaren altuera' erabiltzen da."
 
 msgid "Enabled"
 msgstr "Gaituta"
@@ -19526,8 +19737,9 @@ msgstr "Garbitu atzera-egitean"
 msgid "This moves the nozzle along the last extrusion path when retracting to clean any leaked material on the nozzle. This can minimize blobs when printing a new part after traveling."
 msgstr "Honek pita azken estrusio-bidean zehar mugitzen du atzera-egitean, pitatik isuritako materiala garbitzeko. Horrek pikorrak murriztu ditzake pieza berri bat inprimatzean."
 
+# AI Translated
 msgid "Wipe distance"
-msgstr "Garbitze-distantzia"
+msgstr "Garbiketa-distantzia"
 
 # AI Translated
 msgid ""
@@ -19541,7 +19753,7 @@ msgstr ""
 "\n"
 "Garbiketa-eragiketak zenbat irauten duen eta estrusorearen/filamentuaren atzera-egite ezarpenak zein azkar eta luzeak diren kontuan hartuta, baliteke atzera-egite mugimendu bat behar izatea geratzen den filamentua atzera eramateko.\n"
 "\n"
-"Beheko garbitu aurreko atzera-egite kantitatearen ezarpenean balio batezarriz gero, gehiegizko atzera-egitea garbiketa baino lehen egingo da; bestela, ondoren egingo da."
+"Beheko garbiketa aurreko atzera-egite kantitatearen ezarpenean balio bat ezarriz gero, gehiegizko atzera-egitea garbiketa baino lehen egingo da; bestela, ondoren egingo da."
 
 # AI Translated
 msgid "Mixed color sublayer"
@@ -19614,40 +19826,42 @@ msgstr "Purgatze-dorrea egonkortzeko erabiltzen den konoaren erpineko angelua. A
 msgid "Maximum wipe tower print speed"
 msgstr "Purgatze-dorrearen gehieneko inprimatze-abiadura"
 
+# AI Translated
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
 "Purgatze-dorrean purgatzean eta purgatze-dorrearen geruza bakanduak inprimatzean erabiliko den gehieneko inprimatze-abiadura. Purgatzean, dentsitate baxuko betegarriaren abiadura edo filamentuaren gehieneko abiadura bolumetrikotik kalkulatutako abiadura txikiagoa bada, txikiena erabiliko da.\n"
 "\n"
-"Geruza bakanduak inprimatzean, barruko perimetroaren abiadura edo filamentuaren gehieneko abiadura bolumetrikotik kalkulatutako abiadura txikiagoa bada, txikiena erabiliko da.\n"
+"Geruza bakanduak inprimatzean, dentsitate baxuko betegarriaren abiadura edo filamentuaren gehieneko abiadura bolumetrikotik kalkulatutako abiadura txikiagoa bada, txikiena erabiliko da.\n"
 "\n"
 "Abiadura hau handitzeak dorrearen egonkortasunean eragina izan dezake, eta pitak purgatze-dorrean sortu diren pikorrekin talka egitean duen indarra handitu dezake.\n"
 "\n"
 "Parametro hau 90 mm/s-ko balio lehenetsitik gora handitu aurretik, ziurtatu zure inprimagailuak abiadura handiagoetan zubiak modu fidagarrian inprima ditzakeela eta tresna-aldaketan jarioa ondo kontrolatuta dagoela.\n"
 "\n"
-"Purgatze-dorrearen kanpoko perimetroetarako barruko perimetroaren abiadura erabiltzen da, ezarpen hau kontuan hartu gabe."
+"Purgatze-dorrearen kanpoko perimetroetarako barruko perimetroaren abiadura erabiltzen da, ezarpen honek ere mugatuta."
 
 msgid "Wall type"
 msgstr "Horma mota"
 
+# AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "Purgatze-dorrearen kanpoko horma mota.\n"
-"1. Laukizuzena: horma mota lehenetsia, zabalera eta altuera finkoko laukizuzena.\n"
+"1. Laukizuzena: zabalera eta altuera finkoko laukizuzena.\n"
 "2. Konoa: behealdean biribiltzea duen konoa, purgatze-dorrea egonkortzen laguntzeko.\n"
-"3. Nerbioa: lau nerbio gehitzen dizkio dorrearen hormari egonkortasuna handitzeko."
+"3. Nerbioa: horma mota lehenetsia, dorrearen hormari lau nerbio gehitzen dizkiona, egonkortasuna handitzeko."
 
 msgid "Rectangle"
 msgstr "Laukizuzena"
@@ -19739,8 +19953,9 @@ msgstr "Purgatze-dorreko purga-lerroen arteko tartea."
 msgid "Extra flow for purging"
 msgstr "Purgatzeko fluxu gehigarria"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "Purgatze-dorreko purga-lerroetarako erabiltzen den fluxu gehigarria. Horrek purga-lerroak normalean baino lodiagoak edo meheagoak egiten ditu. Tartea automatikoki doitzen da."
+# AI Translated
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "Purgatze-dorreko purga-lerroetarako erabiltzen den fluxu gehigarria. Horrek purga-lerroak normalean baino lodiagoak egiten ditu. Tartea automatikoki doitzen da."
 
 msgid "Idle temperature"
 msgstr "Inaktibo dagoeneko tenperatura"
@@ -19856,14 +20071,15 @@ msgstr "Ezaugarri meheen gutxieneko lodiera. Balio hau baino meheagoak diren eza
 msgid "Minimum wall length"
 msgstr "Hormaren gutxieneko luzera"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"Doitu balio hau horma labur eta itxi gabeak inprima ez daitezen; horrek inprimatze-denbora handitu lezake. Balio handiagoek horma gehiago eta luzeagoak kentzen dituzte.\n"
+"Doitu balio hau horma labur eta itxi gabeak inprima ez daitezen; horrek inprimatze-denbora handitu lezake. Balioa horma-zabaleraren multiploa da. Balio handiagoek horma gehiago eta luzeagoak kentzen dituzte.\n"
 "\n"
-"OHARRA: beheko eta goiko gainazalek ez dute balio honen eraginik izango, modeloaren kanpoaldean hutsune ikusgarriak saihesteko. Doitu beheko Ezarpen aurreratuetako 'Horma bakarreko atalasea' goiko gainazaltzat zer hartzen den zehazteko sentikortasuna doitzeko. 'Horma bakarreko atalasea' ezarpen hau 0.5 balio lehenetsiaren gainetik ezarrita badago edo horma bakarreko goiko gainazalak gaituta badaude bakarrik ikusiko da."
+"OHARRA: beheko eta goiko gainazalek ez dute balio honen eraginik izango, modeloaren kanpoaldean hutsune ikusgarriak saihesteko. Doitu beheko 'Hormak eta gainazalak' ezarpenetako 'Horma bakarraren atalasea' goiko gainazaltzat zer hartzen den zehazteko sentikortasuna doitzeko. 'Horma bakarraren atalasea' ezarpen hau 0.5 balio lehenetsiaren gainetik ezarrita badago edo horma bakarreko goiko gainazalak gaituta badaude bakarrik ikusiko da."
 
 msgid "Maximum wall resolution"
 msgstr "Hormen gehieneko bereizmena"
@@ -20236,6 +20452,14 @@ msgstr "Irteerako direktorioa"
 
 msgid "This is the output directory for exported files."
 msgstr "Hau da esportatutako fitxategien irteerako direktorioa."
+
+# AI Translated
+msgid "Export statistics"
+msgstr "Esportatu estatistikak"
+
+# AI Translated
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Idatzi xerratutako plaka bakoitzaren estatistikak JSON gisa, plate_N.statistics.json izenarekin irteera-direktorioan bere G-codearen ondoan eta --export-3mf aukerak sortutako 3MFaren barruan: inprimatze-denbora, filamentuaren eta lerro-motaren araberako guztiak, eta gauza bera geruza bakoitzeko eta objektu bakoitzeko."
 
 msgid "Debug level"
 msgstr "Arazketa-maila"
@@ -22635,7 +22859,7 @@ msgstr "%s proba hasten..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "%s proba: IPa ebatzita = %s"
 
 # AI Translated
@@ -23763,9 +23987,6 @@ msgstr "Gaitu filamentuen esleipen adimenduna: esleitu filamentua hainbat pitata
 # AI Translated
 msgid "File Saving"
 msgstr "Fitxategia gordetzea"
-
-msgid "Don't remind me again"
-msgstr "Ez gogorarazi berriro"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Ez da beste leiho gainerakorrik agertuko. 'Hobespenak' atalean berriro ireki dezakezu"
@@ -29041,9 +29262,6 @@ msgstr "Ireki abiarazle azkarra"
 msgid "Slicing and printing"
 msgstr "Xerratzea eta inprimatzea"
 
-msgid "Selection"
-msgstr "Hautaketa"
-
 # AI Translated
 msgid "Editing"
 msgstr "Edizioa"
@@ -29951,6 +30169,1652 @@ msgstr[0] "Uneko filamentu-zerrendan ez dago %s. Filamentu nahasiak behar duen p
 msgstr[1] "Uneko filamentu-zerrendan ez dago %s. Filamentu nahasiak behar dituen proiektuko filamentuak automatikoki sortuko dira deskonposatu ondoren."
 
 # AI Translated
+msgid "Color Picker"
+msgstr "Kolore-hautatzailea"
+
+# AI Translated
+msgid "Basic Colors"
+msgstr "Oinarrizko koloreak"
+
+# AI Translated
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "Orca Palette"
+msgstr "Orca paleta"
+
+# AI Translated
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL klasikoa"
+
+# AI Translated
+msgid "Gradients"
+msgstr "Gradienteak"
+
+# AI Translated
+# Needs human review: Single solid color as opposed to a gradient (color picker tab); Uniformea chosen to avoid the solid-infill sense, check the wording.
+msgctxt "Color picker"
+msgid "Solid"
+msgstr "Uniformea"
+
+# AI Translated
+msgid "Gradient"
+msgstr "Gradientea"
+
+# AI Translated
+msgid "Gradient start"
+msgstr "Gradientearen hasiera"
+
+# AI Translated
+msgid "Gradient end"
+msgstr "Gradientearen amaiera"
+
+# AI Translated
+msgid "Gradient color"
+msgstr "Gradientearen kolorea"
+
+# AI Translated
+msgid "Add color"
+msgstr "Gehitu kolorea"
+
+# AI Translated
+msgid "Remove color"
+msgstr "Kendu kolorea"
+
+# AI Translated
+msgid "Saturation"
+msgstr "Saturazioa"
+
+# AI Translated
+msgid "Original color"
+msgstr "Jatorrizko kolorea"
+
+# AI Translated
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr "Gorde uneko kolorea"
+
+# AI Translated
+# Needs human review: Glossary has no Basque cell for Palette; Paleta chosen.
+msgid "Palettes"
+msgstr "Paletak"
+
+# AI Translated
+msgid "Search colors"
+msgstr "Bilatu koloreak"
+
+# AI Translated
+msgid "Filter colors"
+msgstr "Iragazi koloreak"
+
+# AI Translated
+msgid "No matching colors"
+msgstr "Ez dago bat datorren kolorerik"
+
+# AI Translated
+msgid "Hex color"
+msgstr "Kolore hexadezimala"
+
+# AI Translated
+msgid "Opacity"
+msgstr "Opakutasuna"
+
+# AI Translated
+msgid "Opacity percent"
+msgstr "Opakutasun-ehunekoa"
+
+# AI Translated
+msgid "Save color"
+msgstr "Gorde kolorea"
+
+# AI Translated
+msgid "Enter a complete hexadecimal color"
+msgstr "Idatzi kolore hexadezimal osoa"
+
+# AI Translated
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr "Uneko kolore anitzeko hautapena mantendu egiten da beste kolore bat aukeratu arte."
+
+# AI Translated
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr "Gehienez %d kolore onartzen dira."
+
+# AI Translated
+msgid "Crimson"
+msgstr "Karmesia"
+
+# AI Translated
+msgid "Orange red"
+msgstr "Laranja-gorria"
+
+# AI Translated
+msgid "Tomato"
+msgstr "Tomatea"
+
+# AI Translated
+msgid "Orange"
+msgstr "Laranja"
+
+# AI Translated
+msgid "Dark orange"
+msgstr "Laranja iluna"
+
+# AI Translated
+msgid "Gold"
+msgstr "Urrea"
+
+# AI Translated
+msgid "Burly wood"
+msgstr "Zur sendoa"
+
+# AI Translated
+msgid "Bisque"
+msgstr "Bisque"
+
+# AI Translated
+msgid "Misty rose"
+msgstr "Arrosa lainotsua"
+
+# AI Translated
+msgid "Light yellow"
+msgstr "Hori argia"
+
+# AI Translated
+msgid "Lemon chiffon"
+msgstr "Limoi-xifoia"
+
+# AI Translated
+msgid "Beige"
+msgstr "Beixa"
+
+# AI Translated
+msgid "Light golden rod yellow"
+msgstr "Urre-makila hori argia"
+
+# AI Translated
+msgid "Pale golden rod"
+msgstr "Urre-makila zurbila"
+
+# AI Translated
+msgid "Khaki"
+msgstr "Kakia"
+
+# AI Translated
+msgid "Dark khaki"
+msgstr "Kaki iluna"
+
+# AI Translated
+msgid "Peach puff"
+msgstr "Mertxika-bolia"
+
+# AI Translated
+msgid "Moccasin"
+msgstr "Mokasina"
+
+# AI Translated
+msgid "Papaya whip"
+msgstr "Papaia-krema"
+
+# AI Translated
+msgid "Blanched almond"
+msgstr "Almendra zurituta"
+
+# AI Translated
+msgid "Antique white"
+msgstr "Zuri antzinakoa"
+
+# AI Translated
+msgid "Navajo white"
+msgstr "Navajo zuria"
+
+# AI Translated
+msgid "Wheat"
+msgstr "Garia"
+
+# AI Translated
+msgid "Golden rod"
+msgstr "Urre-makila"
+
+# AI Translated
+msgid "Chocolate"
+msgstr "Txokolatea"
+
+# AI Translated
+msgid "Peru"
+msgstr "Peru"
+
+# AI Translated
+msgid "Fire brick"
+msgstr "Su-adreilua"
+
+# AI Translated
+msgid "Sienna"
+msgstr "Siena"
+
+# AI Translated
+msgid "Saddle brown"
+msgstr "Zela-marroia"
+
+# AI Translated
+msgid "Brown"
+msgstr "Marroia"
+
+# AI Translated
+msgid "Rosy brown"
+msgstr "Marroi arrosatua"
+
+# AI Translated
+msgid "Salmon"
+msgstr "Izokina"
+
+# AI Translated
+msgid "Light salmon"
+msgstr "Izokin argia"
+
+# AI Translated
+msgid "Dark salmon"
+msgstr "Izokin iluna"
+
+# AI Translated
+msgid "Sandy brown"
+msgstr "Hare-marroia"
+
+# AI Translated
+msgid "Coral"
+msgstr "Korala"
+
+# AI Translated
+msgid "Light coral"
+msgstr "Koral argia"
+
+# AI Translated
+msgid "Indian red"
+msgstr "Gorri indiarra"
+
+# AI Translated
+msgid "Dark red"
+msgstr "Gorri iluna"
+
+# AI Translated
+msgid "Maroon"
+msgstr "Granatea"
+
+# AI Translated
+msgid "Green yellow"
+msgstr "Berde horixka"
+
+# AI Translated
+msgid "Yellow green"
+msgstr "Hori berdexka"
+
+# AI Translated
+msgid "Chartreuse"
+msgstr "Chartreuse"
+
+# AI Translated
+msgid "Lawn green"
+msgstr "Zelai-berdea"
+
+# AI Translated
+msgid "Lime green"
+msgstr "Lima-berdea"
+
+# AI Translated
+msgid "Spring green"
+msgstr "Udaberri-berdea"
+
+# AI Translated
+msgid "Medium spring green"
+msgstr "Udaberri-berde ertaina"
+
+# AI Translated
+msgid "Lime"
+msgstr "Lima"
+
+# AI Translated
+msgid "Forest green"
+msgstr "Baso-berdea"
+
+# AI Translated
+msgid "Dark green"
+msgstr "Berde iluna"
+
+# AI Translated
+msgid "Olive drab"
+msgstr "Oliba apala"
+
+# AI Translated
+msgid "Olive"
+msgstr "Oliba-berdea"
+
+# AI Translated
+msgid "Dark olive green"
+msgstr "Oliba-berde iluna"
+
+# AI Translated
+msgid "Pale green"
+msgstr "Berde zurbila"
+
+# AI Translated
+msgid "Light green"
+msgstr "Berde argia"
+
+# AI Translated
+msgid "Medium sea green"
+msgstr "Itsaso-berde ertaina"
+
+# AI Translated
+msgid "Sea green"
+msgstr "Itsaso-berdea"
+
+# AI Translated
+msgid "Dark sea green"
+msgstr "Itsaso-berde iluna"
+
+# AI Translated
+msgid "Cadet blue"
+msgstr "Kadete-urdina"
+
+# AI Translated
+msgid "Medium aqua marine"
+msgstr "Akuamarina ertaina"
+
+# AI Translated
+msgid "Turquoise"
+msgstr "Turkesa"
+
+# AI Translated
+msgid "Medium turquoise"
+msgstr "Turkesa ertaina"
+
+# AI Translated
+msgid "Dark turquoise"
+msgstr "Turkesa iluna"
+
+# AI Translated
+msgid "Pale turquoise"
+msgstr "Turkesa zurbila"
+
+# AI Translated
+msgid "Aqua"
+msgstr "Akua"
+
+# AI Translated
+msgid "Light cyan"
+msgstr "Ziano argia"
+
+# AI Translated
+msgid "Mint cream"
+msgstr "Menta-krema"
+
+# AI Translated
+msgid "Honey dew"
+msgstr "Ezti-ihintza"
+
+# AI Translated
+msgid "Aquamarine"
+msgstr "Akuamarina"
+
+# AI Translated
+msgid "Light sea green"
+msgstr "Itsaso-berde argia"
+
+# AI Translated
+msgid "Dark cyan"
+msgstr "Ziano iluna"
+
+# AI Translated
+# Needs human review: CSS teal (dark blue-green); check that Berde-urdin iluna reads as a color name next to Urdin berdexka and Berde urdinxka.
+msgid "Teal"
+msgstr "Berde-urdin iluna"
+
+# AI Translated
+msgid "Dark slate gray"
+msgstr "Pizarra-gris iluna"
+
+# AI Translated
+msgid "Light slate gray"
+msgstr "Pizarra-gris argia"
+
+# AI Translated
+msgid "Slate gray"
+msgstr "Pizarra-grisa"
+
+# AI Translated
+msgid "Deep sky blue"
+msgstr "Zeru-urdin sakona"
+
+# AI Translated
+msgid "Dodger Blue"
+msgstr "Dodger urdina"
+
+# AI Translated
+msgid "Sky blue"
+msgstr "Zeru-urdina"
+
+# AI Translated
+msgid "Light sky blue"
+msgstr "Zeru-urdin argia"
+
+# AI Translated
+msgid "Light blue"
+msgstr "Urdin argia"
+
+# AI Translated
+msgid "Powder blue"
+msgstr "Hauts-urdina"
+
+# AI Translated
+msgid "Light steel blue"
+msgstr "Altzairu-urdin argia"
+
+# AI Translated
+msgid "Steel blue"
+msgstr "Altzairu-urdina"
+
+# AI Translated
+# Needs human review: Flower name not known in Basque; rendered as Lore-urdina (flower blue), check for a proper name.
+msgid "Cornflower blue"
+msgstr "Lore-urdina"
+
+# AI Translated
+msgid "Royal blue"
+msgstr "Urdin erreala"
+
+# AI Translated
+msgid "Medium blue"
+msgstr "Urdin ertaina"
+
+# AI Translated
+msgid "Midnight blue"
+msgstr "Gauerdi-urdina"
+
+# AI Translated
+msgid "Dark blue"
+msgstr "Urdin iluna"
+
+# AI Translated
+msgid "Navy"
+msgstr "Itsas-urdina"
+
+# AI Translated
+msgid "Slate blue"
+msgstr "Pizarra-urdina"
+
+# AI Translated
+msgid "Dark slate blue"
+msgstr "Pizarra-urdin iluna"
+
+# AI Translated
+msgid "Medium slate blue"
+msgstr "Pizarra-urdin ertaina"
+
+# AI Translated
+msgid "Blue violet"
+msgstr "Urdin-bioleta"
+
+# AI Translated
+msgid "Indigo"
+msgstr "Indigoa"
+
+# AI Translated
+msgid "Dark violet"
+msgstr "Bioleta iluna"
+
+# AI Translated
+msgid "Dark orchid"
+msgstr "Orkidea iluna"
+
+# AI Translated
+msgid "Medium orchid"
+msgstr "Orkidea ertaina"
+
+# AI Translated
+msgid "Orchid"
+msgstr "Orkidea"
+
+# AI Translated
+msgid "Violet"
+msgstr "Bioleta"
+
+# AI Translated
+msgid "Medium purple"
+msgstr "More ertaina"
+
+# AI Translated
+msgid "Purple"
+msgstr "Morea"
+
+# AI Translated
+msgid "Rebecca purple"
+msgstr "Rebecca morea"
+
+# AI Translated
+msgid "Medium violet red"
+msgstr "Bioleta-gorri ertaina"
+
+# AI Translated
+msgid "Pale violet red"
+msgstr "Bioleta-gorri zurbila"
+
+# AI Translated
+msgid "Deep pink"
+msgstr "Arrosa sakona"
+
+# AI Translated
+msgid "Hot pink"
+msgstr "Arrosa bizia"
+
+# AI Translated
+msgid "Light pink"
+msgstr "Arrosa argia"
+
+# AI Translated
+msgid "Pink"
+msgstr "Arrosa"
+
+# AI Translated
+# Needs human review: Rendered as Aran-morea (plum purple); check the color name.
+msgid "Plum"
+msgstr "Aran-morea"
+
+# AI Translated
+# Needs human review: Rendered as Kardu-morea (thistle purple); check the color name.
+msgid "Thistle"
+msgstr "Kardu-morea"
+
+# AI Translated
+msgid "Fuchsia"
+msgstr "Fuksia"
+
+# AI Translated
+msgid "Dark magenta"
+msgstr "Magenta iluna"
+
+# AI Translated
+msgid "Linen"
+msgstr "Lihoa"
+
+# AI Translated
+msgid "Old lace"
+msgstr "Dantela zaharra"
+
+# AI Translated
+# Needs human review: CSS color 'seashell'; the Shell glossary match is a false positive.
+msgid "Sea shell"
+msgstr "Itsaso-maskorra"
+
+# AI Translated
+msgid "Ivory"
+msgstr "Eborea"
+
+# AI Translated
+msgid "Floral white"
+msgstr "Lore-zuria"
+
+# AI Translated
+msgid "Lavender blush"
+msgstr "Izpiliku arrosatua"
+
+# AI Translated
+msgid "Ghost white"
+msgstr "Mamu-zuria"
+
+# AI Translated
+msgid "Alice blue"
+msgstr "Alice urdina"
+
+# AI Translated
+msgid "Lavender"
+msgstr "Izpilikua"
+
+# AI Translated
+msgid "White smoke"
+msgstr "Ke-zuria"
+
+# AI Translated
+msgid "Gainsboro"
+msgstr "Gainsboro"
+
+# AI Translated
+msgid "Black"
+msgstr "Beltza"
+
+# AI Translated
+msgid "Coral fire"
+msgstr "Koral-sua"
+
+# AI Translated
+msgid "Sea anemone"
+msgstr "Itsas anemona"
+
+# AI Translated
+msgid "Deep abyss"
+msgstr "Amildegi sakona"
+
+# AI Translated
+msgid "Lobster red"
+msgstr "Otarrain-gorria"
+
+# AI Translated
+msgid "Sandy clay"
+msgstr "Buztin hareatsua"
+
+# AI Translated
+msgid "Driftwood"
+msgstr "Uhin-egurra"
+
+# AI Translated
+# Needs human review: Plant name (Hippophae); check the Basque name and whether a color-only name reads better.
+msgid "Sea buckthorn"
+msgstr "Itsas elorri-zuria"
+
+# AI Translated
+msgid "Sunset reef"
+msgstr "Ilunabarreko arrezifea"
+
+# AI Translated
+msgid "Tiger coral"
+msgstr "Tigre-korala"
+
+# AI Translated
+msgid "Pink coral"
+msgstr "Koral arrosa"
+
+# AI Translated
+msgid "Seashell glow"
+msgstr "Maskor-dirdira"
+
+# AI Translated
+msgid "Sand"
+msgstr "Harea"
+
+# AI Translated
+msgid "Golden kelp"
+msgstr "Alga urrea"
+
+# AI Translated
+msgid "Sunlit dune"
+msgstr "Eguzkitako duna"
+
+# AI Translated
+msgid "Amber nautilus"
+msgstr "Anbar-nautilusa"
+
+# AI Translated
+msgid "Sea lemon"
+msgstr "Itsas limoia"
+
+# AI Translated
+msgid "Pale starfish"
+msgstr "Itsas-izar zurbila"
+
+# AI Translated
+msgid "Spring tide"
+msgstr "Marea bizia"
+
+# AI Translated
+msgid "Lime algae"
+msgstr "Lima-alga"
+
+# AI Translated
+msgid "Sea grass"
+msgstr "Itsas-belarra"
+
+# AI Translated
+msgid "Neon plankton"
+msgstr "Neon-planktona"
+
+# AI Translated
+msgid "Kelp forest"
+msgstr "Alga-basoa"
+
+# AI Translated
+msgid "Emerald wave"
+msgstr "Esmeralda-olatua"
+
+# AI Translated
+msgid "Whale shadow"
+msgstr "Balearen itzala"
+
+# AI Translated
+msgid "Sea turtle"
+msgstr "Itsas dortoka"
+
+# AI Translated
+msgid "Lagoon"
+msgstr "Laguna"
+
+# AI Translated
+msgid "Tropical current"
+msgstr "Korronte tropikala"
+
+# AI Translated
+msgid "Midnight trench"
+msgstr "Gauerdiko itsas-sakonuna"
+
+# AI Translated
+msgid "Dark kelp"
+msgstr "Alga iluna"
+
+# AI Translated
+msgid "Crystal surf"
+msgstr "Kristal-olatua"
+
+# AI Translated
+msgid "Turquoise bay"
+msgstr "Badia turkesa"
+
+# AI Translated
+msgid "Sky over reef"
+msgstr "Arrezife gaineko zerua"
+
+# AI Translated
+msgid "Shallow sky"
+msgstr "Zeru azalekoa"
+
+# AI Translated
+msgid "Electric blue"
+msgstr "Urdin elektrikoa"
+
+# AI Translated
+msgid "Dolphin"
+msgstr "Izurdea"
+
+# AI Translated
+msgid "Ocean depths"
+msgstr "Ozeanoaren sakonerak"
+
+# AI Translated
+msgid "Whale"
+msgstr "Balea"
+
+# AI Translated
+msgid "Indigo abyss"
+msgstr "Indigo-amildegia"
+
+# AI Translated
+msgid "Sea urchin"
+msgstr "Itsas trikua"
+
+# AI Translated
+msgid "Lavender coral"
+msgstr "Izpiliku-korala"
+
+# AI Translated
+msgid "Violet tide"
+msgstr "Marea bioleta"
+
+# AI Translated
+msgid "Deep sea orchid"
+msgstr "Itsaso sakoneko orkidea"
+
+# AI Translated
+msgid "Neon jelly"
+msgstr "Neon-medusa"
+
+# AI Translated
+msgid "Fuchsia coral"
+msgstr "Fuksia-korala"
+
+# AI Translated
+msgid "Pink jellyfish"
+msgstr "Medusa arrosa"
+
+# AI Translated
+msgid "Foam"
+msgstr "Aparra"
+
+# AI Translated
+msgid "Seashell white"
+msgstr "Maskor-zuria"
+
+# AI Translated
+msgid "Pebble gray"
+msgstr "Koxkor-grisa"
+
+# AI Translated
+msgid "Storm cloud"
+msgstr "Ekaitz-hodeia"
+
+# AI Translated
+msgid "Ink black"
+msgstr "Tinta-beltza"
+
+# AI Translated
+msgid "Green beige"
+msgstr "Beixa berdexka"
+
+# AI Translated
+msgid "Sand yellow"
+msgstr "Hare-horia"
+
+# AI Translated
+msgid "Signal yellow"
+msgstr "Seinale-horia"
+
+# AI Translated
+msgid "Golden yellow"
+msgstr "Urre-horia"
+
+# AI Translated
+msgid "Honey yellow"
+msgstr "Ezti-horia"
+
+# AI Translated
+msgid "Maize yellow"
+msgstr "Arto-horia"
+
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Nartziso-horia"
+
+# AI Translated
+msgid "Brown beige"
+msgstr "Beixa marroixka"
+
+# AI Translated
+msgid "Lemon yellow"
+msgstr "Limoi-horia"
+
+# AI Translated
+msgid "Oyster white"
+msgstr "Ostra-zuria"
+
+# AI Translated
+msgid "Light ivory"
+msgstr "Ebore argia"
+
+# AI Translated
+msgid "Zinc yellow"
+msgstr "Zink-horia"
+
+# AI Translated
+msgid "Grey beige"
+msgstr "Beixa grisaxka"
+
+# AI Translated
+msgid "Olive yellow"
+msgstr "Oliba-horia"
+
+# AI Translated
+msgid "Rape yellow"
+msgstr "Koltza-horia"
+
+# AI Translated
+msgid "Traffic yellow"
+msgstr "Trafiko-horia"
+
+# AI Translated
+msgid "Ochre yellow"
+msgstr "Okre-horia"
+
+# AI Translated
+# Needs human review: Source name looks like a RAL variant; check the rendering.
+msgid "Traffic orange yellow"
+msgstr "Trafiko-laranja horixka"
+
+# AI Translated
+msgid "Curry"
+msgstr "Curry"
+
+# AI Translated
+msgid "Melon yellow"
+msgstr "Meloi-horia"
+
+# AI Translated
+msgid "Broom yellow"
+msgstr "Isats-horia"
+
+# AI Translated
+msgid "Dahlia yellow"
+msgstr "Dalia-horia"
+
+# AI Translated
+msgid "Pastel yellow"
+msgstr "Hori pastela"
+
+# AI Translated
+msgid "Pearl beige"
+msgstr "Perla-beixa"
+
+# AI Translated
+msgid "Pearl gold"
+msgstr "Perla-urrea"
+
+# AI Translated
+msgid "Sun yellow"
+msgstr "Eguzki-horia"
+
+# AI Translated
+msgid "Yellow orange"
+msgstr "Hori-laranja"
+
+# AI Translated
+msgid "Deep orange"
+msgstr "Laranja sakona"
+
+# AI Translated
+msgid "Vermilion"
+msgstr "Bermilioia"
+
+# AI Translated
+msgid "Pearl orange"
+msgstr "Perla-laranja"
+
+# AI Translated
+msgid "Pure orange"
+msgstr "Laranja hutsa"
+
+# AI Translated
+msgid "Luminous orange"
+msgstr "Laranja argitsua"
+
+# AI Translated
+msgid "Luminous bright orange"
+msgstr "Laranja argitsu distiratsua"
+
+# AI Translated
+msgid "Bright red orange"
+msgstr "Gorri-laranja distiratsua"
+
+# AI Translated
+msgid "Traffic orange"
+msgstr "Trafiko-laranja"
+
+# AI Translated
+msgid "Signal orange"
+msgstr "Seinale-laranja"
+
+# AI Translated
+msgid "Salmon orange"
+msgstr "Izokin-laranja"
+
+# AI Translated
+msgid "Pearl pink"
+msgstr "Perla-arrosa"
+
+# AI Translated
+msgid "Copper orange"
+msgstr "Kobre-laranja"
+
+# AI Translated
+msgid "Signal brown"
+msgstr "Seinale-marroia"
+
+# AI Translated
+# Needs human review: RAL color name as given in the source; check the rendering.
+msgid "Fir orange"
+msgstr "Izei-laranja"
+
+# AI Translated
+msgid "Signal red"
+msgstr "Seinale-gorria"
+
+# AI Translated
+msgid "Luminous red"
+msgstr "Gorri argitsua"
+
+# AI Translated
+msgid "Carmine red"
+msgstr "Karmin-gorria"
+
+# AI Translated
+msgid "Pearl carmine red"
+msgstr "Perla-karmin-gorria"
+
+# AI Translated
+msgid "Pure red"
+msgstr "Gorri hutsa"
+
+# AI Translated
+msgid "Luminous deep red"
+msgstr "Gorri sakon argitsua"
+
+# AI Translated
+# Needs human review: Fruit name; Mahats-gorria is approximate, check.
+msgid "Currant red"
+msgstr "Mahats-gorria"
+
+# AI Translated
+msgid "Pearl ruby red"
+msgstr "Perla-rubi-gorria"
+
+# AI Translated
+msgid "Fire red"
+msgstr "Su-gorria"
+
+# AI Translated
+msgid "Ruby red"
+msgstr "Rubi-gorria"
+
+# AI Translated
+msgid "Purple red"
+msgstr "More-gorria"
+
+# AI Translated
+msgid "Wine red"
+msgstr "Ardo-gorria"
+
+# AI Translated
+msgid "Black red"
+msgstr "Gorri beltzaxka"
+
+# AI Translated
+msgid "Oxide red"
+msgstr "Oxido-gorria"
+
+# AI Translated
+msgid "Brown red"
+msgstr "Gorri marroixka"
+
+# AI Translated
+msgid "Pine red"
+msgstr "Pinu-gorria"
+
+# AI Translated
+msgid "Tomato red"
+msgstr "Tomate-gorria"
+
+# AI Translated
+msgid "Antique pink"
+msgstr "Arrosa antzinakoa"
+
+# AI Translated
+msgid "Coral red"
+msgstr "Koral-gorria"
+
+# AI Translated
+# Needs human review: Same word as Pink (Arrosa); check whether a distinct name is wanted.
+msgid "Rose"
+msgstr "Arrosa"
+
+# AI Translated
+msgid "Strawberry red"
+msgstr "Marrubi-gorria"
+
+# AI Translated
+msgid "Traffic red"
+msgstr "Trafiko-gorria"
+
+# AI Translated
+msgid "Salmon pink"
+msgstr "Izokin-arrosa"
+
+# AI Translated
+msgid "Luminous rose"
+msgstr "Arrosa argitsua"
+
+# AI Translated
+msgid "Luminous bright red"
+msgstr "Gorri argitsu distiratsua"
+
+# AI Translated
+msgid "Raspberry red"
+msgstr "Mugurdi-gorria"
+
+# AI Translated
+msgid "Orient red"
+msgstr "Ekialdeko gorria"
+
+# AI Translated
+msgid "Pearl ruby"
+msgstr "Perla-rubia"
+
+# AI Translated
+msgid "Red purple"
+msgstr "More gorrixka"
+
+# AI Translated
+msgid "Red violet"
+msgstr "Bioleta gorrixka"
+
+# AI Translated
+msgid "Heather violet"
+msgstr "Txilar-bioleta"
+
+# AI Translated
+msgid "Bordeaux violet"
+msgstr "Bordele-bioleta"
+
+# AI Translated
+msgid "Mahogany"
+msgstr "Kaoba"
+
+# AI Translated
+msgid "Grey purple"
+msgstr "More grisaxka"
+
+# AI Translated
+msgid "Signal violet"
+msgstr "Seinale-bioleta"
+
+# AI Translated
+msgid "Fir green"
+msgstr "Izei-berdea"
+
+# AI Translated
+# Needs human review: RAL color named after Sabine; check the rendering.
+msgid "Sabine grey"
+msgstr "Sabine grisa"
+
+# AI Translated
+msgid "Pearl violet"
+msgstr "Perla-bioleta"
+
+# AI Translated
+msgid "Pearl blackberry"
+msgstr "Perla-masusta"
+
+# AI Translated
+msgid "Green blue"
+msgstr "Berde urdinxka"
+
+# AI Translated
+msgid "Ultramarine blue"
+msgstr "Ultramar urdina"
+
+# AI Translated
+msgid "Sapphire blue"
+msgstr "Zafiro-urdina"
+
+# AI Translated
+msgid "Black blue"
+msgstr "Urdin beltzaxka"
+
+# AI Translated
+msgid "Signal blue"
+msgstr "Seinale-urdina"
+
+# AI Translated
+msgid "Brilliant blue"
+msgstr "Urdin distiratsua"
+
+# AI Translated
+msgid "Grey blue"
+msgstr "Urdin grisaxka"
+
+# AI Translated
+msgid "Azure blue"
+msgstr "Azur-urdina"
+
+# AI Translated
+msgid "Gentian blue"
+msgstr "Gentziana-urdina"
+
+# AI Translated
+msgid "Cobalt blue"
+msgstr "Kobalto-urdina"
+
+# AI Translated
+msgid "Pigeon blue"
+msgstr "Uso-urdina"
+
+# AI Translated
+msgid "Traffic blue"
+msgstr "Trafiko-urdina"
+
+# AI Translated
+msgid "Turquoise blue"
+msgstr "Turkesa-urdina"
+
+# AI Translated
+msgid "Capri blue"
+msgstr "Capri-urdina"
+
+# AI Translated
+msgid "Ocean blue"
+msgstr "Ozeano-urdina"
+
+# AI Translated
+msgid "Water blue"
+msgstr "Ur-urdina"
+
+# AI Translated
+msgid "Night blue"
+msgstr "Gau-urdina"
+
+# AI Translated
+msgid "Distant blue"
+msgstr "Urdin urruna"
+
+# AI Translated
+msgid "Pastel blue"
+msgstr "Urdin pastela"
+
+# AI Translated
+msgid "Pearl gentian blue"
+msgstr "Perla-gentziana-urdina"
+
+# AI Translated
+msgid "Pearl midnight blue"
+msgstr "Perla-gauerdi-urdina"
+
+# AI Translated
+msgid "Patina green"
+msgstr "Patina-berdea"
+
+# AI Translated
+msgid "Emerald green"
+msgstr "Esmeralda-berdea"
+
+# AI Translated
+msgid "Leaf green"
+msgstr "Hosto-berdea"
+
+# AI Translated
+msgid "Olive green"
+msgstr "Oliba-berdea"
+
+# AI Translated
+msgid "Blue green"
+msgstr "Urdin berdexka"
+
+# AI Translated
+msgid "Moss green"
+msgstr "Goroldio-berdea"
+
+# AI Translated
+msgid "Grey olive"
+msgstr "Oliba grisaxka"
+
+# AI Translated
+msgid "Pine green"
+msgstr "Pinu-berdea"
+
+# AI Translated
+msgid "Pine brown"
+msgstr "Pinu-marroia"
+
+# AI Translated
+msgid "Grass green"
+msgstr "Belar-berdea"
+
+# AI Translated
+msgid "Reseda green"
+msgstr "Reseda-berdea"
+
+# AI Translated
+msgid "Brown green"
+msgstr "Berde marroixka"
+
+# AI Translated
+msgid "Reed green"
+msgstr "Lezka-berdea"
+
+# AI Translated
+msgid "Black green"
+msgstr "Berde beltzaxka"
+
+# AI Translated
+msgid "Turquoise green"
+msgstr "Turkesa-berdea"
+
+# AI Translated
+msgid "May green"
+msgstr "Maiatz-berdea"
+
+# AI Translated
+msgid "Chrome oxide green"
+msgstr "Kromo oxido-berdea"
+
+# AI Translated
+msgid "Traffic green"
+msgstr "Trafiko-berdea"
+
+# AI Translated
+msgid "Fern green"
+msgstr "Garo-berdea"
+
+# AI Translated
+msgid "Opal green"
+msgstr "Opalo-berdea"
+
+# AI Translated
+msgid "Mint green"
+msgstr "Menta-berdea"
+
+# AI Translated
+msgid "Bronze green"
+msgstr "Brontze-berdea"
+
+# AI Translated
+msgid "Pearl green"
+msgstr "Perla-berdea"
+
+# AI Translated
+msgid "Sax turquoise"
+msgstr "Saxe-turkesa"
+
+# AI Translated
+msgid "Pearl turquoise"
+msgstr "Perla-turkesa"
+
+# AI Translated
+msgid "Pearl jade"
+msgstr "Perla-jadea"
+
+# AI Translated
+msgid "Pure green"
+msgstr "Berde hutsa"
+
+# AI Translated
+msgid "Luminous green"
+msgstr "Berde argitsua"
+
+# AI Translated
+msgid "Squirrel grey"
+msgstr "Katagorri-grisa"
+
+# AI Translated
+msgid "Silver grey"
+msgstr "Zilar-grisa"
+
+# AI Translated
+msgid "Olive grey"
+msgstr "Oliba-grisa"
+
+# AI Translated
+msgid "Moss grey"
+msgstr "Goroldio-grisa"
+
+# AI Translated
+msgid "Signal grey"
+msgstr "Seinale-grisa"
+
+# AI Translated
+msgid "Mouse grey"
+msgstr "Sagu-grisa"
+
+# AI Translated
+msgid "Beige grey"
+msgstr "Gris beixa"
+
+# AI Translated
+msgid "Khaki grey"
+msgstr "Kaki-grisa"
+
+# AI Translated
+msgid "Green grey"
+msgstr "Gris berdexka"
+
+# AI Translated
+msgid "Tarpaulin grey"
+msgstr "Mihise-grisa"
+
+# AI Translated
+msgid "Iron grey"
+msgstr "Burdin-grisa"
+
+# AI Translated
+msgid "Basalt grey"
+msgstr "Basalto-grisa"
+
+# AI Translated
+msgid "Brown grey"
+msgstr "Gris marroixka"
+
+# AI Translated
+msgid "Slate grey"
+msgstr "Pizarra-grisa"
+
+# AI Translated
+msgid "Anthracite grey"
+msgstr "Antrazita-grisa"
+
+# AI Translated
+msgid "Light grey"
+msgstr "Gris argia"
+
+# AI Translated
+msgid "Umber grey"
+msgstr "Umbra-grisa"
+
+# AI Translated
+msgid "Concrete grey"
+msgstr "Hormigoi-grisa"
+
+# AI Translated
+msgid "Graphite grey"
+msgstr "Grafito-grisa"
+
+# AI Translated
+msgid "Granite grey"
+msgstr "Granito-grisa"
+
+# AI Translated
+msgid "Stone grey"
+msgstr "Harri-grisa"
+
+# AI Translated
+msgid "Pebble grey"
+msgstr "Koxkor-grisa"
+
+# AI Translated
+msgid "Cement grey"
+msgstr "Zementu-grisa"
+
+# AI Translated
+msgid "Yellow grey"
+msgstr "Gris horixka"
+
+# AI Translated
+msgid "Platinum grey"
+msgstr "Platino-grisa"
+
+# AI Translated
+msgid "Dusty grey"
+msgstr "Hauts-grisa"
+
+# AI Translated
+msgid "Agate grey"
+msgstr "Agata-grisa"
+
+# AI Translated
+msgid "Quartz grey"
+msgstr "Kuartzo-grisa"
+
+# AI Translated
+msgid "Window grey"
+msgstr "Leiho-grisa"
+
+# AI Translated
+msgid "Traffic grey A"
+msgstr "Trafiko-grisa A"
+
+# AI Translated
+msgid "Traffic grey B"
+msgstr "Trafiko-grisa B"
+
+# AI Translated
+msgid "Silk grey"
+msgstr "Zeta-grisa"
+
+# AI Translated
+msgid "Telegrey 1"
+msgstr "Telegris 1"
+
+# AI Translated
+msgid "Telegrey 2"
+msgstr "Telegris 2"
+
+# AI Translated
+msgid "Telegrey 4"
+msgstr "Telegris 4"
+
+# AI Translated
+msgid "Pearl mouse grey"
+msgstr "Perla-sagu-grisa"
+
+# AI Translated
+msgid "Green brown"
+msgstr "Marroi berdexka"
+
+# AI Translated
+msgid "Ochre brown"
+msgstr "Okre-marroia"
+
+# AI Translated
+msgid "Clay brown"
+msgstr "Buztin-marroia"
+
+# AI Translated
+msgid "Copper brown"
+msgstr "Kobre-marroia"
+
+# AI Translated
+msgid "Chocolate brown"
+msgstr "Txokolate-marroia"
+
+# AI Translated
+msgid "Olive brown"
+msgstr "Oliba-marroia"
+
+# AI Translated
+msgid "Nut brown"
+msgstr "Intxaur-marroia"
+
+# AI Translated
+msgid "Red brown"
+msgstr "Marroi gorrixka"
+
+# AI Translated
+msgid "Sepia brown"
+msgstr "Sepia-marroia"
+
+# AI Translated
+msgid "Chestnut brown"
+msgstr "Gaztaina-marroia"
+
+# AI Translated
+msgid "Mahogany brown"
+msgstr "Kaoba-marroia"
+
+# AI Translated
+msgid "Grey brown"
+msgstr "Marroi grisaxka"
+
+# AI Translated
+msgid "Pearl copper"
+msgstr "Perla-kobrea"
+
+# AI Translated
+msgid "Beige brown"
+msgstr "Beixa-marroia"
+
+# AI Translated
+msgid "Pearl mocha brown"
+msgstr "Perla-moka-marroia"
+
+# AI Translated
+msgid "Earth brown"
+msgstr "Lur-marroia"
+
+# AI Translated
+msgid "Pearl brown"
+msgstr "Perla-marroia"
+
+# AI Translated
+msgid "Cream"
+msgstr "Krema"
+
+# AI Translated
+msgid "Grey white"
+msgstr "Zuri grisaxka"
+
+# AI Translated
+msgid "Signal white"
+msgstr "Seinale-zuria"
+
+# AI Translated
+msgid "Signal black"
+msgstr "Seinale-beltza"
+
+# AI Translated
+msgid "Jet black"
+msgstr "Gagatz-beltza"
+
+# AI Translated
+msgid "White aluminium"
+msgstr "Aluminio zuria"
+
+# AI Translated
+msgid "Grey aluminium"
+msgstr "Aluminio grisa"
+
+# AI Translated
+msgid "Pure white"
+msgstr "Zuri hutsa"
+
+# AI Translated
+msgid "Graphite black"
+msgstr "Grafito-beltza"
+
+# AI Translated
+msgid "Traffic white"
+msgstr "Trafiko-zuria"
+
+# AI Translated
+msgid "Traffic black"
+msgstr "Trafiko-beltza"
+
+# AI Translated
+msgid "Papyrus white"
+msgstr "Papiro-zuria"
+
+# AI Translated
+msgid "Pearl light grey"
+msgstr "Perla-gris argia"
+
+# AI Translated
+msgid "Metal: Silver"
+msgstr "Metala: Zilarra"
+
+# AI Translated
+msgid "Metal: Brass"
+msgstr "Metala: Letoia"
+
+# AI Translated
+msgid "Metal: Gold"
+msgstr "Metala: Urrea"
+
+# AI Translated
+msgid "Metal: Copper"
+msgstr "Metala: Kobrea"
+
+# AI Translated
+msgid "Metal: Bronze"
+msgstr "Metala: Brontzea"
+
+# AI Translated
+msgid "Nature: Pearl"
+msgstr "Natura: Perla"
+
+# AI Translated
+msgid "Nature: Rainbow"
+msgstr "Natura: Ortzadarra"
+
+# AI Translated
+msgid "Nature: Clear Sky"
+msgstr "Natura: Zeru garbia"
+
+# AI Translated
+msgid "Nature: Sunset"
+msgstr "Natura: Ilunabarra"
+
+# AI Translated
+msgid "Wood: Dark"
+msgstr "Egurra: Iluna"
+
+# AI Translated
+msgid "Wood: Medium"
+msgstr "Egurra: Ertaina"
+
+# AI Translated
+msgid "Wood: Light"
+msgstr "Egurra: Argia"
+
+# AI Translated
 msgid "Alternate nozzles:"
 msgstr "Ordezko pitak:"
 
@@ -30425,12 +32289,24 @@ msgid "Built-in"
 msgstr "Integratuak"
 
 # AI Translated
+msgid "My textures"
+msgstr "Nire testurak"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Ez da testurarik aurkitu."
 
 # AI Translated
-msgid "My textures"
-msgstr "Nire testurak"
+msgid "Texture libraries"
+msgstr "Testura-liburutegiak"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Arakatu testura-liburutegi gehiago"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "OrcaCloud irekitzen du Hasiera orrian, pluginak arakatzeko."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -30834,6 +32710,14 @@ msgid "How wide one copy of the texture is on the model. Smaller repeats the pat
 msgstr "Testuraren kopia batek modeloan duen zabalera. Txikiagoak patroia maizago errepikatzen du eta xehetasuna finagoa egiten du; Lauzatu desaktibatuta dagoenean, kopia bakarraren tamaina da."
 
 # AI Translated
+msgid "Larger"
+msgstr "Handiagoa"
+
+# AI Translated
+msgid "Smaller"
+msgstr "Txikiagoa"
+
+# AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Testura gainazalean biratzen du, gradutan - patroi bat modeloaren ertz batekin lerrokatzeko."
 
@@ -30906,6 +32790,14 @@ msgstr "Kolore nahasiak"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Finkatze batek gehi ditzakeen filamentu nahasien gehieneko kopurua. Testuraren koloreetatik aukeratzen dira, eta finkatzeak benetan erabiltzen dituenak soilik sortzen dira."
+
+# AI Translated
+msgid "Few"
+msgstr "Gutxi"
+
+# AI Translated
+msgid "Many"
+msgstr "Asko"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -31030,10 +32922,6 @@ msgstr "Proiekzio-markoa"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Modeloaren gainean arrastatzen duzun leiho bat irekitzen du. Haren bidez ikus dezakezun guztiak jasotzen du testura, eta haren ertza proiekzioaren muga bihurtzen da."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Opakutasuna"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -31264,6 +33152,14 @@ msgstr "Birsaretzea"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Modelo osoa berreraikitzeko erabiltzen den triangelu-tamaina, milimetrotan. Desplazamenduak sare uniforme batean funtzionatzen du ondoen; honek bihurtzen du inportazio irregular bat sare uniforme."
+
+# AI Translated
+msgid "Before"
+msgstr "Aurretik"
+
+# AI Translated
+msgid "After"
+msgstr "Ondoren"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -33142,6 +35038,10 @@ msgid "Slicing Pipeline"
 msgstr "Xerratze-kanalizazioa"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Baliabide-testura"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "Pluginaren konfigurazio-interfazea hutsik zegoen. Editore lehenetsia erakusten."
 
@@ -33287,6 +35187,30 @@ msgstr "Pluginaren direktorioak .py eta .whl sarrera-fitxategiak ditu"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Pluginaren direktorioak ez du .py edo .whl sarrera-fitxategirik"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Baliabide-testuren direktorioa ez dago ezarrita"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Ezin izan da baliabide-testuren direktorioa ebatzi"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Baliabide-testuren bidea ez da direktorio bat"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Ezin izan da pluginaren karpeta ebatzi"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Baliabide-testuren direktorioa pluginaren karpetatik kanpo dago"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Ezin izan da baliabide-testuren direktorioa irakurri"
 
 # AI Translated
 #, boost-format
@@ -33746,7 +35670,7 @@ msgstr "Huts egin du \"%1%\" konfigurazio-fitxategia kargatzeak: %2%"
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "Ez da %1% aplikazioak sortutako G-code fitxategia."
 
 # AI Translated
@@ -33866,7 +35790,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "Ezin izan da %1% G-code fitxategiaren aldi baterako kopia egin post-prozesatze scripta exekutatu aurretik: %2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "Post-prozesadoreak ezin du esportatutako G-code fitxategia aurkitu"
 
 # AI Translated
@@ -34235,6 +36159,192 @@ msgstr ""
 "Ba al zenekien ABS bezalako okertzeko joera duten materialak inprimatzean ohe beroaren tenperatura egoki igotzeak okertzeko probabilitatea murriztu dezakeela?"
 
 # AI Translated
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Dalmaziar horia"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "Kapsantina-bioleta"
+
+# AI Translated
+# Needs human review: RAL color name; check the rendering.
+#~ msgid "Olivestone"
+#~ msgstr "Oliba-harria"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Leihoko edozein tokitan erabilgarri, baita testu-eremu batean idazten ari zarenean ere."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Lasterbide globalak idazten ari zarenean ere aplikatzen dira."
+
+#~ msgid "Please choose the filament color"
+#~ msgstr "Hautatu filamentuen kolorea"
+
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Zubiaren lerro-zabalera. % gisa adierazten bada, pitaren diametroaren arabera kalkulatuko da.\n"
+#~ "Zubi-dentsitate handiagoarekin edo zubiaren fluxu-erlazio handiagoarekin erabiltzea gomendatzen da.\n"
+#~ "\n"
+#~ "Gehieneko balioa %100 edo pitaren diametroa da.\n"
+#~ "0 ezartzen bada, lerro-zabalera barruko betegarri solidoaren zabalerarekin bat etorriko da."
+
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Gaitu aukera hau perimetroak gorantz kizkurtu daitezkeen eremuetan inprimatze-abiadura moteltzeko.\n"
+#~ "Adibidez, moteltze gehigarria aplikatuko da Benchy ontziaren aurrealdeko ertz zorrotzetan bezalako irtenguneak inprimatzean, geruzaz geruza metatzen den kizkurtzea murrizteko.\n"
+#~ "\n"
+#~ "Oro har, aukera hau aktibatuta edukitzea gomendatzen da, inprimagailuaren hoztea oso indartsua ez bada edo abiadura nahikoa motela ez bada perimetroak ez kizkurtzeko.\n"
+#~ "Kanpoko perimetro-abiadura handiarekin inprimatzean, parametro honek horma-akatsak sor ditzake moteltzean, abiadura-alde handiek estrusoreari eskatutako fluxu-aldaketari jarraitzea eragotz diezaioketelako.\n"
+#~ "Akats horien arrazoia PA doikuntza apur bat oker egotea izan ohi da, bereziki PA leuntze-denbora handiarekin batera.\n"
+#~ "\n"
+#~ "Aukera hau gaitzean gomendioak:\n"
+#~ "1. Murriztu Pressure Advance leuntze-denbora 0.015 - 0.02 baliora, estrusoreak abiadura-aldaketei azkar erantzun diezaien.\n"
+#~ "2. Handitu gutxieneko inprimatze-abiadurak moteltzearen neurria eta segmentu azkar eta motelen arteko aldea mugatzeko.\n"
+#~ "3. Akatsak agertzen badira, gaitu Extrusion Rate Smoothing (ERS) fluxu-trantsizioak gehiago leuntzeko.\n"
+#~ "\n"
+#~ "Oharra: aukera hau gaituta dagoenean, irtenguneen perimetroak irtengune gisa tratatzen dira; beraz, irtenguneen abiadura aplikatuko da perimetroa zubi baten parte bada ere.\n"
+#~ "Adibidez, perimetroak %100 irtengunean daudenean eta azpitik eusten dien hormarik ez dagoenean, %100eko irtenguneetako abiadura aplikatuko da."
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "Kanpotik ikusgai dauden zubi-estrusioen abiadura.\n"
+#~ "\n"
+#~ "Gainera, perimetro kiribilduetarako moteltzea desgaituta badago edo irtengune-modu klasikoa gaituta badago, %13 baino gutxiagoz eutsita dauden irtengune-hormen inprimatze-abiadura izango da, zubi baten edo irtengune baten parte izan."
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Ezarpen bereizi honek erradioa <= small_perimeter_threshold duten perimetroen abiaduran eragiten du (normalean zuloak). Ehuneko gisa adierazten bada (adibidez: 80%), goiko kanpoko hormaren abiaduraren arabera kalkulatuko da. Jarri zero automatikoa izateko."
+
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "\"Perimetro txikiak\" ezarpenaren berdina, baina euskarrietarako. Ezarpen honek `small_support_perimeter_threshold` baino txikiagoak edo berdinak diren eremuen euskarri-abiadurari eragingo dio. Ehuneko gisa adierazten bada (adibidez, %80), goiko euskarri- edo euskarri-interfaze abiaduraren arabera kalkulatuko da. Ezarri zero automatikorako."
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "Barruko eta kanpoko hormen inprimatze-sekuentzia.\n"
+#~ "\n"
+#~ "Erabili Barru/Kanpo irtengune onenak lortzeko. Irtenguneetan dauden hormak ondoko perimetro bati atxiki daitezke inprimatzean. Hala ere, gainazalaren kalitatea apur bat murriztu daiteke, kanpoko perimetroa barrukoaren kontra zanpatzen delako.\n"
+#~ "\n"
+#~ "Erabili Barru/Kanpo/Barru kanpoko gainazalaren akabera eta neurri-zehaztasun onenak lortzeko, kanpoko horma barruko perimetro batek oztopatu gabe inprimatzen baita. Irtenguneen portaera, ordea, okerragoa izango da. Gutxienez 3 horma behar dira: lehenik hirugarrenetik aurrerako barruko hormak, gero kanpokoa eta azkenik lehenengo barrukoa. Kasu gehienetan Kanpo/Barru baino gomendagarriagoa da.\n"
+#~ "\n"
+#~ "Erabili Kanpo/Barru Barru/Kanpo/Barru aukeraren kanpoko hormaren kalitate eta neurri-zehaztasun bera lortzeko. Hala ere, Z josturak ez dira hain koherenteak izango, geruza berriaren lehen estrusioa gainazal ikusgai batean hasten delako."
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "Hau da lehen geruzaren abiadura, betegarri solidoko atalak izan ezik."
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "Hau da lehen geruzako betegarri solidoaren atalen abiadura."
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "Betegarri-eremua apur bat handitzen du hormekin gainjartzeko eta lotura hobetzeko. Ehunekoa dentsitate baxuko betegarriaren lerro-zabalerarekiko da. Ezarri gutxi gorabehera %10-15, gainestrusioa eta goiko gainazal zakarrak sor ditzakeen material-pilaketa gutxitzeko."
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "Goiko betegarri solidoaren eremua pixka bat handitzen da hormarekin gainjartzeko, lotura hobetzeko eta goiko betegarria hormekin elkartzen den tokian zulotxoen itxura minimizatzeko. %25-30 inguruko balioa abiapuntu ona da."
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "Eskualde segmentatu baten elkarblokeatze-sakonera. Ez da kontuan hartuko \"mmu_segmented_region_max_width\" zero bada edo \"mmu_segmented_region_interlocking_depth\" \"mmu_segmented_region_max_width\" baino handiagoa bada. Zero balioak ezaugarri hau desgaitzen du."
+
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Murriztu goiko gainazaleko perimetroen altuera modeloaren ertzaren altuerarekin bat etor dadin.\n"
+#~ "Angelu hau baino malda txikiagoa duten perimetroei eragiten die (graduetan).\n"
+#~ "35 balio arrazoizkoa da. Ezarri 0 desgaitzeko."
+
+# AI Translated
+#~ msgid "Role base wipe speed"
+#~ msgstr "Eginkizunaren araberako garbitze-abiadura"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "Aire-korronteen babeslea erabilgarria da ABS edo ASA inprimaketa haize-korronteengatik deformatzetik eta inprimatze-ohetik askatzetik babesteko. Normalean egitura irekiko inprimagailuetan bakarrik behar da, hauda, itxiturarik gabe.\n"
+#~ "\n"
+#~ "Gaituta = gona inprimatutako objekturik altuena bezain altua da. Bestela,'Gonaren altuera' erabiltzen da.\n"
+#~ "Oharra: aire-korronteen babeslea aktibo dagoenean, gona objektutik gonaren distantziara inprimatuko da. Beraz, itsaspen ertzak aktibo badaude, haiekin gurutza daiteke. Hori saihesteko, handitu gonaren distantziaren balioa.\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "Purgatze-dorrean purgatzean eta purgatze-dorrearen geruza bakanduak inprimatzean erabiliko den gehieneko inprimatze-abiadura. Purgatzean, dentsitate baxuko betegarriaren abiadura edo filamentuaren gehieneko abiadura bolumetrikotik kalkulatutako abiadura txikiagoa bada, txikiena erabiliko da.\n"
+#~ "\n"
+#~ "Geruza bakanduak inprimatzean, barruko perimetroaren abiadura edo filamentuaren gehieneko abiadura bolumetrikotik kalkulatutako abiadura txikiagoa bada, txikiena erabiliko da.\n"
+#~ "\n"
+#~ "Abiadura hau handitzeak dorrearen egonkortasunean eragina izan dezake, eta pitak purgatze-dorrean sortu diren pikorrekin talka egitean duen indarra handitu dezake.\n"
+#~ "\n"
+#~ "Parametro hau 90 mm/s-ko balio lehenetsitik gora handitu aurretik, ziurtatu zure inprimagailuak abiadura handiagoetan zubiak modu fidagarrian inprima ditzakeela eta tresna-aldaketan jarioa ondo kontrolatuta dagoela.\n"
+#~ "\n"
+#~ "Purgatze-dorrearen kanpoko perimetroetarako barruko perimetroaren abiadura erabiltzen da, ezarpen hau kontuan hartu gabe."
+
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Purgatze-dorrearen kanpoko horma mota.\n"
+#~ "1. Laukizuzena: horma mota lehenetsia, zabalera eta altuera finkoko laukizuzena.\n"
+#~ "2. Konoa: behealdean biribiltzea duen konoa, purgatze-dorrea egonkortzen laguntzeko.\n"
+#~ "3. Nerbioa: lau nerbio gehitzen dizkio dorrearen hormari egonkortasuna handitzeko."
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "Purgatze-dorreko purga-lerroetarako erabiltzen den fluxu gehigarria. Horrek purga-lerroak normalean baino lodiagoak edo meheagoak egiten ditu. Tartea automatikoki doitzen da."
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "Doitu balio hau horma labur eta itxi gabeak inprima ez daitezen; horrek inprimatze-denbora handitu lezake. Balio handiagoek horma gehiago eta luzeagoak kentzen dituzte.\n"
+#~ "\n"
+#~ "OHARRA: beheko eta goiko gainazalek ez dute balio honen eraginik izango, modeloaren kanpoaldean hutsune ikusgarriak saihesteko. Doitu beheko Ezarpen aurreratuetako 'Horma bakarreko atalasea' goiko gainazaltzat zer hartzen den zehazteko sentikortasuna doitzeko. 'Horma bakarreko atalasea' ezarpen hau 0.5 balio lehenetsiaren gainetik ezarrita badago edo horma bakarreko goiko gainazalak gaituta badaude bakarrik ikusiko da."
+
+# AI Translated
 #, boost-format
 #~ msgid "Split into %1% part"
 #~ msgid_plural "Split into %1% parts"
@@ -34538,9 +36648,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "konfiguratutako erremintarik ez"
 
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "Gehitu amaierako G-codea inprimaketa osoa amaitzean."
-
 #~ msgid "Maximum X speed"
 #~ msgstr "X gehieneko abiadura"
 
@@ -34557,23 +36664,8 @@ msgstr ""
 #~ msgstr "Xerratze-prozesuko urrats bakoitzean deitzen diren Python pluginak, tarteko datuak irakurri eta aldatzeko; horien artean, G-codearen azken post-prozesatze fasea ere sartzen da. Ikerketa- edo esperimentazio-mailakoak."
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "Gaituta dagoenean, xerratzaileak eremu nagusiaren edukia ohearen jatorrian (0,0) zentratuta duen G-code sortzen du. Inprimagailuaren firmwareak kokatzen ditu kopiak/ispiluak eremu fisiko bakoitzaren posizioan. Gaitu soilik firmwareak kopia/ispilu moduan bere eremu-desplazamenduak aplikatzen dituen inprimagailuetan (adib. RepRapFirmware-ren IDEX bikoizte-modua). Ez du eraginik Nagusia (Primary) moduan."
-
-# AI Translated
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "Plaka bakoitzeko gainidazketa, buru fisikoak filamentu-zirrikituekin lotzen dituena (1etik hasita). Hutsik badago, pem-inbertsioaren balio lehenetsiak erabiltzen dira."
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "Xerratu aurretik sarea zein ardatzaren inguruan biratzen den. Zinta-inprimagailuaren inklinazioa da: biraketa isometriko bat (distortsiorik gabea), ohearen errendatzea eta euskarrien grabitate-inklinazioa ere gidatzen dituena, eta G-codearen alderantzizko transformazioak desegiten duena makinaren koordenatu-sistemaren zizailadura/eskala eta berresleipena aplikatu aurretik. X da atariaren ohiko inklinazioa (zinta Y ardatzean zehar mugitzen da)."
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "Adituentzako gainidazketa: ezarri makinaren koordenatu-sistemaren inklinazio-angelua (G-codearen zizailadura/eskala) xerratu aurreko biraketa-angelutik independenteki. Desgaituta dagoenean, makinaren koordenatu-sistemaren transformazioa zintaren inklinazio-angelutik ateratzen da; beraz, angelu bakar batek gidatzen ditu bi etapak. Gaitu soilik atariaren inklinazio fisikoa xerratze-biraketatik desberdina duen makina bat konpentsatzeko."
-
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "'Hormaren gehieneko bereizmena' ezarpenerako bereizmena murriztean baimendutako gehieneko desbideratzea. Handitzen baduzu, inprimaketa ez da hain zehatza izango, baina G-codea txikiagoa izango da. 'Hormaren gehieneko desbideratzeak'-ek 'Hormaren gehieneko bereizmena' mugatzen du; beraz, bien artean gatazkarik badago, 'Hormaren gehieneko desbideratzeak' izango du lehentasuna."
 
 #~ msgid " not in range "
 #~ msgstr " ez dago tartean "

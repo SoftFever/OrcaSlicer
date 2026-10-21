@@ -119,12 +119,18 @@ const std::vector<std::string> filament_extruder_override_keys = {
 };
 
 // Some filament override parameters are generated from filament_extruder_override_keys,
-// while filament_retract_length_nc is defined separately. Keep the generator list
-// unchanged and use this helper for behavior checks that need the full override set.
+// while filament_retract_length_nc and the ironing overrides are defined separately.
+// Keep the generator list unchanged and use this helper for behavior checks that need
+// the full override set. A nil in one of these keys means the override is disabled, so
+// child presets store and load it verbatim instead of treating nil as "inherit".
 bool is_filament_extruder_override_key(const std::string &opt_key)
 {
     return std::find(filament_extruder_override_keys.begin(), filament_extruder_override_keys.end(), opt_key) != filament_extruder_override_keys.end() ||
-           opt_key == "filament_retract_length_nc";
+           opt_key == "filament_retract_length_nc" ||
+           opt_key == "filament_ironing_flow" ||
+           opt_key == "filament_ironing_spacing" ||
+           opt_key == "filament_ironing_inset" ||
+           opt_key == "filament_ironing_speed";
 }
 
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
@@ -374,24 +380,24 @@ static t_config_enum_values s_keys_map_SurfaceFillOrder{
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SurfaceFillOrder)
 
 //Orca
-static t_config_enum_values s_keys_map_TpmsAdaptiveMode{
-    { "disabled",       int(TpmsAdaptiveMode::Disabled) },
-    { "distance_warp",  int(TpmsAdaptiveMode::DistanceWarp) },
-    { "smooth_blend",   int(TpmsAdaptiveMode::SmoothBlend) },
-    { "stepped_shells", int(TpmsAdaptiveMode::SteppedShells) },
-    { "lobes",          int(TpmsAdaptiveMode::Lobes) },
-    { "normal_z",       int(TpmsAdaptiveMode::NormalZ) },
-    { "normal_y",       int(TpmsAdaptiveMode::NormalY) },
-    { "normal_x",       int(TpmsAdaptiveMode::NormalX) },
+static t_config_enum_values s_keys_map_AdaptiveInfillMode{
+    { "disabled",       int(AdaptiveInfillMode::Disabled) },
+    { "distance_warp",  int(AdaptiveInfillMode::DistanceWarp) },
+    { "smooth_blend",   int(AdaptiveInfillMode::SmoothBlend) },
+    { "stepped_shells", int(AdaptiveInfillMode::SteppedShells) },
+    { "lobes",          int(AdaptiveInfillMode::Lobes) },
+    { "normal_z",       int(AdaptiveInfillMode::NormalZ) },
+    { "normal_y",       int(AdaptiveInfillMode::NormalY) },
+    { "normal_x",       int(AdaptiveInfillMode::NormalX) },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TpmsAdaptiveMode)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AdaptiveInfillMode)
 
-static t_config_enum_values s_keys_map_TpmsAdaptiveGradient{
-    { "linear",      int(TpmsAdaptiveGradient::Linear) },
-    { "quadratic",   int(TpmsAdaptiveGradient::Quadratic) },
-    { "exponential", int(TpmsAdaptiveGradient::Exponential) },
+static t_config_enum_values s_keys_map_AdaptiveInfillGradient{
+    { "linear",      int(AdaptiveInfillGradient::Linear) },
+    { "quadratic",   int(AdaptiveInfillGradient::Quadratic) },
+    { "exponential", int(AdaptiveInfillGradient::Exponential) },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TpmsAdaptiveGradient)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AdaptiveInfillGradient)
 
 //BBS
 static t_config_enum_values s_keys_map_PrintSequence {
@@ -1664,7 +1670,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
                      "Recommended to use with a higher Bridge density or Bridge flow ratio.\n\n"
                      "The maximum value is 100% or the nozzle diameter.\n"
-                     "If set to 0, the line width will match the Internal solid infill width.");
+                     "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges.");
     def->sidetext = L("mm or %");
     def->ratio_over = "nozzle_diameter";
     def->min = 0;
@@ -1946,7 +1952,7 @@ void PrintConfigDef::init_fff_params()
                      "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n\n"
                      "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is "
                      "applied even if the overhanging perimeter is part of a bridge.\n"
-                     "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied.");
+                     "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed.");
     def->mode = comAdvanced;
     def->nullable = true;
     def->set_default_value(new ConfigOptionBoolsNullable{ false });
@@ -2007,7 +2013,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("External");
     def->category = L("Speed");
     def->tooltip = L("Speed of the externally visible bridge extrusions.\n\n"
-                     "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, "
+                     "In addition, if Slow down for curled perimeters is disabled, "
                      "it will be the print speed of overhang walls that are supported by less than 13%, "
                      "whether they are part of a bridge or an overhang.");
     def->sidetext = L("mm/s");	// millimeters per second, CIS languages need translation
@@ -2677,7 +2683,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->tooltip = L("This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold "
                    "(usually holes). If expressed as percentage (for example: 80%) it will be calculated "
-                   "on the outer wall speed setting above. Set to zero for auto.");
+                   "on the outer wall speed setting above.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "outer_wall_speed";
     def->min = 1;
@@ -2700,10 +2706,9 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->tooltip = L("Same as \"Small perimeters\", but for supports. "
                     "This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. "
-                    "If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. "
-                    "Set to zero for auto.");
+                    "If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "outer_wall_speed";
+    def->ratio_over = "support_speed";
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatsOrPercentsNullable{FloatOrPercent(50, true)});
@@ -2727,7 +2732,7 @@ void PrintConfigDef::init_fff_params()
                      "However, overhang performance will reduce as there is no internal perimeter to print the external wall against. "
                      "This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, "
                      "then the external perimeter and, finally, the first internal perimeter. "
-                     "This option is recommended against the Outer/Inner option in most cases.\n\n"
+                     "This option is recommended over the Outer/Inner option in most cases.\n\n"
                      "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. "
                      "However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.");
     def->enum_keys_map = &ConfigOptionEnum<WallSequence>::get_enum_values();
@@ -3688,7 +3693,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 10; // Maximum number of lines for infill pattern
     def->set_default_value(new ConfigOptionInt(1));
 
-    def             = this->add("tpms_adaptive", coEnum);
+    def             = this->add("adaptive_infill_mode", coEnum);
     def->label      = L("Adaptive density (experimental)");
     def->category   = L("Strength");
     def->tooltip    = L("Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the "
@@ -3706,7 +3711,7 @@ void PrintConfigDef::init_fff_params()
                         "joined to the rest by a narrower neck, is graded towards its own center.\n"
                         " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density "
                         "does not change along it.");
-    def->enum_keys_map = &ConfigOptionEnum<TpmsAdaptiveMode>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<AdaptiveInfillMode>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("distance_warp");
     def->enum_values.push_back("smooth_blend");
@@ -3724,9 +3729,9 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Normal Y"));
     def->enum_labels.push_back(L("Normal X"));
     def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<TpmsAdaptiveMode>(TpmsAdaptiveMode::Disabled));
+    def->set_default_value(new ConfigOptionEnum<AdaptiveInfillMode>(AdaptiveInfillMode::Disabled));
 
-    def             = this->add("tpms_interior_density", coPercent);
+    def             = this->add("adaptive_infill_interior_density", coPercent);
     def->label      = L("Interior density");
     def->category   = L("Strength");
     def->tooltip    = L("Density of the adaptive infill at the center of the object.");
@@ -3736,7 +3741,7 @@ void PrintConfigDef::init_fff_params()
     def->mode       = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(5));
 
-    def             = this->add("tpms_adaptive_gradient", coEnum);
+    def             = this->add("adaptive_infill_gradient", coEnum);
     def->label      = L("Adaptive gradient");
     def->category   = L("Strength");
     def->tooltip    = L("How the density changes from the surface to the center of the object.\n"
@@ -3745,7 +3750,7 @@ void PrintConfigDef::init_fff_params()
                         "changes faster towards the center.\n"
                         "Exponential: the density changes quickly just below the surface and levels off towards "
                         "the center.");
-    def->enum_keys_map = &ConfigOptionEnum<TpmsAdaptiveGradient>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<AdaptiveInfillGradient>::get_enum_values();
     def->enum_values.push_back("linear");
     def->enum_values.push_back("quadratic");
     def->enum_values.push_back("exponential");
@@ -3753,7 +3758,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Quadratic"));
     def->enum_labels.push_back(L("Exponential"));
     def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<TpmsAdaptiveGradient>(TpmsAdaptiveGradient::Linear));
+    def->set_default_value(new ConfigOptionEnum<AdaptiveInfillGradient>(AdaptiveInfillGradient::Linear));
 
     // Z-buckling bias optimization (experimental). Tightens the gyroid wave along the Z
     // (vertical) axis at low infill density to shorten the effective column length under
@@ -4039,7 +4044,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("initial_layer_speed", coFloats);
     def->label = L("First layer");
-    def->tooltip = L("This is the speed for the first layer except for solid infill sections.");
+    def->tooltip = L("This is the speed for the walls and brim of the first layer.");
     def->sidetext = L("mm/s");	// millimeters per second, CIS languages need translation
     def->min = 1;
     def->mode = comAdvanced;
@@ -4048,7 +4053,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("initial_layer_infill_speed", coFloats);
     def->label = L("First layer infill");
-    def->tooltip = L("This is the speed for solid infill parts of the first layer.");
+    def->tooltip = L("This is the speed for the first layer except for walls and brim, such as infill, gap fill and support.");
     def->sidetext = L("mm/s");	// millimeters per second, CIS languages need translation
     def->min = 1;
     def->mode = comAdvanced;
@@ -4657,6 +4662,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("exclude_object_tolerance", coFloat);
+    def->label = L("Outline tolerance");
+    def->tooltip = L("Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the "
+                     "original outline. Larger values give fewer points, which helps firmware that stalls "
+                     "while parsing G-code with many objects. 0 keeps every point.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 5;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.1));
+
     def = this->add("gcode_comments", coBool);
     def->label = L("Verbose G-code");
     def->tooltip = L("Enable this to get a commented G-code file, with each line explained by a descriptive text. "
@@ -4962,7 +4978,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Infill/wall overlap");
     def->category = L("Strength");
     // xgettext:no-c-format, no-boost-format
-    def->tooltip = L("This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces.");
+    def->tooltip = L("This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces.");
     def->sidetext = "%";
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
@@ -4975,7 +4991,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Top solid infill area is enlarged slightly to overlap with wall for better bonding "
                      "and to minimize the appearance of pinholes where the top infill meets the walls. "
                      "A value of 25-30% is a good starting point, minimizing the appearance of pinholes. "
-                     "The percentage value is relative to line width of sparse infill.");
+                     "The percentage value is relative to the inner wall line width.");
     def->sidetext = "%";
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
@@ -5025,9 +5041,9 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("mmu_segmented_region_interlocking_depth", coFloat);
     def->label    = L("Interlocking depth of a segmented region");
-    def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
-                    "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" "
-                    "is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature.");
+    def->tooltip  = L("Interlocking depth of a segmented region. On every other layer, the segmented region "
+                    "is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. "
+                    "Zero disables this feature.");
     def->sidetext = L("mm");	// millimeters, CIS languages need translation 
     def->min      = 0;
     def->category = L("Advanced");
@@ -5195,7 +5211,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Minimize wall height angle");
     def->category = L("Quality");
     def->tooltip  = L("Reduce the height of top-surface perimeters to match the model edge height.\n"
-                      "Affects perimeters with a slope less than this angle (degrees).\n"
+                      "Affects perimeters with a slope greater than this angle (degrees).\n"
                       "A reasonable value is 35. Set to 0 to disable.");
     def->sidetext = u8"°";	// degrees, don't need translation
     def->min      = 0;
@@ -6470,7 +6486,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Seam gap");
     def->category = L("Quality");
     def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n"
-                     "This amount can be specified in millimeters or as a percentage of the current extruder diameter. The default value for this parameter is 10%.");
+                     "This amount can be specified in millimeters or as a percentage of the nozzle diameter. The default value for this parameter is 10%.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->mode = comAdvanced;
@@ -6587,7 +6603,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("role_based_wipe_speed", coBool);
-    def->label = L("Role base wipe speed");
+    def->label = L("Role based wipe speed");
     def->category = L("Speed");
     def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role. "
                      "e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
@@ -6691,9 +6707,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Draft shield");
     def->tooltip = L("A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. "
                      "It is usually needed only with open frame printers, i.e. without an enclosure.\n\n"
-                     "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-                     "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. "
-                     "Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n");
+                     "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.");
     def->enum_keys_map = &ConfigOptionEnum<DraftShield>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("enabled");
@@ -8301,10 +8315,10 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Maximum wipe tower print speed");
     def->tooltip = L("The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. "
                      "When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
-                     "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
+                     "When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
                      "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n\n"
                      "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n\n"
-                     "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting.");
+                     "For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting.");
     def->sidetext = L("mm/s");	// millimeters per second, CIS languages need translation
     def->mode = comAdvanced;
     def->min = 10;
@@ -8313,9 +8327,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_tower_wall_type", coEnum);
     def->label = L("Wall type");
     def->tooltip = L("Wipe tower outer wall type.\n"
-                    "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+                    "1. Rectangle: A rectangle with fixed width and height.\n"
                     "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-                    "3. Rib: Adds four ribs to the tower wall for enhanced stability.");
+                    "3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability.");
     def->enum_keys_map = &ConfigOptionEnum<WipeTowerWallType>::get_enum_values();
     def->enum_values.emplace_back("rectangle");
     def->enum_values.emplace_back("cone");
@@ -8446,7 +8460,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_tower_extra_flow", coPercent);
     def->label = L("Extra flow for purging");
-    def->tooltip = L("Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower "
+    def->tooltip = L("Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker "
                      "than they normally would be. The spacing is adjusted automatically.");
     def->sidetext = "%";
     def->mode = comAdvanced;
@@ -8623,11 +8637,10 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Minimum wall length");
     def->category = L("Quality");
     def->tooltip = L("Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. "
-    "Higher values remove more and longer walls.\n\n"
+    "The value is a multiple of the wall width. Higher values remove more and longer walls.\n\n"
     "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. "
-    "Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. "
+    "Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. "
     "'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
-    def->sidetext = L("mm");	// millimeters, CIS languages need translation
     def->mode = comAdvanced;
     def->min = 0.0;
     def->max = 25.0;
@@ -9685,6 +9698,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "change_filament_gcode";
     } else if (opt_key == "bridge_fan_speed") {
         opt_key = "overhang_fan_speed";
+    } else if (opt_key == "tpms_adaptive") {
+        opt_key = "adaptive_infill_mode";
+    } else if (opt_key == "tpms_interior_density") {
+        opt_key = "adaptive_infill_interior_density";
+    } else if (opt_key == "tpms_adaptive_gradient") {
+        opt_key = "adaptive_infill_gradient";
     } else if (opt_key == "infill_extruder" || opt_key == "sparse_infill_filament") {
         // ORCA: legacy feature-filament selector. Pre-2.4.0-dev these keys were 1-based and the
         // default value "1" meant "the first/active filament". The current scheme uses a dedicated
@@ -12286,7 +12305,8 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
                     opt_src->set(opt_target);
                 }
                 else
-                    opt_vec_src->set_only_diff(opt_vec_dest, variant_index, stride);
+                    // An override's nil means "disabled" and is the child's value; every other nil column inherits.
+                    opt_vec_src->set_only_diff(opt_vec_dest, variant_index, stride, is_filament_extruder_override_key(opt));
             }
         }
     }
@@ -13071,6 +13091,13 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "dir";
     def->set_default_value(new ConfigOptionString());
 
+    def = this->add("export_statistics", coBool);
+    def->label = L("Export statistics");
+    def->tooltip = L("Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output "
+                     "directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer "
+                     "and per object.");
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("debug", coInt);
     def->label = L("Debug level");
     def->tooltip = L("Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n");
@@ -13333,8 +13360,8 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
     def->tooltip = L("Total cost of the material wasted on the wipe tower. Calculated from filament_cost value in Filament Settings.");
 
     def = this->add("total_wipe_tower_filament", coFloat);
-    def->label = L("Wipe tower volume");
-    def->tooltip = L("Total filament volume extruded on the wipe tower.");
+    def->label = L("Total wipe tower filament");
+    def->tooltip = L("Total length of filament used on the wipe tower, in mm.");
 
     def = this->add("used_filament", coFloat);
     def->label = L("Used filament");
@@ -13500,12 +13527,30 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     // Machine G-code
     {"file_start_gcode",           {}},
     {"machine_start_gcode",         {}},
-    {"machine_end_gcode",           {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
+    {"machine_end_gcode",           {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id",
+                                      "current_filament_id", "current_extruder_id", "current_nozzle_id",
+                                      "nozzle_diameter_at_nozzle_id", "nozzle_volume_types"}},
     {"before_layer_change_gcode",   {"layer_num", "layer_z", "max_layer_z"}},
-    {"layer_change_gcode",          {"layer_num", "layer_z", "max_layer_z"}},
-    {"timelapse_gcode",             {"layer_num", "layer_z", "max_layer_z"}},
-    {"change_filament_gcode",       {"layer_num", "layer_z", "max_layer_z", "next_extruder", "previous_extruder", "fan_speed",
+    {"layer_change_gcode",          {"layer_num", "layer_z", "max_layer_z", "most_used_physical_extruder_id",
+                                      "current_filament_id", "current_nozzle_id", "curr_y_acceleration_limit",
+                                      "curr_accumulated_mass", "curr_layer_mass"}},
+    {"time_lapse_gcode",            {"layer_num", "layer_z", "max_layer_z", "most_used_physical_extruder_id",
+                                      "curr_physical_extruder_id", "timelapse_pos_x", "timelapse_pos_y",
+                                      "has_timelapse_safe_pos", "timelapse_inline_photo",
+                                      "farthest_point_timelapse_enabled", "clear_to_x0"}},
+    {"wrapping_detection_gcode",    {"layer_num", "layer_z", "max_layer_z", "most_used_physical_extruder_id",
+                                      "curr_physical_extruder_id"}},
+    {"change_filament_gcode",       {"layer_num", "layer_z", "max_layer_z", "next_extruder", "previous_extruder",
+                               "current_hotend", "next_hotend", "current_nozzle_id", "next_nozzle_id",
+                               "current_filament_id", "next_filament_id", "old_extruder_variant", "new_extruder_variant",
+                               "nozzle_diameter_at_nozzle_id", "nozzle_volume_types", "filament_retract_length_nc",
+                               "new_extruder_retracted_length", "outer_wall_volumetric_speed", "fan_speed",
                                "first_flush_volume", "flush_length_1", "flush_length_2", "flush_length_3", "flush_length_4",
+                               "flush_length", "flush_volumetric_speeds", "flush_temperatures", "filament_cooling_before_tower",
+                               "wipe_avoid_perimeter", "wipe_avoid_pos_x", "is_prime_tower_interface",
+                               "filament_tower_interface_purge_volume", "filament_tower_interface_print_temp",
+                               "wipe_tower_center_pos_x", "wipe_tower_center_pos_y", "wipe_tower_center_pos_valid",
+                               "temperature", "nozzle_temperature", "first_layer_temperature", "nozzle_temperature_initial_layer",
                                "new_filament_e_feedrate", "new_filament_temp", "new_retract_length",
                                "new_retract_length_toolchange", "old_filament_e_feedrate", "old_filament_temp", "old_retract_length",
                                "old_retract_length_toolchange", "relative_e_axis", "second_flush_volume", "toolchange_count", "toolchange_z",
@@ -13518,8 +13563,18 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"machine_pause_gcode",         {}},
     {"template_custom_gcode",       {}},
     // Filament G-code
-    {"filament_start_gcode",        {"filament_extruder_id"}},
-    {"filament_end_gcode",          {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
+    {"filament_start_gcode",        {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id",
+                                      "current_filament_id", "current_extruder_id", "current_nozzle_id",
+                                      "nozzle_diameter_at_nozzle_id", "nozzle_volume_types",
+                                      "retraction_distance_when_cut", "long_retraction_when_cut",
+                                      "temperature", "nozzle_temperature", "first_layer_temperature",
+                                      "nozzle_temperature_initial_layer"}},
+    {"filament_end_gcode",          {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id",
+                                      "current_filament_id", "current_extruder_id", "current_nozzle_id",
+                                      "nozzle_diameter_at_nozzle_id", "nozzle_volume_types",
+                                      "retraction_distance_when_cut", "long_retraction_when_cut",
+                                      "temperature", "nozzle_temperature", "first_layer_temperature",
+                                      "nozzle_temperature_initial_layer"}},
 };
 
 const std::map<t_custom_gcode_key, t_config_option_keys>& custom_gcode_specific_placeholders()
@@ -13534,7 +13589,8 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
 // Common Defs
     def = this->add("layer_num", coInt);
     def->label = L("Layer number");
-    def->tooltip = L("Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based.");
+    def->tooltip = L("Index of the current layer. The index is zero-based (first layer has index 0). Before the first "
+                     "layer starts, it is -1. In extrusion role change G-code, the index is one-based (first layer has index 1).");
 
     def = this->add("layer_z", coFloat);
     def->label = L("Layer Z");
@@ -13546,13 +13602,50 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
 
     def = this->add("filament_extruder_id", coInt);
     def->label = L("Filament extruder ID");
-    def->tooltip = L("The current extruder ID. The same as current_extruder.");
+    def->tooltip = L("In filament start G-code, the index of the filament that is being loaded. In filament end G-code, "
+                     "the index of the filament that is being unloaded. The index is zero-based (first filament has "
+                     "index 0). At a tool change, filament end G-code gets the extruder index instead, unless the Type 1 "
+                     "wipe tower does the tool change. Machine end G-code gets the value from the last filament end "
+                     "G-code at the end of the print.");
+
+    new_def("current_filament_id", coInt, L("Current filament ID"), L("Index of the currently active filament. The index is zero-based (first filament has index 0)."));
+    new_def("current_extruder_id", coInt, L("Current extruder ID"), L("Index of the currently active physical extruder. The index is zero-based (first extruder has index 0)."));
+    new_def("current_nozzle_id", coInt, L("Current nozzle ID"), L("Index of the currently active nozzle. The index is zero-based (first nozzle has index 0)."));
+    new_def("nozzle_diameter_at_nozzle_id", coFloats, L("Nozzle diameters"), L("Nozzle diameters indexed by nozzle ID."));
+    new_def("nozzle_volume_types", coStrings, L("Nozzle volume types"), L("Nozzle volume variants indexed by nozzle ID."));
+    new_def("retraction_distance_when_cut", coFloat, L("Retraction distance when cut"), L("Retraction distance used when cutting filament."));
+    new_def("long_retraction_when_cut", coBool, L("Long retraction when cut"), L("Whether long retraction is used when cutting filament."));
+
+// layer_change_gcode
+    new_def("most_used_physical_extruder_id", coInt, L("Most-used physical extruder ID"), L("Index of the physical extruder used most often on the current layer. The index is zero-based (first extruder has index 0)."));
+    new_def("curr_y_acceleration_limit", coFloat, L("Current Y acceleration limit"), L("Current Y-axis acceleration limit after the bed-mass adjustment."));
+    new_def("curr_accumulated_mass", coFloat, L("Current accumulated mass"), L("Accumulated printed mass at the current layer."));
+    new_def("curr_layer_mass", coFloat, L("Current layer mass"), L("Printed mass of the previous layer."));
+
+// time_lapse_gcode
+    new_def("curr_physical_extruder_id", coInt, L("Current physical extruder ID"), L("Index of the physical extruder active for the current layer. The index is zero-based (first extruder has index 0)."));
+    new_def("timelapse_pos_x", coInt, L("Timelapse position X"), L("Selected X position for timelapse capture."));
+    new_def("timelapse_pos_y", coInt, L("Timelapse position Y"), L("Selected Y position for timelapse capture."));
+    new_def("has_timelapse_safe_pos", coBool, L("Has timelapse safe position"), L("Whether a safe timelapse position was found."));
+    new_def("timelapse_inline_photo", coBool, L("Timelapse inline photo"), L("Whether the timelapse photo is captured at the inline position."));
+    new_def("farthest_point_timelapse_enabled", coBool, L("Farthest-point timelapse enabled"), L("Whether farthest-point timelapse positioning is active."));
+    new_def("clear_to_x0", coBool, L("Clear to X0"), L("Whether the timelapse move is clear to X0."));
 
 // change_filament_gcode
-    new_def("previous_extruder", coInt, L("Previous extruder"), L("Index of the extruder that is being unloaded. The index is zero based (first extruder has index 0)."));
-    new_def("next_extruder", coInt, L("Next extruder"), L("Index of the extruder that is being loaded. The index is zero based (first extruder has index 0)."));
+    new_def("previous_extruder", coInt, L("Previous extruder"), L("Index of the filament that is being unloaded. The index is zero-based (first filament has index 0). At the start of the print, when no filament is loaded yet, it is -1."));
+    new_def("next_extruder", coInt, L("Next extruder"), L("Index of the filament that is being loaded. The index is zero-based (first filament has index 0)."));
+    new_def("current_hotend", coInt, L("Current hotend"), L("Zero-based extruder index of the outgoing filament. On Bambu printers it is -1, or the nozzle ID when a filament moves between nozzles across layers."));
+    new_def("next_hotend", coInt, L("Next hotend"), L("Zero-based extruder index of the incoming filament. On Bambu printers it is -1, or the nozzle ID when a filament moves between nozzles across layers."));
+    new_def("next_nozzle_id", coInt, L("Next nozzle ID"), L("Index of the nozzle associated with the incoming filament. The index is zero-based (first nozzle has index 0)."));
+    new_def("next_filament_id", coInt, L("Next filament ID"), L("Index of the incoming filament. The index is zero-based (first filament has index 0)."));
+    new_def("old_extruder_variant", coString, L("Old extruder variant"), L("Nozzle-volume variant of the outgoing extruder."));
+    new_def("new_extruder_variant", coString, L("New extruder variant"), L("Nozzle-volume variant of the incoming extruder."));
+    new_def("filament_retract_length_nc", coFloat, L("Filament nozzle-change retract length"), L("Nozzle-change retraction length of the outgoing filament."));
+    new_def("new_extruder_retracted_length", coFloat, L("New extruder retracted length"), L("Currently parked retraction length of the incoming extruder."));
+    new_def("outer_wall_volumetric_speed", coFloat, L("Outer wall volumetric speed"), L("Volumetric speed used for the outer wall."));
     new_def("relative_e_axis", coBool, L("Relative e-axis"), L("Indicates if relative positioning is being used."));
     new_def("toolchange_count", coInt, L("Toolchange count"), L("The number of toolchanges throughout the print."));
+    new_def("toolchange_z", coFloat, L("Toolchange Z"), L("The Z position during the toolchange."));
     new_def("fan_speed", coNone, "", ""); //Option is no longer used and is zeroed by placeholder parser for compatability
     new_def("old_retract_length", coFloat, L("Old retract length"), L("The retraction length of the previous filament."));
     new_def("new_retract_length", coFloat, L("New retract length"), L("The retraction length of the new filament."));
@@ -13577,6 +13670,22 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     new_def("flush_length_2", coFloat, L("Flush Length 2"), L("The second flush length."));
     new_def("flush_length_3", coFloat, L("Flush Length 3"), L("The third flush length."));
     new_def("flush_length_4", coFloat, L("Flush Length 4"), L("The fourth flush length."));
+    new_def("flush_length", coFloat, L("Flush length"), L("Total flush length."));
+    new_def("flush_volumetric_speeds", coFloats, L("Flush volumetric speeds"), L("Flush volumetric speeds for each filament."));
+    new_def("flush_temperatures", coInts, L("Flush temperatures"), L("Flush temperatures for each filament."));
+    new_def("filament_cooling_before_tower", coFloats, L("Filament cooling before tower"), L("Temperature drop before entering filament tower"));
+    new_def("wipe_avoid_perimeter", coBool, L("Avoid wipe perimeter"), L("Whether travel should avoid the wipe perimeter."));
+    new_def("wipe_avoid_pos_x", coFloat, L("Wipe avoidance X"), L("X position used to avoid the wipe area."));
+    new_def("is_prime_tower_interface", coBool, L("Prime tower interface"), L("Whether the current purge is for a prime-tower interface."));
+    new_def("filament_tower_interface_purge_volume", coFloat, L("Interface layer purge length"), L("Purge length for prime tower interface layer (where different materials meet)."));
+    new_def("filament_tower_interface_print_temp", coInt, L("Filament tower interface print temperature"), L("Print temperature used for the filament tower interface."));
+    new_def("wipe_tower_center_pos_x", coFloat, L("Wipe tower center X"), L("X coordinate of the nozzle's wipe-tower wait position, 2 mm outside the tower edge."));
+    new_def("wipe_tower_center_pos_y", coFloat, L("Wipe tower center Y"), L("Y coordinate of the nozzle's wipe-tower wait position."));
+    new_def("wipe_tower_center_pos_valid", coBool, L("Wipe tower center position valid"), L("Whether the print has a wipe tower."));
+    new_def("temperature", coInts, L("Temperature"), L("Nozzle temperatures indexed by filament."));
+    new_def("nozzle_temperature", coInts, L("Nozzle temperature"), L("Nozzle temperatures indexed by filament."));
+    new_def("first_layer_temperature", coInts, L("First layer temperature"), L("First-layer nozzle temperatures indexed by filament."));
+    new_def("nozzle_temperature_initial_layer", coInts, L("Nozzle temperature initial layer"), L("First-layer nozzle temperatures indexed by filament."));
 
 // change_extrusion_role_gcode
     // The whole tooltip is one literal so that the GUI can look it up in the catalog.

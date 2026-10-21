@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2025-10-02 17:43+0700\n"
 "Last-Translator: \n"
 "Language-Team: hainguyen.ts13@gmail.com\n"
@@ -762,6 +762,9 @@ msgstr "mm"
 msgid "Part selection"
 msgstr "Chọn phần"
 
+msgid "Select multiple objects"
+msgstr "Chọn nhiều đối tượng"
+
 msgid "Fixed step drag"
 msgstr "Kéo bước cố định"
 
@@ -826,9 +829,84 @@ msgstr "Phần"
 msgid "Relative"
 msgstr "Tương đối"
 
+msgid "Selection"
+msgstr "Lựa chọn"
+
+# AI Translated
+msgid "Plate"
+msgstr "Plate"
+
+# AI Translated
+msgid "Distribute"
+msgstr "Phân bố"
+
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "Hệ tọa độ dùng cho các thao tác biến đổi."
+
+# AI Translated
+msgid "Reference for alignment"
+msgstr "Tham chiếu để căn chỉnh"
+
+# AI Translated
+msgid "Select at least 3 parts or objects"
+msgstr "Chọn ít nhất 3 phần hoặc vật thể"
+
+# AI Translated
+msgid "Align left"
+msgstr "Căn trái"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Căn giữa trái-phải"
+
+# AI Translated
+msgid "Align right"
+msgstr "Căn phải"
+
+# AI Translated
+msgid "Align front"
+msgstr "Căn trước"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Căn giữa trước-sau"
+
+# AI Translated
+# Needs human review: Align/Distribute menu (object right-click), Y axis: check 'Căn trước'/'Căn sau' read as aligning the front/back edges, not 'align first/later'.
+msgid "Align back"
+msgstr "Căn sau"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Căn dưới"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Căn giữa trên-dưới"
+
+# AI Translated
+msgid "Align top"
+msgstr "Căn trên"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Phân bố trái-phải"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Phân bố trước-sau"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Phân bố trên-dưới"
+
+msgid "Drop"
+msgstr "Thả xuống"
+
+# AI Translated
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr "Di chuyển vùng chọn theo trục Z để điểm thấp nhất chạm bàn in."
 
 # AI Translated
 msgid "Absolute"
@@ -1730,7 +1808,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Nét của hình (%1%) chứa không hỗ trợ: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Trạng thái không hợp lệ, vui lòng báo cáo các bước tái hiện lỗi trên GitHub"
 
 # AI Translated
@@ -1738,11 +1816,11 @@ msgid "No embossed file"
 msgstr "Không có file emboss"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "Thiếu file SVG trong hình emboss"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Thiếu dữ liệu của file SVG"
 
 msgid "Face the camera"
@@ -2072,6 +2150,22 @@ msgstr "Đang vào gizmo Lắp ráp"
 # AI Translated
 msgid "Leaving Assembly gizmo"
 msgstr "Đang rời gizmo Lắp ráp"
+
+# AI Translated
+msgid "Parts of a cut object cannot be moved"
+msgstr "Không thể di chuyển các phần của vật thể đã cắt"
+
+# AI Translated
+msgid "Aligning to the plate is available in X and Y only"
+msgstr "Căn chỉnh theo plate chỉ khả dụng theo X và Y"
+
+# AI Translated
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr "Tắt Tự động thả cho các vật thể đã chọn để di chuyển chúng theo Z"
+
+# AI Translated
+msgid "All selected objects must be on the same plate"
+msgstr "Tất cả vật thể đã chọn phải ở trên cùng một plate"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -2525,6 +2619,67 @@ msgstr "Hạn chế Plug-in mạng"
 
 msgid "Privacy Policy Update"
 msgstr "Cập nhật chính sách bảo mật"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Tất cả cài đặt sẵn filament của bạn đều có thể dùng trên các máy in mà chúng được tạo ra."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Di chuyển cài đặt sẵn filament"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 đã tái cấu trúc nhiều cài đặt sẵn filament hệ thống để sửa các hồ sơ không chính xác và chuẩn bị cho các tính năng trong tương lai. Do đó, các cài đặt sẵn bên dưới không còn hiển thị trên một số máy in mà chúng được tạo ra. Rất tiếc vì sự bất tiện này; đây là bản sửa lỗi một lần duy nhất.\n"
+"\n"
+"Thêm lại các máy in đó vào cài đặt sẵn của bạn ngay bây giờ? Cài đặt sẵn của bạn sẽ được sao lưu trước. Bạn cũng có thể thực hiện việc này sau từ Trợ giúp > Di chuyển cài đặt sẵn filament."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (dựa trên %2%)"
+
+# AI Translated
+msgid "Don't remind me again"
+msgstr "Đừng nhắc tôi nữa"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "Không thể sao lưu cài đặt sẵn của bạn nên chúng chưa được di chuyển."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "Không thể khóa thư mục cài đặt sẵn người dùng nên chưa có gì được di chuyển. Có thể một phiên bản OrcaSlicer khác đang lưu cài đặt sẵn; hãy thử lại sau từ Trợ giúp > Di chuyển cài đặt sẵn filament."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Không thể di chuyển cài đặt sẵn filament của bạn. Bản sao lưu cài đặt sẵn của bạn đã được lưu tại:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Cài đặt sẵn filament của bạn đã được di chuyển. Hãy chọn lại chúng trong danh sách filament nơi bạn đã dùng chúng.\n"
+"\n"
+"Bản sao lưu cài đặt sẵn của bạn đã được lưu tại:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Không thể di chuyển các cài đặt sẵn này:"
 
 # AI Translated
 #, c-format, boost-format
@@ -3291,8 +3446,13 @@ msgstr "(Mất màu)"
 msgid "Center"
 msgstr "Căn giữa"
 
-msgid "Drop"
-msgstr "Thả xuống"
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Căn chỉnh/Phân bố"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Căn chỉnh và phân bố vật thể"
 
 msgid "Edit Process Settings"
 msgstr "Chỉnh sửa cài đặt process"
@@ -3667,10 +3827,6 @@ msgstr "Không brim"
 
 msgid "Outer wall speed"
 msgstr "Tốc độ wall ngoài"
-
-# AI Translated
-msgid "Plate"
-msgstr "Plate"
 
 # AI Translated
 msgid "Brim"
@@ -5056,7 +5212,7 @@ msgstr "Vui lòng lưu dự án và khởi động lại chương trình."
 msgid "Unknown C++ exception."
 msgstr "Ngoại lệ C++ không xác định."
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "Đang xử lý G-code từ file trước..."
 
 msgid "Slicing complete"
@@ -6696,6 +6852,10 @@ msgid "Gridlines"
 msgstr "Đường lưới"
 
 # AI Translated
+msgid "Focus mode"
+msgstr "Chế độ tập trung"
+
+# AI Translated
 msgid "Labels"
 msgstr "Nhãn"
 
@@ -6992,6 +7152,10 @@ msgstr "Trình hướng dẫn thiết lập"
 
 msgid "Show Configuration Folder"
 msgstr "Hiện thư mục cấu hình"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Khôi phục các cài đặt sẵn filament đã bị bản cập nhật hồ sơ gỡ khỏi các máy in mà chúng được tạo ra"
 
 # AI Translated
 msgid "Troubleshoot Center"
@@ -11306,6 +11470,15 @@ msgid "Show incompatible/unsupported presets in the printer and filament dropdow
 msgstr "Hiện các cài đặt sẵn không tương thích/không được hỗ trợ trong danh sách thả xuống máy in và filament. Không thể chọn các cài đặt sẵn này."
 
 # AI Translated
+msgid "Export statistics with G-code"
+msgstr "Xuất thống kê cùng với G-code"
+
+# AI Translated
+# Needs human review: "feature" rendered as line type (ประเภทเส้น / Loại đường); check this matches the per-feature totals in the exported JSON
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Nếu bật, khi xuất file G-code, thống kê của nó cũng được ghi dưới dạng JSON cạnh file đó, với tên <name>.statistics.json, và file 3MF đã slice được xuất sẽ chứa chúng bên trong: thời gian in, tổng filament và tổng theo loại đường, cùng số liệu tương tự theo từng lớp và từng vật thể."
+
+# AI Translated
 msgid "Experimental Features"
 msgstr "Tính năng thử nghiệm"
 
@@ -12190,6 +12363,10 @@ msgstr "Tải file lên bộ nhớ của máy in thất bại. Vui lòng thử l
 # AI Translated
 msgid "Send Failed"
 msgstr "Gửi thất bại"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Không có máy in khả dụng"
 
 msgid "The name length exceeds the limit."
 msgstr "Độ dài tên vượt quá giới hạn."
@@ -13925,10 +14102,6 @@ msgid "from/to"
 msgstr "từ/đến"
 
 # AI Translated
-msgid "Please choose the filament color"
-msgstr "Vui lòng chọn màu filament"
-
-# AI Translated
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Tác nhân cloud không khả dụng. Vui lòng khởi động lại OrcaSlicer rồi thử lại."
 
@@ -14143,8 +14316,8 @@ msgid "Left mouse"
 msgstr "Chuột trái"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Khả dụng ở mọi nơi trong cửa sổ, kể cả khi đang gõ trong ô văn bản."
+msgid "Available anywhere in the window."
+msgstr "Khả dụng ở mọi nơi trong cửa sổ."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -14169,9 +14342,6 @@ msgstr "Khả dụng khi chế độ xem 3D trên tab Chuẩn bị đang có ti�
 
 msgid "Select a part"
 msgstr "Chọn một phần"
-
-msgid "Select multiple objects"
-msgstr "Chọn nhiều đối tượng"
 
 msgid "Select objects by rectangle"
 msgstr "Chọn đối tượng bằng hình chữ nhật"
@@ -14259,10 +14429,6 @@ msgstr "%s đã được gán cho %s. Gán lại cho %s?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "%s mặc định đã được gán cho %s. Gán lại cho %s?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Phím tắt toàn cục cũng có tác dụng khi đang gõ."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14703,6 +14869,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "một chu vi nằm hoàn toàn bên trong modifier, modifier không được áp dụng cho nó (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "Modifier %1% \"%2%\" của \"%3%\" bao phủ toàn bộ một chu vi"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "Modifier %1% \"%2%\" của \"%3%\" (tổng cộng %4%) bao phủ toàn bộ một chu vi"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "modifier \"%1%\" của \"%2%\" không có tác dụng lên đường nối (có thể nó không chạm tới đường tâm của chu vi được in)"
@@ -14715,6 +14893,11 @@ msgstr "modifier \"%1%\" của \"%2%\" (tổng cộng %3%) không có tác dụn
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "Vị trí đường nối có thể khác với dự kiến."
+
+# AI Translated
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr "Không thể ghi thống kê G-code vào %1%."
 
 msgid "Internal Bridge"
 msgstr "Cầu bên trong"
@@ -15735,13 +15918,13 @@ msgid ""
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
-"Độ rộng đường của Cầu. Nếu biểu diễn dưới dạng %, nó sẽ được tính theo đường kính đầu phun.\n"
-"Nên dùng kèm với mật độ Cầu hoặc tỷ lệ lưu lượng Cầu cao hơn.\n"
+"Độ rộng đường của cầu. Nếu biểu diễn dưới dạng %, nó sẽ được tính theo đường kính đầu phun.\n"
+"Nên dùng kèm với mật độ cầu hoặc tỷ lệ lưu lượng cầu cao hơn.\n"
 "\n"
-"Giá trị tối đa là 100% hoặc đường kính đầu phun.\n"
-"Nếu đặt là 0, độ rộng đường sẽ bằng độ rộng Infill đặc bên trong."
+"Giá trị tối đa là 100%, hoặc đường kính đầu phun.\n"
+"Nếu đặt là 0, độ rộng đường sẽ bằng độ rộng Infill đặc bên trong, hoặc bằng đường kính đầu phun đối với cầu dày."
 
 msgid "Internal bridge flow ratio"
 msgstr "Tỷ lệ lưu lượng cầu bên trong"
@@ -16046,7 +16229,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "Bật tùy chọn này để giảm tốc độ in ở những vùng mà chu vi có thể đã bị cong vênh lên trên.\n"
 "Ví dụ, sẽ áp dụng thêm mức giảm tốc khi in phần nhô ở các góc nhọn như mũi thân tàu Benchy, giúp giảm hiện tượng cong vênh vốn tích tụ qua nhiều lớp.\n"
@@ -16058,22 +16241,23 @@ msgstr ""
 "Khuyến nghị khi bật tùy chọn này:\n"
 "1. Giảm thời gian làm mượt Pressure Advance xuống 0.015 - 0.02 để extruder phản ứng nhanh với thay đổi tốc độ.\n"
 "2. Tăng tốc độ in tối thiểu để hạn chế mức độ giảm tốc và giảm chênh lệch giữa các đoạn nhanh và chậm.\n"
-"3. Nếu vẫn xuất hiện khuyết điểm, hãy bật Extrusion Rate Smoothing (ERS) để làm mượt thêm các chuyển tiếp lưu lượng.\n"
+"3. Nếu vẫn xuất hiện khuyết điểm, hãy bật Làm mịn tốc độ đùn (ERS) để làm mịn thêm các chuyển tiếp lưu lượng.\n"
 "\n"
 "Lưu ý: Khi tùy chọn này được bật, chu vi phần nhô được xử lý như phần nhô, nghĩa là tốc độ phần nhô sẽ được áp dụng ngay cả khi chu vi nhô đó là một phần của cầu.\n"
-"Ví dụ, khi các chu vi nhô 100%, không có thành nào đỡ bên dưới, tốc độ phần nhô 100% sẽ được áp dụng."
+"Ví dụ, khi các chu vi nhô 100%, không có thành nào đỡ bên dưới, tốc độ phần nhô 75% sẽ được áp dụng, bị giới hạn bởi tốc độ cầu."
 
 msgid "mm/s or %"
 msgstr "mm/s hoặc %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "Tốc độ của các đùn cầu nhìn thấy từ bên ngoài.\n"
 "\n"
-"Ngoài ra, nếu Giảm tốc cho chu vi cong bị tắt hoặc chế độ phần nhô cổ điển được bật, nó sẽ là tốc độ in của thành nhô được hỗ trợ dưới 13%, cho dù chúng là một phần của cầu hay phần nhô."
+"Ngoài ra, nếu Giảm tốc cho chu vi cong bị tắt, nó sẽ là tốc độ in của thành nhô được hỗ trợ dưới 13%, cho dù chúng là một phần của cầu hay phần nhô."
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "Tốc độ của cầu bên trong. Nếu giá trị được biểu thị dưới dạng phần trăm, nó sẽ được tính dựa trên bridge_speed. Giá trị mặc định là 150%."
@@ -16642,8 +16826,9 @@ msgstr "Tốc độ của thành ngoài là ngoài cùng và nhìn thấy đư�
 msgid "Small perimeters"
 msgstr "Chu vi nhỏ"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Cài đặt riêng biệt này sẽ ảnh hưởng đến tốc độ của chu vi có bán kính <= small_perimeter_threshold (thường là lỗ). Nếu được biểu thị dưới dạng phần trăm (ví dụ: 80%) nó sẽ được tính trên cài đặt tốc độ thành ngoài ở trên. Đặt thành không để tự động."
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Cài đặt riêng biệt này sẽ ảnh hưởng đến tốc độ của chu vi có bán kính <= small_perimeter_threshold (thường là lỗ). Nếu được biểu thị dưới dạng phần trăm (ví dụ: 80%) nó sẽ được tính trên cài đặt tốc độ thành ngoài ở trên."
 
 msgid "Small perimeters threshold"
 msgstr "Ngưỡng chu vi nhỏ"
@@ -16656,8 +16841,8 @@ msgid "Small support perimeters"
 msgstr "Chu vi support nhỏ"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "Giống như \"Chu vi nhỏ\", nhưng dành cho support. Cài đặt riêng này sẽ ảnh hưởng đến tốc độ support cho các vùng <= `small_support_perimeter_threshold`. Nếu biểu diễn dưới dạng phần trăm (ví dụ: 80%), nó sẽ được tính theo cài đặt tốc độ support hoặc giao diện support ở trên. Đặt bằng không để tự động."
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "Giống như \"Chu vi nhỏ\", nhưng dành cho support. Cài đặt riêng này sẽ ảnh hưởng đến tốc độ support cho các vùng <= `small_support_perimeter_threshold`. Nếu biểu diễn dưới dạng phần trăm (ví dụ: 80%), nó sẽ được tính theo cài đặt tốc độ support hoặc giao diện support ở trên."
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -16670,12 +16855,13 @@ msgstr "Đặt ngưỡng cho độ dài chu vi support nhỏ. Ngưỡng mặc đ
 msgid "Walls printing order"
 msgstr "Thứ tự in thành"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
@@ -17674,14 +17860,16 @@ msgstr "Chiều cao lớp đầu tiên"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Chiều cao của lớp đầu tiên. Làm cho chiều cao lớp đầu tiên dày một chút có thể cải thiện độ bám dính bàn in."
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "Tốc độ của lớp đầu tiên ngoại trừ phần infill đặc."
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "Tốc độ của thành và brim của lớp đầu tiên."
 
 msgid "First layer infill"
 msgstr "Infill lớp đầu tiên"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "Tốc độ của phần infill đặc của lớp đầu tiên."
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "Tốc độ của lớp đầu tiên ngoại trừ thành và brim, chẳng hạn như infill, lấp khe và support."
 
 msgid "First layer travel speed"
 msgstr "Tốc độ di chuyển lớp đầu tiên"
@@ -18201,6 +18389,14 @@ msgstr "Loại trừ đối tượng"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Bật tùy chọn này để thêm lệnh EXCLUDE OBJECT vào G-code."
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Dung sai đường viền"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Độ lệch tối đa của đường viền vật thể được ghi vào EXCLUDE_OBJECT_DEFINE so với đường viền gốc. Giá trị lớn hơn cho ít điểm hơn, giúp ích cho firmware bị treo khi phân tích G-code có nhiều vật thể. 0 giữ lại mọi điểm."
+
 msgid "Verbose G-code"
 msgstr "G-code chi tiết"
 
@@ -18410,16 +18606,18 @@ msgstr "Độ rộng đường của infill thưa bên trong. Nếu được bi�
 msgid "Infill/wall overlap"
 msgstr "Chồng lấp infill/Thành"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "Vùng infill được mở rộng một chút để chồng lấp với thành để liên kết tốt hơn. Giá trị phần trăm tương đối với độ rộng đường của infill thưa. Đặt giá trị này thành ~10-15% để giảm thiểu đùn dư tiềm ẩn và tích tụ vật liệu dẫn đến bề mặt trên thô."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "Vùng infill được mở rộng một chút để chồng lấp với thành để liên kết tốt hơn. Giá trị phần trăm tương đối với độ rộng đường của thành trong. Đặt giá trị này thành ~10-15% để giảm thiểu đùn dư tiềm ẩn và tích tụ vật liệu dẫn đến bề mặt trên thô."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "Chồng lấp infill đặc/thành trên/dưới"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "Vùng infill đặc trên được mở rộng một chút để chồng lấp với thành để liên kết tốt hơn và giảm thiểu sự xuất hiện của lỗ kim nơi infill trên gặp thành. Giá trị 25-30% là điểm khởi đầu tốt, giảm thiểu sự xuất hiện của lỗ kim. Giá trị phần trăm tương đối với độ rộng đường của infill thưa."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "Vùng infill đặc trên được mở rộng một chút để chồng lấp với thành để liên kết tốt hơn và giảm thiểu sự xuất hiện của lỗ kim nơi infill trên gặp thành. Giá trị 25-30% là điểm khởi đầu tốt, giảm thiểu sự xuất hiện của lỗ kim. Giá trị phần trăm tương đối với độ rộng đường của thành trong."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "Tốc độ của infill thưa bên trong."
@@ -18446,8 +18644,9 @@ msgstr "Độ rộng tối đa của vùng phân đoạn. Giá trị 0 vô hiệ
 msgid "Interlocking depth of a segmented region"
 msgstr "Độ sâu lồng ghép của vùng phân đoạn"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "Độ sâu lồng ghép của vùng phân đoạn. Nó sẽ bị bỏ qua nếu \"mmu_segmented_region_max_width\" là không hoặc nếu \"mmu_segmented_region_interlocking_depth\" lớn hơn \"mmu_segmented_region_max_width\". Không vô hiệu hóa tính năng này."
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "Độ sâu lồng ghép của vùng phân đoạn. Ở mỗi lớp xen kẽ, vùng phân đoạn bị giới hạn trong độ sâu này. Nó sẽ bị bỏ qua nếu \"interlocking_beam\" được bật. Giá trị bằng không sẽ vô hiệu hóa tính năng này."
 
 msgid "Use beam interlocking"
 msgstr "Sử dụng lồng ghép dầm"
@@ -18560,11 +18759,11 @@ msgstr "Góc giảm thiểu chiều cao thành"
 # AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "Giảm chiều cao của chu vi bề mặt trên cho khớp với chiều cao mép của mô hình.\n"
-"Ảnh hưởng đến các chu vi có độ dốc nhỏ hơn góc này (độ).\n"
+"Ảnh hưởng đến các chu vi có độ dốc lớn hơn góc này (độ).\n"
 "Giá trị hợp lý là 35. Đặt 0 để tắt."
 
 # AI Translated
@@ -19567,7 +19766,8 @@ msgstr "Khớp vát cho thành trong"
 msgid "Use scarf joint for inner walls as well."
 msgstr "Sử dụng khớp vát cho thành trong cũng vậy."
 
-msgid "Role base wipe speed"
+# AI Translated
+msgid "Role based wipe speed"
 msgstr "Tốc độ lau dựa trên vai trò"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -19657,16 +19857,15 @@ msgstr "Giới hạn các vòng viền/tấm chắn gió thành một thành sau
 msgid "Draft shield"
 msgstr "Tấm chắn gió"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 "Tấm chắn gió hữu ích để bảo vệ bản in ABS hoặc ASA khỏi cong vênh và tách khỏi bàn in do gió lùa. Nó thường chỉ cần với máy in khung mở, tức là không có vỏ bọc.\n"
 "\n"
-"Đã bật = viền cao bằng đối tượng được in cao nhất. Ngược lại 'Chiều cao viền' được sử dụng.\n"
-"Lưu ý: Với tấm chắn gió hoạt động, viền sẽ được in ở khoảng cách viền  từ đối tượng. Do đó, nếu vành đang hoạt động nó có thể giao với chúng. Để tránh điều này, hãy tăng giá trị khoảng cách viền.\n"
+"Đã bật = viền cao bằng đối tượng được in cao nhất. Ngược lại 'Chiều cao viền' được sử dụng."
 
 msgid "Enabled"
 msgstr "Đã bật"
@@ -20827,40 +21026,42 @@ msgstr "Góc ở đỉnh của nón được sử dụng để ổn định wipe
 msgid "Maximum wipe tower print speed"
 msgstr "Tốc độ in wipe tower tối đa"
 
+# AI Translated
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
 "Tốc độ in tối đa khi xả trong wipe tower và in các lớp thưa của wipe tower. Khi xả, nếu tốc độ infill thưa hoặc tốc độ được tính từ tốc độ thể tích tối đa của filament thấp hơn, tốc độ thấp nhất sẽ được sử dụng thay thế.\n"
 "\n"
-"Khi in các lớp thưa, nếu tốc độ chu vi bên trong hoặc tốc độ được tính từ tốc độ thể tích tối đa của filament thấp hơn, tốc độ thấp nhất sẽ được sử dụng thay thế.\n"
+"Khi in các lớp thưa, nếu tốc độ infill thưa hoặc tốc độ được tính từ tốc độ thể tích tối đa của filament thấp hơn, tốc độ thấp nhất sẽ được sử dụng thay thế.\n"
 "\n"
 "Tăng tốc độ này có thể ảnh hưởng đến độ ổn định của tower cũng như tăng lực mà đầu phun va chạm với bất kỳ cục nhỏ nào có thể đã hình thành trên wipe tower.\n"
 "\n"
-"Trước khi tăng tham số này vượt quá mặc định 90 mm/s, hãy đảm bảo máy in của bạn có thể nối cầu đáng tin cậy ở tốc độ tăng và chảy nhựa khi thay công cụ được kiểm soát tốt.\n"
+"Trước khi tăng tham số này vượt quá mặc định 90 mm/s, hãy đảm bảo máy in của bạn có thể bắc cầu đáng tin cậy ở tốc độ tăng và việc ngăn chảy nhựa khi thay công cụ được kiểm soát tốt.\n"
 "\n"
-"Đối với chu vi bên ngoài wipe tower, tốc độ chu vi bên trong được sử dụng bất kể cài đặt này."
+"Đối với chu vi bên ngoài wipe tower, tốc độ chu vi bên trong được sử dụng, đồng thời cũng bị giới hạn bởi cài đặt này."
 
 msgid "Wall type"
 msgstr "Loại thành"
 
+# AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "Loại thành ngoài wipe tower.\n"
-"1. Hình chữ nhật: Loại thành mặc định, hình chữ nhật có độ rộng và chiều cao cố định.\n"
-"2. Nón: Một nón có bo tròn ở dưới để giúp ổn định wipe tower.\n"
-"3. Gân: Thêm bốn gân vào thành tower để tăng cường độ ổn định."
+"1. Hình chữ nhật: Hình chữ nhật có độ rộng và chiều cao cố định.\n"
+"2. Hình nón: Một hình nón có bo tròn ở dưới để giúp ổn định wipe tower.\n"
+"3. Gân: Loại thành mặc định, thêm bốn gân vào thành tower để tăng cường độ ổn định."
 
 msgid "Rectangle"
 msgstr "Hình chữ nhật"
@@ -20961,8 +21162,9 @@ msgstr "Khoảng cách của các đường xả trên wipe tower."
 msgid "Extra flow for purging"
 msgstr "Lưu lượng bổ sung để xả"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "Lưu lượng bổ sung được sử dụng cho các đường xả trên wipe tower. Điều này làm cho các đường xả dày hơn hoặc hẹp hơn so với bình thường. Khoảng cách được điều chỉnh tự động."
+# AI Translated
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "Lưu lượng bổ sung được sử dụng cho các đường xả trên wipe tower. Điều này làm cho các đường xả dày hơn so với bình thường. Khoảng cách được điều chỉnh tự động."
 
 msgid "Idle temperature"
 msgstr "Nhiệt độ chờ"
@@ -21080,14 +21282,15 @@ msgstr "Độ dày tối thiểu của tính năng mỏng. Tính năng model m�
 msgid "Minimum wall length"
 msgstr "Độ dài thành tối thiểu"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"Điều chỉnh giá trị này để ngăn thành ngắn, không đóng được in, có thể  tăng thời gian in. Giá trị cao hơn loại bỏ nhiều thành và dài hơn.\n"
+"Điều chỉnh giá trị này để ngăn in các thành ngắn, không khép kín, vì chúng có thể làm tăng thời gian in. Giá trị này là bội số của độ rộng thành. Giá trị cao hơn loại bỏ nhiều thành hơn và dài hơn.\n"
 "\n"
-"LƯU Ý: Bề mặt dưới và trên sẽ không bị ảnh hưởng bởi giá trị này để ngăn khe nhìn thấy ở bên ngoài model. Điều chỉnh 'Ngưỡng một thành' trong cài đặt Nâng cao bên dưới để điều chỉnh độ nhạy của những gì được coi là bề mặt trên. 'Ngưỡng một thành' chỉ hiển thị nếu cài đặt này được đặt trên giá trị mặc định 0.5, hoặc nếu bề mặt trên thành đơn được bật."
+"LƯU Ý: Bề mặt dưới và trên sẽ không bị ảnh hưởng bởi giá trị này để ngăn khe hở nhìn thấy ở bên ngoài mô hình. Điều chỉnh 'Ngưỡng một thành' trong cài đặt 'Thành và bề mặt' bên dưới để điều chỉnh độ nhạy của những gì được coi là bề mặt trên. 'Ngưỡng một thành' chỉ hiển thị nếu cài đặt này được đặt trên giá trị mặc định 0.5, hoặc nếu bề mặt trên thành đơn được bật."
 
 # AI Translated
 msgid "Maximum wall resolution"
@@ -21481,6 +21684,15 @@ msgstr "Thư mục đầu ra"
 
 msgid "This is the output directory for exported files."
 msgstr "Thư mục đầu ra cho các file được xuất."
+
+# AI Translated
+msgid "Export statistics"
+msgstr "Xuất thống kê"
+
+# AI Translated
+# Needs human review: "feature" rendered as line type (ประเภทเส้น / Loại đường); check this matches the per-feature totals in the exported JSON
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Ghi thống kê của từng plate đã slice dưới dạng JSON, là plate_N.statistics.json cạnh file G-code của nó trong thư mục đầu ra và bên trong file 3MF của --export-3mf: thời gian in, tổng filament và tổng theo loại đường, cùng số liệu tương tự theo từng lớp và từng vật thể."
 
 msgid "Debug level"
 msgstr "Mức gỡ lỗi"
@@ -23952,7 +24164,7 @@ msgstr "bắt đầu kiểm tra %s..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "kiểm tra %s: đã phân giải IP = %s"
 
 # AI Translated
@@ -25158,10 +25370,6 @@ msgstr "Bật gán filament thông minh: Gán một filament cho nhiều đầu 
 # AI Translated
 msgid "File Saving"
 msgstr "Lưu tệp"
-
-# AI Translated
-msgid "Don't remind me again"
-msgstr "Đừng nhắc tôi nữa"
 
 # AI Translated
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -30590,9 +30798,6 @@ msgstr "Mở Speed Dial"
 msgid "Slicing and printing"
 msgstr "Slice và in"
 
-msgid "Selection"
-msgstr "Lựa chọn"
-
 # AI Translated
 msgid "Editing"
 msgstr "Chỉnh sửa"
@@ -31495,6 +31700,1642 @@ msgid_plural "The current filament list does not contain %s. Project filaments r
 msgstr[0] "Danh sách filament hiện tại không chứa %s. Một filament dự án mà filament pha trộn cần sẽ được tạo tự động sau khi phân tách."
 
 # AI Translated
+msgid "Color Picker"
+msgstr "Bộ chọn màu"
+
+# AI Translated
+msgid "Basic Colors"
+msgstr "Màu cơ bản"
+
+# AI Translated
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "Orca Palette"
+msgstr "Bảng màu Orca"
+
+# AI Translated
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL Cổ điển"
+
+# AI Translated
+msgid "Gradients"
+msgstr "Chuyển màu"
+
+# AI Translated
+msgctxt "Color picker"
+msgid "Solid"
+msgstr "Đơn sắc"
+
+# AI Translated
+msgid "Gradient"
+msgstr "Chuyển màu"
+
+# AI Translated
+msgid "Gradient start"
+msgstr "Điểm bắt đầu chuyển màu"
+
+# AI Translated
+msgid "Gradient end"
+msgstr "Điểm kết thúc chuyển màu"
+
+# AI Translated
+msgid "Gradient color"
+msgstr "Màu chuyển màu"
+
+# AI Translated
+msgid "Add color"
+msgstr "Thêm màu"
+
+# AI Translated
+msgid "Remove color"
+msgstr "Xóa màu"
+
+# AI Translated
+msgid "Saturation"
+msgstr "Độ bão hòa"
+
+# AI Translated
+msgid "Original color"
+msgstr "Màu gốc"
+
+# AI Translated
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr "Lưu màu hiện tại"
+
+# AI Translated
+msgid "Palettes"
+msgstr "Bảng màu"
+
+# AI Translated
+msgid "Search colors"
+msgstr "Tìm màu"
+
+# AI Translated
+msgid "Filter colors"
+msgstr "Lọc màu"
+
+# AI Translated
+msgid "No matching colors"
+msgstr "Không có màu phù hợp"
+
+# AI Translated
+msgid "Hex color"
+msgstr "Màu hex"
+
+# AI Translated
+msgid "Opacity"
+msgstr "Độ đục"
+
+# AI Translated
+msgid "Opacity percent"
+msgstr "Phần trăm độ đục"
+
+# AI Translated
+msgid "Save color"
+msgstr "Lưu màu"
+
+# AI Translated
+msgid "Enter a complete hexadecimal color"
+msgstr "Nhập đầy đủ màu thập lục phân"
+
+# AI Translated
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr "Lựa chọn nhiều màu hiện tại được giữ lại cho đến khi bạn chọn màu khác."
+
+# AI Translated
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr "Hỗ trợ tối đa %d màu."
+
+# AI Translated
+msgid "Crimson"
+msgstr "Đỏ thẫm"
+
+# AI Translated
+msgid "Orange red"
+msgstr "Đỏ cam"
+
+# AI Translated
+msgid "Tomato"
+msgstr "Đỏ cà chua"
+
+# AI Translated
+msgid "Orange"
+msgstr "Cam"
+
+# AI Translated
+msgid "Dark orange"
+msgstr "Cam đậm"
+
+# AI Translated
+msgid "Gold"
+msgstr "Vàng kim"
+
+# AI Translated
+msgid "Burly wood"
+msgstr "Nâu gỗ nhạt"
+
+# AI Translated
+msgid "Bisque"
+msgstr "Kem cam"
+
+# AI Translated
+msgid "Misty rose"
+msgstr "Hồng sương"
+
+# AI Translated
+msgid "Light yellow"
+msgstr "Vàng nhạt"
+
+# AI Translated
+msgid "Lemon chiffon"
+msgstr "Kem chanh"
+
+# AI Translated
+msgid "Beige"
+msgstr "Be"
+
+# AI Translated
+msgid "Light golden rod yellow"
+msgstr "Vàng nghệ sáng"
+
+# AI Translated
+msgid "Pale golden rod"
+msgstr "Vàng nghệ dịu"
+
+# AI Translated
+msgid "Khaki"
+msgstr "Kaki"
+
+# AI Translated
+msgid "Dark khaki"
+msgstr "Kaki đậm"
+
+# AI Translated
+msgid "Peach puff"
+msgstr "Đào nhạt"
+
+# AI Translated
+msgid "Moccasin"
+msgstr "Vàng da hươu"
+
+# AI Translated
+msgid "Papaya whip"
+msgstr "Kem đu đủ"
+
+# AI Translated
+msgid "Blanched almond"
+msgstr "Hạnh nhân lột vỏ"
+
+# AI Translated
+msgid "Antique white"
+msgstr "Trắng cổ"
+
+# AI Translated
+msgid "Navajo white"
+msgstr "Trắng Navajo"
+
+# AI Translated
+msgid "Wheat"
+msgstr "Lúa mì"
+
+# AI Translated
+msgid "Golden rod"
+msgstr "Vàng nghệ"
+
+# AI Translated
+msgid "Chocolate"
+msgstr "Sô-cô-la"
+
+# AI Translated
+msgid "Peru"
+msgstr "Nâu Peru"
+
+# AI Translated
+msgid "Fire brick"
+msgstr "Gạch chịu lửa"
+
+# AI Translated
+msgid "Sienna"
+msgstr "Nâu sienna"
+
+# AI Translated
+msgid "Saddle brown"
+msgstr "Nâu yên ngựa"
+
+# AI Translated
+msgid "Brown"
+msgstr "Nâu"
+
+# AI Translated
+msgid "Rosy brown"
+msgstr "Nâu hồng"
+
+# AI Translated
+msgid "Salmon"
+msgstr "Cá hồi"
+
+# AI Translated
+msgid "Light salmon"
+msgstr "Cá hồi nhạt"
+
+# AI Translated
+msgid "Dark salmon"
+msgstr "Cá hồi đậm"
+
+# AI Translated
+msgid "Sandy brown"
+msgstr "Nâu cát"
+
+# AI Translated
+msgid "Coral"
+msgstr "San hô"
+
+# AI Translated
+msgid "Light coral"
+msgstr "San hô nhạt"
+
+# AI Translated
+msgid "Indian red"
+msgstr "Đỏ Ấn Độ"
+
+# AI Translated
+msgid "Dark red"
+msgstr "Đỏ đậm"
+
+# AI Translated
+msgid "Maroon"
+msgstr "Nâu đỏ sẫm"
+
+# AI Translated
+msgid "Green yellow"
+msgstr "Vàng lục"
+
+# AI Translated
+msgid "Yellow green"
+msgstr "Xanh lá vàng"
+
+# AI Translated
+msgid "Chartreuse"
+msgstr "Chartreuse"
+
+# AI Translated
+msgid "Lawn green"
+msgstr "Xanh thảm cỏ"
+
+# AI Translated
+msgid "Lime green"
+msgstr "Xanh lá chanh"
+
+# AI Translated
+msgid "Spring green"
+msgstr "Xanh lá mùa xuân"
+
+# AI Translated
+msgid "Medium spring green"
+msgstr "Xanh lá mùa xuân vừa"
+
+# AI Translated
+msgid "Lime"
+msgstr "Xanh chanh"
+
+# AI Translated
+msgid "Forest green"
+msgstr "Xanh lá rừng"
+
+# AI Translated
+msgid "Dark green"
+msgstr "Xanh lá đậm"
+
+# AI Translated
+msgid "Olive drab"
+msgstr "Xanh ô liu xỉn"
+
+# AI Translated
+msgid "Olive"
+msgstr "Ô liu"
+
+# AI Translated
+msgid "Dark olive green"
+msgstr "Xanh lá ô liu đậm"
+
+# AI Translated
+msgid "Pale green"
+msgstr "Xanh lá dịu"
+
+# AI Translated
+msgid "Light green"
+msgstr "Xanh lá nhạt"
+
+# AI Translated
+msgid "Medium sea green"
+msgstr "Xanh lá biển vừa"
+
+# AI Translated
+msgid "Sea green"
+msgstr "Xanh lá biển"
+
+# AI Translated
+msgid "Dark sea green"
+msgstr "Xanh lá biển đậm"
+
+# AI Translated
+msgid "Cadet blue"
+msgstr "Xanh dương cadet"
+
+# AI Translated
+msgid "Medium aqua marine"
+msgstr "Aquamarine vừa"
+
+# AI Translated
+msgid "Turquoise"
+msgstr "Ngọc lam"
+
+# AI Translated
+msgid "Medium turquoise"
+msgstr "Ngọc lam vừa"
+
+# AI Translated
+msgid "Dark turquoise"
+msgstr "Ngọc lam đậm"
+
+# AI Translated
+msgid "Pale turquoise"
+msgstr "Ngọc lam dịu"
+
+# AI Translated
+msgid "Aqua"
+msgstr "Aqua"
+
+# AI Translated
+msgid "Light cyan"
+msgstr "Xanh lơ nhạt"
+
+# AI Translated
+msgid "Mint cream"
+msgstr "Kem bạc hà"
+
+# AI Translated
+msgid "Honey dew"
+msgstr "Dưa mật"
+
+# AI Translated
+msgid "Aquamarine"
+msgstr "Aquamarine"
+
+# AI Translated
+msgid "Light sea green"
+msgstr "Xanh lá biển nhạt"
+
+# AI Translated
+msgid "Dark cyan"
+msgstr "Xanh lơ đậm"
+
+# AI Translated
+msgid "Teal"
+msgstr "Xanh mòng két"
+
+# AI Translated
+msgid "Dark slate gray"
+msgstr "Xám đá phiến đậm"
+
+# AI Translated
+msgid "Light slate gray"
+msgstr "Xám đá phiến nhạt"
+
+# AI Translated
+msgid "Slate gray"
+msgstr "Xám đá phiến"
+
+# AI Translated
+msgid "Deep sky blue"
+msgstr "Xanh da trời đậm"
+
+# AI Translated
+msgid "Dodger Blue"
+msgstr "Xanh dương Dodger"
+
+# AI Translated
+msgid "Sky blue"
+msgstr "Xanh da trời"
+
+# AI Translated
+msgid "Light sky blue"
+msgstr "Xanh da trời nhạt"
+
+# AI Translated
+msgid "Light blue"
+msgstr "Xanh dương nhạt"
+
+# AI Translated
+msgid "Powder blue"
+msgstr "Xanh dương phấn"
+
+# AI Translated
+msgid "Light steel blue"
+msgstr "Xanh thép nhạt"
+
+# AI Translated
+msgid "Steel blue"
+msgstr "Xanh thép"
+
+# AI Translated
+msgid "Cornflower blue"
+msgstr "Xanh dương cornflower"
+
+# AI Translated
+msgid "Royal blue"
+msgstr "Xanh hoàng gia"
+
+# AI Translated
+msgid "Medium blue"
+msgstr "Xanh dương vừa"
+
+# AI Translated
+msgid "Midnight blue"
+msgstr "Xanh dương nửa đêm"
+
+# AI Translated
+msgid "Dark blue"
+msgstr "Xanh dương đậm"
+
+# AI Translated
+msgid "Navy"
+msgstr "Xanh navy"
+
+# AI Translated
+msgid "Slate blue"
+msgstr "Xanh dương đá phiến"
+
+# AI Translated
+msgid "Dark slate blue"
+msgstr "Xanh dương đá phiến đậm"
+
+# AI Translated
+msgid "Medium slate blue"
+msgstr "Xanh dương đá phiến vừa"
+
+# AI Translated
+msgid "Blue violet"
+msgstr "Tím lam"
+
+# AI Translated
+msgid "Indigo"
+msgstr "Chàm"
+
+# AI Translated
+msgid "Dark violet"
+msgstr "Tím violet đậm"
+
+# AI Translated
+msgid "Dark orchid"
+msgstr "Lan đậm"
+
+# AI Translated
+msgid "Medium orchid"
+msgstr "Lan vừa"
+
+# AI Translated
+msgid "Orchid"
+msgstr "Lan"
+
+# AI Translated
+msgid "Violet"
+msgstr "Tím violet"
+
+# AI Translated
+msgid "Medium purple"
+msgstr "Tím vừa"
+
+# AI Translated
+msgid "Purple"
+msgstr "Tím"
+
+# AI Translated
+msgid "Rebecca purple"
+msgstr "Tím Rebecca"
+
+# AI Translated
+msgid "Medium violet red"
+msgstr "Đỏ tím vừa"
+
+# AI Translated
+msgid "Pale violet red"
+msgstr "Đỏ tím dịu"
+
+# AI Translated
+msgid "Deep pink"
+msgstr "Hồng đậm"
+
+# AI Translated
+msgid "Hot pink"
+msgstr "Hồng tươi"
+
+# AI Translated
+msgid "Light pink"
+msgstr "Hồng nhạt"
+
+# AI Translated
+msgid "Pink"
+msgstr "Hồng"
+
+# AI Translated
+msgid "Plum"
+msgstr "Mận"
+
+# AI Translated
+msgid "Thistle"
+msgstr "Tím kế"
+
+# AI Translated
+msgid "Fuchsia"
+msgstr "Fuchsia"
+
+# AI Translated
+msgid "Dark magenta"
+msgstr "Magenta đậm"
+
+# AI Translated
+msgid "Linen"
+msgstr "Vải lanh"
+
+# AI Translated
+msgid "Old lace"
+msgstr "Ren cũ"
+
+# AI Translated
+msgid "Sea shell"
+msgstr "Vỏ sò"
+
+# AI Translated
+msgid "Ivory"
+msgstr "Ngà"
+
+# AI Translated
+msgid "Floral white"
+msgstr "Trắng hoa"
+
+# AI Translated
+msgid "Lavender blush"
+msgstr "Oải hương ửng hồng"
+
+# AI Translated
+msgid "Ghost white"
+msgstr "Trắng bóng ma"
+
+# AI Translated
+msgid "Alice blue"
+msgstr "Xanh Alice"
+
+# AI Translated
+msgid "Lavender"
+msgstr "Oải hương"
+
+# AI Translated
+msgid "White smoke"
+msgstr "Trắng khói"
+
+# AI Translated
+msgid "Gainsboro"
+msgstr "Gainsboro"
+
+# AI Translated
+msgid "Black"
+msgstr "Đen"
+
+# AI Translated
+msgid "Coral fire"
+msgstr "San hô lửa"
+
+# AI Translated
+msgid "Sea anemone"
+msgstr "Hải quỳ"
+
+# AI Translated
+msgid "Deep abyss"
+msgstr "Vực sâu"
+
+# AI Translated
+msgid "Lobster red"
+msgstr "Đỏ tôm hùm"
+
+# AI Translated
+msgid "Sandy clay"
+msgstr "Đất sét cát"
+
+# AI Translated
+msgid "Driftwood"
+msgstr "Gỗ trôi dạt"
+
+# AI Translated
+msgid "Sea buckthorn"
+msgstr "Hắc mai biển"
+
+# AI Translated
+msgid "Sunset reef"
+msgstr "Rạn san hô hoàng hôn"
+
+# AI Translated
+msgid "Tiger coral"
+msgstr "San hô hổ"
+
+# AI Translated
+msgid "Pink coral"
+msgstr "San hô hồng"
+
+# AI Translated
+msgid "Seashell glow"
+msgstr "Ánh vỏ sò"
+
+# AI Translated
+msgid "Sand"
+msgstr "Cát"
+
+# AI Translated
+msgid "Golden kelp"
+msgstr "Tảo bẹ vàng"
+
+# AI Translated
+msgid "Sunlit dune"
+msgstr "Cồn cát nắng"
+
+# AI Translated
+msgid "Amber nautilus"
+msgstr "Ốc anh vũ hổ phách"
+
+# AI Translated
+msgid "Sea lemon"
+msgstr "Chanh biển"
+
+# AI Translated
+msgid "Pale starfish"
+msgstr "Sao biển dịu"
+
+# AI Translated
+msgid "Spring tide"
+msgstr "Triều cường"
+
+# AI Translated
+msgid "Lime algae"
+msgstr "Tảo xanh chanh"
+
+# AI Translated
+msgid "Sea grass"
+msgstr "Cỏ biển"
+
+# AI Translated
+msgid "Neon plankton"
+msgstr "Sinh vật phù du neon"
+
+# AI Translated
+msgid "Kelp forest"
+msgstr "Rừng tảo bẹ"
+
+# AI Translated
+msgid "Emerald wave"
+msgstr "Sóng ngọc lục bảo"
+
+# AI Translated
+msgid "Whale shadow"
+msgstr "Bóng cá voi"
+
+# AI Translated
+msgid "Sea turtle"
+msgstr "Rùa biển"
+
+# AI Translated
+msgid "Lagoon"
+msgstr "Đầm phá"
+
+# AI Translated
+msgid "Tropical current"
+msgstr "Dòng hải lưu nhiệt đới"
+
+# AI Translated
+msgid "Midnight trench"
+msgstr "Rãnh biển nửa đêm"
+
+# AI Translated
+msgid "Dark kelp"
+msgstr "Tảo bẹ đậm"
+
+# AI Translated
+msgid "Crystal surf"
+msgstr "Sóng pha lê"
+
+# AI Translated
+msgid "Turquoise bay"
+msgstr "Vịnh ngọc lam"
+
+# AI Translated
+msgid "Sky over reef"
+msgstr "Bầu trời trên rạn san hô"
+
+# AI Translated
+msgid "Shallow sky"
+msgstr "Bầu trời nước nông"
+
+# AI Translated
+msgid "Electric blue"
+msgstr "Xanh dương điện"
+
+# AI Translated
+msgid "Dolphin"
+msgstr "Cá heo"
+
+# AI Translated
+msgid "Ocean depths"
+msgstr "Độ sâu đại dương"
+
+# AI Translated
+msgid "Whale"
+msgstr "Cá voi"
+
+# AI Translated
+msgid "Indigo abyss"
+msgstr "Vực sâu chàm"
+
+# AI Translated
+msgid "Sea urchin"
+msgstr "Nhím biển"
+
+# AI Translated
+msgid "Lavender coral"
+msgstr "San hô oải hương"
+
+# AI Translated
+msgid "Violet tide"
+msgstr "Thủy triều tím"
+
+# AI Translated
+msgid "Deep sea orchid"
+msgstr "Lan biển sâu"
+
+# AI Translated
+msgid "Neon jelly"
+msgstr "Sứa neon"
+
+# AI Translated
+msgid "Fuchsia coral"
+msgstr "San hô fuchsia"
+
+# AI Translated
+msgid "Pink jellyfish"
+msgstr "Sứa hồng"
+
+# AI Translated
+msgid "Foam"
+msgstr "Bọt sóng"
+
+# AI Translated
+msgid "Seashell white"
+msgstr "Trắng vỏ sò"
+
+# AI Translated
+msgid "Pebble gray"
+msgstr "Xám sỏi"
+
+# AI Translated
+msgid "Storm cloud"
+msgstr "Mây bão"
+
+# AI Translated
+msgid "Ink black"
+msgstr "Đen mực"
+
+# AI Translated
+msgid "Green beige"
+msgstr "Be lục"
+
+# AI Translated
+msgid "Sand yellow"
+msgstr "Vàng cát"
+
+# AI Translated
+msgid "Signal yellow"
+msgstr "Vàng tín hiệu"
+
+# AI Translated
+msgid "Golden yellow"
+msgstr "Vàng óng"
+
+# AI Translated
+msgid "Honey yellow"
+msgstr "Vàng mật ong"
+
+# AI Translated
+msgid "Maize yellow"
+msgstr "Vàng ngô"
+
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Vàng thủy tiên"
+
+# AI Translated
+msgid "Brown beige"
+msgstr "Be nâu"
+
+# AI Translated
+msgid "Lemon yellow"
+msgstr "Vàng chanh"
+
+# AI Translated
+msgid "Oyster white"
+msgstr "Trắng hàu"
+
+# AI Translated
+msgid "Light ivory"
+msgstr "Ngà nhạt"
+
+# AI Translated
+msgid "Zinc yellow"
+msgstr "Vàng kẽm"
+
+# AI Translated
+msgid "Grey beige"
+msgstr "Be xám"
+
+# AI Translated
+msgid "Olive yellow"
+msgstr "Vàng ô liu"
+
+# AI Translated
+msgid "Rape yellow"
+msgstr "Vàng cải dầu"
+
+# AI Translated
+msgid "Traffic yellow"
+msgstr "Vàng giao thông"
+
+# AI Translated
+msgid "Ochre yellow"
+msgstr "Vàng ocher"
+
+# AI Translated
+msgid "Traffic orange yellow"
+msgstr "Vàng cam giao thông"
+
+# AI Translated
+msgid "Curry"
+msgstr "Cà ri"
+
+# AI Translated
+msgid "Melon yellow"
+msgstr "Vàng dưa"
+
+# AI Translated
+msgid "Broom yellow"
+msgstr "Vàng hoa chổi"
+
+# AI Translated
+msgid "Dahlia yellow"
+msgstr "Vàng thược dược"
+
+# AI Translated
+msgid "Pastel yellow"
+msgstr "Vàng pastel"
+
+# AI Translated
+msgid "Pearl beige"
+msgstr "Be xà cừ"
+
+# AI Translated
+msgid "Pearl gold"
+msgstr "Vàng kim xà cừ"
+
+# AI Translated
+msgid "Sun yellow"
+msgstr "Vàng mặt trời"
+
+# AI Translated
+msgid "Yellow orange"
+msgstr "Cam vàng"
+
+# AI Translated
+msgid "Deep orange"
+msgstr "Cam sẫm"
+
+# AI Translated
+msgid "Vermilion"
+msgstr "Đỏ son"
+
+# AI Translated
+msgid "Pearl orange"
+msgstr "Cam xà cừ"
+
+# AI Translated
+msgid "Pure orange"
+msgstr "Cam tinh khiết"
+
+# AI Translated
+msgid "Luminous orange"
+msgstr "Cam huỳnh quang"
+
+# AI Translated
+msgid "Luminous bright orange"
+msgstr "Cam huỳnh quang tươi"
+
+# AI Translated
+msgid "Bright red orange"
+msgstr "Cam đỏ tươi"
+
+# AI Translated
+msgid "Traffic orange"
+msgstr "Cam giao thông"
+
+# AI Translated
+msgid "Signal orange"
+msgstr "Cam tín hiệu"
+
+# AI Translated
+msgid "Salmon orange"
+msgstr "Cam cá hồi"
+
+# AI Translated
+msgid "Pearl pink"
+msgstr "Hồng xà cừ"
+
+# AI Translated
+msgid "Copper orange"
+msgstr "Cam đồng"
+
+# AI Translated
+msgid "Signal brown"
+msgstr "Nâu tín hiệu"
+
+# AI Translated
+msgid "Fir orange"
+msgstr "Cam linh sam"
+
+# AI Translated
+msgid "Signal red"
+msgstr "Đỏ tín hiệu"
+
+# AI Translated
+msgid "Luminous red"
+msgstr "Đỏ huỳnh quang"
+
+# AI Translated
+msgid "Carmine red"
+msgstr "Đỏ carmine"
+
+# AI Translated
+msgid "Pearl carmine red"
+msgstr "Đỏ carmine xà cừ"
+
+# AI Translated
+msgid "Pure red"
+msgstr "Đỏ tinh khiết"
+
+# AI Translated
+msgid "Luminous deep red"
+msgstr "Đỏ sẫm huỳnh quang"
+
+# AI Translated
+msgid "Currant red"
+msgstr "Đỏ lý chua"
+
+# AI Translated
+msgid "Pearl ruby red"
+msgstr "Đỏ ruby xà cừ"
+
+# AI Translated
+msgid "Fire red"
+msgstr "Đỏ lửa"
+
+# AI Translated
+msgid "Ruby red"
+msgstr "Đỏ ruby"
+
+# AI Translated
+msgid "Purple red"
+msgstr "Đỏ tím"
+
+# AI Translated
+msgid "Wine red"
+msgstr "Đỏ rượu vang"
+
+# AI Translated
+msgid "Black red"
+msgstr "Đỏ đen"
+
+# AI Translated
+msgid "Oxide red"
+msgstr "Đỏ oxit"
+
+# AI Translated
+msgid "Brown red"
+msgstr "Đỏ nâu"
+
+# AI Translated
+# Needs human review: Source name "Pine red" looks unusual for a RAL color; translated literally
+msgid "Pine red"
+msgstr "Đỏ thông"
+
+# AI Translated
+msgid "Tomato red"
+msgstr "Đỏ cà chua"
+
+# AI Translated
+msgid "Antique pink"
+msgstr "Hồng cổ"
+
+# AI Translated
+msgid "Coral red"
+msgstr "Đỏ san hô"
+
+# AI Translated
+msgid "Rose"
+msgstr "Hoa hồng"
+
+# AI Translated
+msgid "Strawberry red"
+msgstr "Đỏ dâu tây"
+
+# AI Translated
+msgid "Traffic red"
+msgstr "Đỏ giao thông"
+
+# AI Translated
+msgid "Salmon pink"
+msgstr "Hồng cá hồi"
+
+# AI Translated
+msgid "Luminous rose"
+msgstr "Hoa hồng huỳnh quang"
+
+# AI Translated
+msgid "Luminous bright red"
+msgstr "Đỏ huỳnh quang tươi"
+
+# AI Translated
+msgid "Raspberry red"
+msgstr "Đỏ mâm xôi"
+
+# AI Translated
+msgid "Orient red"
+msgstr "Đỏ phương Đông"
+
+# AI Translated
+msgid "Pearl ruby"
+msgstr "Ruby xà cừ"
+
+# AI Translated
+msgid "Red purple"
+msgstr "Tím đỏ"
+
+# AI Translated
+msgid "Red violet"
+msgstr "Tím violet đỏ"
+
+# AI Translated
+msgid "Heather violet"
+msgstr "Tím violet thạch nam"
+
+# AI Translated
+msgid "Bordeaux violet"
+msgstr "Tím violet bordeaux"
+
+# AI Translated
+msgid "Mahogany"
+msgstr "Gỗ gụ"
+
+# AI Translated
+msgid "Grey purple"
+msgstr "Tím xám"
+
+# AI Translated
+msgid "Signal violet"
+msgstr "Tím violet tín hiệu"
+
+# AI Translated
+msgid "Fir green"
+msgstr "Xanh lá linh sam"
+
+# AI Translated
+msgid "Sabine grey"
+msgstr "Xám Sabine"
+
+# AI Translated
+msgid "Pearl violet"
+msgstr "Tím violet xà cừ"
+
+# AI Translated
+msgid "Pearl blackberry"
+msgstr "Mâm xôi đen xà cừ"
+
+# AI Translated
+msgid "Green blue"
+msgstr "Xanh dương lục"
+
+# AI Translated
+msgid "Ultramarine blue"
+msgstr "Xanh dương ultramarine"
+
+# AI Translated
+msgid "Sapphire blue"
+msgstr "Xanh dương sapphire"
+
+# AI Translated
+msgid "Black blue"
+msgstr "Xanh dương đen"
+
+# AI Translated
+msgid "Signal blue"
+msgstr "Xanh dương tín hiệu"
+
+# AI Translated
+msgid "Brilliant blue"
+msgstr "Xanh dương rực rỡ"
+
+# AI Translated
+msgid "Grey blue"
+msgstr "Xanh dương xám"
+
+# AI Translated
+msgid "Azure blue"
+msgstr "Xanh thiên thanh"
+
+# AI Translated
+msgid "Gentian blue"
+msgstr "Xanh dương long đởm"
+
+# AI Translated
+msgid "Cobalt blue"
+msgstr "Xanh dương cobalt"
+
+# AI Translated
+msgid "Pigeon blue"
+msgstr "Xanh dương bồ câu"
+
+# AI Translated
+msgid "Traffic blue"
+msgstr "Xanh dương giao thông"
+
+# AI Translated
+msgid "Turquoise blue"
+msgstr "Xanh dương ngọc lam"
+
+# AI Translated
+msgid "Capri blue"
+msgstr "Xanh dương Capri"
+
+# AI Translated
+msgid "Ocean blue"
+msgstr "Xanh dương đại dương"
+
+# AI Translated
+msgid "Water blue"
+msgstr "Xanh dương nước"
+
+# AI Translated
+msgid "Night blue"
+msgstr "Xanh dương đêm"
+
+# AI Translated
+msgid "Distant blue"
+msgstr "Xanh dương xa"
+
+# AI Translated
+msgid "Pastel blue"
+msgstr "Xanh dương pastel"
+
+# AI Translated
+msgid "Pearl gentian blue"
+msgstr "Xanh dương long đởm xà cừ"
+
+# AI Translated
+msgid "Pearl midnight blue"
+msgstr "Xanh dương nửa đêm xà cừ"
+
+# AI Translated
+msgid "Patina green"
+msgstr "Xanh lá gỉ đồng"
+
+# AI Translated
+msgid "Emerald green"
+msgstr "Xanh lá ngọc lục bảo"
+
+# AI Translated
+msgid "Leaf green"
+msgstr "Xanh diệp lục"
+
+# AI Translated
+msgid "Olive green"
+msgstr "Xanh lá ô liu"
+
+# AI Translated
+msgid "Blue green"
+msgstr "Xanh lá lam"
+
+# AI Translated
+msgid "Moss green"
+msgstr "Xanh lá rêu"
+
+# AI Translated
+msgid "Grey olive"
+msgstr "Ô liu xám"
+
+# AI Translated
+msgid "Pine green"
+msgstr "Xanh lá thông"
+
+# AI Translated
+# Needs human review: Source name "Pine brown" looks unusual for a RAL color; translated literally
+msgid "Pine brown"
+msgstr "Nâu thông"
+
+# AI Translated
+msgid "Grass green"
+msgstr "Xanh lá cỏ"
+
+# AI Translated
+msgid "Reseda green"
+msgstr "Xanh lá reseda"
+
+# AI Translated
+msgid "Brown green"
+msgstr "Xanh lá nâu"
+
+# AI Translated
+msgid "Reed green"
+msgstr "Xanh lá lau sậy"
+
+# AI Translated
+msgid "Black green"
+msgstr "Xanh lá đen"
+
+# AI Translated
+msgid "Turquoise green"
+msgstr "Xanh lá ngọc lam"
+
+# AI Translated
+msgid "May green"
+msgstr "Xanh lá tháng Năm"
+
+# AI Translated
+msgid "Chrome oxide green"
+msgstr "Xanh lá crom oxit"
+
+# AI Translated
+msgid "Traffic green"
+msgstr "Xanh lá giao thông"
+
+# AI Translated
+msgid "Fern green"
+msgstr "Xanh lá dương xỉ"
+
+# AI Translated
+msgid "Opal green"
+msgstr "Xanh lá opal"
+
+# AI Translated
+msgid "Mint green"
+msgstr "Xanh lá bạc hà"
+
+# AI Translated
+msgid "Bronze green"
+msgstr "Xanh lá đồng thanh"
+
+# AI Translated
+msgid "Pearl green"
+msgstr "Xanh lá xà cừ"
+
+# AI Translated
+# Needs human review: Unusual source name ("Sax turquoise"); translated literally
+msgid "Sax turquoise"
+msgstr "Ngọc lam Sax"
+
+# AI Translated
+msgid "Pearl turquoise"
+msgstr "Ngọc lam xà cừ"
+
+# AI Translated
+msgid "Pearl jade"
+msgstr "Ngọc bích xà cừ"
+
+# AI Translated
+msgid "Pure green"
+msgstr "Xanh lá tinh khiết"
+
+# AI Translated
+msgid "Luminous green"
+msgstr "Xanh lá huỳnh quang"
+
+# AI Translated
+msgid "Squirrel grey"
+msgstr "Xám sóc"
+
+# AI Translated
+msgid "Silver grey"
+msgstr "Xám bạc"
+
+# AI Translated
+msgid "Olive grey"
+msgstr "Xám ô liu"
+
+# AI Translated
+msgid "Moss grey"
+msgstr "Xám rêu"
+
+# AI Translated
+msgid "Signal grey"
+msgstr "Xám tín hiệu"
+
+# AI Translated
+msgid "Mouse grey"
+msgstr "Xám chuột"
+
+# AI Translated
+msgid "Beige grey"
+msgstr "Xám be"
+
+# AI Translated
+msgid "Khaki grey"
+msgstr "Xám kaki"
+
+# AI Translated
+msgid "Green grey"
+msgstr "Xám lục"
+
+# AI Translated
+msgid "Tarpaulin grey"
+msgstr "Xám bạt"
+
+# AI Translated
+msgid "Iron grey"
+msgstr "Xám sắt"
+
+# AI Translated
+msgid "Basalt grey"
+msgstr "Xám bazan"
+
+# AI Translated
+msgid "Brown grey"
+msgstr "Xám nâu"
+
+# AI Translated
+msgid "Slate grey"
+msgstr "Xám đá phiến"
+
+# AI Translated
+msgid "Anthracite grey"
+msgstr "Xám antraxit"
+
+# AI Translated
+msgid "Light grey"
+msgstr "Xám nhạt"
+
+# AI Translated
+msgid "Umber grey"
+msgstr "Xám umber"
+
+# AI Translated
+msgid "Concrete grey"
+msgstr "Xám bê tông"
+
+# AI Translated
+msgid "Graphite grey"
+msgstr "Xám than chì"
+
+# AI Translated
+msgid "Granite grey"
+msgstr "Xám đá granit"
+
+# AI Translated
+msgid "Stone grey"
+msgstr "Xám đá"
+
+# AI Translated
+msgid "Pebble grey"
+msgstr "Xám sỏi"
+
+# AI Translated
+msgid "Cement grey"
+msgstr "Xám xi măng"
+
+# AI Translated
+msgid "Yellow grey"
+msgstr "Xám vàng"
+
+# AI Translated
+msgid "Platinum grey"
+msgstr "Xám bạch kim"
+
+# AI Translated
+msgid "Dusty grey"
+msgstr "Xám bụi"
+
+# AI Translated
+msgid "Agate grey"
+msgstr "Xám mã não"
+
+# AI Translated
+msgid "Quartz grey"
+msgstr "Xám thạch anh"
+
+# AI Translated
+msgid "Window grey"
+msgstr "Xám cửa sổ"
+
+# AI Translated
+msgid "Traffic grey A"
+msgstr "Xám giao thông A"
+
+# AI Translated
+msgid "Traffic grey B"
+msgstr "Xám giao thông B"
+
+# AI Translated
+msgid "Silk grey"
+msgstr "Xám lụa"
+
+# AI Translated
+msgid "Telegrey 1"
+msgstr "Telegrey 1"
+
+# AI Translated
+msgid "Telegrey 2"
+msgstr "Telegrey 2"
+
+# AI Translated
+msgid "Telegrey 4"
+msgstr "Telegrey 4"
+
+# AI Translated
+msgid "Pearl mouse grey"
+msgstr "Xám chuột xà cừ"
+
+# AI Translated
+msgid "Green brown"
+msgstr "Nâu lục"
+
+# AI Translated
+msgid "Ochre brown"
+msgstr "Nâu ocher"
+
+# AI Translated
+msgid "Clay brown"
+msgstr "Nâu đất sét"
+
+# AI Translated
+msgid "Copper brown"
+msgstr "Nâu đồng"
+
+# AI Translated
+msgid "Chocolate brown"
+msgstr "Nâu sô-cô-la"
+
+# AI Translated
+msgid "Olive brown"
+msgstr "Nâu ô liu"
+
+# AI Translated
+msgid "Nut brown"
+msgstr "Nâu quả hạch"
+
+# AI Translated
+msgid "Red brown"
+msgstr "Nâu đỏ"
+
+# AI Translated
+msgid "Sepia brown"
+msgstr "Nâu sepia"
+
+# AI Translated
+msgid "Chestnut brown"
+msgstr "Nâu hạt dẻ"
+
+# AI Translated
+msgid "Mahogany brown"
+msgstr "Nâu gỗ gụ"
+
+# AI Translated
+msgid "Grey brown"
+msgstr "Nâu xám"
+
+# AI Translated
+msgid "Pearl copper"
+msgstr "Đồng xà cừ"
+
+# AI Translated
+msgid "Beige brown"
+msgstr "Nâu be"
+
+# AI Translated
+msgid "Pearl mocha brown"
+msgstr "Nâu mocha xà cừ"
+
+# AI Translated
+msgid "Earth brown"
+msgstr "Nâu đất"
+
+# AI Translated
+msgid "Pearl brown"
+msgstr "Nâu xà cừ"
+
+# AI Translated
+msgid "Cream"
+msgstr "Kem"
+
+# AI Translated
+msgid "Grey white"
+msgstr "Trắng xám"
+
+# AI Translated
+msgid "Signal white"
+msgstr "Trắng tín hiệu"
+
+# AI Translated
+msgid "Signal black"
+msgstr "Đen tín hiệu"
+
+# AI Translated
+msgid "Jet black"
+msgstr "Đen tuyền"
+
+# AI Translated
+msgid "White aluminium"
+msgstr "Nhôm trắng"
+
+# AI Translated
+msgid "Grey aluminium"
+msgstr "Nhôm xám"
+
+# AI Translated
+msgid "Pure white"
+msgstr "Trắng tinh khiết"
+
+# AI Translated
+msgid "Graphite black"
+msgstr "Đen than chì"
+
+# AI Translated
+msgid "Traffic white"
+msgstr "Trắng giao thông"
+
+# AI Translated
+msgid "Traffic black"
+msgstr "Đen giao thông"
+
+# AI Translated
+msgid "Papyrus white"
+msgstr "Trắng giấy cói"
+
+# AI Translated
+msgid "Pearl light grey"
+msgstr "Xám nhạt xà cừ"
+
+# AI Translated
+msgid "Metal: Silver"
+msgstr "Kim loại: Bạc"
+
+# AI Translated
+msgid "Metal: Brass"
+msgstr "Kim loại: Đồng thau"
+
+# AI Translated
+msgid "Metal: Gold"
+msgstr "Kim loại: Vàng"
+
+# AI Translated
+msgid "Metal: Copper"
+msgstr "Kim loại: Đồng"
+
+# AI Translated
+msgid "Metal: Bronze"
+msgstr "Kim loại: Đồng thanh"
+
+# AI Translated
+msgid "Nature: Pearl"
+msgstr "Thiên nhiên: Ngọc trai"
+
+# AI Translated
+msgid "Nature: Rainbow"
+msgstr "Thiên nhiên: Cầu vồng"
+
+# AI Translated
+msgid "Nature: Clear Sky"
+msgstr "Thiên nhiên: Trời quang"
+
+# AI Translated
+msgid "Nature: Sunset"
+msgstr "Thiên nhiên: Hoàng hôn"
+
+# AI Translated
+msgid "Wood: Dark"
+msgstr "Gỗ: Đậm"
+
+# AI Translated
+msgid "Wood: Medium"
+msgstr "Gỗ: Vừa"
+
+# AI Translated
+msgid "Wood: Light"
+msgstr "Gỗ: Nhạt"
+
+# AI Translated
 msgid "Alternate nozzles:"
 msgstr "Đầu phun thay thế:"
 
@@ -31969,12 +33810,24 @@ msgid "Built-in"
 msgstr "Tích hợp sẵn"
 
 # AI Translated
+msgid "My textures"
+msgstr "Kết cấu của tôi"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Không tìm thấy kết cấu nào."
 
 # AI Translated
-msgid "My textures"
-msgstr "Kết cấu của tôi"
+msgid "Texture libraries"
+msgstr "Thư viện kết cấu"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Khám phá thêm thư viện kết cấu"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Mở OrcaCloud trong trang chủ để duyệt plugin."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -32378,6 +34231,14 @@ msgid "How wide one copy of the texture is on the model. Smaller repeats the pat
 msgstr "Chiều rộng của một bản kết cấu trên mô hình. Nhỏ hơn thì mẫu lặp lại nhiều hơn và chi tiết mịn hơn; khi tắt Xếp ô, đây là kích thước của bản duy nhất."
 
 # AI Translated
+msgid "Larger"
+msgstr "Lớn hơn"
+
+# AI Translated
+msgid "Smaller"
+msgstr "Nhỏ hơn"
+
+# AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Xoay kết cấu trên bề mặt, tính bằng độ - để căn mẫu theo một cạnh của mô hình."
 
@@ -32450,6 +34311,14 @@ msgstr "Màu pha trộn"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Số filament pha trộn tối đa mà một lần nướng có thể thêm. Chúng được chọn từ các màu của kết cấu, và chỉ những filament mà lần nướng thực sự dùng mới được tạo."
+
+# AI Translated
+msgid "Few"
+msgstr "Ít"
+
+# AI Translated
+msgid "Many"
+msgstr "Nhiều"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -32571,10 +34440,6 @@ msgstr "Khung chiếu"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Mở một khung cửa sổ để bạn kéo lên trên mô hình. Những gì bạn nhìn thấy qua khung sẽ nhận kết cấu, và viền khung trở thành mép của vùng chiếu."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Độ đục"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -32803,6 +34668,14 @@ msgstr "Tạo lại lưới"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Kích thước tam giác dùng để dựng lại toàn bộ mô hình, tính bằng milimét. Dịch chuyển hoạt động tốt nhất trên lưới đều; đây là cách tạo lưới đều từ một mô hình nhập vào không đều."
+
+# AI Translated
+msgid "Before"
+msgstr "Trước"
+
+# AI Translated
+msgid "After"
+msgstr "Sau"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -34655,6 +36528,10 @@ msgid "Slicing Pipeline"
 msgstr "Quy trình slice"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Kết cấu tài nguyên"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "Giao diện cấu hình của plugin trống. Đang hiển thị trình chỉnh sửa mặc định."
 
@@ -34800,6 +36677,30 @@ msgstr "Thư mục plugin chứa cả file đầu vào .py và .whl"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Thư mục plugin không chứa file đầu vào .py hoặc .whl"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Chưa đặt thư mục kết cấu tài nguyên"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Không thể xác định thư mục kết cấu tài nguyên"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Đường dẫn kết cấu tài nguyên không phải là thư mục"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Không thể xác định thư mục plugin"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Thư mục kết cấu tài nguyên nằm ngoài thư mục plugin"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Không thể đọc thư mục kết cấu tài nguyên"
 
 # AI Translated
 #, boost-format
@@ -35259,7 +37160,7 @@ msgstr "Tải file cấu hình \"%1%\" thất bại: %2%"
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "Không phải file gcode do %1% tạo ra."
 
 # AI Translated
@@ -35379,7 +37280,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "Không thể tạo bản sao tạm của file G-code %1% trước khi chạy script hậu xử lý: %2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "Trình hậu xử lý không tìm thấy file G-code đã xuất"
 
 # AI Translated
@@ -35749,6 +37650,197 @@ msgstr ""
 "Bạn có biết rằng khi in vật liệu dễ cong vênh như ABS, tăng nhiệt độ bàn nóng một cách thích hợp có thể giảm xác suất cong vênh không?"
 
 # AI Translated
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Vàng Dalmatia"
+
+# AI Translated
+# Needs human review: Source "Capsanthin violet" is probably a typo for RAL "Capri blue" (sits between Turquoise blue and Ocean blue); translated as Capri blue. Source string needs fixing
+#~ msgid "Capsanthin violet"
+#~ msgstr "Xanh dương Capri"
+
+# AI Translated
+# Needs human review: Source "Olivestone" is probably a typo for RAL "Olive grey" (sits between Silver grey and Moss grey); translated as Olive grey. Source string needs fixing
+#~ msgid "Olivestone"
+#~ msgstr "Xám ô liu"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Khả dụng ở mọi nơi trong cửa sổ, kể cả khi đang gõ trong ô văn bản."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Phím tắt toàn cục cũng có tác dụng khi đang gõ."
+
+# AI Translated
+#~ msgid "Please choose the filament color"
+#~ msgstr "Vui lòng chọn màu filament"
+
+# AI Translated
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Độ rộng đường của Cầu. Nếu biểu diễn dưới dạng %, nó sẽ được tính theo đường kính đầu phun.\n"
+#~ "Nên dùng kèm với mật độ Cầu hoặc tỷ lệ lưu lượng Cầu cao hơn.\n"
+#~ "\n"
+#~ "Giá trị tối đa là 100% hoặc đường kính đầu phun.\n"
+#~ "Nếu đặt là 0, độ rộng đường sẽ bằng độ rộng Infill đặc bên trong."
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Bật tùy chọn này để giảm tốc độ in ở những vùng mà chu vi có thể đã bị cong vênh lên trên.\n"
+#~ "Ví dụ, sẽ áp dụng thêm mức giảm tốc khi in phần nhô ở các góc nhọn như mũi thân tàu Benchy, giúp giảm hiện tượng cong vênh vốn tích tụ qua nhiều lớp.\n"
+#~ "\n"
+#~ "Thông thường nên bật tùy chọn này, trừ khi hệ thống làm mát của máy in đủ mạnh hoặc tốc độ in đủ chậm để chu vi không bị cong vênh. \n"
+#~ "Nếu in với tốc độ chu vi ngoài cao, tham số này có thể tạo ra khuyết điểm trên thành khi giảm tốc, do biên độ dao động tốc độ in lớn khiến extruder không theo kịp thay đổi lưu lượng được yêu cầu.\n"
+#~ "Nguyên nhân gốc của những khuyết điểm này nhiều khả năng là do PA chưa được tinh chỉnh chuẩn, đặc biệt khi kết hợp với thời gian làm mượt PA lớn.\n"
+#~ "\n"
+#~ "Khuyến nghị khi bật tùy chọn này:\n"
+#~ "1. Giảm thời gian làm mượt Pressure Advance xuống 0.015 - 0.02 để extruder phản ứng nhanh với thay đổi tốc độ.\n"
+#~ "2. Tăng tốc độ in tối thiểu để hạn chế mức độ giảm tốc và giảm chênh lệch giữa các đoạn nhanh và chậm.\n"
+#~ "3. Nếu vẫn xuất hiện khuyết điểm, hãy bật Extrusion Rate Smoothing (ERS) để làm mượt thêm các chuyển tiếp lưu lượng.\n"
+#~ "\n"
+#~ "Lưu ý: Khi tùy chọn này được bật, chu vi phần nhô được xử lý như phần nhô, nghĩa là tốc độ phần nhô sẽ được áp dụng ngay cả khi chu vi nhô đó là một phần của cầu.\n"
+#~ "Ví dụ, khi các chu vi nhô 100%, không có thành nào đỡ bên dưới, tốc độ phần nhô 100% sẽ được áp dụng."
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "Tốc độ của các đùn cầu nhìn thấy từ bên ngoài.\n"
+#~ "\n"
+#~ "Ngoài ra, nếu Giảm tốc cho chu vi cong bị tắt hoặc chế độ phần nhô cổ điển được bật, nó sẽ là tốc độ in của thành nhô được hỗ trợ dưới 13%, cho dù chúng là một phần của cầu hay phần nhô."
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Cài đặt riêng biệt này sẽ ảnh hưởng đến tốc độ của chu vi có bán kính <= small_perimeter_threshold (thường là lỗ). Nếu được biểu thị dưới dạng phần trăm (ví dụ: 80%) nó sẽ được tính trên cài đặt tốc độ thành ngoài ở trên. Đặt thành không để tự động."
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "Giống như \"Chu vi nhỏ\", nhưng dành cho support. Cài đặt riêng này sẽ ảnh hưởng đến tốc độ support cho các vùng <= `small_support_perimeter_threshold`. Nếu biểu diễn dưới dạng phần trăm (ví dụ: 80%), nó sẽ được tính theo cài đặt tốc độ support hoặc giao diện support ở trên. Đặt bằng không để tự động."
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "Trình tự in của thành bên trong (trong) và bên ngoài (ngoài).\n"
+#~ "\n"
+#~ "Sử dụng Trong/Ngoài cho phần nhô tốt nhất. Điều này là do thành nhô có thể bám dính vào chu vi lân cận trong khi in. Tuy nhiên, tùy chọn này dẫn đến chất lượng bề mặt giảm một chút vì chu vi bên ngoài bị biến dạng do bị ép vào chu vi bên trong.\n"
+#~ "\n"
+#~ "Sử dụng Trong/Ngoài/Trong để có bề mặt ngoài hoàn thiện tốt nhất và độ chính xác kích thước vì thành ngoài được in không bị xáo trộn từ chu vi bên trong. Tuy nhiên, hiệu suất phần nhô sẽ giảm vì không có chu vi bên trong để in thành ngoài tựa vào. Tùy chọn này yêu cầu tối thiểu 3 thành để có hiệu quả vì nó in các thành bên trong từ chu vi thứ 3 trở đi trước, sau đó là chu vi bên ngoài và cuối cùng là chu vi bên trong đầu tiên. Tùy chọn này được khuyến nghị thay cho tùy chọn Ngoài/Trong trong hầu hết các trường hợp.\n"
+#~ "\n"
+#~ "Sử dụng Ngoài/Trong để có cùng chất lượng thành ngoài và độ chính xác kích thước như tùy chọn Trong/Ngoài/Trong. Tuy nhiên, các đường nối Z sẽ xuất hiện kém nhất quán hơn vì đùn đầu tiên của lớp mới bắt đầu trên bề mặt nhìn thấy."
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "Tốc độ của lớp đầu tiên ngoại trừ phần infill đặc."
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "Tốc độ của phần infill đặc của lớp đầu tiên."
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "Vùng infill được mở rộng một chút để chồng lấp với thành để liên kết tốt hơn. Giá trị phần trăm tương đối với độ rộng đường của infill thưa. Đặt giá trị này thành ~10-15% để giảm thiểu đùn dư tiềm ẩn và tích tụ vật liệu dẫn đến bề mặt trên thô."
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "Vùng infill đặc trên được mở rộng một chút để chồng lấp với thành để liên kết tốt hơn và giảm thiểu sự xuất hiện của lỗ kim nơi infill trên gặp thành. Giá trị 25-30% là điểm khởi đầu tốt, giảm thiểu sự xuất hiện của lỗ kim. Giá trị phần trăm tương đối với độ rộng đường của infill thưa."
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "Độ sâu lồng ghép của vùng phân đoạn. Nó sẽ bị bỏ qua nếu \"mmu_segmented_region_max_width\" là không hoặc nếu \"mmu_segmented_region_interlocking_depth\" lớn hơn \"mmu_segmented_region_max_width\". Không vô hiệu hóa tính năng này."
+
+# AI Translated
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Giảm chiều cao của chu vi bề mặt trên cho khớp với chiều cao mép của mô hình.\n"
+#~ "Ảnh hưởng đến các chu vi có độ dốc nhỏ hơn góc này (độ).\n"
+#~ "Giá trị hợp lý là 35. Đặt 0 để tắt."
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "Tốc độ lau dựa trên vai trò"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "Tấm chắn gió hữu ích để bảo vệ bản in ABS hoặc ASA khỏi cong vênh và tách khỏi bàn in do gió lùa. Nó thường chỉ cần với máy in khung mở, tức là không có vỏ bọc.\n"
+#~ "\n"
+#~ "Đã bật = viền cao bằng đối tượng được in cao nhất. Ngược lại 'Chiều cao viền' được sử dụng.\n"
+#~ "Lưu ý: Với tấm chắn gió hoạt động, viền sẽ được in ở khoảng cách viền  từ đối tượng. Do đó, nếu vành đang hoạt động nó có thể giao với chúng. Để tránh điều này, hãy tăng giá trị khoảng cách viền.\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "Tốc độ in tối đa khi xả trong wipe tower và in các lớp thưa của wipe tower. Khi xả, nếu tốc độ infill thưa hoặc tốc độ được tính từ tốc độ thể tích tối đa của filament thấp hơn, tốc độ thấp nhất sẽ được sử dụng thay thế.\n"
+#~ "\n"
+#~ "Khi in các lớp thưa, nếu tốc độ chu vi bên trong hoặc tốc độ được tính từ tốc độ thể tích tối đa của filament thấp hơn, tốc độ thấp nhất sẽ được sử dụng thay thế.\n"
+#~ "\n"
+#~ "Tăng tốc độ này có thể ảnh hưởng đến độ ổn định của tower cũng như tăng lực mà đầu phun va chạm với bất kỳ cục nhỏ nào có thể đã hình thành trên wipe tower.\n"
+#~ "\n"
+#~ "Trước khi tăng tham số này vượt quá mặc định 90 mm/s, hãy đảm bảo máy in của bạn có thể nối cầu đáng tin cậy ở tốc độ tăng và chảy nhựa khi thay công cụ được kiểm soát tốt.\n"
+#~ "\n"
+#~ "Đối với chu vi bên ngoài wipe tower, tốc độ chu vi bên trong được sử dụng bất kể cài đặt này."
+
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Loại thành ngoài wipe tower.\n"
+#~ "1. Hình chữ nhật: Loại thành mặc định, hình chữ nhật có độ rộng và chiều cao cố định.\n"
+#~ "2. Nón: Một nón có bo tròn ở dưới để giúp ổn định wipe tower.\n"
+#~ "3. Gân: Thêm bốn gân vào thành tower để tăng cường độ ổn định."
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "Lưu lượng bổ sung được sử dụng cho các đường xả trên wipe tower. Điều này làm cho các đường xả dày hơn hoặc hẹp hơn so với bình thường. Khoảng cách được điều chỉnh tự động."
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "Điều chỉnh giá trị này để ngăn thành ngắn, không đóng được in, có thể  tăng thời gian in. Giá trị cao hơn loại bỏ nhiều thành và dài hơn.\n"
+#~ "\n"
+#~ "LƯU Ý: Bề mặt dưới và trên sẽ không bị ảnh hưởng bởi giá trị này để ngăn khe nhìn thấy ở bên ngoài model. Điều chỉnh 'Ngưỡng một thành' trong cài đặt Nâng cao bên dưới để điều chỉnh độ nhạy của những gì được coi là bề mặt trên. 'Ngưỡng một thành' chỉ hiển thị nếu cài đặt này được đặt trên giá trị mặc định 0.5, hoặc nếu bề mặt trên thành đơn được bật."
+
+# AI Translated
 #, boost-format
 #~ msgid "Split into %1% part"
 #~ msgid_plural "Split into %1% parts"
@@ -36070,9 +38162,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "không có công cụ nào được cấu hình"
 
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "G-code kết thúc khi hoàn thành toàn bộ bản in."
-
 #~ msgid "Maximum X speed"
 #~ msgstr "Tốc độ X tối đa"
 
@@ -36090,25 +38179,9 @@ msgstr ""
 #~ msgstr "(Các) plugin Python được gọi ở mỗi bước của quy trình slice để đọc và sửa đổi dữ liệu slice trung gian, bao gồm một bước hậu xử lý G-code cuối cùng. Mang tính nghiên cứu/thử nghiệm."
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "Khi bật, phần mềm slice xuất G-code với nội dung của vùng chính được căn giữa tại gốc tọa độ bàn in (0,0). Firmware máy in chịu trách nhiệm đặt các bản sao/bản đối xứng tại vị trí vật lý của từng vùng. Chỉ bật trên máy in có firmware tự áp dụng độ lệch vùng ở chế độ Sao chép (Copy)/Gương (Mirror) (ví dụ chế độ nhân bản IDEX của RepRapFirmware). Không có tác dụng ở chế độ Chính."
-
-# AI Translated
 # Needs human review: "pem-inversion" is developer jargon (physical extruder map inversion) kept in English; check it reads acceptably in this Printer/plate setting tooltip.
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "Ghi đè theo từng plate, ánh xạ các đầu vật lý đến khe filament (đánh số từ 1). Để trống nghĩa là dùng giá trị mặc định pem-inversion."
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "Trục mà lưới được xoay quanh trước khi slice. Đây là độ nghiêng của máy in băng chuyền: một phép xoay đẳng cự (không biến dạng), đồng thời điều khiển việc hiển thị bàn in và độ nghiêng trọng lực cho support, và được phép biến đổi ngược G-code đảo lại trước bước trượt/co giãn và ánh xạ lại của hệ tọa độ máy. X là độ nghiêng giàn trục thông thường (băng chuyền chạy dọc theo Y)."
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "Ghi đè cho chuyên gia: đặt góc nghiêng hệ tọa độ máy (trượt/co giãn G-code) độc lập với góc xoay trước khi slice. Khi tắt, phép biến đổi hệ tọa độ máy được suy ra từ góc nghiêng băng chuyền, nên một góc duy nhất điều khiển cả hai bước. Chỉ bật để bù cho máy có độ nghiêng giàn trục vật lý khác với góc xoay khi slice."
-
-# AI Translated
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "Độ lệch tối đa cho phép khi giảm độ phân giải cho cài đặt 'Độ phân giải thành tối đa'. Nếu bạn tăng giá trị này, bản in sẽ kém chính xác hơn nhưng G-Code sẽ nhỏ hơn. 'Độ lệch thành tối đa' giới hạn 'Độ phân giải thành tối đa', nên nếu hai giá trị xung đột, 'Độ lệch thành tối đa' được ưu tiên."
 
 #~ msgid " not in range "
 #~ msgstr " không trong phạm vi "

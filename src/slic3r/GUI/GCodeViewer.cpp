@@ -1797,7 +1797,9 @@ void GCodeViewer::load_as_gcode(const GCodeProcessorResult& gcode_result, const 
     }
     else {*/
     //BBS: add only gcode mode
-    if (m_only_gcode_in_preview) {
+    // When the file's own settings were loaded into the presets, the bed already is the file's, with the
+    // model and texture of a user or custom printer too, which the lookup below cannot resolve.
+    if (m_only_gcode_in_preview && !wxGetApp().plater()->gcode_settings_loaded()) {
         Pointfs printable_area;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area = Pointfs();
