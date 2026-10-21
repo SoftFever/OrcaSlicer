@@ -8948,6 +8948,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     bool dlg_cont = true;
     bool is_user_cancel = false;
     bool translate_old = false;
+    // Orca: a plate layout left by a load that stopped early must not apply to this one.
+    partplate_list.discard_loaded_layout();
     int current_width = 0, current_depth = 0, project_filament_count = 1;
     double current_height = 0;
 
@@ -10182,6 +10184,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
         view3D->get_canvas3d()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
         partplate_list.reset_size(current_width, current_depth, current_height, true, true);
+        partplate_list.register_raycasters_for_picking(*view3D->get_canvas3d());
+    }
+
+    // Orca: restore a custom plate layout now that the plates' objects are loaded.
+    // The plates' meshes are rebuilt, so their picking raycasters are registered again.
+    if (partplate_list.apply_loaded_layout()) {
+        view3D->get_canvas3d()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
         partplate_list.register_raycasters_for_picking(*view3D->get_canvas3d());
     }
 
@@ -23133,6 +23142,40 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 }
 
 
+int Plater::move_plate_to_cell(int plate_index, const Vec2i32& cell)
+{
+    PartPlateList& plate_list = p->partplate_list;
+    if (!plate_list.can_move_plate_to_cell(plate_index, cell))
+        return -1;
+
+    Plater::TakeSnapshot snapshot(this, "Move plate");
+    // The plate's meshes are rebuilt, so its picking raycasters are registered again.
+    GLCanvas3D* canvas = p->view3D->get_canvas3d();
+    int ret = plate_list.move_plate_to_cell(plate_index, cell);
+    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
+    plate_list.register_raycasters_for_picking(*canvas);
+    if (ret == 0) {
+        update();
+        set_plater_dirty(true);
+    }
+    return ret;
+}
+
+void Plater::reset_plate_layout()
+{
+    PartPlateList& plate_list = p->partplate_list;
+    if (!plate_list.has_custom_layout())
+        return;
+
+    Plater::TakeSnapshot snapshot(this, "Reset plate layout");
+    GLCanvas3D* canvas = p->view3D->get_canvas3d();
+    plate_list.reset_layout();
+    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
+    plate_list.register_raycasters_for_picking(*canvas);
+    update();
+    set_plater_dirty(true);
+}
+
 //BBS: select Plate by hover_id
 int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModidyPlateName)
 {
@@ -23337,6 +23380,10 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         p->partplate_list.update_plates();
         update();
         p->partplate_list.select_plate(0);
+    }
+    else if (action == (int)PartPlate::PLATE_MOVE_ID && !right_click) {
+        // A click on the move handle without dragging just selects the plate.
+        ret = select_plate(plate_index);
     }
     else if (action == (int)PartPlate::PLATE_IMEX_MODE_ID)
     {

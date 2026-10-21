@@ -114,6 +114,8 @@ private:
     std::set<std::pair<int, int>> instance_outside_set;
     int m_plate_index;
     Vec3d m_origin;
+    // Orca: grid cell (col, row) this plate occupies when the plate list uses a custom layout.
+    Vec2i32 m_layout_cell{-1, -1};
     int m_width;
     int m_depth;
     double m_height;
@@ -178,6 +180,7 @@ private:
     PickingModel m_plate_filament_map_icon;
     PickingModel m_plate_name_edit_icon;
     PickingModel m_move_front_icon;
+    PickingModel m_move_plate_icon;
     PickingModel m_imex_mode_icon;
     GLModel      m_imex_warn_icon;   // warning badge: IMEX parallel mode + multi-material conflict
     GLModel m_plate_idx_icon;
@@ -259,7 +262,8 @@ public:
     static constexpr unsigned int PLATE_NAME_HOVER_ID = 6;
     static constexpr unsigned int PLATE_FILAMENT_MAP_ID = 8;
     static constexpr unsigned int PLATE_IMEX_MODE_ID = 9;
-    static constexpr unsigned int GRABBER_COUNT = 10;
+    static constexpr unsigned int PLATE_MOVE_ID = 10;
+    static constexpr unsigned int GRABBER_COUNT = 11;
 
     // Sentinel encoded into GLVolume::composite_id.object_id for IMEX ghost volumes.
     // Real object_ids are small non-negative ints, so a large-negative base is unambiguous.
@@ -693,7 +697,7 @@ public:
         std::vector<std::pair<int, int>>	objects_and_instances;
         std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_name, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
+        ar(m_plate_index, m_name, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_layout_cell);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -711,7 +715,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_name, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
+        ar(m_plate_index, m_name, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_layout_cell);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -734,6 +738,15 @@ class PartPlateList : public ObjectBase
     std::mutex m_plates_mutex;
     int m_plate_count;
     int m_plate_cols;
+    // Orca: when true, every plate keeps the cell in m_layout_cell instead of following the automatic grid.
+    bool m_custom_layout{false};
+    // Orca: custom layout read from a 3MF, applied by apply_loaded_layout() once the objects are loaded.
+    struct PendingLayoutPlate
+    {
+        Vec2i32                          cell;
+        std::vector<std::pair<int, int>> instances;
+    };
+    std::vector<PendingLayoutPlate> m_pending_layout;
     int m_current_plate;
     int m_print_index;
 
@@ -759,6 +772,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_del_hovered_texture;
     GLTexture m_move_front_hovered_texture;
     GLTexture m_move_front_texture;
+    GLTexture m_move_plate_hovered_texture;
+    GLTexture m_move_plate_texture;
     GLTexture m_arrange_texture;
     GLTexture m_arrange_hovered_texture;
     GLTexture m_orient_texture;
@@ -798,6 +813,12 @@ class PartPlateList : public ObjectBase
     Vec3d compute_origin_for_unprintable();
     //compute shape position
     Vec2d compute_shape_position(int index, int cols);
+    // Orca: cell of the plate at index; indices past the last plate give the cells new plates would take.
+    Vec2i32 compute_plate_cell(int index, int cols) const;
+    Vec2d   compute_cell_position(const Vec2i32& cell);
+    Vec2i32 compute_grid_cell_for_unprintable() const;
+    // Orca: whether a plate dropped on cell would overlap another plate or capture objects that are not on it.
+    bool    is_cell_blocked(int index, const Vec2i32& cell);
     //generate icon textures
     void generate_icon_textures();
     void release_icon_textures();
@@ -955,6 +976,22 @@ public:
     //move the plate to position index
     int move_plate_to_index(int old_index, int new_index);
 
+    // Orca: custom plate layout. Plates sit in cells of the automatic grid's stride, so they never overlap.
+    bool    has_custom_layout() const { return m_custom_layout; }
+    Vec2i32 get_plate_cell(int index) const { return compute_plate_cell(index, m_plate_cols); }
+    // Cell whose plate origin is nearest to origin.
+    Vec2i32 get_cell_at(const Vec2d& origin);
+    // Area the plate covers when it sits in cell.
+    BoundingBoxf compute_cell_box(const Vec2i32& cell);
+    bool    can_move_plate_to_cell(int index, const Vec2i32& cell);
+    // Move the plate and its objects to cell; switches to the custom layout. Returns 0 on success.
+    int     move_plate_to_cell(int index, const Vec2i32& cell);
+    // Return to the automatic grid, moving plates and their objects.
+    void    reset_layout();
+    // Apply the layout read by load_from_3mf_structure(); returns true if plates moved.
+    bool    apply_loaded_layout();
+    void    discard_loaded_layout() { m_pending_layout.clear(); }
+
     //lock plate
     int lock_plate(int index, bool state);
 
@@ -1079,7 +1116,7 @@ public:
     {
         //ar(cereal::base_class<ObjectBase>(this));
         //Cancel undo/redo for m_shape ,Because the printing area of different models is different, currently if the grid changes, it cannot correspond to the model on the left ui
-        ar(m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
+        ar(m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate, m_custom_layout);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
     struct Rect
