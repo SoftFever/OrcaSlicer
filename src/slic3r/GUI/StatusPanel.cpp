@@ -197,7 +197,7 @@ static void market_model_scoring_page(int design_id)
     std::string country_code   = GUI::wxGetApp().app_config->get_country_code();
     std::string model_http_url = GUI::wxGetApp().get_model_http_url(country_code);
     if (GUI::wxGetApp().getAgent()->get_model_mall_detail_url(&url, std::to_string(design_id), GUI::wxGetApp().get_printer_cloud_provider()) == 0) {
-        std::string user_id = GUI::wxGetApp().getAgent()->get_user_id();
+        std::string user_id = GUI::wxGetApp().getAgent()->get_user_id(GUI::wxGetApp().get_printer_cloud_provider());
         boost::algorithm::replace_first(url, "models", "u/" + user_id + "/rating");
         // Prevent user_id from containing design_id
         size_t      sign_in = url.find("/rating");
