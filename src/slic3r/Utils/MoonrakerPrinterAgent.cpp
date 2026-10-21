@@ -55,6 +55,7 @@
 #include <string>
 #include <mutex>
 #include <memory>
+#include <miniz.h>
 #include <sstream>
 #include <regex>
 #include <set>
