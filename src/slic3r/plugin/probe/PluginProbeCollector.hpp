@@ -6,7 +6,7 @@
 // audited operation may proceed. Keeping it independent of wx/Python also makes its grouping and
 // phase attribution testable without starting the interpreter.
 
-#include "PluginAuditManager.hpp"
+#include "slic3r/plugin/PluginAuditManager.hpp"
 
 #include <nlohmann/json.hpp>
 

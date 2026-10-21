@@ -9,7 +9,7 @@
 #include <slic3r/plugin/PluginAuditManager.hpp>
 #include <slic3r/plugin/PluginFsUtils.hpp>
 #include <slic3r/plugin/PluginManager.hpp>
-#include <slic3r/plugin/PluginProbeCollector.hpp>
+#include <slic3r/plugin/probe/PluginProbeCollector.hpp>
 #include <slic3r/plugin/PythonInterpreter.hpp>
 #include <slic3r/plugin/PythonPluginBridge.hpp>
 #include <slic3r/plugin/PythonPluginInterface.hpp>

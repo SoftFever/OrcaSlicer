@@ -1103,14 +1103,18 @@ endif()
 # front end is selected by source composition: PluginAuditManagerGui.cpp for the GUI app and
 # probe/PluginAuditManagerHeadless.cpp here.
 #
+# Ownership: files under plugin/probe/ belong to the probe only; never link them into the GUI
+# application or libslic3r_gui. Sources listed outside that directory are shared production code
+# compiled unchanged by both.
+#
 # Residual cost: the probe still links libslic3r (the large core library) for Utils,
 # LifecycleEvents, the model/print types used by the GUI-free host bindings and libslic3r's own
 # transitive dependencies. It does not link libslic3r_gui, wx or the GUI-only host/plugin sources.
 # Developer/security-analysis tool, so it is off by default.
 if (ORCA_BUILD_PLUGIN_PERMISSION_PROBE)
     add_executable(orca-plugin-probe
-        plugin/PluginPermissionProbe.cpp
-        plugin/PluginProbeCollector.hpp
+        plugin/probe/PluginPermissionProbe.cpp
+        plugin/probe/PluginProbeCollector.hpp
         plugin/probe/NanoSvgImplementation.cpp
         plugin/PluginAuditManager.cpp
         plugin/PluginAuditManagerInternal.hpp

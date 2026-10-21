@@ -16,15 +16,19 @@
 // The report describes only the paths this run exercised. CPython audit events are observations of
 // particular operations, not a notification for every Python call, so absence of a category in the
 // report is not evidence that the plugin cannot perform it.
+//
+// The report separates package validation, runtime compatibility, callback results and observed
+// audit activity, then derives an advisory readiness status from them. Readiness never changes the
+// process exit status, which stays load-based for existing callers.
 
-#include "PluginAuditManager.hpp"
-#include "PluginDescriptor.hpp"
-#include "PluginFsUtils.hpp"
-#include "PluginLoader.hpp"
-#include "PluginManager.hpp"
-#include "PluginProbeCollector.hpp"
-#include "PythonInterpreter.hpp"
-#include "PythonPluginInterface.hpp"
+#include "slic3r/plugin/PluginAuditManager.hpp"
+#include "slic3r/plugin/PluginDescriptor.hpp"
+#include "slic3r/plugin/PluginFsUtils.hpp"
+#include "slic3r/plugin/PluginLoader.hpp"
+#include "slic3r/plugin/PluginManager.hpp"
+#include "slic3r/plugin/PythonInterpreter.hpp"
+#include "slic3r/plugin/PythonPluginInterface.hpp"
+#include "slic3r/plugin/probe/PluginProbeCollector.hpp"
 
 #include "libslic3r/LifecycleEvents.hpp"
 #include "libslic3r/Utils.hpp"
@@ -39,6 +43,7 @@
 #include <pybind11/gil.h>
 #include <pybind11/pytypes.h>
 
+#include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -69,7 +74,8 @@ void print_usage(std::ostream& out)
            "Runs a plugin in a temporary data/working directory and reports the CPython audit\n"
            "events observed while its import, registration, on_load and discoverable callbacks\n"
            "execute. The probe does not prompt for permissions, write grants, install dependencies,\n"
-           "or start the OrcaSlicer GUI.\n"
+           "or start the OrcaSlicer GUI. The report summarizes package validation, runtime\n"
+           "compatibility, callback results and audit activity, plus an advisory readiness status.\n"
            "\n"
            "  --json   Emit the report as JSON (default: human-readable text)\n"
            "  --help   Show this message\n"
@@ -208,6 +214,29 @@ void redirect_python_stdout()
     sys.attr("stdout") = sys.attr("stderr");
 }
 
+// Captured while the interpreter is still alive. Best effort: a failed lookup leaves the field
+// empty and does not overwrite the initialization error.
+std::string query_python_version()
+{
+    py::gil_scoped_acquire gil;
+    try {
+        return py::module_::import("platform").attr("python_version")().cast<std::string>();
+    } catch (const std::exception&) {
+        return {};
+    }
+}
+
+std::string package_format(const fs::path& path)
+{
+    std::string extension = path.extension().string();
+    boost::algorithm::to_lower(extension);
+    if (extension == ".whl")
+        return "wheel";
+    if (extension == ".py")
+        return "python-script";
+    return extension.empty() ? "unknown" : extension;
+}
+
 template<class Function>
 void invoke_callback(const std::shared_ptr<PluginCapabilityInterface>& capability,
                      const std::string& phase,
@@ -330,23 +359,71 @@ nlohmann::json build_report(const Options& options,
                             const PluginProbeCollector& collector,
                             const std::vector<ProbeCapability>& capabilities,
                             const std::string& plugin_key,
+                            const PluginDescriptor& descriptor,
+                            bool descriptor_ready,
+                            const std::string& descriptor_error,
                             bool python_initialized,
+                            const std::string& python_version,
                             const std::string& python_error,
                             bool loaded,
                             const std::string& load_error,
                             const std::string& data_dir)
 {
-    nlohmann::json observations = nlohmann::json::array();
-    for (const AuditObservation& observation : collector.observations())
+    const std::vector<AuditObservation> observed_events = collector.observations();
+    nlohmann::json observations                         = nlohmann::json::array();
+    std::size_t unattributed_events                     = 0;
+    std::size_t non_continued_events                    = 0;
+    for (const AuditObservation& observation : observed_events) {
         observations.push_back(observation_json(observation));
+        if (observation.phase.empty())
+            ++unattributed_events;
+        if (!observation.continued)
+            ++non_continued_events;
+    }
 
-    nlohmann::json callbacks = nlohmann::json::array();
-    for (const ProbeCallbackRecord& callback : collector.callbacks())
+    const std::vector<ProbeCallbackRecord> callback_records = collector.callbacks();
+    nlohmann::json callbacks                                = nlohmann::json::array();
+    std::size_t invoked_callbacks                           = 0;
+    std::size_t failed_callbacks                            = 0;
+    std::size_t skipped_callbacks                           = 0;
+    for (const ProbeCallbackRecord& callback : callback_records) {
         callbacks.push_back(callback_json(callback));
+        if (callback.status == "invoked")
+            ++invoked_callbacks;
+        else if (callback.status == "failed")
+            ++failed_callbacks;
+        else if (callback.status == "skipped")
+            ++skipped_callbacks;
+    }
 
     nlohmann::json capability_list = nlohmann::json::array();
     for (const ProbeCapability& capability : capabilities)
         capability_list.push_back(capability_json(capability));
+
+    const nlohmann::json summary      = collector.summary();
+    const bool package_valid          = descriptor_ready && descriptor.metadata_valid;
+    const std::string entry_path      = descriptor.entry_path.empty() ? options.plugin_path.string() : descriptor.entry_path;
+    const std::string observed_plugin = plugin_key.empty() ? make_local_plugin_key(options.plugin_path.stem().string()) : plugin_key;
+
+    nlohmann::json readiness_issues = nlohmann::json::array();
+    if (!descriptor_ready) {
+        readiness_issues.push_back({{"severity", "blocking"}, {"detail", "package validation failed: " + descriptor_error}});
+    } else if (!python_initialized) {
+        readiness_issues.push_back(
+            {{"severity", "blocking"},
+             {"detail", "Python interpreter initialization failed" + (python_error.empty() ? std::string{} : ": " + python_error)}});
+    } else if (!loaded) {
+        readiness_issues.push_back({{"severity", "blocking"},
+                                    {"detail", "plugin_loader::load failed" + (load_error.empty() ? std::string{} : ": " + load_error)}});
+    }
+    if (package_valid && python_initialized && loaded && failed_callbacks > 0)
+        readiness_issues.push_back(
+            {{"severity", "warning"},
+             {"detail", std::to_string(failed_callbacks) + " callback(s) failed; see callbacks for the individual records"}});
+
+    const char* readiness_status = (!package_valid || !python_initialized || !loaded) ? "not_ready" :
+                                   failed_callbacks > 0                               ? "degraded" :
+                                                                                        "ready";
 
     return {
         {"tool", "orca-plugin-permission-probe"},
@@ -355,7 +432,50 @@ nlohmann::json build_report(const Options& options,
         {"plugin",
          {
              {"path", options.plugin_path.string()},
-             {"key", plugin_key},
+             {"key", observed_plugin},
+         }},
+        {"readiness",
+         {
+             {"status", readiness_status},
+             {"advisory", true},
+             {"checks",
+              {
+                  {"package_valid", package_valid},
+                  {"python_initialized", python_initialized},
+                  {"load_ok", loaded},
+                  {"failed_callback_count", failed_callbacks},
+              }},
+             {"issues", readiness_issues},
+             {"exit_status",
+              {
+                  {"code", loaded ? 0 : 1},
+                  {"semantics", "0 when the plugin loaded, 1 on package validation, initialization or load failure, 2 on a usage error"},
+                  {"driven_by", "load"},
+                  {"note", "Readiness is advisory and does not change the exit status; degraded still exits 0."},
+              }},
+         }},
+        {"package",
+         {
+             {"valid", package_valid},
+             {"metadata_read", descriptor_ready},
+             {"entry_path", entry_path},
+             {"entry_format", package_format(fs::path(entry_path))},
+             {"metadata",
+              {
+                  {"name", descriptor.name},
+                  {"version", descriptor.version},
+                  {"author", descriptor.author},
+                  {"description", descriptor.description},
+                  {"entry_package", descriptor.entry_package},
+              }},
+             {"declared_dependencies", descriptor.dependencies},
+             {"error", descriptor_ready ? std::string{} : descriptor_error},
+             {"installation",
+              {
+                  {"performed", false},
+                  {"dependencies_installed", false},
+                  {"note", "The probe inspects the given package in place; it does not install the package or its dependencies."},
+              }},
          }},
         {"environment",
          {
@@ -367,10 +487,66 @@ nlohmann::json build_report(const Options& options,
              {"interactive_prompts", false},
              {"grants_persisted", false},
          }},
+        {"runtime",
+         {
+             {"python",
+              {
+                  {"initialized", python_initialized},
+                  {"version", python_version},
+              }},
+             {"headless", true},
+             {"gui_initialized", false},
+             {"unavailable_gui_domains", nlohmann::json::array({"orca.host.app", "orca.host.presets", "orca.host.ui", "orca.host.plugin"})},
+             {"gui_domain_behavior",
+              "Attribute access raises an unsupported error; the probe records it as a failed callback when plugin code "
+              "touches the domain."},
+             {"config_api",
+              {
+                  {"get_config", "empty object"},
+                  {"get_config_version", "empty string"},
+                  {"save_config", "refused"},
+                  {"persisted", false},
+              }},
+             {"storage_api",
+              {
+                  {"available", false},
+                  {"detail", "orca.host.plugin.storage() raises an unsupported error because the probe does not start the "
+                             "PluginManager registry."},
+              }},
+         }},
         {"load", {{"ok", loaded}, {"error", load_error}, {"capabilities", capability_list}}},
+        {"callback_results",
+         {
+             {"records_section", "callbacks"},
+             {"total", callback_records.size()},
+             {"invoked", invoked_callbacks},
+             {"failed", failed_callbacks},
+             {"skipped", skipped_callbacks},
+             {"note", "The callbacks array holds the individual records; this section summarizes them and feeds readiness."},
+         }},
         {"callbacks", callbacks},
+        {"audit_activity",
+         {
+             {"records_section", "observations"},
+             {"summary_section", "summary"},
+             {"observed_event_count", observed_events.size()},
+             {"category_count", summary["categories"].size()},
+             {"unattributed_event_count", unattributed_events},
+             {"non_continued_event_count", non_continued_events},
+             {"side_effects",
+              {
+                  {"plugin_code_executed", true},
+                  {"installation_performed", false},
+                  {"dependencies_installed", false},
+                  {"grants_persisted", false},
+                  {"filesystem_network_process_contained", false},
+                  {"temporary_data_dir_removed_on_exit", true},
+              }},
+             {"note", "Side effects are the probe's own actions plus what the audit hook observed; only exercised paths are "
+                      "represented."},
+         }},
         {"observations", observations},
-        {"summary", collector.summary()},
+        {"summary", summary},
         {"coverage",
          {
              {"exhaustive", false},
@@ -406,9 +582,14 @@ nlohmann::json build_report(const Options& options,
 
 void print_text_report(const nlohmann::json& report)
 {
-    std::cout << "OrcaSlicer plugin permission probe (record-only)\n"
+    const auto or_none = [](const std::string& value) { return value.empty() ? std::string("(none)") : value; };
+
+    std::cout << "OrcaSlicer plugin readiness report (record-only)\n"
                  "WARNING: observational only; not exhaustive and not a sandbox.\n\n";
     std::cout << "Plugin: " << report["plugin"]["path"].get<std::string>() << "\n";
+    std::cout << "Readiness: " << report["readiness"]["status"].get<std::string>() << " (advisory; exit status follows the load result)\n";
+    for (const auto& issue : report["readiness"]["issues"])
+        std::cout << "  " << issue["severity"].get<std::string>() << ": " << issue["detail"].get<std::string>() << "\n";
     std::cout << "Python initialized: " << (report["environment"]["python_initialized"].get<bool>() ? "yes" : "no") << "\n";
     if (!report["environment"]["python_error"].get<std::string>().empty())
         std::cout << "Python error: " << report["environment"]["python_error"].get<std::string>() << "\n";
@@ -416,12 +597,56 @@ void print_text_report(const nlohmann::json& report)
     if (!report["load"]["error"].get<std::string>().empty())
         std::cout << "Load error: " << report["load"]["error"].get<std::string>() << "\n";
 
+    const auto& package = report["package"];
+    std::cout << "\nPackage: valid=" << (package["valid"].get<bool>() ? "yes" : "no")
+              << " format=" << package["entry_format"].get<std::string>() << "\n";
+    std::cout << "  entry: " << package["entry_path"].get<std::string>() << "\n";
+    std::cout << "  name=" << or_none(package["metadata"]["name"].get<std::string>())
+              << " version=" << or_none(package["metadata"]["version"].get<std::string>())
+              << " author=" << or_none(package["metadata"]["author"].get<std::string>()) << "\n";
+    if (!package["metadata"]["entry_package"].get<std::string>().empty())
+        std::cout << "  entry package: " << package["metadata"]["entry_package"].get<std::string>() << "\n";
+    std::cout << "  declared dependencies:";
+    if (package["declared_dependencies"].empty()) {
+        std::cout << " (none)";
+    } else {
+        bool first = true;
+        for (const auto& dependency : package["declared_dependencies"]) {
+            if (!first)
+                std::cout << ", ";
+            std::cout << dependency.get<std::string>();
+            first = false;
+        }
+    }
+    std::cout << "\n  installed: no; the probe does not install the package or its dependencies\n";
+    if (!package["error"].get<std::string>().empty())
+        std::cout << "  package error: " << package["error"].get<std::string>() << "\n";
+
+    const auto& runtime = report["runtime"];
+    std::cout << "\nRuntime: python_version=" << or_none(runtime["python"]["version"].get<std::string>())
+              << " headless=yes gui=not_started\n";
+    std::cout << "  unavailable GUI domains:";
+    {
+        bool first = true;
+        for (const auto& domain : runtime["unavailable_gui_domains"]) {
+            if (!first)
+                std::cout << ", ";
+            std::cout << domain.get<std::string>();
+            first = false;
+        }
+    }
+    std::cout << "\n  config API: returns an empty object, saves are refused, nothing persisted\n";
+    std::cout << "  storage API: unavailable (orca.host.plugin.storage raises)\n";
+
     std::cout << "\nCapabilities (" << report["load"]["capabilities"].size() << "):\n";
     for (const auto& capability : report["load"]["capabilities"])
         std::cout << "  " << capability["name"].get<std::string>() << " [" << capability["type"].get<std::string>()
                   << "] enabled=" << (capability["enabled"].get<bool>() ? "yes" : "no") << "\n";
 
-    std::cout << "\nCallbacks (" << report["callbacks"].size() << "):\n";
+    const auto& callback_results = report["callback_results"];
+    std::cout << "\nCallbacks (" << callback_results["total"].get<std::size_t>() << ": " << callback_results["invoked"].get<std::size_t>()
+              << " invoked, " << callback_results["failed"].get<std::size_t>() << " failed, "
+              << callback_results["skipped"].get<std::size_t>() << " skipped)\n";
     for (const auto& callback : report["callbacks"]) {
         std::cout << "  " << callback["status"].get<std::string>() << " " << callback["callback"].get<std::string>();
         if (!callback["capability"].get<std::string>().empty())
@@ -431,7 +656,8 @@ void print_text_report(const nlohmann::json& report)
         std::cout << "\n";
     }
 
-    std::cout << "\nObserved audit events (" << report["observations"].size() << "):\n";
+    std::cout << "\nObserved audit events (" << report["audit_activity"]["observed_event_count"].get<std::size_t>() << " events, "
+              << report["audit_activity"]["category_count"].get<std::size_t>() << " categories):\n";
     for (const auto& observation : report["observations"]) {
         std::cout << "  phase=" << observation["phase"].get<std::string>() << " event=" << observation["event"].get<std::string>()
                   << " category=" << observation["category"].get<std::string>();
@@ -469,6 +695,10 @@ void print_text_report(const nlohmann::json& report)
     }
     if (report["summary"]["categories"].empty())
         std::cout << "  (none observed)\n";
+
+    std::cout << "\nObserved side effects: plugin code executed; package and dependencies not installed; no grants persisted; "
+                 "filesystem, network and process access not contained\n";
+    std::cout << "Exit status: " << report["readiness"]["exit_status"]["code"].get<int>() << " (driven by load; readiness is advisory)\n";
 
     std::cout << "\nCoverage limits:\n";
     for (const auto& note : report["coverage"]["notes"])
@@ -517,6 +747,10 @@ int main(int argc, char** argv)
         }
     }
 
+    std::string python_version;
+    if (python_initialized)
+        python_version = query_python_version();
+
     bool loaded            = false;
     std::string load_error = descriptor_error;
     Plugin plugin;
@@ -554,7 +788,8 @@ int main(int argc, char** argv)
     const nlohmann::json report = build_report(options, collector, capabilities,
                                                descriptor.plugin_key.empty() ? make_local_plugin_key(options.plugin_path.stem().string()) :
                                                                                descriptor.plugin_key,
-                                               python_initialized, python_error, loaded, load_error, workspace.root().string());
+                                               descriptor, descriptor_ready, descriptor_error, python_initialized, python_version,
+                                               python_error, loaded, load_error, workspace.root().string());
 
     if (options.json)
         std::cout << report.dump(2, ' ', false, nlohmann::json::error_handler_t::replace) << "\n";
