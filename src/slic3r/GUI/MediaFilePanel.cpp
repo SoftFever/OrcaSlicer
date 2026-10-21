@@ -220,8 +220,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
             // Entering the selecting mode clears the selection, so do it first
             if (!m_image_grid->IsSelecting())
                 SetSelecting(true);
-            // With everything selected the button clears the selection instead
-            fs->SelectAll(fs->GetSelectCount() < fs->GetCount());
+            fs->SelectAll(true);
             m_image_grid->Refresh();
         }
     });
@@ -342,8 +341,6 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
                 return;
             m_button_delete->Enable(e.GetInt() > 0);
             m_button_download->Enable(e.GetInt() > 0);
-            const bool all_selected = fs->GetCount() > 0 && size_t(e.GetInt()) == fs->GetCount();
-            m_button_select_all->SetLabel(all_selected ? _L("Deselect All") : _L("Select All"));
         });
         fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
         fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto& e) {
