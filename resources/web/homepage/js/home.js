@@ -178,14 +178,12 @@ function SetCloudMode( bOn )
 	if( bOn )
 	{
 		$(".BtnItem").removeClass("BtnItemSelected");
-		$(".BtnShortcut").addClass("BtnItemSelected");
+		$(".BtnItem[menu='orca_cloud']").addClass("BtnItemSelected");
 	}
 }
 
 function GotoCloud()
 {
-	$(".BtnItem").removeClass("BtnItemSelected");
-	$(".BtnItem[menu='orca_cloud']").addClass("BtnItemSelected");
 	SetCloudMode(true);
 	SendSimpleCommand("homepage_open_cloud");
 }
