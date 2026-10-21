@@ -298,6 +298,30 @@ channel and weighted by how much of the picture they cover - rather than against
 is what makes trying dozens of stacks affordable. A photograph is millions of pixels and a few
 hundred distinguishable colours.
 
+### Surfaces that are not level
+
+A filament swap is a print-Z event: the whole plate changes colour at one height. What a point of the
+picture shows is therefore decided by how high that point is, not by how far the relief stands off the
+surface under it. Two consequences, and they are different problems:
+
+- **The relief has to be deepened.** A displacement of d mm along a tilted surface's normal only
+  raises the print by d*cos(tilt), so every step of the picture would land below the height its colour
+  was solved for. `chroma_tilt_relief()` scales the solved height map texel by texel by 1/cos(tilt) and
+  hands back the depth the layer must carry. The surface is measured on the picture's own grid by
+  `chroma_surface()`, which rasterises the painted patch through the same projection the bake samples
+  it with. Past `CHROMA_MAX_TILT_DEG` the factor is clamped: it runs away towards vertical, and a
+  sliver of a steep wall must not deepen the whole layer by a factor of fifty.
+- **The surface's own rise cannot be fixed at all.** Where the patch is higher at one end than the
+  other, that end is further into the stack and shows a later colour. Nothing about the relief changes
+  this - only filling the patch up to a level reference would, and that would throw away the shape the
+  model has. So it is reported rather than corrected: `chroma_problems()` says how many layers the
+  patch rises across itself, which is how many bands the picture drifts by.
+
+A ChromaStack picture is also pinned to the XY plane when it is sampled, instead of being blended
+across the three planes the way an ordinary texture layer is. Its colours are heights, so it has to
+keep its place on the plate as the surface tilts away from level; on a level face that is the plane
+the blend settles on anyway, so nothing about a flat picture changes.
+
 ### The states
 
 The card contains no messages. Two words of label, `Colors` and `Base`, name controls; everything

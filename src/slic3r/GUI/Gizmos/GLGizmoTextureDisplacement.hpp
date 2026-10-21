@@ -463,6 +463,11 @@ private:
         bool  valid     = false;
         float top_mm    = 0.f; // the patch's surface above the bottom of the object
         float spread_mm = 0.f; // how far from flat the patch is in Z; 0 is a horizontal face
+        // How far from level the patch tilts, in degrees from the print axis. `tilt_deg` is the
+        // steepest tenth of it by area rather than its steepest triangle, so one stray facet on a
+        // rounded edge does not speak for the whole patch; `tilt_mean_deg` is what it mostly is.
+        float tilt_deg      = 0.f;
+        float tilt_mean_deg = 0.f;
         // The patch's extent in the plane the texture is projected from, in the bake frame - i.e. the
         // (x, y) the Z-facing plane of the tri-planar projection samples by. This is what the picture
         // has to be placed against: tiling_scale and offset are in that space, not in the patch's.
@@ -470,6 +475,9 @@ private:
         Vec2f planar_max = Vec2f::Zero();
     };
     ChromaPatch chroma_patch(const TextureDisplacementLayer &layer) const;
+    // The painted surface on the picture's own grid: cos(tilt) per texel, for chroma_tilt_relief().
+    // Empty when nothing is painted or the picture does not land on the patch at all.
+    ChromaSurface chroma_surface(const TextureDisplacementLayer &layer, int width, int height) const;
     // The painted face's height in layers, which is what the stack's base has to be: -1 when nothing
     // is painted yet or there is no layer height to divide by.
     int         chroma_measured_base(const TextureDisplacementLayer &layer) const;

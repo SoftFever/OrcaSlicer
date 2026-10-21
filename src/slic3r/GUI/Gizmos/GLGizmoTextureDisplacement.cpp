@@ -4492,6 +4492,49 @@ GLGizmoTextureDisplacement::ChromaPatch GLGizmoTextureDisplacement::chroma_patch
         planar.merge(bake * p);
     }
 
+    // How far from level the patch is, by area. A picture is printed in horizontal slices, so what
+    // matters is the angle between the surface and the build plate - which is a property of the
+    // facets, not of the bounding box: a saddle and a staircase can have the same Z spread.
+    const Matrix3d normal_trafo = trafo.linear().inverse().transpose();
+    std::vector<std::pair<float, double>> tilted; // cos(tilt), area
+    tilted.reserve(patch.indices.size());
+    double area_total = 0.;
+    double cos_total  = 0.;
+    for (const stl_triangle_vertex_indices &f : patch.indices) {
+        const Vec3d a = patch.vertices[size_t(f[0])].cast<double>();
+        const Vec3d cross = (patch.vertices[size_t(f[1])].cast<double>() - a)
+                                .cross(patch.vertices[size_t(f[2])].cast<double>() - a);
+        const Vec3d n = normal_trafo * cross;
+        const double len = n.norm();
+        if (len < 1e-12)
+            continue;
+        // The triangle's area in the printed frame, which is the frame the tilt is measured in.
+        const double area = 0.5 * (trafo.linear() * cross).norm();
+        const float  facing = float(std::abs(n.z()) / len);
+        tilted.emplace_back(facing, area);
+        area_total += area;
+        cos_total  += double(facing) * area;
+    }
+    const auto as_deg = [](float facing) {
+        return float(std::acos(double(std::clamp(facing, 0.f, 1.f))) * 180. / M_PI);
+    };
+    if (area_total > 0.) {
+        out.tilt_mean_deg = as_deg(float(cos_total / area_total));
+        // The steepest tenth by area, so a single facet on a rounded edge does not speak for a patch
+        // that is otherwise level - and so a patch that really is steep over a tenth of itself does.
+        std::sort(tilted.begin(), tilted.end(),
+                  [](const auto &a, const auto &b) { return a.first < b.first; });
+        double walked = 0.;
+        float  worst  = tilted.front().first;
+        for (const auto &[facing, area] : tilted) {
+            worst = facing;
+            walked += area;
+            if (walked >= 0.1 * area_total)
+                break;
+        }
+        out.tilt_deg = as_deg(worst);
+    }
+
     const double bottom = mo->instance_bounding_box(inst, false).min.z();
     out.valid      = true;
     out.top_mm     = float(std::max(0., box.max.z() - bottom));
@@ -4503,6 +4546,88 @@ GLGizmoTextureDisplacement::ChromaPatch GLGizmoTextureDisplacement::chroma_patch
     m_chroma_patch_stamp[slot] = stamp;
     m_chroma_patch_trafo[slot] = trafo;
     m_chroma_patch_bake[slot]  = bake;
+    return out;
+}
+
+ChromaSurface GLGizmoTextureDisplacement::chroma_surface(const TextureDisplacementLayer &layer, int width,
+                                                         int height) const
+{
+    ChromaSurface      out;
+    const ModelVolume *mv = texture_volume();
+    const ModelObject *mo = m_c->selection_info()->model_object();
+    if (mv == nullptr || mo == nullptr || mo->instances.empty() || layer.slot < 0 || width <= 0 || height <= 0)
+        return out;
+
+    const indexed_triangle_set patch = extract_painted_patch(mv->mesh().its,
+                                                             mv->texture_displacement_facet(layer.slot).get_data());
+    if (patch.indices.empty())
+        return out;
+
+    // The same two frames chroma_patch() measures in, for the same reasons: the bake's for where the
+    // picture lands, the instance's for how the surface sits on the plate.
+    const size_t      inst  = size_t(std::max(0, m_c->selection_info()->get_active_instance()));
+    const Transform3d trafo = mo->instances[inst]->get_transformation().get_matrix() * mv->get_matrix();
+    const Transform3d bake  = texture_displacement_bake_frame(texture_displacement_volume_to_world(*mv));
+    const Matrix3d    normal_trafo = trafo.linear().inverse().transpose();
+
+    TextureDisplacementLayer probe;
+    probe.image_data   = layer.chroma_source;
+    const float aspect = layer_texture_aspect(probe);
+
+    // Where each vertex of the patch lands in the picture, in texels. box_plane_xy() with a +Z facing
+    // is the plane a ChromaStack layer is sampled from (see sample_layer_height()), so this is the
+    // same mapping the bake will use - the surface has to be measured where the picture actually is.
+    std::vector<Vec2f> texel(patch.vertices.size());
+    std::vector<float> z(patch.vertices.size());
+    for (size_t vi = 0; vi < patch.vertices.size(); ++vi) {
+        const Vec3d p      = patch.vertices[vi].cast<double>();
+        const Vec3d baked  = bake * p;
+        const Vec2f uv     = apply_uv_transform(Vec2f(float(baked.x()), float(-baked.y())), layer, aspect);
+        texel[vi] = Vec2f(uv.x() * float(width), uv.y() * float(height));
+        z[vi]     = float((trafo * p).z());
+    }
+
+    out.width  = width;
+    out.height = height;
+    out.facing.assign(size_t(width) * size_t(height), 0.f);
+    // What is already written at a texel, so the surface nearest the viewer wins where the patch
+    // folds back on itself: the picture is seen on the top of the part, not through it.
+    std::vector<float> depth(out.facing.size(), -std::numeric_limits<float>::max());
+
+    for (const stl_triangle_vertex_indices &f : patch.indices) {
+        const Vec2f a = texel[size_t(f[0])], b = texel[size_t(f[1])], c = texel[size_t(f[2])];
+        const float det = (b.x() - a.x()) * (c.y() - a.y()) - (c.x() - a.x()) * (b.y() - a.y());
+        if (std::abs(det) < 1e-9f)
+            continue; // edge-on in the picture: it covers no texel of it
+
+        const Vec3d v0 = patch.vertices[size_t(f[0])].cast<double>();
+        const Vec3d n  = normal_trafo * (patch.vertices[size_t(f[1])].cast<double>() - v0)
+                                            .cross(patch.vertices[size_t(f[2])].cast<double>() - v0);
+        const double len = n.norm();
+        if (len < 1e-12)
+            continue;
+        const float facing = float(std::abs(n.z()) / len);
+
+        const int x0 = std::max(0, int(std::floor(std::min({ a.x(), b.x(), c.x() }))));
+        const int x1 = std::min(width - 1, int(std::ceil(std::max({ a.x(), b.x(), c.x() }))));
+        const int y0 = std::max(0, int(std::floor(std::min({ a.y(), b.y(), c.y() }))));
+        const int y1 = std::min(height - 1, int(std::ceil(std::max({ a.y(), b.y(), c.y() }))));
+        for (int y = y0; y <= y1; ++y)
+            for (int x = x0; x <= x1; ++x) {
+                const Vec2f p(float(x) + 0.5f, float(y) + 0.5f);
+                const float w0 = ((b.x() - p.x()) * (c.y() - p.y()) - (c.x() - p.x()) * (b.y() - p.y())) / det;
+                const float w1 = ((c.x() - p.x()) * (a.y() - p.y()) - (a.x() - p.x()) * (c.y() - p.y())) / det;
+                const float w2 = 1.f - w0 - w1;
+                if (w0 < 0.f || w1 < 0.f || w2 < 0.f)
+                    continue;
+                const float here = w0 * z[size_t(f[0])] + w1 * z[size_t(f[1])] + w2 * z[size_t(f[2])];
+                const size_t i = size_t(y) * size_t(width) + size_t(x);
+                if (here > depth[i]) {
+                    depth[i]      = here;
+                    out.facing[i] = facing;
+                }
+            }
+    }
     return out;
 }
 
@@ -4536,8 +4661,13 @@ void GLGizmoTextureDisplacement::chroma_fit_picture(TextureDisplacementLayer &la
     const float scale   = std::max(along_u, along_v);
     layer.tiling_scale  = scale;
     layer.rotation_deg  = 0.f; // the fit is in unrotated planar coordinates
-    layer.offset        = Vec2f(-patch.planar_min.x() / scale + 0.5f * (1.f - along_u / scale),
-                                -patch.planar_min.y() * aspect / scale + 0.5f * (1.f - along_v / scale));
+    // The picture's first pixel row is at v = 0 and v runs down it, while the plane a ChromaStack
+    // layer is sampled from is (x, -y) - so the corner the picture starts at is the patch's largest y,
+    // not its smallest. Fitting against +y instead slid the picture across the patch by however far
+    // the patch sat off the bake frame's own origin.
+    const Vec2f origin(patch.planar_min.x(), -patch.planar_max.y());
+    layer.offset        = Vec2f(-origin.x() / scale + 0.5f * (1.f - along_u / scale),
+                                -origin.y() * aspect / scale + 0.5f * (1.f - along_v / scale));
 }
 
 // Turns a layer from one kind into the other, in place. Nothing is thrown away: a picture's stack is
@@ -4690,7 +4820,13 @@ bool GLGizmoTextureDisplacement::chroma_solve_layer(TextureDisplacementLayer &la
         rgb = grey_rgb.data();
     }
 
-    const ChromaSolve solve = chroma_solve(rgb, source.width, source.height, layer.chroma);
+    ChromaSolve solve = chroma_solve(rgb, source.width, source.height, layer.chroma);
+    // A relief of d mm along a tilted surface's normal only raises the print by d*cos(tilt), so on
+    // anything but a level face the steps would land below the heights their colours were solved for.
+    // Deepening the map texel by texel puts them back; the depth it asks for is what the layer then
+    // carries. A level patch comes back untouched.
+    const float depth_mm = chroma_tilt_relief(solve, layer.chroma,
+                                              chroma_surface(layer, source.width, source.height));
     std::vector<unsigned char> png = chroma_encode_height_png(solve);
     if (solve.empty() || png.empty()) {
         if (!silent)
@@ -4700,8 +4836,9 @@ bool GLGizmoTextureDisplacement::chroma_solve_layer(TextureDisplacementLayer &la
 
     layer.image_data = std::make_shared<std::vector<unsigned char>>(std::move(png));
     // The relief is exactly as tall as the layers above the base, and every step in the height map is
-    // one of them - which is what makes the printed swaps line up with the heights.
-    layer.depth_mm   = layer.chroma.depth_mm();
+    // one of them - which is what makes the printed swaps line up with the heights. On a tilted patch
+    // it is deeper than that, by as much as the steepest texel of it needed.
+    layer.depth_mm   = depth_mm;
     layer.invert     = false;
     layer.midlevel   = 0.f;
     // Blurring a solved height map moves its steps off the layer boundaries they were solved for.
@@ -4915,9 +5052,24 @@ std::vector<std::string> GLGizmoTextureDisplacement::chroma_problems(const Textu
                            "have not been written and it would print in one color. Click here to replace them."));
 
     const ChromaPatch patch = chroma_patch(layer);
-    if (patch.valid && patch.spread_mm > std::max(0.05f, layer.chroma.layer_height_mm))
-        out.push_back(_u8L("The painted area is not flat. A filament swap happens at one height across the whole "
-                           "plate, so the colors are only right where the surface is level."));
+    if (patch.valid && patch.tilt_deg > CHROMA_MAX_TILT_DEG)
+        out.push_back(Slic3r::format(_u8L("Part of the painted area is steeper than %1$.0f degrees - it reaches "
+                                          "%2$.0f. The relief there cannot be made deep enough to reach the heights "
+                                          "its colors were solved for, so those parts print a color of their own."),
+                                     CHROMA_MAX_TILT_DEG, patch.tilt_deg));
+
+    // The error that tilting cannot fix: a swap is one height across the whole plate, so a surface
+    // that rises across itself carries its own colors with it. Reported in bands rather than in
+    // millimetres, because a band is what a reader of the picture would see change.
+    if (patch.valid && layer.chroma.layer_height_mm > 0.f) {
+        const int drift = int(patch.spread_mm / layer.chroma.layer_height_mm + 0.5f);
+        if (drift > 1)
+            out.push_back(Slic3r::format(_u8L("The painted area rises %1$.1f mm across itself, which is %2% layers. "
+                                              "A filament swap happens at one height across the whole plate, so the "
+                                              "picture's colors shift by that much from its lowest point to its "
+                                              "highest."),
+                                         patch.spread_mm, drift));
+    }
 
     if (layer.chroma.relief_layers() > CHROMA_MAX_RELIEF_LAYERS)
         out.push_back(Slic3r::format(_u8L("The picture cannot be more than %1% layers tall. Give the bands fewer "

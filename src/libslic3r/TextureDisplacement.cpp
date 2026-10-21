@@ -2300,6 +2300,15 @@ float sample_layer_height(const DecodedHeightTexture &texture, const TextureDisp
     if (lscm_uv != nullptr)
         return sample_at(*lscm_uv);
 
+    // A ChromaStack picture is pinned to the build plate, whatever the surface under it is doing. Its
+    // colours are print heights, so the picture has to keep its place on the plate as the surface
+    // tilts away from level: blending in the side planes the way triplanar does would slide it along
+    // the model and put its colours at the wrong heights. On a level face this is the plane triplanar
+    // settles on anyway, so a flat picture samples exactly as it did. (The colour path below has no
+    // such branch: a ChromaStack layer displaces only - its colours come from filament swaps.)
+    if (layer.chroma_enabled)
+        return sample_at(box_plane_xy(position, 1.f));
+
     switch (layer.projection_method) {
     case TextureProjectionMethod::Cylindrical:
         return sample_at(project_cylindrical(position, patch_center, patch_axis));

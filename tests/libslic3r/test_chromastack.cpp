@@ -640,3 +640,72 @@ TEST_CASE("A layer's optical depth is what both the palette and the shader absor
     REQUIRE(chroma_layer_density(4.f, 0.2f) > density);
     REQUIRE_THAT(chroma_layer_density(4.f, 0.f), WithinAbs(0.f, 1e-6f));
 }
+
+TEST_CASE("A tilted surface's relief is deepened so its steps still land on the solved heights",
+          "[ChromaStack]")
+{
+    // A relief of d mm along a surface's normal only raises the print by d * cos(tilt), so on a face
+    // that is not level the steps would land low and every colour in the picture would come out as
+    // the one below it. The correction is a per-texel factor on the height map and a deeper layer.
+    ChromaStack stack;
+    stack.layer_height_mm = 0.1f;
+    stack.base_layers     = 10;
+    stack.bands           = { band(WHITE_OPAQUE, 10), band(filament(1, ColorRGB(0.f, 0.f, 0.f), 4.f), 10) };
+    const float depth = stack.depth_mm();
+    REQUIRE_THAT(depth, WithinAbs(2.f, 1e-5f)); // 20 relief layers of 0.1 mm
+
+    ChromaSolve solve;
+    solve.width  = 2;
+    solve.height = 1;
+    solve.levels = { 10, 30 };
+    solve.grey   = { 0, 255 };
+
+    SECTION("a level patch is left exactly as it was")
+    {
+        ChromaSurface flat;
+        flat.width  = 2;
+        flat.height = 1;
+        flat.facing = { 1.f, 1.f };
+        REQUIRE_THAT(chroma_tilt_relief(solve, stack, flat), WithinAbs(depth, 1e-5f));
+        REQUIRE(solve.grey == std::vector<uint8_t>{ 0, 255 });
+    }
+
+    SECTION("a surface that was never measured is left as it was")
+    {
+        REQUIRE_THAT(chroma_tilt_relief(solve, stack, ChromaSurface{}), WithinAbs(depth, 1e-5f));
+        REQUIRE(solve.grey == std::vector<uint8_t>{ 0, 255 });
+    }
+
+    SECTION("a 60 degree texel reaches the same print height as a level one did")
+    {
+        ChromaSurface tilted;
+        tilted.width  = 2;
+        tilted.height = 1;
+        tilted.facing = { 1.f, 0.5f }; // level, and 60 degrees off it
+        const float deepened = chroma_tilt_relief(solve, stack, tilted);
+        // The steepest texel needed twice the relief, so the layer carries twice the depth.
+        REQUIRE_THAT(deepened, WithinAbs(2.f * depth, 1e-4f));
+        // ...and that texel still displaces the full relief, which at 60 degrees is twice as far
+        // along the normal as it rises in Z.
+        const float along_normal = float(solve.grey[1]) / 255.f * deepened;
+        REQUIRE_THAT(along_normal * 0.5f, WithinAbs(depth, 0.02f));
+        // The level texel beside it is untouched in Z: it now reads a smaller fraction of a deeper
+        // layer, and the product is what it always was.
+        solve.grey = { 128, 255 };
+        ChromaSolve same = solve;
+        const float again = chroma_tilt_relief(same, stack, tilted);
+        REQUIRE_THAT(float(same.grey[0]) / 255.f * again, WithinAbs(128.f / 255.f * depth, 0.02f));
+    }
+
+    SECTION("past the limit the correction stops rather than running away")
+    {
+        // cos(89 degrees) is almost nothing, and 1/it is almost everything. The clamp is what keeps a
+        // sliver of a nearly vertical wall from deepening the whole layer by a factor of fifty.
+        ChromaSurface steep;
+        steep.width  = 2;
+        steep.height = 1;
+        steep.facing = { 1.f, float(std::cos(89. * M_PI / 180.)) };
+        const float capped = chroma_tilt_relief(solve, stack, steep);
+        REQUIRE_THAT(capped, WithinAbs(depth / std::cos(CHROMA_MAX_TILT_DEG * float(M_PI) / 180.f), 1e-3f));
+    }
+}

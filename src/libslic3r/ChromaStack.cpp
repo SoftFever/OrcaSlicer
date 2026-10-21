@@ -332,6 +332,47 @@ int chroma_level_at(const ChromaStack &stack, double z_mm)
     return std::clamp(k, 1, total);
 }
 
+float chroma_tilt_relief(ChromaSolve &solve, const ChromaStack &stack, const ChromaSurface &surface)
+{
+    const float depth = stack.depth_mm();
+    if (solve.empty() || surface.empty() || depth <= 0.f)
+        return depth;
+    if (surface.width != solve.width || surface.height != solve.height)
+        return depth; // not this picture's surface; better to print it level than to print it wrong
+    const size_t count = solve.grey.size();
+    if (surface.facing.size() != count)
+        return depth;
+
+    const float floor_cos = std::cos(CHROMA_MAX_TILT_DEG * float(M_PI) / 180.f);
+    // What the deepest texel asks for. Measured rather than assumed, so a picture that only clips a
+    // tilted corner keeps nearly all of the 8 bits for its own relief.
+    float boost = 1.f;
+    for (size_t i = 0; i < count; ++i) {
+        const float facing = surface.facing[i];
+        if (facing <= 0.f || solve.grey[i] == 0)
+            continue; // unpainted, or a texel that displaces by nothing and cannot be deepened
+        boost = std::max(boost, 1.f / std::max(facing, floor_cos));
+    }
+    if (boost <= 1.f + 1e-4f)
+        return depth; // level enough that the correction is below the encoding's own step
+
+    // The grey map is "displace this fraction of depth_mm along the normal", so deepening the layer
+    // and scaling every texel by its own factor leaves a level texel displacing exactly as far as it
+    // did and a tilted one reaching the print height its colour was solved for.
+    for (size_t i = 0; i < count; ++i) {
+        const float facing = surface.facing[i];
+        if (facing <= 0.f) {
+            // Nothing painted here. The texel is outside the patch and is never sampled, but it is
+            // rescaled with the rest so the map stays a map rather than a cliff at the patch edge.
+            solve.grey[i] = uint8_t(std::lround(float(solve.grey[i]) / boost));
+            continue;
+        }
+        const float scaled = float(solve.grey[i]) / (std::max(facing, floor_cos) * boost);
+        solve.grey[i]      = uint8_t(std::clamp(std::lround(scaled), 0L, 255L));
+    }
+    return depth * boost;
+}
+
 std::vector<unsigned char> chroma_encode_height_png(const ChromaSolve &solve)
 {
     if (solve.empty())

@@ -4644,8 +4644,7 @@ void MainFrame::run_calibration(CalibKind calib_kind)
             break;
         // Two filaments, because the test is one seen through the other: the staircase is the filament
         // being measured and the base under it is the one it has to hide.
-        const std::vector<std::string> &loaded = wxGetApp().preset_bundle->filament_presets;
-        if (loaded.size() < 2) {
+        if (wxGetApp().preset_bundle->filament_presets.size() < 2) {
             MessageDialog(this,
                           _L("This test prints a staircase of one filament over another and asks where the one "
                              "underneath stops showing through, so it needs two filaments loaded."),
@@ -4653,35 +4652,10 @@ void MainFrame::run_calibration(CalibKind calib_kind)
                 .ShowModal();
             break;
         }
-        const std::vector<ColorRGBA> colors = m_plater->get_extruders_colors();
-        // The darkest loaded filament is the one easiest to see through a pale staircase, so it is the
-        // base unless it is the filament being measured.
-        int substrate = -1;
-        float darkest = 2.f;
-        for (size_t i = 1; i < colors.size(); ++i) {
-            const float lum = 0.2126f * colors[i].r() + 0.7152f * colors[i].g() + 0.0722f * colors[i].b();
-            if (lum < darkest) {
-                darkest   = lum;
-                substrate = int(i);
-            }
-        }
-        if (substrate < 0)
-            substrate = 1;
-
-        ChromaWedge wedge;
-        const auto &print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        if (print_config.has("layer_height"))
-            wedge.layer_height_mm = float(print_config.opt_float("layer_height"));
-
-        MessageDialog confirm(this,
-                              wxString::Format(_L("Print %d steps of filament 1 over filament %d, at %.3f mm layers. "
-                                                  "The step where the filament underneath stops showing through is "
-                                                  "the measurement. This replaces what is on the plate."),
-                                               wedge.steps, substrate + 1, wedge.layer_height_mm),
-                              _L("Transmission distance"), wxICON_QUESTION | wxYES_NO);
-        if (confirm.ShowModal() != wxID_YES)
-            break;
-        m_plater->calib_transmission_distance(wedge, substrate, 0);
+        // Built fresh rather than kept, unlike the dialogs below: what it offers is the filaments that
+        // are loaded now.
+        TransmissionDistance_Test_Dlg dlg((wxWindow *) this, wxID_ANY, m_plater);
+        dlg.ShowModal();
         break;
     }
     case CalibKind::MaxVolumetric: {

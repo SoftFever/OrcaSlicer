@@ -59,6 +59,16 @@ static constexpr int CHROMA_DEFAULT_RELIEF_LAYERS = 24;
 // 0.08 mm, far past where a picture gains anything.
 static constexpr int CHROMA_MAX_RELIEF_LAYERS = 255;
 
+// How far from level the painted surface may tilt before the picture stops being printable there.
+//
+// A swap happens at one print Z across the whole plate, so what a point shows depends on how high it
+// is, not on how far the relief stands off the surface it sits on. On a tilted face a relief of d mm
+// along the normal only raises the print by d*cos(tilt), so the relief has to be deepened by
+// 1/cos(tilt) to put its steps at the heights the colours were solved for - which runs away as the
+// surface approaches vertical, and at 60 degrees has already doubled. Past here the correction is
+// clamped and those texels print the wrong colour, which chroma_problems() reports.
+static constexpr float CHROMA_MAX_TILT_DEG = 60.f;
+
 // The most filament changes one stack may hold. Every band is a swap the printer has to make, so this is
 // a limit on patience rather than on the model; the palette itself is bounded by the layer count.
 static constexpr size_t CHROMA_MAX_BANDS = 16;
@@ -225,6 +235,33 @@ struct ChromaSolve
 
     bool empty() const { return width <= 0 || height <= 0 || levels.empty(); }
 };
+
+// The painted surface itself, sampled on the solve's own grid: how far from level it is at each
+// texel of the picture. Built by the GUI, which is the only place that knows where the picture lands
+// on the mesh.
+struct ChromaSurface
+{
+    int width  = 0;
+    int height = 0;
+    // cos(tilt) of the surface under this texel, i.e. the component of its normal along the print
+    // axis. 0 where no painted triangle covers the texel, which is also how "nothing here" is told
+    // from "level here".
+    std::vector<float> facing;
+
+    bool empty() const { return width <= 0 || height <= 0 || facing.empty(); }
+};
+
+// Deepens the solved relief where the surface is tilted, so its steps still land on the print heights
+// the colours were solved for, and returns the depth in millimetres the layer must carry for the
+// rewritten grey map to mean the same thing.
+//
+// The grey map is a linear encoding of "how far to displace along the normal", so the correction is a
+// per-texel factor on it: 1/cos(tilt), clamped at CHROMA_MAX_TILT_DEG. The deepest texel sets the
+// layer's depth and keeps the full 8 bits in use.
+//
+// A level patch leaves the map and the depth exactly as they were, so nothing about a flat picture
+// changes by passing through here.
+float chroma_tilt_relief(ChromaSolve &solve, const ChromaStack &stack, const ChromaSurface &surface);
 
 // Solves `rgb` (width * height * 3 bytes, row-major, top-to-bottom) against the stack's palette.
 // An empty stack, a zero-sized image or a stack with no relief layers gives an empty result.
