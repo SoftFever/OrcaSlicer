@@ -10,9 +10,11 @@ if those constants ever change. A picture that disagrees with the code is worse 
     python3 scripts/make_chromastack_tips.py
 
 Writes into resources/images/texture_displacement/, matching the house format: 256x256 PNGs and
-192x192 GIFs of 16 frames at 100 ms, on the same near-black ground.
+192x192 GIFs on the same near-black ground. A frame that is a step of a smooth sweep holds for the
+house 100 ms; one that is a state to be read holds for as long as reading it takes.
 """
 
+import itertools
 import math
 import os
 from PIL import Image, ImageDraw
@@ -28,6 +30,8 @@ FRAMES = 16
 # CHROMA_TD_OPAQUE_FRACTION / OPAQUE_EFOLDS, from libslic3r/ChromaStack.{hpp,cpp}.
 TD_OPAQUE_FRACTION = 0.1
 OPAQUE_EFOLDS = 3.0
+# CHROMA_DEFAULT_RELIEF_LAYERS, so a stack drawn here is as tall as the one the panel starts with.
+RELIEF_LAYERS = 24
 
 
 def s2l(c):
@@ -38,6 +42,55 @@ def s2l(c):
 def l2s(v):
     v = max(0.0, min(1.0, v))
     return round(255 * (v * 12.92 if v <= 0.0031308 else 1.055 * v ** (1 / 2.4) - 0.055))
+
+
+def lab(rgb):
+    """CIELAB, D65. The space chroma_suggest_colors() clusters in, because a distance in it is about
+    as far apart as two colours look."""
+    r, g, b = (s2l(c) for c in rgb)
+    x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+
+    def f(t):
+        return t ** (1 / 3) if t > 216 / 24389 else (24389 / 27 * t + 16) / 116
+
+    fx, fy, fz = f(x), f(y), f(z)
+    return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz))
+
+
+# A spool rack to choose from: the colours filament is actually sold in, with a transmission
+# distance apiece. A pale filament lets more light through, which is roughly what these say.
+RACK = [((236, 236, 230), 5.0), ((247, 199, 60), 5.0), ((224, 110, 44), 4.5), ((190, 48, 44), 4.0),
+        ((170, 60, 130), 4.0), ((60, 140, 90), 4.0), ((60, 160, 190), 4.5), ((40, 90, 160), 4.0),
+        ((120, 122, 126), 3.5), ((20, 20, 24), 3.0)]
+
+
+def pick_filaments(img, k):
+    """The k filaments off the rack that print this picture best, in the order they stack in.
+
+    The shape of chroma_pick_colors(): try the rack, keep what comes closest. Greedy - the best pair,
+    then whichever single filament helps most, and again - so every frame of the animation contains
+    the one before it, and the picture can only get closer as the count rises. The panel searches
+    orderings too; here the order is fixed, palest at the bottom, which is where the search lands
+    anyway because every band darkens what is under it.
+    """
+    small = img.resize((48, 36))
+    want = [lab(c) for c in small.getdata()]
+
+    def error(chosen):
+        bands = [(rgb, td, max(2, RELIEF_LAYERS // len(chosen))) for rgb, td in order(chosen)]
+        reach = [lab(c) for c in palette(bands, 0.08)]
+        return sum(min(sum((w[t] - r[t]) ** 2 for t in range(3)) for r in reach) for w in want)
+
+    def order(chosen):
+        return sorted(chosen, key=lambda f: -lab(f[0])[0])
+
+    best = min(((a, b) for n, a in enumerate(RACK) for b in RACK[n + 1:]), key=lambda pair: error(list(pair)))
+    chosen = list(best)
+    while len(chosen) < k:
+        chosen.append(min((f for f in RACK if f not in chosen), key=lambda f: error(chosen + [f])))
+    return order(chosen)
 
 
 def transmittance(td, layer_height):
@@ -81,55 +134,119 @@ def test_image(w, h):
     return img
 
 
-def colors_png(name, bands, caption_bands):
-    img = Image.new("RGB", (PNG, PNG), BG)
-    draw = ImageDraw.Draw(img)
-    pal = palette(bands, 0.08)
-    reach = pal  # entry i is a column of i + 1 layers, so every one of them is reachable
-
-    # What the picture becomes when every pixel takes the nearest colour the stack reaches.
-    src = test_image(176, 132)
+def remap(src, choices):
+    """src with every pixel taken to the nearest colour the stack reaches."""
     out = Image.new("RGB", src.size)
     sp, op = src.load(), out.load()
+    seen = {}
     for y in range(src.size[1]):
         for x in range(src.size[0]):
-            op[x, y] = nearest(sp[x, y], reach)
-    img.paste(out, (40, 42))
-    draw.rectangle([39, 41, 40 + 176, 42 + 132], outline=(48, 50, 54))
-
-    ramp_strip(draw, reach, 40, 196, 176, 22)
-    for i, (rgb, _td, _n) in enumerate(bands):
-        x = 40 + i * 20
-        draw.rectangle([x, 232, x + 14, 246], fill=rgb, outline=(60, 62, 66))
-    draw.text((40 + len(bands) * 20 + 8, 234), caption_bands, fill=DIM)
-    img.save(os.path.join(OUT, name))
+            c = sp[x, y]
+            got = seen.get(c)
+            if got is None:
+                got = seen[c] = nearest(c, choices)
+            op[x, y] = got
+    return out
 
 
-def dither_png(name, on):
-    img = Image.new("RGB", (PNG, PNG), BG)
-    src = test_image(176, 176).convert("L").convert("RGB")
+def save_gif(name, frames, hold=100):
+    frames = [f.convert("P", palette=Image.ADAPTIVE, colors=32) for f in frames]
+    frames[0].save(os.path.join(OUT, name), save_all=True, append_images=frames[1:], duration=hold, loop=0,
+                   optimize=True)
+
+
+def dither_image(w, h, on):
+    """A grey ramp taken to five levels, with and without the error carried into the next pixel."""
+    src = test_image(w, h).convert("L").convert("RGB")
     levels = [(v, v, v) for v in (18, 70, 125, 180, 240)]
     out = Image.new("RGB", src.size)
     sp, op = src.load(), out.load()
-    err = [[0.0] * src.size[0] for _ in range(src.size[1] + 1)]
-    for y in range(src.size[1]):
-        for x in range(src.size[0]):
+    err = [[0.0] * w for _ in range(h + 1)]
+    for y in range(h):
+        for x in range(w):
             want = sp[x, y][0] + (err[y][x] if on else 0.0)
             got = min(levels, key=lambda c: abs(c[0] - want))
             op[x, y] = got
             if on:
                 e = want - got[0]
-                if x + 1 < src.size[0]:
+                if x + 1 < w:
                     err[y][x + 1] += e * 7 / 16
-                if y + 1 <= src.size[1]:
+                if y + 1 <= h:
                     if x:
                         err[y + 1][x - 1] += e * 3 / 16
                     err[y + 1][x] += e * 5 / 16
-                    if x + 1 < src.size[0]:
+                    if x + 1 < w:
                         err[y + 1][x + 1] += e * 1 / 16
-    img.paste(out, (40, 40))
-    ImageDraw.Draw(img).rectangle([39, 39, 40 + 176, 40 + 176], outline=(48, 50, 54))
-    img.save(os.path.join(OUT, name))
+    return out
+
+
+def colors_gif(name):
+    """The picture as 2 filaments can print it, then 3, and so on up to the 8 the slider offers.
+
+    The same picture every frame, and the best n colours for it each time: what changes is only how
+    much of it the stack can reach. Each filament after the second buys a direction the ones under it
+    could not go, which is what the slider is choosing between.
+    """
+    src = test_image(136, 102)
+    frames = []
+    for n in range(2, 9):
+        each = max(2, RELIEF_LAYERS // n)
+        chosen = pick_filaments(src, n)
+        bands = [(rgb, td, each) for rgb, td in chosen]
+        pal = palette(bands, 0.08)
+        img = Image.new("RGB", (GIF, GIF), BG)
+        draw = ImageDraw.Draw(img)
+        img.paste(remap(src, pal), (28, 22))
+        draw.rectangle([27, 21, 28 + 136, 22 + 102], outline=(48, 50, 54))
+        for i, (rgb, _td) in enumerate(chosen):
+            x = 28 + i * 17
+            draw.rectangle([x, 136, x + 12, 148], fill=rgb, outline=(60, 62, 66))
+        draw.text((28, 164), "%d filaments" % n, fill=DIM)
+        frames.append(img)
+    save_gif(name, frames, 350)
+
+
+def order_gif(name):
+    """The same three filaments in each of the six orders they can be stacked in.
+
+    Left is the stack, bottom-up, in the filament each layer prints in; right is what a column that
+    tall shows from above. Nothing changes between frames but the order, and every colour on the
+    right changes with it - which is why the picker searches orderings rather than just colours.
+    """
+    trio = [((232, 232, 226), 6.0), ((240, 170, 40), 5.0), ((48, 96, 190), 4.0)]
+    each = 5
+    rows = 3 * each
+    frames = []
+    for o in itertools.permutations(range(3)):
+        bands = [(trio[i][0], trio[i][1], each) for i in o]
+        pal = palette(bands, 0.08)
+        per = []
+        for rgb, _td, n in bands:
+            per += [rgb] * n
+        img = Image.new("RGB", (GIF, GIF), BG)
+        draw = ImageDraw.Draw(img)
+        draw.text((34, 20), "stack", fill=DIM)
+        draw.text((102, 20), "shows", fill=DIM)
+        for i in range(rows):
+            y = 154 - i * 8
+            draw.rectangle([34, y, 94, y + 6], fill=per[i])
+            draw.rectangle([102, y, 162, y + 6], fill=pal[i])
+        frames.append(img)
+    save_gif(name, frames, 400)
+
+
+def dither_gif(name):
+    """The same ramp with dithering off, then on. A flip rather than a pair, because what is worth
+    seeing is the change: the bands move and the stipple does not."""
+    frames = []
+    for on in (False, True):
+        img = Image.new("RGB", (GIF, GIF), BG)
+        draw = ImageDraw.Draw(img)
+        img.paste(dither_image(152, 132, on), (20, 16))
+        draw.rectangle([19, 15, 20 + 152, 16 + 132], outline=(48, 50, 54))
+        draw.text((20, 162), "dither on" if on else "dither off", fill=DIM)
+        frames.append(img)
+    save_gif(name, frames, 900)
 
 
 def trim_png(name):
@@ -150,12 +267,6 @@ def trim_png(name):
             draw.line([210, y + 7, 232, y + 7], fill=(150, 110, 50), width=2)
         y += 17
     img.save(os.path.join(OUT, name))
-
-
-def save_gif(name, frames):
-    frames = [f.convert("P", palette=Image.ADAPTIVE, colors=32) for f in frames]
-    frames[0].save(os.path.join(OUT, name), save_all=True, append_images=frames[1:], duration=100, loop=0,
-                   optimize=True)
 
 
 def td_gif(name):
@@ -204,17 +315,13 @@ def layers_gif(name):
 
 
 def main():
-    two = [((236, 236, 230), 5.0, 12), ((20, 20, 24), 4.0, 12)]
-    six = [((236, 236, 230), 5.0, 4), ((247, 199, 60), 5.0, 4), ((224, 110, 44), 4.5, 4),
-           ((190, 48, 44), 4.0, 4), ((40, 90, 160), 4.0, 4), ((20, 20, 24), 3.0, 4)]
-    colors_png("chroma_colors_few.png", two, "2 filaments")
-    colors_png("chroma_colors_many.png", six, "6 filaments")
-    dither_png("chroma_dither_off.png", False)
-    dither_png("chroma_dither_on.png", True)
     trim_png("chroma_trim.png")
+    colors_gif("chroma_colors.gif")
+    order_gif("chroma_order.gif")
+    dither_gif("chroma_dither.gif")
     td_gif("chroma_td.gif")
     layers_gif("chroma_layers.gif")
-    print("wrote 7 illustrations into", os.path.normpath(OUT))
+    print("wrote 6 illustrations into", os.path.normpath(OUT))
 
 
 if __name__ == "__main__":

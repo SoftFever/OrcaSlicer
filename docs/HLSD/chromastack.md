@@ -312,6 +312,13 @@ that thing's tooltip.
   done from there, which is replacing height ranges that are in the way.
 - **Whether the base follows the model** is a padlock beside the field, closed while it does.
 
+A tooltip that is about what a stack reaches carries a picture of it. These cannot be renders of a
+model the way the relief layer's are: what they show is a property of the colour model, so they are
+computed from it by `scripts/make_chromastack_tips.py`, which mirrors the constants in
+`ChromaStack.hpp` and is run again when they change. Most of them are animations, because what each
+one has to show is a change - another filament added, the same filaments reordered, a band growing
+deeper - and a pair of stills leaves the reader to find the difference.
+
 The reasoning is that a warning printed on a panel is read once and then occupies that space for
 ever, and a panel that explains itself in paragraphs cannot be scanned at all. A mark that appears
 only when it has something to say costs one glyph when there is nothing wrong, and carries as much

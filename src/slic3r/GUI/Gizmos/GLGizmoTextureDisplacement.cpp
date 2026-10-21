@@ -3988,6 +3988,68 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         m_panel_icon_map[names[i]] = icons[i];
 }
 
+namespace {
+
+// The panel's own look, for a popup opened from it.
+//
+// A popup is a window of its own and inherits none of the window style the panel pushed, so with
+// nothing pushed it draws as bare ImGui: a translucent near-black sheet the panel reads straight
+// through, square corners with a border, and the stock blue selection. Begin() reads the background
+// and the rounding and the items read the Header colours, so the style has to be pushed before the
+// popup opens and popped after it closes - which is what this owns, along with Begin and End:
+//
+//     if (PanelPopup popup{"my_popup"}) { ... }
+//
+// Not push_combo_style(): that one sets HeaderHovered transparent on purpose, because an Orca combo
+// marks its hovered item with a border drawn by ImGui::BBLSelectable() rather than with a fill, so a
+// plain Selectable() under it highlights as nothing at all. The teal here is the fill the rest of
+// Orca's menus use (ImGuiWrapper::push_menu_style), which is what a menu item is supposed to do.
+class PanelPopup
+{
+public:
+    explicit PanelPopup(const char *id, ImGuiWindowFlags flags = 0)
+    {
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImGuiWrapper::COL_ORCA);
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGuiWrapper::COL_ORCA);
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImGuiWrapper::COL_ORCA);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, ImGui::GetStyle().WindowRounding);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.f);
+        m_open = ImGui::BeginPopup(id, flags);
+    }
+    ~PanelPopup()
+    {
+        if (m_open)
+            ImGui::EndPopup();
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(4);
+    }
+    explicit operator bool() const { return m_open; }
+
+    PanelPopup(const PanelPopup &)            = delete;
+    PanelPopup &operator=(const PanelPopup &) = delete;
+
+private:
+    bool m_open = false;
+};
+
+// push_combo_style(), with the fill a hovered item needs put back: ImGui::Combo() and a combo built
+// by hand from Selectable() both mark the hovered item by filling it, and combo style leaves that
+// colour transparent for BBLSelectable's border (see PanelPopup).
+void push_panel_combo_style(const float scale)
+{
+    ImGuiWrapper::push_combo_style(scale);
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGuiWrapper::COL_ORCA);
+}
+
+void pop_panel_combo_style()
+{
+    ImGui::PopStyleColor();
+    ImGuiWrapper::pop_combo_style();
+}
+
+} // namespace
+
 // Seconds on a real clock, for the tooltips' own timing.
 //
 // Not ImGui::GetTime(): nothing in OrcaSlicer ever sets io.DeltaTime, so it keeps imgui's default of
@@ -4877,13 +4939,16 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
         if (ImGui::IsItemHovered())
             panel_tooltip(text, media);
     };
+    // The current window's draw list, not the panel's captured one: a swatch is also drawn from inside
+    // the popups below, and the panel's list is clipped to the panel and drawn under them.
     const auto swatch = [&](const ColorRGB &c, float size) {
-        const ImVec2 p = ImGui::GetCursorScreenPos();
+        ImDrawList  *wdl = ImGui::GetWindowDrawList();
+        const ImVec2 p   = ImGui::GetCursorScreenPos();
         ImGui::Dummy(ImVec2(size, frame_h));
         const float y = std::round(p.y + 0.5f * (frame_h - size));
-        dl->AddRectFilled(ImVec2(p.x, y), ImVec2(p.x + size, y + size),
-                          IM_COL32(int(c.r() * 255.f), int(c.g() * 255.f), int(c.b() * 255.f), 255), style.FrameRounding);
-        dl->AddRect(ImVec2(p.x, y), ImVec2(p.x + size, y + size), ImGui::GetColorU32(ImGuiCol_Separator), style.FrameRounding);
+        wdl->AddRectFilled(ImVec2(p.x, y), ImVec2(p.x + size, y + size),
+                           IM_COL32(int(c.r() * 255.f), int(c.g() * 255.f), int(c.b() * 255.f), 255), style.FrameRounding);
+        wdl->AddRect(ImVec2(p.x, y), ImVec2(p.x + size, y + size), ImGui::GetColorU32(ImGuiCol_Separator), style.FrameRounding);
     };
     // Amber for "these filaments cannot reach this picture", green for "they do". The only two states
     // the card states in colour rather than in words.
@@ -4963,13 +5028,14 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                          "%d", ImGuiSliderFlags_AlwaysClamp);
         tip(_u8L("How many filaments the picture is printed in. Fewer is fewer changes to stand over; more is a "
                  "better match, never a worse one."),
-            { { "chroma_colors_few.png" }, { "chroma_colors_many.png" } });
+            { { "chroma_colors.gif" } });
 
         ImGui::SameLine(0.f, gap_s);
         if (m_imgui->button(_L("Use mine")))
             chroma_pick_colors(layer, m_chroma_pick_count[slot]);
         tip(_u8L("Builds the stack from that many of your loaded filaments: the ones that come closest to this "
-                 "picture, in the order that reaches the most colors."));
+                 "picture, in the order that reaches the most colors."),
+            { { "chroma_colors.gif" }, { "chroma_order.gif" } });
 
         ImGui::SameLine(0.f, gap_s);
         if (m_imgui->button(_L("Suggest"))) {
@@ -4977,9 +5043,10 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
             ImGui::OpenPopup("hf_suggest");
         }
         tip(_u8L("Works out the colors this picture would most like to be printed in, whether or not you own them - "
-                 "so you know what to go and get."));
+                 "so you know what to go and get."),
+            { { "chroma_colors.gif" } });
 
-        if (ImGui::BeginPopup("hf_suggest")) {
+        if (PanelPopup popup{"hf_suggest"}) {
             const std::vector<ChromaSuggestion> &found = m_chroma_suggestion[slot];
             if (found.empty())
                 ImGui::TextDisabled("%s", _u8L("Nothing to suggest for this picture.").c_str());
@@ -5018,7 +5085,6 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                                               .c_str());
                 ImGui::PopTextWrapPos();
             }
-            ImGui::EndPopup();
         }
     }
 
@@ -5038,7 +5104,7 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                                             Slic3r::format("%1%  %2%", band.filament.filament + 1, band.filament.name);
             ImGui::SetNextItemWidth(-(m_imgui->scaled(3.2f) + m_imgui->scaled(3.2f) + 2.f * frame_h + 4.f * gap_s +
                                       std::max(card_pad, 1.f)));
-            ImGuiWrapper::push_combo_style(m_parent.get_scale());
+            push_panel_combo_style(m_parent.get_scale());
             if (ImGui::BeginCombo("##hf_filament", current.c_str())) {
                 for (const ChromaFilament &f : loaded) {
                     const std::string item = f.name.empty() ? Slic3r::format(_u8L("Filament %1%"), f.filament + 1) :
@@ -5050,7 +5116,7 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                 }
                 ImGui::EndCombo();
             }
-            ImGuiWrapper::pop_combo_style();
+            pop_panel_combo_style();
             tip(_u8L("Which of the loaded filaments this band prints in. Its color and its transmission distance come "
                      "from that filament's preset."));
 
@@ -5117,7 +5183,7 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                                        "you this number, and every color on this card is computed from it."),
                                   { { "chroma_td.gif" } });
             }
-            if (ImGui::BeginPopup("hf_measure_pop")) {
+            if (PanelPopup popup{"hf_measure_pop"}) {
                 ImGui::TextDisabled("%s", _u8L("Measure transmission distance").c_str());
                 ImGui::Dummy(ImVec2(1.f, gap_s));
 
@@ -5129,7 +5195,7 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                     if (f.filament == m_chroma_wedge_substrate)
                         sub = &f;
                 ImGui::SetNextItemWidth(m_imgui->scaled(8.f));
-                ImGuiWrapper::push_combo_style(m_parent.get_scale());
+                push_panel_combo_style(m_parent.get_scale());
                 if (ImGui::BeginCombo("##hf_sub", sub == nullptr ? _u8L("pick one").c_str() :
                                                                    (sub->name.empty() ?
                                                                         Slic3r::format(_u8L("Filament %1%"), sub->filament + 1) :
@@ -5145,7 +5211,7 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                     }
                     ImGui::EndCombo();
                 }
-                ImGuiWrapper::pop_combo_style();
+                pop_panel_combo_style();
                 if (ImGui::IsItemHovered())
                     panel_tooltip(_u8L("The filament the staircase is printed over. A dark one under a pale staircase "
                                        "is the easiest to see stop showing through."));
@@ -5166,8 +5232,16 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                     ChromaWedge wedge;
                     wedge.steps           = m_chroma_wedge_steps;
                     wedge.layer_height_mm = layer.chroma.layer_height_mm;
-                    if (Plater *plater = wxGetApp().plater(); plater != nullptr)
-                        plater->calib_transmission_distance(wedge, m_chroma_wedge_substrate, band.filament.filament);
+                    // After this frame, not during it. The test plate replaces the project, which frees
+                    // the volume that `layer` and `band` point into, and the rest of the panel then
+                    // draws from freed memory.
+                    const int substrate = m_chroma_wedge_substrate;
+                    const int test      = band.filament.filament;
+                    ImGui::CloseCurrentPopup();
+                    wxGetApp().CallAfter([wedge, substrate, test]() {
+                        if (Plater *plater = wxGetApp().plater(); plater != nullptr)
+                            plater->calib_transmission_distance(wedge, substrate, test);
+                    });
                 }
                 m_imgui->disabled_end();
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -5205,7 +5279,6 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     panel_tooltip(_u8L("Puts the measurement into this stack. Put it into the filament's own preset "
                                        "too, under Transmission distance, so every later picture starts from it."));
-                ImGui::EndPopup();
             }
 
             ImGui::SameLine(0.f, gap_s);
@@ -5214,7 +5287,8 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                 move = int(bi);
             m_imgui->disabled_end();
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                panel_tooltip(_u8L("Print this filament later, i.e. further up the stack."));
+                panel_tooltip(_u8L("Print this filament later, i.e. further up the stack."),
+                              { { "chroma_order.gif" } });
             ImGui::SameLine(0.f, gap_s);
             m_imgui->disabled_begin(layer.chroma.bands.size() <= 1);
             if (m_imgui->button("x##hf_del"))
@@ -5256,7 +5330,8 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                                                      "the top at the right.\n\n"
                                                      "%1% of its %2% picture layers change the color; the rest show "
                                                      "what the layer below already showed. Trim removes them."),
-                                                distinct, relief));
+                                                distinct, relief),
+                              { { "chroma_layers.gif" } });
             ImGui::SameLine(0.f, gap_s);
             m_imgui->disabled_begin(distinct >= relief);
             if (m_imgui->button(_L("Trim"))) {
@@ -5275,15 +5350,24 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                 ImGui::OpenPopup("hf_add");
             m_imgui->disabled_end();
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                panel_tooltip(_u8L("Adds another filament change on top of the stack."));
-            if (ImGui::BeginPopup("hf_add")) {
+                panel_tooltip(_u8L("Adds another filament change on top of the stack."),
+                              { { "chroma_order.gif" } });
+            if (PanelPopup popup{"hf_add"}) {
+                // The whole row is the item, with the swatch and the name drawn over it rather than
+                // beside it: an item sized to its own label highlights behind the word only, which reads
+                // as nothing happening rather than as the row being picked. An empty label of width zero
+                // is the way to say that - it carries no size of its own and fills the row.
                 for (const ChromaFilament &f : loaded) {
                     ImGui::PushID(f.filament);
+                    const bool picked = ImGui::Selectable("", false, 0, ImVec2(0.f, frame_h));
+                    ImGui::SameLine(0.f, 0.f);
                     swatch(f.color, std::round(frame_h * 0.7f));
                     ImGui::SameLine(0.f, gap_s);
-                    const std::string item = f.name.empty() ? Slic3r::format(_u8L("Filament %1%"), f.filament + 1) :
-                                                              Slic3r::format("%1%  %2%", f.filament + 1, f.name);
-                    if (ImGui::Selectable(item.c_str())) {
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextUnformatted((f.name.empty() ? Slic3r::format(_u8L("Filament %1%"), f.filament + 1) :
+                                                             Slic3r::format("%1%  %2%", f.filament + 1, f.name))
+                                               .c_str());
+                    if (picked) {
                         ChromaBand band;
                         band.filament = f;
                         band.layers   = 4;
@@ -5292,7 +5376,6 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                     }
                     ImGui::PopID();
                 }
-                ImGui::EndPopup();
             }
         }
     }
@@ -5375,7 +5458,7 @@ void GLGizmoTextureDisplacement::render_chroma_details(TextureDisplacementLayer 
                             "for flat-colored artwork.\n\n"
                             "Solved for %1$.3f mm layers, from the print profile."),
                        layer.chroma.layer_height_mm),
-        { { "chroma_dither_off.png", _L("Off") }, { "chroma_dither_on.png", _L("On") } });
+        { { "chroma_dither.gif" } });
 }
 
 void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &panel_min, const ImVec2 &panel_max)
@@ -7997,9 +8080,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     const ImU32       col_sep  = ImGui::GetColorU32(ImGuiCol_Separator);
 
     const auto   scoped_combo   = [&](const char *id, int *v, const char *const items[], int n) {
-        ImGuiWrapper::push_combo_style(m_parent.get_scale());
+        push_panel_combo_style(m_parent.get_scale());
         const bool changed = ImGui::Combo(id, v, items, n);
-        ImGuiWrapper::pop_combo_style();
+        pop_panel_combo_style();
         return changed;
     };
     const auto hover_tip = [&](const auto &text, const std::vector<TipMedia> &media = {}) {
@@ -9410,31 +9493,21 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         m_imgui->disabled_end();
         // The kind is chosen here because it is a property of the layer, not of the panel: the two
         // cards carry different controls and a card never shows one that does not apply to it.
-        //
-        // push_combo_style() for the colours: a popup opened from this panel inherits a background
-        // that is partly transparent, and the panel's own rows read straight through it.
-        ImGuiWrapper::push_combo_style(m_parent.get_scale());
-        if (ImGui::BeginPopup("add_layer_kind")) {
-            // Both items as wide as the widest, and taller than their text: a selectable sized to its
-            // own label highlights only behind the word, which reads as nothing happening rather than
-            // as the row being picked.
-            const std::string relief = _u8L("Relief layer");
-            const std::string picture = _u8L("ChromaStack picture");
-            const ImVec2      item(std::max(ImGui::CalcTextSize(relief.c_str()).x,
-                                            ImGui::CalcTextSize(picture.c_str()).x) + 4.f * frame_h,
-                                   ImGui::GetTextLineHeight() + 2.f * style.FramePadding.y + gap_s);
-            if (ImGui::Selectable(relief.c_str(), false, 0, item))
+        if (PanelPopup popup{"add_layer_kind"}) {
+            // Width zero, so each row fills the popup rather than its own label: a selectable sized to
+            // its text highlights behind the word only, which reads as nothing happening rather than as
+            // the row being picked.
+            const ImVec2 item(0.f, frame_h);
+            if (ImGui::Selectable(_u8L("Relief layer").c_str(), false, 0, item))
                 add_texture_layer(false);
             if (ImGui::IsItemHovered())
                 panel_tooltip(_u8L("A height map pushed into the surface. Tiles, depth, blending."));
-            if (ImGui::Selectable(picture.c_str(), false, 0, item))
+            if (ImGui::Selectable(_u8L("ChromaStack picture").c_str(), false, 0, item))
                 add_texture_layer(true);
             if (ImGui::IsItemHovered())
                 panel_tooltip(_u8L("A color picture made of filament swaps: one copy, on a flat face, its height map "
                                    "solved from the picture and the filaments you give it."));
-            ImGui::EndPopup();
         }
-        ImGuiWrapper::pop_combo_style();
     }
 
     // ---- Mesh preparation: Pro only. Standard pins all of it and runs it from Bake. ----
