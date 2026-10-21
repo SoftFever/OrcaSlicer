@@ -69,7 +69,7 @@ void seed_denied_keywords()
 
 } // namespace
 
-TEST_CASE("Plugin audit denies app config and token filenames anywhere", "[audit]")
+TEST_CASE("Plugin audit denies host-managed filenames anywhere", "[audit]")
 {
     seed_denied_names();
     const PluginAuditManager& mgr = PluginAuditManager::instance();
@@ -81,6 +81,7 @@ TEST_CASE("Plugin audit denies app config and token filenames anywhere", "[audit
         CHECK(mgr.is_denied_filename(fs::path(SLIC3R_APP_KEY ".ini")));
         CHECK(mgr.is_denied_filename(fs::path(GCODEVIEWER_APP_KEY ".ini")));
         CHECK(mgr.is_denied_filename(fs::path(secret_constants::USER_SECRET_FILENAME)));
+        CHECK(mgr.is_denied_filename(fs::path(".install_state.json")));
     }
 
     SECTION("companions holding the same secrets are denied by the prefix rule")
@@ -136,6 +137,7 @@ TEST_CASE("Plugin audit deny beats allowed roots", "[audit]")
 
     const fs::path conf  = fs::path(data_dir()) / (SLIC3R_APP_KEY ".conf");
     const fs::path token = fs::path(data_dir()) / secret_constants::USER_SECRET_FILENAME;
+    const fs::path install_state = fs::path(data_dir()) / "plugins" / "example" / ".install_state.json";
 
     SECTION("a non-denied file inside the allowed root is writable (root really grants writes)")
     {
@@ -174,6 +176,17 @@ TEST_CASE("Plugin audit deny beats allowed roots", "[audit]")
     {
         AuditDecision decision = mgr.check_open((token.string() + ".tmp"), "w");
         CHECK_FALSE(decision.allowed);
+    }
+
+    SECTION("plugin install state is blocked for reads and writes despite the allowed root")
+    {
+        AuditDecision read_decision = mgr.check_open(install_state.string(), "r");
+        CHECK_FALSE(read_decision.allowed);
+        CHECK(read_decision.reason == "denied filename");
+
+        AuditDecision write_decision = mgr.check_open(install_state.string(), "w");
+        CHECK_FALSE(write_decision.allowed);
+        CHECK(write_decision.reason == "denied filename");
     }
 
     SECTION("a traversal path resolving to the config is blocked")
@@ -1118,4 +1131,38 @@ TEST_CASE("Stdlib code is recognized through a symlinked Python home", "[audit][
     CHECK_FALSE(PluginAuditManager::is_stdlib_file((link / "site-packages" / "requests" / "api.py").string()));
     CHECK_FALSE(PluginAuditManager::is_stdlib_file((harness.outside.path() / "plugin.py").string()));
     CHECK_FALSE(PluginAuditManager::is_stdlib_file("<string>"));
+}
+
+TEST_CASE("A plugin may read the CPython stdlib without a prompt, but not site-packages or for writing", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    const py::dict paths   = py::module_::import("sysconfig").attr("get_paths")();
+    const fs::path stdlib  = py::str(paths["stdlib"]).cast<std::string>();
+    const fs::path purelib = py::str(paths["purelib"]).cast<std::string>();
+    // os.py ships with every CPython installation. A site-packages path is third-party code even
+    // when the directory is empty: the prompt must come before the missing file is noticed.
+    const fs::path stdlib_file = stdlib / "os.py";
+    REQUIRE(fs::exists(stdlib_file));
+
+    python.globals["STDLIB_FILE"]       = stdlib_file.string();
+    python.globals["SITE_PACKAGE_FILE"] = (purelib / "regression_probe.py").string();
+    python.run_as(PLUGIN, R"PY(
+read_outcome = attempt(lambda: open(STDLIB_FILE).read())
+write_outcome = attempt(lambda: open(STDLIB_FILE, "r+").close())
+site_packages_outcome = attempt(lambda: open(SITE_PACKAGE_FILE).close())
+)PY");
+
+    CHECK(python.str("read_outcome") == "ok");
+    CHECK(python.str("write_outcome") == "denied");
+    CHECK(python.str("site_packages_outcome") == "denied");
+    // Only the write and the site-packages read are asked about; the stdlib read is implicit.
+    const std::string write_prompt         = "open: " + python.str("STDLIB_FILE") + "\n";
+    const std::string site_packages_prompt = "open: " + python.str("SITE_PACKAGE_FILE") + "\n";
+    CHECK(describe(harness.prompts) == write_prompt + site_packages_prompt);
 }
