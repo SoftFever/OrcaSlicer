@@ -132,7 +132,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_download = new ::Button(m_manage_panel, _L("Download"));
     m_button_download->SetToolTip(_L("Download selected files from printer."));
     m_button_select_all = new ::Button(m_manage_panel, _L("Select All"));
-    m_button_select_all->SetToolTip(_L("Select all files in the list."));
+    m_button_select_all->SetToolTip(_L("Select all files in the list for batch management."));
     m_button_management = new ::Button(m_manage_panel, _L("Select"));
     m_button_management->SetToolTip(_L("Batch manage files."));
     m_button_refresh = new ::Button(m_manage_panel, _L("Refresh"));
@@ -148,6 +148,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_select_all->SetBorderWidth(0);
     m_button_select_all->SetBackgroundColorNormal(wxColor("#009688"));
     m_button_select_all->SetTextColorNormal(*wxWHITE);
+    m_button_select_all->Enable(false);
     m_button_management->SetBorderWidth(0);
     m_button_management->SetBackgroundColorNormal(wxColor("#009688"));
     m_button_management->SetTextColorNormal(*wxWHITE);
@@ -159,7 +160,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
-    manage_sizer->Add(m_button_select_all, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 24)->Show(false);
+    manage_sizer->Add(m_button_select_all, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 24);
     manage_sizer->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL)->Show(false);
     manage_sizer->Add(m_button_delete, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24)->Show(false);
     manage_sizer->Add(m_button_refresh, 0, wxALIGN_CENTER_VERTICAL);
@@ -216,6 +217,9 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_select_all->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         e.Skip();
         if (auto fs = m_image_grid->GetFileSystem()) {
+            // Entering the selecting mode clears the selection, so do it first
+            if (!m_image_grid->IsSelecting())
+                SetSelecting(true);
             fs->SelectAll(true);
             m_image_grid->Refresh();
         }
@@ -306,6 +310,7 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
     }
     m_button_refresh->Enable(false);
     m_button_management->Enable(false);
+    m_button_select_all->Enable(false);
     SetSelecting(false);
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed, _L("Please confirm if the printer is connected."));
@@ -323,6 +328,7 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
             //m_manage_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
             m_button_refresh->Enable(fs->GetStatus() == PrinterFileSystem::ListReady);
             m_button_management->Enable(fs->GetCount() > 0);
+            m_button_select_all->Enable(fs->GetCount() > 0);
             bool download_support = fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
             m_image_grid->ShowDownload(download_support);
             if (fs->GetCount() == 0)
@@ -455,7 +461,6 @@ void MediaFilePanel::SetSelecting(bool selecting)
     m_button_management->SetLabel(selecting ? _L("Cancel") : _L("Select"));
     auto fs = m_image_grid->GetFileSystem();
     bool download_support = (fs && fs->GetFileType() < PrinterFileSystem::F_MODEL) || m_model_download_support;
-    m_manage_panel->GetSizer()->Show(m_button_select_all, selecting);
     m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support);
     m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
     m_manage_panel->GetSizer()->Show(m_button_refresh, !selecting);
