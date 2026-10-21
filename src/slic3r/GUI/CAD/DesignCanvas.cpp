@@ -1366,11 +1366,11 @@ void DesignCanvas::render_hud()
         ImGuiWrapper::pop_common_window_style();
     };
     if (!m_status_hud_last.IsEmpty()) {
-        // Past the view cube and the round view buttons, which own the bottom-left corner. Asked
+        // Past the left panel, and the view cube and the round view buttons where they own the bottom-left corner. Asked
         // of the canvas, which lays them out: they follow the monitor's DPI on Windows, where `em`
         // does not, so a fixed inset in `em` let them cover the start of the line at 150%.
         // A sentence can be a sentence: it wraps to the room left of the readout chip.
-        const float  left = m_canvas->get_canvas_toolbar_right() + margin;
+        const float  left = std::max(m_canvas->get_canvas_toolbar_right(), m_sidebar.drawn_width()) + margin;   // past the left panel too
         const ImVec4 col  = m_status_hud_colour.IsOk()
             ? ImVec4(m_status_hud_colour.Red() / 255.f, m_status_hud_colour.Green() / 255.f,
                      m_status_hud_colour.Blue() / 255.f, 1.f)
