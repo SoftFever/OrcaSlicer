@@ -1367,7 +1367,7 @@ wxMenu* MenuFactory::append_menu_item_transform(wxMenu* menu, bool multi_selecti
             [](wxCommandEvent&) { plater()->mirror(Z); }, "menu_mirror_z", m_parent);
     }
 
-    if(convert_unit)
+    if(convert_unit && show_mirror)
         sub_menu->AppendSeparator();
 
     append_submenu(menu, sub_menu, wxID_ANY, _L("Transform"), "", "", [](){return true;}, m_parent);
@@ -2166,12 +2166,13 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_center(menu);
         append_menu_item_drop(menu);
 
+        //ORCA switch to sub menus if new items added
+        auto transform_menu = append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*convert_unit*/);
+        append_menu_items_convert_unit(transform_menu);
         append_menu_item_align_distribute(menu);
         //ORCA switch to sub menus if new items added
-        //append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*convert_unit*/);
         //append_menu_item_modify(menu, true /*multi_selection*/, false /*splittable*/, true /*is_mesh*/, false /*mesh_boolean*/);
         append_menu_item_fix_through_cgal(menu);
-        append_menu_items_convert_unit(menu);
         //append_menu_item_simplify(menu);
         menu->AppendSeparator();
         append_menu_item_delete(menu);
