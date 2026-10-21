@@ -2804,7 +2804,9 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
             _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
         }
         m_frame_profiler.mark("bed");
-        if (show_bed) //BBS: add outline logic
+        // Exception: the painting gizmos hide the bed mesh on purpose and draw the plate instead,
+        // so there the plate list is the only bed reference in the scene.
+        if (show_bed || _is_below_plate_view_active()) //BBS: add outline logic
             _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
         if (m_design_canvas && show_bed)
             // Design tab: replace the plate's corner-origin grid with the origin-centred CAD grid.
@@ -2816,6 +2818,7 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         _render_shadows(camera.get_view_matrix(), camera.get_projection_matrix());
         m_frame_profiler.mark("shadows");
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
+        _render_below_plate_volumes();
         m_frame_profiler.mark("objects");
         _render_sla_slices();
         _render_selection();
@@ -5632,14 +5635,10 @@ void GLCanvas3D::do_move(const std::string& snapshot_type, bool force_volume_mov
     // Fixes sinking/flying instances (snaps object to buildplate)
     for (const std::pair<int, int>& i : done) {
         ModelObject* mo = m_model->objects[i.first];
-            
-        if (!mo->auto_drop) {
-            continue;
-        }
 
         const double shift_z = mo->get_instance_min_z(i.second);
         //BBS: don't call translate if the z is zero
-        if ((current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+        if (mo->auto_drop && (current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             mo->translate_instance(i.second, shift);
@@ -5763,14 +5762,10 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         for (const std::pair<int, int> &i : done) {
             ModelObject *mo = m_model->objects[i.first];
 
-            if (!mo->auto_drop) {
-                continue;
-            }
-
             // BBS: don't call translate if the z is zero
             const double shift_z = mo->get_instance_min_z(i.second);
             // leave sinking instances as sinking
-            if ((min_zs.find({i.first, i.second})->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+            if (mo->auto_drop && (min_zs.find({i.first, i.second})->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
                 const Vec3d shift(0.0, 0.0, -shift_z);
                 m_selection.translate(i.first, i.second, shift);
                 mo->translate_instance(i.second, shift);
@@ -5865,14 +5860,10 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     for (const std::pair<int, int>& i : done) {
         ModelObject* mo = m_model->objects[i.first];
 
-        if (!mo->auto_drop) {
-            continue;
-        }
-
         //BBS: don't call translate if the z is zero
         double shift_z = mo->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if ((min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+        if (mo->auto_drop && (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
             Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             mo->translate_instance(i.second, shift);
@@ -5985,14 +5976,10 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
     for (const std::pair<int, int>& i : done) {
         ModelObject* mo = m_model->objects[i.first];
 
-        if (!mo->auto_drop) {
-            continue;
-        }
-
         //BBS: don't call translate if the z is zero
         double shift_z = mo->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if ((min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
+        if (mo->auto_drop && (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
             Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             mo->translate_instance(i.second, shift);
@@ -8838,6 +8825,84 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
         m_bed.set_axes_mode(m_main_toolbar.is_enabled() && !_hides_inactive_plates());
     }
     m_bed.render(*this, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
+}
+
+bool GLCanvas3D::_is_below_plate_view_active() const
+{
+    return dynamic_cast<const GLGizmoPainterBase*>(m_gizmos.get_current()) != nullptr && m_gizmos.is_hiding_instances();
+}
+
+// The painting gizmo clips the selected object at the plate, so the part under the plate is not drawn.
+// This pass draws that part of the selected instance again at 50% opacity, depth writes off.
+void GLCanvas3D::_render_below_plate_volumes()
+{
+    if (!_is_below_plate_view_active() || m_volumes.empty())
+        return;
+
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
+    if (shader == nullptr)
+        return;
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d& proj_matrix = camera.get_projection_matrix();
+    const int object_idx = m_selection.get_object_idx();
+    const int instance_idx = m_selection.get_instance_idx();
+
+    // Depth test stays on so whatever is already in the depth buffer hides the ghost; depth writes
+    // are off and back faces are culled, so each pixel blends only the near surface once.
+    const GLboolean cull_face = ::glIsEnabled(GL_CULL_FACE);
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glCullFace(GL_BACK));
+    glsafe(::glDepthMask(GL_FALSE));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+    shader->start_using();
+    // Keep z <= SINKING_Z_THRESHOLD, the complement of the clip the painting gizmo applies.
+    shader->set_uniform("z_range", std::array<float, 2>{ -FLT_MAX, float(SINKING_Z_THRESHOLD) });
+    shader->set_uniform("clipping_plane", m_volumes.get_clipping_plane());
+    shader->set_uniform("use_color_clip_plane", false);
+    shader->set_uniform("is_outline", false);
+    shader->set_uniform("slope.actived", false);
+    shader->set_uniform("print_volume.type", -1);
+    shader->set_uniform("extruder_printable_heights", std::array<float, 3>{ 0.0f, 0.0f, 0.0f });
+    shader->set_uniform("shadow_intensity", 0.0f);
+
+    // simple_render() needs these to reach the plain surface; with ban_color_volume it ignores both.
+    ModelObjectPtrs&       model_objects   = wxGetApp().model().objects;
+    std::vector<ColorRGBA> extruder_colors = wxGetApp().plater()->get_extruders_colors();
+
+    for (GLVolume* volume : m_volumes.volumes) {
+        // is_active cannot gate this pass: the color painter marks the whole instance inactive and
+        // draws it in its own gizmo pass. The instance and print-part checks below are what pick
+        // this ghost out of the scene.
+        if (volume->object_idx() != object_idx || volume->instance_idx() != instance_idx ||
+            volume->is_modifier || volume->is_wipe_tower || volume->volume_idx() < 0)
+            continue;
+
+        volume->set_render_color();
+        ColorRGBA color = volume->render_color;
+        color.a(0.5f);
+        volume->model.set_color(color);
+
+        const Transform3d model_matrix = volume->world_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+        shader->set_uniform("projection_matrix", proj_matrix);
+        shader->set_uniform("volume_world_matrix", model_matrix);
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        // Painted facets would send render() through the MMU segmentation sub-models, which carry
+        // their own opaque filament colours; the ghost draws the plain surface so the alpha holds.
+        volume->simple_render(shader, model_objects, extruder_colors, false, true);
+    }
+    shader->stop_using();
+
+    glsafe(::glDisable(GL_BLEND));
+    glsafe(::glDepthMask(GL_TRUE));
+    if (cull_face == GL_FALSE)
+        glsafe(::glDisable(GL_CULL_FACE));
 }
 
 bool GLCanvas3D::_hides_inactive_plates() const
@@ -11968,9 +12033,10 @@ bool GLCanvas3D::is_bed_visible() const
     if (!m_main_toolbar.is_enabled())
         return true;
 
-    const auto type = m_gizmos.get_current_type();
-    return type != GLGizmosManager::FdmSupports && type != GLGizmosManager::Seam &&
-        type != GLGizmosManager::MmSegmentation && type != GLGizmosManager::FuzzySkin;
+    // The painting gizmos clip the selected instance at the plate (see InstancesHider), so the bed
+    // mesh would sit in front of the part below it. They draw the plate and its grid instead (see
+    // _render_scene) and the below-plate part as a translucent ghost.
+    return !_is_below_plate_view_active();
 }
 
 Vec3d GLCanvas3D::get_camera_pan_anchor(Camera& camera, ECameraNavigationType navigation_type,
