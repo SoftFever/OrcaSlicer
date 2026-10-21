@@ -216,7 +216,9 @@ overlay uses, since it is the same surface as whatever is underneath it.
 ## What the panel shows
 
 The kind of a layer is the layer's own, chosen when it is added. The chip in the card's header is
-also the control that changes it: clicking it offers the two kinds, and converting keeps everything -
+also the control that changes it: there are two kinds and one of them is the current one, so the chip
+is the switch rather than something that opens a switch, and clicking it converts. Converting keeps
+everything -
 a picture's stack survives a trip through being a relief layer, and a relief layer's texture becomes
 the picture it is solved from, a height map being a picture with no colour in it. Converting away
 from a picture clears the swaps it wrote, and only those.

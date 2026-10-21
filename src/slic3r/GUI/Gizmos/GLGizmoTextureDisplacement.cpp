@@ -8731,43 +8731,24 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                         _u8L("Pick a different image for this layer. The paint, depth and tiling stay "
                                              "as they are."));
                 ImGui::SameLine(0.f, gap_s);
-                if (chip(chip_text, chroma_card))
-                    ImGui::OpenPopup("layer_kind");
-                if (ImGui::IsItemHovered())
-                    panel_tooltip((chroma_card ? _u8L("A color picture made of filament swaps. Its height map is "
-                                                         "solved from the picture and the filaments below.") :
-                                                    _u8L("A height map pushed into the surface. Tiles, depth, "
-                                                         "blending.")) +
-                                         "\n\n" + _u8L("Click to change what kind of layer this is."));
-                if (ImGui::BeginPopup("layer_kind")) {
-                    // Both lines are drawn by hand, so the item has to be told how wide they are:
-                    // nothing an item draws itself contributes to the width a popup sizes itself by,
-                    // and a selectable of width 0 asks for whatever is left of a popup that is still
-                    // deciding. It came out a few characters wide with the text running out of it.
-                    const std::string relief_title = _u8L("Relief layer");
-                    const std::string relief_what  = _u8L("A height map pushed into the surface.");
-                    const std::string chroma_title = _u8L("ChromaStack picture");
-                    const std::string chroma_what  = _u8L("A color picture made of filament swaps.");
-                    float menu_w = 0.f;
-                    for (const std::string *text : { &relief_title, &relief_what, &chroma_title, &chroma_what })
-                        menu_w = std::max(menu_w, ImGui::CalcTextSize(text->c_str()).x);
-                    menu_w += 2.f * style.FramePadding.x;
-
-                    const auto kind = [&](const std::string &title, const std::string &what, bool current) {
-                        const bool picked = ImGui::Selectable(("##" + title).c_str(), current, 0,
-                                                              ImVec2(menu_w, 2.f * ImGui::GetTextLineHeight() + 4.f));
-                        const ImVec2 mn = ImGui::GetItemRectMin();
-                        dl->AddText(ImVec2(mn.x, mn.y + 2.f), ImGui::GetColorU32(ImGuiCol_Text), title.c_str());
-                        dl->AddText(ImVec2(mn.x, mn.y + 2.f + ImGui::GetTextLineHeight()),
-                                    ImGui::GetColorU32(ImGuiCol_TextDisabled), what.c_str());
-                        return picked;
-                    };
-                    if (kind(relief_title, relief_what, !chroma_card))
-                        convert_slot = layer.slot, convert_to_chroma = false;
-                    if (kind(chroma_title, chroma_what, chroma_card))
-                        convert_slot = layer.slot, convert_to_chroma = true;
-                    ImGui::EndPopup();
+                // There are two kinds and one of them is the current one, so the chip is the switch
+                // rather than something that opens a switch: a menu of two items, one of them ticked,
+                // is a click spent on being asked. Nothing is lost either way - a picture's stack
+                // survives being a relief layer - so clicking again puts it back.
+                if (chip(chip_text, chroma_card)) {
+                    convert_slot      = layer.slot;
+                    convert_to_chroma = !chroma_card;
                 }
+                if (ImGui::IsItemHovered())
+                    panel_tooltip(chroma_card ?
+                                      _u8L("A color picture made of filament swaps. Its height map is solved from the "
+                                           "picture and the filaments below.\n\n"
+                                           "Click to make it an ordinary relief layer. Its picture and filaments are "
+                                           "kept, so clicking again brings them back.") :
+                                      _u8L("A height map pushed into the surface. Tiles, depth, blending.\n\n"
+                                           "Click to make it a ChromaStack picture: its texture becomes the picture a "
+                                           "color stack is solved from."));
+
                 // Whatever is wrong with this layer, as one mark. The panel says nothing in prose: the
                 // list is in the tooltip, where it is read when wanted rather than sat through, and a
                 // click does the one thing that can be done from here.
@@ -9416,34 +9397,23 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         m_imgui->disabled_end();
         // The kind is chosen here because it is a property of the layer, not of the panel: the two
         // cards carry different controls and a card never shows one that does not apply to it.
+        //
+        // push_combo_style() for the colours: a popup opened from this panel inherits a background
+        // that is partly transparent, and the panel's own rows read straight through it.
+        ImGuiWrapper::push_combo_style(m_parent.get_scale());
         if (ImGui::BeginPopup("add_layer_kind")) {
-            // The width has to be worked out from the text, for the reason the layer kind's own menu
-            // carries: hand-drawn lines are invisible to a popup's auto-size.
-            const std::string relief_title = _u8L("Relief layer");
-            const std::string relief_what  = _u8L("A height map pushed into the surface. Tiles, depth, blending.");
-            const std::string chroma_title = _u8L("ChromaStack picture");
-            const std::string chroma_what  = _u8L("A color picture made of filament swaps. One copy, flat face.");
-            float menu_w = 0.f;
-            for (const std::string *text : { &relief_title, &relief_what, &chroma_title, &chroma_what })
-                menu_w = std::max(menu_w, ImGui::CalcTextSize(text->c_str()).x);
-            menu_w += 2.f * ImGui::GetStyle().FramePadding.x;
-
-            const auto kind = [&](const std::string &title, const std::string &what) {
-                const bool picked = ImGui::Selectable(("##" + title).c_str(), false, 0,
-                                                      ImVec2(menu_w, 2.f * ImGui::GetTextLineHeight() + 4.f));
-                const ImVec2 mn = ImGui::GetItemRectMin();
-                ImDrawList  *dl = ImGui::GetWindowDrawList();
-                dl->AddText(ImVec2(mn.x, mn.y + 2.f), ImGui::GetColorU32(ImGuiCol_Text), title.c_str());
-                dl->AddText(ImVec2(mn.x, mn.y + 2.f + ImGui::GetTextLineHeight()),
-                            ImGui::GetColorU32(ImGuiCol_TextDisabled), what.c_str());
-                return picked;
-            };
-            if (kind(relief_title, relief_what))
+            if (ImGui::Selectable(_u8L("Relief layer").c_str()))
                 add_texture_layer(false);
-            if (kind(chroma_title, chroma_what))
+            if (ImGui::IsItemHovered())
+                panel_tooltip(_u8L("A height map pushed into the surface. Tiles, depth, blending."));
+            if (ImGui::Selectable(_u8L("ChromaStack picture").c_str()))
                 add_texture_layer(true);
+            if (ImGui::IsItemHovered())
+                panel_tooltip(_u8L("A color picture made of filament swaps: one copy, on a flat face, its height map "
+                                   "solved from the picture and the filaments you give it."));
             ImGui::EndPopup();
         }
+        ImGuiWrapper::pop_combo_style();
     }
 
     // ---- Mesh preparation: Pro only. Standard pins all of it and runs it from Bake. ----
