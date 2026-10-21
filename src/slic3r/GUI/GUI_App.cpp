@@ -3002,9 +3002,10 @@ void GUI_App::init_plugin_gui_wiring()
     };
 
     // why: a newly loaded plugin only adds a selectable agent
-    // refresh the dropdown and leave the live agent alone, unless the selected preset was
-    // waiting for this agent: plugins load after the startup preset is applied
-    auto refresh_printer_agent_dropdown_after_load = [](const std::string&)
+    // refresh the dropdown and leave the live agent alone, unless it brought a printer connection
+    // the selected preset may be waiting for: plugins load asynchronously and can register their
+    // agent after the startup preset is applied
+    auto refresh_printer_agent_after_load = [](bool provides_printer_connection)
     {
         if (!wxTheApp)
             return;
@@ -3013,12 +3014,13 @@ void GUI_App::init_plugin_gui_wiring()
         if (app->is_closing())
             return;
 
-        app->CallAfter([app]
+        app->CallAfter([app, provides_printer_connection]
         {
             if (app->is_closing())
                 return;
 
-            app->switch_printer_agent_if_pending();
+            if (provides_printer_connection)
+                app->switch_printer_agent_if_pending();
             app->refresh_printer_agent_dropdown();
         });
     };
@@ -3059,14 +3061,19 @@ void GUI_App::init_plugin_gui_wiring()
             return;
         wxGetApp().mainframe->plugin_pages().on_plugin_deregister(plugin_key);
     });
-    plugin_mgr.subscribe_on_load_callback(refresh_printer_agent_dropdown_after_load);
+    plugin_mgr.subscribe_on_load_callback([refresh_printer_agent_after_load](const std::string& plugin_key) {
+        refresh_printer_agent_after_load(!PluginManager::instance()
+                                              .get_plugin_capabilities(plugin_key, PluginCapabilityType::PrinterConnection,
+                                                                       /*only_enabled=*/true)
+                                              .empty());
+    });
     plugin_mgr.subscribe_on_unload_callback(switch_printer_agent_after_unload);
     plugin_mgr.subscribe_on_capability_load_callback(
-        [refresh_plugins_dialog, refresh_printer_agent_dropdown_after_load](const PluginCapabilityId& capability) {
+        [refresh_plugins_dialog, refresh_printer_agent_after_load](const PluginCapabilityId& capability) {
             if (capability.type == PluginCapabilityType::PrinterConnection)
                 NetworkAgentFactory::register_python_printer_agent(capability.plugin_key, capability.name);
             refresh_plugins_dialog();
-            refresh_printer_agent_dropdown_after_load(capability.plugin_key);
+            refresh_printer_agent_after_load(capability.type == PluginCapabilityType::PrinterConnection);
             // A newly loaded capability may satisfy a missing-plugin notification; re-validate the
             // current plate (on the UI thread) so the notification clears once its plugin is available.
             if (wxTheApp && !wxGetApp().is_closing())
@@ -4239,6 +4246,12 @@ void GUI_App::switch_printer_agent()
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": no agent exists";
         return;
     }
+
+    // why: installing an agent updates the sidebar and the main frame's print button; until the
+    // main window exists, load_current_presets() has not run Tab::on_presets_changed(), which
+    // installs the selected preset's agent once the window is up
+    if (!mainframe || !plater_)
+        return;
 
     const DynamicPrintConfig& config = preset_bundle->printers.get_edited_preset().config;
     const std::string effective_agent_id = resolve_printer_agent_id(config.opt_string("printer_agent"));
