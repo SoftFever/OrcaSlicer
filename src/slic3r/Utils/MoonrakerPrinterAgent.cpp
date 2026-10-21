@@ -2481,11 +2481,6 @@ void MoonrakerPrinterAgent::announce_printhost_device()
 
     const std::string model_id = device_info.model_id;
 
-    if (auto* app_config = GUI::wxGetApp().app_config) {
-        const std::string access_code = device_info.api_key.empty() ? NO_API_KEY_SENTINEL : device_info.api_key;
-        app_config->set_str("access_code", device_info.dev_id, access_code);
-    }
-
     nlohmann::json payload;
     payload["dev_name"]     = dev_name;
     payload["dev_id"]       = device_info.dev_id;
