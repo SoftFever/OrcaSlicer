@@ -214,27 +214,14 @@ static bool list_hid_collections_raw_input(std::vector<HidCollection>& out)
     return true;
 }
 
-static std::vector<HidCollection> list_hid_collections_hidapi()
-{
-    std::vector<HidCollection> out;
-    if (hid_init() != 0) {
-        BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
-        return out;
-    }
-    hid_device_info* devices = hid_enumerate(0, 0);
-    for (hid_device_info* current = devices; current != nullptr; current = current->next)
-        out.push_back({ current->vendor_id, current->product_id, current->usage_page, current->usage });
-    hid_free_enumeration(devices);
-    hid_exit();
-    return out;
-}
-
 static std::string detect_attached_device()
 {
     std::vector<HidCollection> collections;
     if (! list_hid_collections_raw_input(collections)) {
-        BOOST_LOG_TRIVIAL(warning) << "Raw Input device list unavailable, enumerating HID devices instead";
-        collections = list_hid_collections_hidapi();
+        // A device plugged in later still connects through device_attached().
+        const DWORD error = ::GetLastError();
+        BOOST_LOG_TRIVIAL(warning) << "Raw Input device list unavailable, error " << error;
+        return {};
     }
     if (collections.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "detect_attached_device() - no HID device enumerated.";
