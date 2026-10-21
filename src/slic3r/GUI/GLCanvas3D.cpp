@@ -2898,7 +2898,9 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
     // Design tab: interactive 2D sketch overlay, drawn over the scene but
     // beneath the UI overlays (toolbars, labels).
 #ifdef SLIC3R_CAD
-    if (m_design_sketch_tool != nullptr && m_design_sketch_tool->has_display())
+    // Always: the canvas's ImGui overlays (top bar, left panel) are drawn from inside it, and exist on an empty design too.
+    // render() returns early by itself when there is nothing of the tool's own to draw.
+    if (m_design_sketch_tool != nullptr)
         m_design_sketch_tool->render(*this);
 #endif
 
