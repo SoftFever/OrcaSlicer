@@ -30,6 +30,7 @@
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/Selection.hpp"
 
@@ -265,9 +266,10 @@ void FillBedJob::process(Ctl &ctl)
         return ctl.was_canceled() || do_stop;
     };
 
-    params.progressind = [this, &ctl, &statustxt](unsigned st,std::string str="") {
+    params.progressind = [this, &ctl](unsigned st,std::string str="") {
          if (st > 0)
-             ctl.update_status(st * 100 / status_range(), statustxt + " " + str);
+             // TRN Progress status of Fill bed. %1% is the name of the object being copied.
+             ctl.update_status(st * 100 / status_range(), GUI::format(_u8L("Filling %1%"), str));
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {

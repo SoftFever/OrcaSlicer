@@ -8,6 +8,7 @@ on:
     paths:
      - 'deps/**'
      - 'deps_src/**'
+     - 'cmake/**'
      - 'src/**'
      - '**/CMakeLists.txt'
      - 'version.inc'
@@ -18,6 +19,8 @@ on:
      - 'build_linux.sh'
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
+     - 'scripts/check_exception_throw_info.ps1'
+     - 'scripts/test_check_exception_throw_info.ps1'
      - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
@@ -31,6 +34,7 @@ on:
     paths:
      - 'deps/**'
      - 'deps_src/**'
+     - 'cmake/**'
      - 'src/**'
      - '**/CMakeLists.txt'
      - 'version.inc'
@@ -39,6 +43,8 @@ on:
      - 'build_linux.sh'
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
+     - 'scripts/check_exception_throw_info.ps1'
+     - 'scripts/test_check_exception_throw_info.ps1'
      - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
@@ -81,6 +87,10 @@ jobs:
       - name: Run the build script test suite
         shell: powershell
         run: .\scripts\test_build_win.ps1
+
+      - name: Run the exception throw info check tests
+        shell: powershell
+        run: .\scripts\test_check_exception_throw_info.ps1
 
   build_linux:
     strategy:
@@ -441,14 +451,10 @@ jobs:
         path: '/__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak'
     - name: Deploy Flatpak to nightly release
       if: github.repository == 'OrcaSlicer/OrcaSlicer' && github.ref == 'refs/heads/main'
-      uses: WebFreak001/deploy-nightly@v3.2.0
+      uses: ./.github/actions/deploy-nightly
       with:
-        upload_url: https://uploads.github.com/repos/OrcaSlicer/OrcaSlicer/releases/137995723/assets{?name,label}
-        release_id: 137995723
         asset_path: /__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
         asset_name: OrcaSlicer-Linux-flatpak_nightly_${{ matrix.variant.arch }}.flatpak
-        asset_content_type: application/octet-stream
-        max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
     # The asset is /app (the exes link it at runtime) plus the build tree
     # slimmed to what ctest needs.
     - name: Package flatpak test asset
