@@ -8,12 +8,18 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 
+#include "libslic3r/libslic3r.h"
+#include <cstddef>
+#include "libslic3r/PrintConfig.hpp"
+#include <initializer_list>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-namespace Slic3r { namespace Test {
+namespace Slic3r {
+struct GCodeProcessorResult;
+namespace Test {
 
 constexpr double MM_PER_MIN = 60.0;
 
@@ -72,9 +78,15 @@ Slic3r::Model model(const std::string& model_name, TriangleMesh&& _mesh);
 DynamicPrintConfig multifilament_config(unsigned int filaments,
     std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> extra = {});
 
-// Apply `meshes` and config to `print`/`model`; optional per-object overrides, auto-arranged unless `arrange` is false.
+// Repeat multifilament_config's single flush block, and the flush multipliers, once per nozzle.
+// Call after setting nozzle_diameter to more than one nozzle.
+void size_flush_to_nozzles(DynamicPrintConfig &config);
+
+// Apply `meshes` and config to `print`/`model`, each object with `instances` copies; optional per-object overrides,
+// auto-arranged unless `arrange` is false.
 void init_print(std::vector<TriangleMesh> &&meshes, Slic3r::Print &print, Slic3r::Model &model, const DynamicPrintConfig &config_in,
-    const std::vector<std::vector<Slic3r::ConfigBase::SetDeserializeItem>> *per_object_overrides = nullptr, bool arrange = true);
+    const std::vector<std::vector<Slic3r::ConfigBase::SetDeserializeItem>> *per_object_overrides = nullptr, bool arrange = true,
+    size_t instances = 1);
 void init_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, const Slic3r::DynamicPrintConfig &config_in = Slic3r::DynamicPrintConfig::full_print_config());
 void init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, const Slic3r::DynamicPrintConfig &config_in = Slic3r::DynamicPrintConfig::full_print_config());
 void init_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items);
@@ -86,8 +98,8 @@ void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::
 void init_and_process_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items);
 void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items);
 
-// Process `print` and return its exported G-code.
-std::string gcode(Print& print);
+// Process `print` and return its exported G-code, filling `result` when one is given.
+std::string gcode(Print& print, GCodeProcessorResult* result = nullptr);
 
 // Build, slice, and return the G-code for `meshes` under the given config.
 std::string slice(std::initializer_list<TestMesh> meshes, const DynamicPrintConfig &config);
@@ -107,6 +119,10 @@ void place_two_cubes_apart(double gap, std::initializer_list<Slic3r::ConfigBase:
     Slic3r::Print &print, Slic3r::Model &model);
 // Slice two 20mm cubes `gap` mm apart (not auto-arranged) and return the G-code.
 std::string slice_two_cubes_apart(double gap, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items);
+
+// Place two instances of one 20mm cube `gap` mm apart edge-to-edge.
+void place_two_cube_instances_apart(double gap, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items,
+    Slic3r::Print &print, Slic3r::Model &model);
 
 // Distinct layer Z heights carrying an extrusion of the given `role` (e.g. "skirt").
 std::set<double> layers_with_role(const std::string &gcode, const std::string &role);

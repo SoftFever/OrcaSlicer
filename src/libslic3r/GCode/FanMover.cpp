@@ -1,10 +1,25 @@
 #include "FanMover.hpp"
 
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/ExtrusionEntity.hpp"
 #include "GCodeReader.hpp"
 
+#include <cstddef>
+#include <cerrno>
+#include <cstdlib>
+#include <algorithm>
+#include <cstdint>
+#include <cmath>
+#include <cassert>
+#include <cctype>
 #include <iomanip>
 /*
+#include <ios>
+#include <list>
+#include <iterator>
 #include <memory.h>
+#include <sstream>
 #include <string.h>
 #include <float.h>
 
@@ -14,6 +29,10 @@
 #include "Print.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <string>
+#include <string_view>
+#include "libslic3r/Config.hpp"
+#include "libslic3r/GCodeWriter.hpp"
 */
 
 
@@ -170,14 +189,13 @@ void FanMover::_put_in_middle_G1(std::list<BufferData>::iterator item_to_split, 
 
 void FanMover::_print_in_middle_G1(BufferData& line_to_split, float nb_sec, const std::string &line_to_write) {
     if (nb_sec < line_to_split.time * 0.1) {
-        // doesn't really need to be split, print it after
-        m_process_output += line_to_split.raw + "\n";
+        // Doesn't need to be split: the insertion point is at the start.
         m_process_output += line_to_write + (line_to_write.back() == '\n'?"":"\n");
-    } else if (nb_sec > line_to_split.time * 0.9) {
-        // doesn't really need to be split, print it before
-        //will also print before if line_to_split.time == 0
-        m_process_output += line_to_write + (line_to_write.back() == '\n' ? "" : "\n");
         m_process_output += line_to_split.raw + "\n";
+    } else if (nb_sec > line_to_split.time * 0.9) {
+        // Doesn't need to be split: the insertion point is at the end.
+        m_process_output += line_to_split.raw + "\n";
+        m_process_output += line_to_write + (line_to_write.back() == '\n' ? "" : "\n");
     }else if(line_to_split.raw.size() > 2
         && line_to_split.raw[0] == 'G' && line_to_split.raw[1] == '1' && line_to_split.raw[2] == ' ') {
         float percent = nb_sec / line_to_split.time;
@@ -426,6 +444,11 @@ void FanMover::_process_gcode_line(GCodeReader& reader, const GCodeReader::GCode
                 // get the type of the next extrusions
                 std::string extrusion_string = line.raw().substr(6, line.raw().size() - 6);
                 current_role = ExtrusionEntity::string_to_role(extrusion_string);
+            }
+            if (line.raw().rfind(";_FAN_MOVER_SKIP_", 0) == 0) {
+                // Internal markers: read here, then dropped from the output.
+                m_is_custom_gcode = line.raw().rfind(";_FAN_MOVER_SKIP_START", 0) == 0;
+                time = -1;
             }
             if (line.raw().size() > 16) {
                 if (line.raw().rfind("; custom gcode", 0) != std::string::npos) {

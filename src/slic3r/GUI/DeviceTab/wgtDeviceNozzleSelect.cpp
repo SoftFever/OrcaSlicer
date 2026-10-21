@@ -3,17 +3,28 @@
 *  Description: The panel to select nozzle
 *
 *  \n class wgtDeviceNozzleSelect;
-//**********************************************************/
+************************************************************/
 
 #include "wgtDeviceNozzleSelect.h"
-#include "wgtDeviceNozzleRackNozzleItem.h" // the nozzle-item widget lives in its own header
+#include "wgtDeviceNozzleRack.h"
 
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/DeviceTab/wgtMsgBox.h"
-#include "slic3r/GUI/Widgets/Label.hpp"
+#include "slic3r/GUI/Widgets/Label.hpp" // Orca: explicit Label include
+#include <wx/colour.h>
+#include <vector>
+#include <wx/event.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/gdicmn.h>
+#include <wx/sizer.h>
+#include <memory>
+#include <optional>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
 
 static wxColour s_gray_clr("#B0B0B0");
-static wxColour s_hgreen_clr("#009688");
+static wxColour s_hgreen_clr("#009688"); // Orca: accent green
 static wxColour s_red_clr("#D01B1B");
 
 static std::vector<int> a_nozzle_seq = {16, 18, 20, 17, 19, 21};
@@ -28,6 +39,7 @@ wgtDeviceNozzleRackSelect::wgtDeviceNozzleRackSelect(wxWindow *parent) : wxPanel
 static wxPanel* s_create_title(wxWindow *parent, const wxString& text)
 {
     wxPanel *panel = new wxPanel(parent, wxID_ANY);
+    panel->SetBackgroundColour(*wxWHITE);
 
     auto title  = new Label(panel, text);
     title->SetFont(::Label::Body_13);
@@ -35,7 +47,7 @@ static wxPanel* s_create_title(wxWindow *parent, const wxString& text)
     title->SetForegroundColour(0x909090);
 
     auto split_line = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    split_line->SetBackgroundColour(0xeeeeee);
+    split_line->SetBackgroundColour(wxColour(0xEE, 0xEE, 0xEE));
     split_line->SetMinSize(wxSize(-1, 1));
     split_line->SetMaxSize(wxSize(-1, 1));
 
@@ -104,13 +116,15 @@ void wgtDeviceNozzleRackSelect::CreateGui()
     SetSizer(main_sizer);
     Layout();
     Fit();
+
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 static void s_update_nozzle_info(wgtDeviceNozzleRackNozzleItem* item,
                                  std::shared_ptr<DevNozzleRack> rack,
                                  const DevNozzle& nozzle_info)
 {
-    item->Update(rack, nozzle_info.IsOnRack());
+    item->UpdateInfo(rack, nozzle_info.IsOnRack());
     if (nozzle_info.IsUnknown()) {
         if (item->GetToolTipText() != _L("Nozzle information needs to be read")) {
             item->SetToolTip(_L("Nozzle information needs to be read"));
@@ -132,7 +146,7 @@ void wgtDeviceNozzleRackSelect::UpdateNozzleInfos(std::shared_ptr<DevNozzleRack>
     }
 }
 
-static void s_enable_item_if_match(wgtDeviceNozzleRackNozzleItem* item,
+static void s_enable_item_if_match(wgtDeviceNozzleRackNozzleItem* item, 
                                    const DevNozzle& nozzle_info,
                                    const DevNozzle& selected_nozzle)
 {
@@ -214,7 +228,7 @@ void wgtDeviceNozzleRackSelect::UpdatSelectedNozzles(std::shared_ptr<DevNozzleRa
     }
 }
 
-void wgtDeviceNozzleRackSelect::ClearSelection()
+void wgtDeviceNozzleRackSelect::ClearSelection() 
 {
     m_selected_nozzle = DevNozzle();
     m_toolhead_nozzle_l->SetSelected(false);
@@ -262,7 +276,7 @@ void wgtDeviceNozzleRackSelect::OnNozzleItemSelected(wxCommandEvent &evt)
     }
 
     auto *item = dynamic_cast<wgtDeviceNozzleRackNozzleItem *>(evt.GetEventObject());
-    if (item; auto ptr = m_nozzle_rack.lock()) {
+    if (auto ptr = m_nozzle_rack.lock(); item && ptr) {
         int to_select_pos_id = sGetNozzlePosId(item, m_toolhead_nozzle_l, m_toolhead_nozzle_r);
         if (to_select_pos_id > -1 && to_select_pos_id != GetSelectedNozzlePosID()) {
             SetSelectedNozzle(ptr->GetNozzleSystem()->GetNozzleByPosId(to_select_pos_id));

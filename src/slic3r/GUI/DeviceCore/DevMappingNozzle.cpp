@@ -1,4 +1,3 @@
-#include "DevMapping.h"
 #include "DevMappingNozzle.h"
 
 #include "DevNozzleRack.h"
@@ -8,7 +7,6 @@
 #include "DevUtilBackend.h"
 
 #include "libslic3r/MultiNozzleUtils.hpp"
-#include "libslic3r/Print.hpp"
 
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -17,11 +15,19 @@
 #include "slic3r/GUI/GUI_App.hpp"
 
 #include <algorithm>
-#include <unordered_set>
-
-#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/log/trivial.hpp>
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#include <cassert>
+#include <exception>
+#include "libslic3r/PrintConfig.hpp"
 #include <nlohmann/json.hpp>
+#include <vector>
+#include <string>
+#include <unordered_set>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/ProjectTask.hpp"
 using namespace nlohmann;
 
 namespace Slic3r {
@@ -30,30 +36,6 @@ void MachineObject::clear_auto_nozzle_mapping()
 {
     if (m_nozzle_mapping_ptr) {
         m_nozzle_mapping_ptr->Clear();
-    }
-}
-
-static std::string  s_get_diameter_str(float diameter)
-{
-    return (boost::format("%.2f") % diameter).str();
-}
-
-static std::string s_get_diameter_str(const std::string& diameter)
-{
-    try {
-        float dia = boost::lexical_cast<float>(diameter);
-        return s_get_diameter_str(dia);
-    } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to boost::lexical_cast: " << diameter;
-        return diameter;
-    }
-
-    try {
-        float dia = std::stof(diameter);
-        return s_get_diameter_str(dia);
-    } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " std::stof: " << diameter;
-        return diameter;
     }
 }
 

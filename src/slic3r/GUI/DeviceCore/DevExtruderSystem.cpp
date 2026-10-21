@@ -1,4 +1,15 @@
+#include "libslic3r/CommonDefs.hpp"
+#include <cassert>
+#include <boost/log/trivial.hpp>
+#include <map>
+#include <cstdlib>
 #include <nlohmann/json.hpp>
+#include <wx/string.h>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include <unordered_map>
+#include <optional>
+#include <string>
+#include <vector>
 #include "DevExtruderSystem.h"
 #include "DevNozzleSystem.h"
 #include "DevFilaSystem.h" // complete type for GetFilaSystem()->GetTrayIndexMap() in GetBackupAmsSlotInGroup
@@ -271,7 +282,7 @@ namespace Slic3r
         system->m_current_loading_extder_id = INVALID_EXTRUDER_ID;
         if (!system->m_extders[MAIN_EXTRUDER_ID].m_star.ams_id.empty())
         {
-            system->m_current_busy_for_loading = (system->m_extders[MAIN_EXTRUDER_ID].m_snow == system->m_extders[MAIN_EXTRUDER_ID].m_star);
+            system->m_current_busy_for_loading = (system->m_extders[MAIN_EXTRUDER_ID].m_snow != system->m_extders[MAIN_EXTRUDER_ID].m_star);
             if (system->m_current_busy_for_loading)
             {
                 system->m_current_loading_extder_id = MAIN_EXTRUDER_ID;
