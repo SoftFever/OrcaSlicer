@@ -3002,7 +3002,8 @@ void GUI_App::init_plugin_gui_wiring()
     };
 
     // why: a newly loaded plugin only adds a selectable agent
-    // refresh the dropdown and leave the live agent alone
+    // refresh the dropdown and leave the live agent alone, unless the selected preset was
+    // waiting for this agent: plugins load after the startup preset is applied
     auto refresh_printer_agent_dropdown_after_load = [](const std::string&)
     {
         if (!wxTheApp)
@@ -3014,8 +3015,11 @@ void GUI_App::init_plugin_gui_wiring()
 
         app->CallAfter([app]
         {
-            if (!app->is_closing())
-                app->refresh_printer_agent_dropdown();
+            if (app->is_closing())
+                return;
+
+            app->switch_printer_agent_if_pending();
+            app->refresh_printer_agent_dropdown();
         });
     };
 
@@ -4301,6 +4305,21 @@ void GUI_App::switch_printer_agent()
 
     // Auto-switch MachineObject (new agent has empty device_info, so always re-select)
     select_machine(effective_agent_id);
+}
+
+void GUI_App::switch_printer_agent_if_pending()
+{
+    if (!m_agent || !preset_bundle)
+        return;
+
+    const std::string wanted_agent_id = resolve_printer_agent_id(preset_bundle->printers.get_edited_preset().config.opt_string("printer_agent"));
+    const auto        live_agent      = m_agent->get_printer_agent();
+    if (live_agent && live_agent->get_agent_info().id == wanted_agent_id)
+        return;
+    if (!NetworkAgentFactory::get_printer_agent_info(wanted_agent_id))
+        return;
+
+    switch_printer_agent();
 }
 
 void GUI_App::select_machine(const std::string& agent_id)
