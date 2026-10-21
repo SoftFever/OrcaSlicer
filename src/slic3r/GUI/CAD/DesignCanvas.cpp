@@ -228,13 +228,13 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
         }
         if (m_palette.is_open()) m_canvas->set_as_dirty();   // keep frames coming: the box takes focus on the frame AFTER it opens
         float left = 34.f * em;   // clear of the corner collapse button
-        if (m_sidebar_on) {       // the left panel, full height; the bars start at its edge
-            m_sidebar.render(imgui, m_canvas->get_scale(), 0.f);
-            left = m_sidebar.drawn_width();
-        }
-        if (m_topbar_on) {   // the document actions, the toolbox and Confirm / Cancel
-            m_topbar.render(imgui, m_canvas->get_scale(), left);
+        if (m_topbar_on) {   // the document actions, the toolbox and Confirm / Cancel: one row from the canvas's left edge, the panel hangs under it
+            m_topbar.render(imgui, m_canvas->get_scale(), m_sidebar_on ? 0.f : left);
             top = m_topbar.height();
+        }
+        if (m_sidebar_on) {       // the left panel, under the bar; the ribbon starts at its edge
+            m_sidebar.render(imgui, m_canvas->get_scale(), top);
+            left = m_sidebar.drawn_width();
         }
         if (m_ribbon_on) {
             m_ribbon.render(imgui, m_canvas->get_scale(), left, top);

@@ -12779,6 +12779,7 @@ void DesignPanel::set_imgui_topbar(bool on)
 void DesignPanel::set_imgui_sidebar(bool on)
 {
     m_imgui_sidebar = on;
+    if (on) m_sidebar_collapsed = false;   // a layout saved with the (hidden) wx pane reads back as collapsed: the panel opens shown
     AppConfig* cfg = wxGetApp().app_config;
     cfg->set_bool("design_imgui_sidebar", on);
     if (m_viewport) {
