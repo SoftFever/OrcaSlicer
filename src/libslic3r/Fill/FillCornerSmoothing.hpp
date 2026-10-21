@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -106,14 +107,22 @@ private:
     static bool is_on_straight_run(const Vec2d &previous, const Vec2d &vertex, const Vec2d &next);
     // Fills m_corner_points with the points replacing the corner vertex.
     void round_corner(const Vec2d &previous, const Vec2d &corner, const Vec2d &next);
+    // A rounded corner of unit reach: its vertices in the (incoming, outgoing) basis of the corner, relative to it,
+    // and how far they stray from the curve. A corner of another reach is this one scaled.
+    struct UnitCorner
+    {
+        std::vector<Vec2d> vertices;
+        double             deviation { 0. };
+    };
+
     // The peak curvature of the corner curve times its reach, which depends on the turn only.
     double peak_curvature_by_reach(double cosine);
-    // The vertices of the rounded corner in the (incoming, outgoing) basis of the corner, relative to it, none if
-    // the sharp corner keeps within the tolerance of the curve. Cached, as an infill path repeats the same corner
-    // over and over again.
-    const std::vector<Vec2d> &corner_vertices(double reach, double cosine);
-    // The polygon of `count` vertices, and how far it strays from the curve.
-    double tangent_polygon(double reach, double cosine, size_t count, std::vector<Vec2d> &vertices) const;
+    // The vertices of the rounded corner of unit reach, or none if the sharp corner keeps within the tolerance.
+    const std::vector<Vec2d> *corner_vertices(double reach, double cosine);
+    // Cached, as an infill path repeats a few turns, while the reach changes with every leg in some patterns.
+    const UnitCorner &unit_corner(double cosine, size_t count);
+    // The polygon of `count` vertices of the corner of unit reach, and how far it strays from the curve.
+    double tangent_polygon(double cosine, size_t count, std::vector<Vec2d> &vertices) const;
 
     const CornerSmoothing m_smoothing;
     // Fraction of the shorter adjoining leg consumed on each side of a corner. Half of a leg is the
@@ -123,11 +132,8 @@ private:
     const CornerFilter m_corner_filter;
     std::vector<Vec2d> m_corner_points;
 
-    std::vector<Vec2d> m_cached_vertices;
-    double             m_cached_reach { 0. };
-    double             m_cached_cosine { 2. };
-    double             m_cached_curvature { 0. };
-    double             m_cached_curvature_cosine { 2. };
+    std::map<std::pair<double, size_t>, UnitCorner> m_unit_corners;
+    std::map<double, double>                        m_peak_curvatures;
 
     // The corners seen last, kept free of vertices that merely split a straight leg. The middle one
     // is rounded once the third arrives, which is what makes its outgoing leg final.
