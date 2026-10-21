@@ -22,12 +22,15 @@
 #include <wx/string.h>
 #include <wx/combobox.h>
 #include <wx/spinctrl.h>
+#include <wx/textctrl.h>
 #include <wx/tglbtn.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Slic3r { namespace GUI {

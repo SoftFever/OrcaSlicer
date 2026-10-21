@@ -8,6 +8,7 @@
 
 #include "slic3r/GUI/CAD/DesignPanel.hpp"
 #include "slic3r/GUI/CAD/DesignCanvas.hpp"
+#include "slic3r/GUI/CAD/DesignCardModel.hpp"
 #include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
 #include "slic3r/GUI/CAD/DesignRowList.hpp"
 #include "slic3r/GUI/GUI_App.hpp"

@@ -18,7 +18,9 @@
 
 #include "CadDocument.hpp"
 
+#include <TopoDS_Shape.hxx>
 #include <cereal/archives/binary.hpp>
+#include <cereal/cereal.hpp>
 #include <array>
 #include <cstdint>
 #include <sstream>

@@ -6,8 +6,10 @@
 #include <wx/gdicmn.h>
 #include <wx/string.h>
 
+#include <cstddef>
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Slic3r { namespace GUI {
