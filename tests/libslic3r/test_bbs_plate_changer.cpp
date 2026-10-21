@@ -3,6 +3,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "test_utils.hpp"
 
 #include <boost/filesystem.hpp>
 #include <miniz.h>
@@ -33,7 +34,12 @@ static std::string read_entry_from_zip(const std::string& zip_path, const char* 
 
 SCENARIO("Plate changer export produces single merged gcode and single plate metadata", "[bbs_3mf][plate_changer]") {
     GIVEN("A model and config with plate_change_gcode set") {
+        // store_bbs_3mf stages project config through the model's backup path; point it at a
+        // writable temp dir (same pattern as the other BBS 3mf scenarios). Without this,
+        // an unset temporary_dir() resolves to "/orcaslicer_model/..." at the filesystem root.
+        ScopedTemporaryDir backup_dir("orca_plate_changer");
         Model model;
+        model.set_backup_path(backup_dir.string());
         model.add_object();
         model.add_default_instances();
 
@@ -42,8 +48,9 @@ SCENARIO("Plate changer export produces single merged gcode and single plate met
 
         WHEN("store_bbs_3mf is called with use_plate_changer_all") {
             // Minimal StoreParams: use the same setup Plater would use, but with an empty plate list.
+            ScopedTemporaryFile out_file(".gcode.3mf");
             StoreParams store_params;
-            store_params.path  = "test_plate_changer_merged.gcode.3mf";
+            store_params.path  = out_file.string();
             store_params.model = &model;
             store_params.config = &config;
             store_params.use_plate_changer_all = true;
@@ -78,4 +85,3 @@ SCENARIO("Plate changer export produces single merged gcode and single plate met
         }
     }
 }
-

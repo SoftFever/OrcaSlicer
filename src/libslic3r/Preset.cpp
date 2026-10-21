@@ -570,7 +570,10 @@ void Preset::normalize(DynamicPrintConfig &config)
     // Backfill new printer Machine G-code key for older presets (avoids missing opt in edited config).
     // Also, if the user has configured Plate change G-code but left the additional-initial block empty,
     // seed it with the default boilerplate to reduce surprise.
-    if (config.def() && config.def()->get("additional_initial_plate_change_gcode") != nullptr) {
+    // Only printer configs: DynamicPrintConfig always uses the full print_config_def, so
+    // def()->get() alone would also match process/filament presets and then
+    // remove_invalid_keys would count those keys as errors on reload.
+    if (config.option("printer_technology") != nullptr) {
         const std::string& default_initial = FullPrintConfig::defaults().additional_initial_plate_change_gcode.value;
         if (!config.has("additional_initial_plate_change_gcode")) {
             config.option<ConfigOptionString>("additional_initial_plate_change_gcode", true)->value = default_initial;
