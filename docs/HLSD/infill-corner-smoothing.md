@@ -48,10 +48,12 @@ The vertices depend on the geometry and the resolution only, not on the printer.
 A finer resolution splits a corner into more and gentler turns, which a planner
 takes faster, for a larger G-code file.
 
-A corner of a given turn and vertex count is the same shape at any reach, scaled.
-`CornerSmoother` builds each shape once at unit reach and scales it, as some
-patterns (Octagram Spiral) change the reach at every corner, and searching the
-tangents of the curve is what slicing spends its time on.
+A corner of a given turn and vertex count is the same shape at any reach and
+resolution, scaled. Each thread builds a shape once at unit reach and all its
+`CornerSmoother`s share it, as some fills start a smoother for every path, every
+layer starts its own, some patterns (Octagram Spiral) change the reach at every
+corner, and searching the tangents of the curve is what slicing spends its time
+on.
 
 ## Constraints
 

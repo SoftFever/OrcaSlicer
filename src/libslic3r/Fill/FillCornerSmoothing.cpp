@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <map>
 #include <vector>
 #include <utility>
 #include <cmath>
@@ -61,9 +62,28 @@ static Vec2d bezier_point(const ControlPoints &control, const double t)
     return work.front();
 }
 
-double CornerSmoother::peak_curvature_by_reach(const double cosine)
+// A rounded corner of unit reach: its vertices in the (incoming, outgoing) basis of the corner, relative to it,
+// and how far they stray from the curve.
+struct UnitCorner
 {
-    if (const auto it = m_peak_curvatures.find(cosine); it != m_peak_curvatures.end())
+    std::vector<Vec2d> vertices;
+    double             deviation { 0. };
+};
+
+// The corner shapes built on a thread. They depend on the turn and the vertex count only, so all the smoothers of
+// the thread share them: some fills start a smoother for every path, and every layer starts its own.
+struct CornerShapes
+{
+    std::map<std::pair<double, size_t>, UnitCorner> corners;
+    std::map<double, double>                        peak_curvatures;
+};
+static thread_local CornerShapes corner_shapes;
+
+// The peak curvature of the corner curve times its reach, which depends on the turn only.
+static double peak_curvature_by_reach(const double cosine)
+{
+    std::map<double, double> &cache = corner_shapes.peak_curvatures;
+    if (const auto it = cache.find(cosine); it != cache.end())
         return it->second;
 
     const double                  turn    = std::acos(std::clamp(cosine, -1., 1.));
@@ -76,13 +96,14 @@ double CornerSmoother::peak_curvature_by_reach(const double cosine)
         if (speed > EPSILON)
             peak = std::max(peak, std::abs(cross2(first, second)) / (speed * speed * speed));
     }
-    if (m_peak_curvatures.size() >= max_cached_corners)
-        m_peak_curvatures.clear();
-    m_peak_curvatures.emplace(cosine, peak);
+    if (cache.size() >= max_cached_corners)
+        cache.clear();
+    cache.emplace(cosine, peak);
     return peak;
 }
 
-double CornerSmoother::tangent_polygon(const double cosine, const size_t count, std::vector<Vec2d> &vertices) const
+// The polygon of `count` vertices of the corner of unit reach, and how far it strays from the curve.
+static double tangent_polygon(const double cosine, const size_t count, std::vector<Vec2d> &vertices)
 {
     const double turn     = std::acos(std::clamp(cosine, -1., 1.));
     const double sine     = std::sin(turn);
@@ -134,19 +155,21 @@ double CornerSmoother::tangent_polygon(const double cosine, const size_t count, 
     return deviation;
 }
 
-const CornerSmoother::UnitCorner &CornerSmoother::unit_corner(const double cosine, const size_t count)
+// Valid until the next corner of the thread is built.
+static const UnitCorner &unit_corner(const double cosine, const size_t count)
 {
-    const std::pair<double, size_t> key(cosine, count);
-    if (const auto it = m_unit_corners.find(key); it != m_unit_corners.end())
+    std::map<std::pair<double, size_t>, UnitCorner> &cache = corner_shapes.corners;
+    const std::pair<double, size_t>                  key(cosine, count);
+    if (const auto it = cache.find(key); it != cache.end())
         return it->second;
-    if (m_unit_corners.size() >= max_cached_corners)
-        m_unit_corners.clear();
+    if (cache.size() >= max_cached_corners)
+        cache.clear();
     UnitCorner corner;
     corner.deviation = tangent_polygon(cosine, count, corner.vertices);
-    return m_unit_corners.emplace(key, std::move(corner)).first->second;
+    return cache.emplace(key, std::move(corner)).first->second;
 }
 
-const std::vector<Vec2d> *CornerSmoother::corner_vertices(const double reach, const double cosine)
+const std::vector<Vec2d> *CornerSmoother::corner_vertices(const double reach, const double cosine) const
 {
     const double tolerance = m_smoothing.tolerance > 0. && std::isfinite(m_smoothing.tolerance) ? m_smoothing.tolerance : EPSILON;
     const double turn      = std::acos(std::clamp(cosine, -1., 1.));
