@@ -124,6 +124,7 @@
 #include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
 #include <wx/arrstr.h>
 #include <wx/timer.h>
+#include <wx/weakref.h>
 #include <gp_Pnt.hxx>
 #include <TopAbs_ShapeEnum.hxx>
 
@@ -8028,6 +8029,16 @@ void DesignPanel::on_tab_shown()
     m_laid_out = true;
     update_sidebar_pane();
     if (m_viewport) m_viewport->force_repaint();   // the page was just re-shown: paint it for real
+    // The overlays (top bar, left panel) are ImGui: they exist only in a painted frame, and the first show can paint before the
+    // canvas has its size or its ImGui context settled. Paint again once the page has laid out, so they are there without a click.
+    struct Repaint : wxTimer {   // one-shot, deletes itself when it fires
+        wxWeakRef<DesignPanel> panel;
+        void Notify() override {
+            if (panel && panel->m_viewport) panel->m_viewport->force_repaint();
+            wxGetApp().CallAfter([this] { delete this; });
+        }
+    };
+    for (const int ms : {60, 250, 800}) { auto* r = new Repaint; r->panel = this; r->StartOnce(ms); }
 }
 
 void DesignPanel::refresh_icons()
