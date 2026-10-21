@@ -1984,15 +1984,22 @@ void MenuFactory::create_plate_menu()
             return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty();
         }, m_parent);
 
+    wxMenu* modify_menu = new wxMenu();
+
     // fix objects on current plate
-    append_menu_item(menu, wxID_ANY, _L("Fix All"), _L("Fix all models on the current plate"),
+    append_menu_item(modify_menu, wxID_ANY, _L("Fix All"), _L("Fix all models on the current plate"),
         [](wxCommandEvent&) { obj_list()->fix_all_through_cgal(false); }, "", nullptr,
         []() { return !plater()->get_partplate_list().get_selected_plate()->empty(); }, m_parent);
 
     // fix objects on all plates
-    append_menu_item(menu, wxID_ANY, _L("Fix All Plates"), _L("Fix all models on all plates"),
+    append_menu_item(modify_menu, wxID_ANY, _L("Fix All Plates"), _L("Fix all models on all plates"),
         [](wxCommandEvent&) { obj_list()->fix_all_through_cgal(true); }, "", nullptr,
         []() { return !plater()->model().objects.empty(); }, m_parent);
+
+    append_submenu(menu, modify_menu, wxID_ANY, _L("Modify"), "", "", 
+        [](){ return !plater()->get_partplate_list().get_selected_plate()->empty(); }, m_parent);
+
+    menu->AppendSeparator();
 
     m_plate_mods_pos = menu->GetMenuItemCount(); // pos for dynamic plate items (Edit Plate Name / Lock / Delete Plate)
 
@@ -2701,9 +2708,17 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu, size_t pos)
 void MenuFactory::append_menu_item_plate_delete(wxMenu *menu, size_t pos)
 {
     wxString name= _L("Delete Plate");
-    // Delete old menu item
+    // Delete old menu item and the separator placed right before it
     const int item_id = menu->FindItem(name);
-    if (item_id != wxNOT_FOUND) menu->Destroy(item_id);
+    if (item_id != wxNOT_FOUND) {
+        const size_t item_pos = FindPositionById(menu, item_id);
+        if (item_pos != size_t(wxNOT_FOUND) && item_pos > 0 && menu->FindItemByPosition(item_pos - 1)->IsSeparator())
+            menu->Destroy(menu->FindItemByPosition(item_pos - 1));
+        menu->Destroy(item_id);
+    }
+
+    // separator with its own id so it can be found and removed on the next rebuild (AppendSeparator() uses the shared wxID_SEPARATOR)
+    menu->InsertSeparator(pos);
 
     PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
     assert(plate);
@@ -2711,13 +2726,10 @@ void MenuFactory::append_menu_item_plate_delete(wxMenu *menu, size_t pos)
     // delete current plate
     auto item = append_menu_item(menu, wxID_ANY, name, _L("Remove the selected plate"),
         [](wxCommandEvent&) { plater()->delete_plate(); }, "", nullptr,
-        []() { return plater()->can_delete_plate(); }, m_parent, pos);
+        []() { return plater()->can_delete_plate(); }, m_parent, pos + 1);
 
-    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
-        PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
-        assert(plate);
-        plater()->set_current_canvas_as_dirty();
-    }, item->GetId());
+    // delete current plate. no extra wxEVT_UPDATE_UI handler here: a second handler on the same id 
+    // runs before the one bound by append_menu_item() and, without evt.Skip(), swallows the enable/disable condition
 }
 
 void MenuFactory::update_object_menu()
