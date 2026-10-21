@@ -4873,9 +4873,9 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
     const size_t      slot    = size_t(layer.slot);
     ImDrawList       *dl      = ImGui::GetWindowDrawList();
 
-    const auto tip = [&](const std::string &text) {
+    const auto tip = [&](const std::string &text, const std::vector<TipMedia> &media = {}) {
         if (ImGui::IsItemHovered())
-            panel_tooltip(text);
+            panel_tooltip(text, media);
     };
     const auto swatch = [&](const ColorRGB &c, float size) {
         const ImVec2 p = ImGui::GetCursorScreenPos();
@@ -4946,6 +4946,10 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                                              "ask for a different number of colors."),
                                         report.mean, report.max),
          &ring);
+    if (ImGui::IsItemHovered())
+        panel_tooltip(_u8L("Every pixel is built up to the height whose stack shows the color the picture has "
+                           "there, so a column's height is its color."),
+                      { { "chroma_layers.gif" } });
 
     // ---- How many colours to spend, and the two ways to choose them ----
     {
@@ -4958,7 +4962,8 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
         ImGui::SliderInt("##hf_count", &m_chroma_pick_count[slot], 2, int(CHROMA_MAX_BANDS) < 8 ? int(CHROMA_MAX_BANDS) : 8,
                          "%d", ImGuiSliderFlags_AlwaysClamp);
         tip(_u8L("How many filaments the picture is printed in. Fewer is fewer changes to stand over; more is a "
-                 "better match, never a worse one."));
+                 "better match, never a worse one."),
+            { { "chroma_colors_few.png" }, { "chroma_colors_many.png" } });
 
         ImGui::SameLine(0.f, gap_s);
         if (m_imgui->button(_L("Use mine")))
@@ -5058,7 +5063,8 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
             tip(Slic3r::format(_u8L("How many layers this filament gets. It hides what is under it in about %1$.1f of "
                                     "them at this layer height; below two there are no colors between it and what is "
                                     "under it."),
-                               chroma_layers_to_opaque(band.filament.td_mm, layer.chroma.layer_height_mm)));
+                               chroma_layers_to_opaque(band.filament.td_mm, layer.chroma.layer_height_mm)),
+                { { "chroma_layers.gif" } });
 
             ImGui::SameLine(0.f, gap_s);
             ImGui::SetNextItemWidth(m_imgui->scaled(3.2f));
@@ -5071,7 +5077,8 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                 chroma_touch(layer.slot);
             }
             tip(_u8L("This filament's transmission distance: how deep light gets into it. It starts from the "
-                     "filament's preset and can be tried out here without changing it."));
+                     "filament's preset and can be tried out here without changing it."),
+                { { "chroma_td.gif" } });
 
             // Measure this filament rather than guess it. The number beside it is the one every colour
             // on the card is computed from, and no filament preset ships one.
@@ -5107,7 +5114,8 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                 if (hot)
                     panel_tooltip(_u8L("Measure this filament's transmission distance by printing a step wedge: a "
                                        "staircase of it over a filament it has to hide. Nothing but a print can tell "
-                                       "you this number, and every color on this card is computed from it."));
+                                       "you this number, and every color on this card is computed from it."),
+                                  { { "chroma_td.gif" } });
             }
             if (ImGui::BeginPopup("hf_measure_pop")) {
                 ImGui::TextDisabled("%s", _u8L("Measure transmission distance").c_str());
@@ -5258,8 +5266,9 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
             m_imgui->disabled_end();
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 panel_tooltip(Slic3r::format(_u8L("Shortens each band to its last layer that still changes the "
-                                                     "color. %1% of %2% picture layers do."),
-                                                distinct, relief));
+                                                  "color. %1% of %2% picture layers do."),
+                                             distinct, relief),
+                              { { "chroma_trim.png" } });
             ImGui::SameLine(0.f, gap_s);
             m_imgui->disabled_begin(loaded.empty() || layer.chroma.bands.size() >= CHROMA_MAX_BANDS);
             if (m_imgui->button(_L("Add")))
@@ -5297,9 +5306,9 @@ void GLGizmoTextureDisplacement::render_chroma_details(TextureDisplacementLayer 
     const float gap_s   = std::round(m_imgui->scaled(0.4f));
     ImDrawList *dl      = ImGui::GetWindowDrawList();
 
-    const auto tip = [&](const std::string &text) {
+    const auto tip = [&](const std::string &text, const std::vector<TipMedia> &media = {}) {
         if (ImGui::IsItemHovered())
-            panel_tooltip(text);
+            panel_tooltip(text, media);
     };
     const auto row_label = [&](const wxString &text) {
         const float x0 = ImGui::GetCursorPosX();
@@ -5365,7 +5374,8 @@ void GLGizmoTextureDisplacement::render_chroma_details(TextureDisplacementLayer 
                             "own, trading the bands a photograph shows across a sky for fine stipple. Leave it off "
                             "for flat-colored artwork.\n\n"
                             "Solved for %1$.3f mm layers, from the print profile."),
-                       layer.chroma.layer_height_mm));
+                       layer.chroma.layer_height_mm),
+        { { "chroma_dither_off.png", _L("Off") }, { "chroma_dither_on.png", _L("On") } });
 }
 
 void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &panel_min, const ImVec2 &panel_max)
@@ -8978,10 +8988,13 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                         500.f, "%.2f mm", true, card_pad,
                                                         _L("How wide the picture is on the model. It is set to cover the "
                                                            "painted face when the picture is chosen; change it to crop in "
-                                                           "or to leave a margin."));
+                                                           "or to leave a margin."),
+                                                        { { "tile_size_large.png", _L("Larger") },
+                                                          { "tile_size_small.png", _L("Smaller") } });
                     m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f,
                                                         "%.0f°", false, card_pad,
-                                                        _L("Turns the picture on the surface, in degrees."));
+                                                        _L("Turns the picture on the surface, in degrees."),
+                                                        { { "rotation.gif" } });
                 }
                 }
 
@@ -9402,11 +9415,19 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         // that is partly transparent, and the panel's own rows read straight through it.
         ImGuiWrapper::push_combo_style(m_parent.get_scale());
         if (ImGui::BeginPopup("add_layer_kind")) {
-            if (ImGui::Selectable(_u8L("Relief layer").c_str()))
+            // Both items as wide as the widest, and taller than their text: a selectable sized to its
+            // own label highlights only behind the word, which reads as nothing happening rather than
+            // as the row being picked.
+            const std::string relief = _u8L("Relief layer");
+            const std::string picture = _u8L("ChromaStack picture");
+            const ImVec2      item(std::max(ImGui::CalcTextSize(relief.c_str()).x,
+                                            ImGui::CalcTextSize(picture.c_str()).x) + 4.f * frame_h,
+                                   ImGui::GetTextLineHeight() + 2.f * style.FramePadding.y + gap_s);
+            if (ImGui::Selectable(relief.c_str(), false, 0, item))
                 add_texture_layer(false);
             if (ImGui::IsItemHovered())
                 panel_tooltip(_u8L("A height map pushed into the surface. Tiles, depth, blending."));
-            if (ImGui::Selectable(_u8L("ChromaStack picture").c_str()))
+            if (ImGui::Selectable(picture.c_str(), false, 0, item))
                 add_texture_layer(true);
             if (ImGui::IsItemHovered())
                 panel_tooltip(_u8L("A color picture made of filament swaps: one copy, on a flat face, its height map "
