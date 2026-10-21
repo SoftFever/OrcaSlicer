@@ -1764,7 +1764,7 @@ void MenuFactory::create_extra_object_menu()
 
     // ORCA Utilities menu
     m_object_menu.AppendSeparator();
-    m_object_utilities_menu = append_menu_item_more(&m_object_menu, false /*multi_selection*/, true /*disk_op*/, false/*export_op*/);
+    m_object_utilities_menu = append_menu_item_more(&m_object_menu, false /*multi_selection*/, true /*disk_op*/, true/*export_op*/);
 }
 
 void MenuFactory::create_bbl_assemble_object_menu()
