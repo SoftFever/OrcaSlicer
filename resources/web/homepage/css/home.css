@@ -506,36 +506,12 @@ body
 	height: 20px;
 }
 
-.BtnShortcut
-{
-	padding-right: 18px;
-}
-
 .ShortcutBrandIcon
 {
 	width: 20px;
 	height: 20px;
 	border-radius: 5px;
 	display: block;
-}
-
-.ShortcutTextRow
-{
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	width: 100%;
-	min-width: 0;
-}
-
-.ShortcutMark
-{
-	width: 14px;
-	height: 14px;
-	margin-left: auto;
-	color: currentColor;
-	opacity: 0.72;
-	flex: 0 0 auto;
 }
 
 
@@ -546,6 +522,20 @@ body
 	height: 100%;
 	min-width: 835px;
 	overflow-y:auto;
+}
+
+/*---- Cloud mode: OrcaCloud is a native pane to the right of the app panel, so this page
+      is reduced to its left nav column (the class is toggled by SetCloudMode in js/home.js). ----*/
+body.cloud-mode #RightBoard
+{
+	display: none;
+}
+
+body.cloud-mode #LeftBoard
+{
+	/*---- 262px of column plus its 1px separator is the width the app gives the nav. ----*/
+	height: 100%;
+	overflow-y: auto;
 }
 
 #ContentBoard

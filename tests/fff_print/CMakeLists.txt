@@ -9,6 +9,7 @@ add_executable(${_TEST_NAME}_tests
 	test_fill.cpp
 	test_flow.cpp
 	test_gcode_processor.cpp
+	test_gcode_statistics.cpp
 	test_gcode_timing.cpp
 	test_gcode.cpp
 	test_gcodeprocessor.cpp

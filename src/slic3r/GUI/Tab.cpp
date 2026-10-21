@@ -2056,17 +2056,19 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 }
             }
         }
-        if (!boost::any_cast<bool>(value) && timelapse_enabled) {
+        bool enable_wrapping = m_config->option<ConfigOptionBool>("enable_wrapping_detection")->value;
+        if (!boost::any_cast<bool>(value) && (timelapse_enabled || enable_wrapping)) {
             bool set_enable_prime_tower = false;
-            MessageDialog dlg(wxGetApp().plater(), _L("A prime tower is required for smooth timelapse mode. There may be flaws on the model without a prime tower. Are you sure you want to disable the prime tower\?"),
-                              _L("Warning"), wxICON_WARNING | wxYES | wxNO);
-            if (dlg.ShowModal() == wxID_NO) {
-                DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
-                m_config_manipulation.apply(m_config, &new_conf);
-                set_enable_prime_tower = true;
+            if (timelapse_enabled) {
+                MessageDialog dlg(wxGetApp().plater(), _L("A prime tower is required for smooth timelapse mode. There may be flaws on the model without a prime tower. Are you sure you want to disable the prime tower\?"),
+                                  _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+                if (dlg.ShowModal() == wxID_NO) {
+                    DynamicPrintConfig new_conf = *m_config;
+                    new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                    m_config_manipulation.apply(m_config, &new_conf);
+                    set_enable_prime_tower = true;
+                }
             }
-            bool enable_wrapping = m_config->option<ConfigOptionBool>("enable_wrapping_detection")->value;
             if (enable_wrapping && !set_enable_prime_tower) {
                 MessageDialog dlg(wxGetApp().plater(),
                         _L("A prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
@@ -2854,9 +2856,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("precise_outer_wall", "quality_settings_precision#precise-wall");
         optgroup->append_single_option_line("precise_z_height", "quality_settings_precision#precise-z-height");
         optgroup->append_single_option_line("hole_to_polyhole", "quality_settings_precision#polyholes");
-        optgroup->append_single_option_line("hole_to_polyhole_threshold", "quality_settings_precision#polyholes");
-        optgroup->append_single_option_line("hole_to_polyhole_twisted", "quality_settings_precision#polyholes");
-        optgroup->append_single_option_line("hole_to_polyhole_max_edges", "quality_settings_precision#polyholes");
+        optgroup->append_single_option_line("hole_to_polyhole_threshold", "quality_settings_precision#polyhole-detection-margin");
+        optgroup->append_single_option_line("hole_to_polyhole_twisted", "quality_settings_precision#polyhole-twist");
+        optgroup->append_single_option_line("hole_to_polyhole_max_edges", "quality_settings_precision#maximum-polyhole-edge-count");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
         optgroup->append_single_option_line("ironing_type", "quality_settings_ironing#type");
@@ -2877,7 +2879,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Wall generator"), L"param_wall_generator");
         optgroup->append_single_option_line("wall_generator", "quality_settings_wall_generator");
-        optgroup->append_single_option_line("wall_transition_angle", "quality_settings_wall_generator#wall-transitioning-threshhold-angle");
+        optgroup->append_single_option_line("wall_transition_angle", "quality_settings_wall_generator#wall-transitioning-threshold-angle");
         optgroup->append_single_option_line("wall_transition_filter_deviation", "quality_settings_wall_generator#wall-transitioning-filter-margin");
         optgroup->append_single_option_line("wall_transition_length", "quality_settings_wall_generator#wall-transitioning-length");
         optgroup->append_single_option_line("wall_distribution_count", "quality_settings_wall_generator#wall-distribution-count");
@@ -2970,9 +2972,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
         optgroup->append_single_option_line("fill_multiline", "strength_settings_infill#fill-multiline");
         optgroup->append_single_option_line("sparse_infill_pattern", "strength_settings_infill#sparse-infill-pattern");
-        optgroup->append_single_option_line("tpms_adaptive", "strength_settings_patterns#adaptive-density");
-        optgroup->append_single_option_line("tpms_interior_density", "strength_settings_patterns#interior-density");
-        optgroup->append_single_option_line("tpms_adaptive_gradient", "strength_settings_patterns#adaptive-gradient");
+        optgroup->append_single_option_line("adaptive_infill_mode", "strength_settings_patterns#adaptive-density");
+        optgroup->append_single_option_line("adaptive_infill_interior_density", "strength_settings_patterns#interior-density");
+        optgroup->append_single_option_line("adaptive_infill_gradient", "strength_settings_patterns#adaptive-gradient");
         optgroup->append_single_option_line("gyroid_optimized", "strength_settings_patterns#gyroid-optimized");
         optgroup->append_single_option_line("sparse_infill_smooth_factor", "strength_settings_infill#sparse-infill-smooth-factor");
         optgroup->append_single_option_line("infill_direction", "strength_settings_infill#direction");
@@ -2985,7 +2987,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("skeleton_infill_line_width", "strength_settings_patterns#locked-zag");
         optgroup->append_single_option_line("symmetric_infill_y_axis", "strength_settings_infill#symmetric-infill-y-axis");
         optgroup->append_single_option_line("infill_complete_top", "strength_settings_patterns#fill-pattern-tops");
-        optgroup->append_single_option_line("infill_shift_step", "strength_settings_patterns#cross-hatch");
+        optgroup->append_single_option_line("infill_shift_step", "strength_settings_patterns#cross-zag");
         optgroup->append_single_option_line("lateral_lattice_angle_1", "strength_settings_patterns#lateral-lattice");
         optgroup->append_single_option_line("lateral_lattice_angle_2", "strength_settings_patterns#lateral-lattice");
         optgroup->append_single_option_line("infill_overhang_angle", "strength_settings_patterns#lateral-honeycomb");
@@ -3065,8 +3067,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_travel_acceleration", "speed_settings_acceleration#initial-layer-travel", 0);
         optgroup->append_single_option_line("top_surface_acceleration", "speed_settings_acceleration#top-surface", 0);
         optgroup->append_single_option_line("travel_acceleration", "speed_settings_acceleration#travel", 0);
-        optgroup->append_single_option_line("accel_to_decel_enable", "speed_settings_acceleration");
-        optgroup->append_single_option_line("accel_to_decel_factor", "speed_settings_acceleration");
+        optgroup->append_single_option_line("accel_to_decel_enable", "speed_settings_acceleration#enable-accel-to-decel");
+        optgroup->append_single_option_line("accel_to_decel_factor", "speed_settings_acceleration#accel-to-decel");
 
         optgroup = page->new_optgroup(L("Junction Deviation"), L"param_junction_deviation", 15);
         optgroup->append_single_option_line("default_junction_deviation", "speed_settings_jerk_xy#junction-deviation", 0);
@@ -3084,7 +3086,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "speed_settings_advanced");
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "speed_settings_advanced");
-        optgroup->append_single_option_line("extrusion_rate_smoothing_external_perimeter_only", "speed_settings_advanced");
+        optgroup->append_single_option_line("extrusion_rate_smoothing_external_perimeter_only", "speed_settings_advanced#apply-only-on-external-features");
 
     page = add_options_page(L("Support"), "custom-gcode_support"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Support"), L"param_support");
@@ -3137,7 +3139,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_object_xy_distance", "support_settings_advanced#supportobject-xy-distance");
         optgroup->append_single_option_line("support_object_first_layer_gap", "support_settings_advanced#supportobject-first-layer-gap");
         optgroup->append_single_option_line("bridge_no_support", "support_settings_advanced#dont-support-bridges");
-        optgroup->append_single_option_line("max_bridge_length", "support_settings_advanced");
+        optgroup->append_single_option_line("max_bridge_length", "support_settings_advanced#max-bridge-length");
         optgroup->append_single_option_line("independent_support_layer_height", "support_settings_advanced#independent-support-layer-height");
 
         optgroup = page->new_optgroup(L("Tree supports"), L"param_support_tree");
@@ -3151,21 +3153,21 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_branch_angle", "support_settings_tree#branch-angle");
         optgroup->append_single_option_line("tree_support_branch_angle_organic", "support_settings_tree#branch-angle");
         optgroup->append_single_option_line("tree_support_angle_slow", "support_settings_tree#preferred-branch-angle");
-        optgroup->append_single_option_line("tree_support_auto_brim", "support_settings_tree");
-        optgroup->append_single_option_line("tree_support_brim_width", "support_settings_tree");
+        optgroup->append_single_option_line("tree_support_auto_brim", "support_settings_tree#auto-brim-width");
+        optgroup->append_single_option_line("tree_support_brim_width", "support_settings_tree#tree-support-brim-width");
 
     page = add_options_page(L("Multimaterial"), "custom-gcode_multi_material"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower", "multimaterial_settings_prime_tower");
-        optgroup->append_single_option_line("prime_tower_skip_points", "multimaterial_settings_prime_tower");
-        optgroup->append_single_option_line("enable_tower_interface_features", "multimaterial_settings_prime_tower");
-        optgroup->append_single_option_line("enable_tower_interface_cooldown_during_tower", "multimaterial_settings_prime_tower");
-        optgroup->append_single_option_line("prime_tower_enable_framework", "multimaterial_settings_prime_tower");
+        optgroup->append_single_option_line("prime_tower_skip_points", "multimaterial_settings_prime_tower#skip-points");
+        optgroup->append_single_option_line("enable_tower_interface_features", "multimaterial_settings_prime_tower#enable-tower-interface-features");
+        optgroup->append_single_option_line("enable_tower_interface_cooldown_during_tower", "multimaterial_settings_prime_tower#cool-down-from-interface-boost-during-prime-tower");
+        optgroup->append_single_option_line("prime_tower_enable_framework", "multimaterial_settings_prime_tower#internal-ribs");
         optgroup->append_single_option_line("prime_tower_width", "multimaterial_settings_prime_tower#width");
         optgroup->append_single_option_line("belt_purge_tower_width", "multimaterial_settings_prime_tower#belt-purge-tower-width");
-        optgroup->append_single_option_line("prime_volume", "multimaterial_settings_prime_tower");
+        optgroup->append_single_option_line("prime_volume", "multimaterial_settings_prime_tower#prime-volume");
         optgroup->append_single_option_line("prime_tower_brim_width", "multimaterial_settings_prime_tower#brim-width");
-        optgroup->append_single_option_line("prime_tower_infill_gap", "multimaterial_settings_prime_tower");
+        optgroup->append_single_option_line("prime_tower_infill_gap", "multimaterial_settings_prime_tower#infill-gap");
         optgroup->append_single_option_line("wipe_tower_rotation_angle", "multimaterial_settings_prime_tower#wipe-tower-rotation-angle");
         optgroup->append_single_option_line("wipe_tower_bridging", "multimaterial_settings_prime_tower#maximal-bridging-distance");
         optgroup->append_single_option_line("wipe_tower_extra_spacing", "multimaterial_settings_prime_tower#wipe-tower-purge-lines-spacing");
@@ -3178,7 +3180,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wipe_tower_fillet_wall", "multimaterial_settings_prime_tower#fillet-wall");
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers", "multimaterial_settings_prime_tower#no-sparse-layers");
         optgroup->append_single_option_line("wipe_tower_sparse_layers_combination", "multimaterial_settings_prime_tower#combine-sparse-layers");
-        optgroup->append_single_option_line("single_extruder_multi_material_priming", "multimaterial_settings_prime_tower");
+        optgroup->append_single_option_line("single_extruder_multi_material_priming", "multimaterial_settings_prime_tower#prime-all-printing-extruders");
 
         optgroup = page->new_optgroup(L("Filament for Features"), L"param_filament_for_features");
         optgroup->append_single_option_line("outer_wall_filament_id", "multimaterial_settings_filament_for_features#outer-walls");
@@ -3197,7 +3199,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
         optgroup->append_single_option_line("flush_into_infill", "multimaterial_settings_flush_options#flush-into-objects-infill");
-        optgroup->append_single_option_line("flush_into_objects", "multimaterial_settings_flush_options");
+        optgroup->append_single_option_line("flush_into_objects", "multimaterial_settings_flush_options#flush-into-this-object");
         optgroup->append_single_option_line("flush_into_support", "multimaterial_settings_flush_options#flush-into-objects-support");
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
         optgroup->append_single_option_line("interlocking_beam", "multimaterial_settings_advanced#interlocking-beam");
@@ -3249,11 +3251,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("spiral_finishing_flow_ratio", "others_settings_special_mode#spiral-finishing-flow-ratio");
 
         optgroup->append_single_option_line("timelapse_type", "others_settings_special_mode#timelapse");
-        optgroup->append_single_option_line("enable_wrapping_detection");
+        optgroup->append_single_option_line("enable_wrapping_detection", "others_settings_special_mode#enable-clumping-detection");
 
         optgroup = page->new_optgroup(L("Fuzzy skin"), L"fuzzy_skin");
-        optgroup->append_single_option_line("fuzzy_skin", "others_settings_fuzzy_skin");
-        optgroup->append_single_option_line("fuzzy_skin_mode", "others_settings_fuzzy_skin#fuzzy-skin-mode");
+        optgroup->append_single_option_line("fuzzy_skin", "others_settings_fuzzy_skin#fuzzy-skin-mode");
+        optgroup->append_single_option_line("fuzzy_skin_mode", "others_settings_fuzzy_skin#fuzzy-skin-generator-mode");
         optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_fuzzy_skin#noise-type");
         optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_fuzzy_skin#point-distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_fuzzy_skin#skin-thickness");
@@ -3271,6 +3273,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("gcode_comments", "others_settings_g_code_output#verbose-g-code");
         optgroup->append_single_option_line("gcode_label_objects", "others_settings_g_code_output#label-objects");
         optgroup->append_single_option_line("exclude_object", "others_settings_g_code_output#exclude-objects");
+        optgroup->append_single_option_line("exclude_object_tolerance", "others_settings_g_code_output#outline-tolerance");
         option = optgroup->get_option("filename_format");
         // option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3287,7 +3290,7 @@ void TabPrint::build()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = 15;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "others_settings_g_code_output#change-extrusion-role-g-code");
 
         optgroup = page->new_optgroup(L("Post-processing Scripts"), L"param_gcode", 0);
         option = optgroup->get_option("post_process");
@@ -3300,7 +3303,7 @@ void TabPrint::build()
         optgroup->hide_labels();
         option = optgroup->get_option("slicing_pipeline_plugin");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option, "others_settings_plugin_picker");
+        optgroup->append_single_option_line(option, "plugins_types#slicing-pipeline");
 
         // Its own group: the one above hides its labels, and this row needs its label — and the revert
         // arrow beside it — to show. No label-width override either, as a 0 there means "no label column".
@@ -3551,7 +3554,7 @@ void TabPrintModel::build()
         auto optgroup = page->new_optgroup("");
             optgroup->append_single_option_line("layer_height", "quality_settings_layer_height");
             optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
-            optgroup->append_single_option_line("wall_loops", "strength_settings_walls");
+            optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loops");
             optgroup->append_single_option_line("enable_support", "support_settings_support");
     m_pages.pop_back();
     m_pages.insert(m_pages.begin(), page);
@@ -4867,7 +4870,7 @@ void TabFilament::build()
 
         option = optgroup->get_option("compatible_printers_condition");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option, "material_dependencies#compatible-printers");
+        optgroup->append_single_option_line(option, "material_dependencies#printer-condition");
 
         optgroup = page->new_optgroup(L("Compatible process profiles"), "param_dependencies_presets");
         create_line_with_widget(optgroup.get(), "compatible_prints", "", [this](wxWindow* parent) {
@@ -4876,7 +4879,7 @@ void TabFilament::build()
 
         option = optgroup->get_option("compatible_prints_condition");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option, "material_dependencies#compatible-process-profiles");
+        optgroup->append_single_option_line(option, "material_dependencies#process-condition");
 
     page = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Notes"),"note", 0);
@@ -5283,7 +5286,7 @@ void TabPrinter::build_fff()
                 option.opt.width = Field::def_width_wider();
                 option.opt.tooltip = L("Select the network agent implementation for printer communication. "
                     "Available agents are registered at startup.");
-                optgroup->append_single_option_line(option);
+                optgroup->append_single_option_line(option, "printer_basic_information_advanced#printer-agent");
             }
         }
 
@@ -6319,7 +6322,7 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("extruder_printable_height", "printer_extruder_basic_information#extruder-layer-height-limits", extruder_idx);
             Option option         = optgroup->get_option("extruder_printable_area", extruder_idx);
             option.opt.full_width = true;
-            optgroup->append_single_option_line(option, "printer_extruder_basic_information#extruder-offset-position");
+            optgroup->append_single_option_line(option, "printer_extruder_basic_information#extruder-printable-area");
 
             optgroup->m_on_change = [this](const t_config_option_key& opt_key, boost::any value)
             {

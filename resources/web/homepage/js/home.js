@@ -145,8 +145,40 @@ function HandleStudio( pVal )
   }
 }
 
+/*---- OrcaCloud opens as a native pane beside this page, so the shell only switches its
+      own cloud-mode state and asks the app to show or hide that pane (WebViewPanel::set_cloud_mode). ----*/
+var m_CloudMode=false;
+
+function SetCloudMode( bOn )
+{
+	if( m_CloudMode==bOn )
+		return;
+
+	m_CloudMode=bOn;
+	$("body").toggleClass("cloud-mode", bOn);
+
+	if( bOn )
+	{
+		$(".BtnItem").removeClass("BtnItemSelected");
+		$(".BtnShortcut").addClass("BtnItemSelected");
+	}
+}
+
+function GotoCloud()
+{
+	SetCloudMode(true);
+	SendSimpleCommand("homepage_open_cloud");
+}
+
 function GotoMenu( strMenu )
 {
+	/*---- Any board in the right region means leaving the cloud pane. ----*/
+	if( m_CloudMode )
+	{
+		SetCloudMode(false);
+		SendSimpleCommand("homepage_close_cloud");
+	}
+
 	let MenuList=$(".BtnItem");
 	let nAll=MenuList.length;
 	

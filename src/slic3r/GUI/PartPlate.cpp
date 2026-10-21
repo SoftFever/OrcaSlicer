@@ -19,6 +19,7 @@
 #include "libslic3r/GCode/WipeTower.hpp"
 #include "libslic3r/CustomGCode.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/GCode/GCodeStatistics.hpp"
 #include <ios>
 #include <iomanip>
 #include "libslic3r/Arrange.hpp"
@@ -6154,6 +6155,14 @@ int PartPlateList::select_plate(int index)
 		//wxQueueEvent(m_plater, new SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
 	}
 
+	// With the other plates hidden, the view follows the selected plate.
+	if (previous_index != index && m_intialized && m_plater != nullptr && m_plater->is_view3D_shown() && wxGetApp().focus_mode()) {
+		Camera& camera = m_plater->get_camera();
+		Vec3d   target = camera.get_target();
+		target.head<2>() = m_plate_list[index]->get_bounding_box().center().head<2>();
+		camera.set_target(target);
+	}
+
     if (previous_index != index && m_intialized && m_plater != nullptr && !m_plater->is_loading_project()) {
         LifecycleEventContext ctx;
         ctx.name = m_plate_list[index]->get_plate_name();
@@ -7063,7 +7072,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid, bool hide_chrome)
+void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid, bool hide_chrome, bool hide_inactive)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -7078,7 +7087,7 @@ void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& pr
 	load_icon_textures();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		int current_index = (*it)->get_index();
-		if (only_current && (current_index != m_current_plate))
+		if ((only_current || hide_inactive) && (current_index != m_current_plate))
 			continue;
 		if (current_index == m_current_plate) {
 			PartPlate::HeightLimitMode height_mode = (only_current)?PartPlate::HEIGHT_LIMIT_NONE:m_height_limit_mode;
@@ -7539,7 +7548,7 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates, bool ex
 	return ret;
 }
 
-int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info, int plate_idx)
+int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info, int plate_idx, bool with_statistics)
 {
 	int ret = 0;
 
@@ -7613,6 +7622,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 					}
 					//parse filament info
 					plate_data_item->parse_filament_info(m_plate_list[i]->get_slice_result());
+					if (with_statistics)
+						plate_data_item->statistics = gcode_statistics_json(*m_plate_list[i]->get_slice_result());
 
 					// Record mixed (virtual) filaments actually used on this plate.
 					// Source is ToolOrdering::used_mixed_filaments (slots that appeared in

@@ -66,6 +66,7 @@
 #define CLI_OBJECT_ORIENT_FAILED       -22
 #define CLI_MODIFIED_PARAMS_TO_PRINTER -23
 #define CLI_FILE_VERSION_NOT_SUPPORTED -24
+#define CLI_EXPORT_STATISTICS_ERROR    -25
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -840,6 +841,13 @@ void save_string_file(const boost::filesystem::path& p, const std::string& str);
 void load_string_file(const boost::filesystem::path& p, std::string& str);
 
 bool check_layer_id_pattern(const std::string& pattern, int layer_id);
+
+// On Windows, return an equivalent path carrying the extended-length ("\\?\" / "\\?\UNC\")
+// prefix so the Win32 APIs accept it past MAX_PATH even when LongPathsEnabled is off. The path
+// is made absolute and lexically normalized first, because the prefix disables normalisation.
+// A path that is already extended (or a device path) is returned unchanged; on other platforms,
+// or when an absolute path cannot be formed, the input is returned unchanged.
+boost::filesystem::path extended_path(const boost::filesystem::path& path);
 
 } // namespace Slic3r
 
