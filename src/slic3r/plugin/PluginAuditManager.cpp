@@ -1160,11 +1160,6 @@ bool has_network_permission(const PluginPermissions& permissions, const std::str
            PluginAuditManager::network_permission_matches(permissions.network_socket, target);
 }
 
-bool has_any_network_permission(const PluginPermissions& permissions)
-{
-    return !permissions.network_http.empty() || !permissions.network_socket.empty();
-}
-
 bool persist_permission(const std::string&        plugin_key,
                         PluginInstallState&       state,
                         std::vector<std::string>& permission_list,
@@ -1356,11 +1351,12 @@ int decide_audited_event(PluginAuditManager&             mgr,
     std::vector<std::string> unresolved = keys;
     if (permission_list || is_network_category(category)) {
         unresolved.clear();
+        // Network grants authorize a specific target, not targetless events such as
+        // http.client.send.
         for (const auto& key : keys)
             if (!(permission_list && has_permission(*permission_list, key)) &&
                 !(is_network_category(category) &&
-                  (by_event ? has_any_network_permission(state.permissions)
-                            : has_network_permission(state.permissions, key))))
+                  !by_event && has_network_permission(state.permissions, key)))
                 unresolved.push_back(key);
         if (unresolved.empty())
             return 0;
