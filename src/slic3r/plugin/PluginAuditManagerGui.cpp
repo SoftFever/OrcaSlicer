@@ -177,6 +177,16 @@ bool request_permission(AuditEventCategory category, const std::string& plugin_k
                         const std::string& event_name, bool by_event, const std::vector<std::string>& keys)
 {
     const std::vector<std::string> shown = by_event ? std::vector<std::string>{} : keys;
+    std::string targets_text = by_event ? "<none>" : "";
+    for (const auto& target : shown) {
+        if (!targets_text.empty())
+            targets_text += ", ";
+        targets_text += target;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "[AUDIT PROMPT] plugin=" << plugin_key << " event=" << event_name
+                            << " category=" << plugin_audit::category_name(category) << " targets=[" << targets_text << "]"
+                            << (by_event && !keys.empty() ? " grant=" + keys.front() : std::string{});
 
     if (s_permission_prompt_for_testing)
         return s_permission_prompt_for_testing(event_name, shown);
