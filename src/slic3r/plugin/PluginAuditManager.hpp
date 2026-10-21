@@ -13,6 +13,12 @@
 
 namespace Slic3r {
 
+struct PluginPermissions;
+
+// Thread creation exposes no user-supplied target, so both the runtime audit event and a
+// request_permissions(threading=True) declaration use this fixed target.
+inline constexpr const char* kThreadPermissionTarget = "thread";
+
 struct AuditDecision {
     bool        allowed = true;
     std::string reason;
@@ -134,12 +140,12 @@ public:
     AuditDecision check_path_access(const boost::filesystem::path& candidate, bool is_write);
     AuditDecision check_open(const std::string& path, const std::string& mode);
 
-    // Ask the user to grant the requested filesystem-read paths. The request may originate on a
-    // plugin load worker, so the implementation marshals the modal dialog to the wx main thread.
-    // Returns true only when every missing path was granted and persisted; denial aborts the plugin
-    // load without adding a permission.
-    bool request_filesystem_read_permissions(const std::string& plugin_key,
-                                             const std::vector<std::string>& paths);
+    // Ask the user to grant the requested permissions. The request may originate on a plugin
+    // load worker, so the implementation marshals the modal dialog to the wx main thread.
+    // Targets already persisted for the plugin are not shown or asked for again. Returns true
+    // only when every missing target was granted and persisted; denial aborts the plugin load
+    // without adding a permission.
+    bool request_permissions(const std::string& plugin_key, const PluginPermissions& requested);
 
     void report_violation(const AuditViolation& violation);
     bool audit_denial_pending() const;
@@ -176,6 +182,11 @@ private:
     PluginAuditManager() = default;
 
     static int audit_hook(const char* event, PyObject* args, void* user_data);
+
+    // True for paths inside the interpreter's stdlib, excluding site-packages. Unlike
+    // is_stdlib_file(), this query is not cached because filesystem paths may resolve through
+    // symlinks that can change.
+    static bool is_stdlib_path(const boost::filesystem::path& path);
 
     // Drops the references in `frames`, keeping the caller's error and denial state intact.
     void release_frames(std::vector<PyObject*>& frames);
