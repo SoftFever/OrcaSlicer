@@ -355,9 +355,10 @@ public:
     void scale(const Vec3d& scale, TransformationType transformation_type);
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
     // bed_center is the centre of the plate the selection is on: every plate shares the
-    // bed size, but each sits at its own origin. print_volume is the box the selection must
-    // fit in, which is the area every nozzle reaches rather than the whole bed.
-    void scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d& bed_center, const BoundingBoxf3& print_volume);
+    // bed size, but each sits at its own origin. print_volumes are the candidate boxes the
+    // selection may be fitted into (e.g. the bed minus rectangular exclusion zones); the one
+    // allowing the largest scale is used.
+    void scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d& bed_center, const std::vector<BoundingBoxf3>& print_volumes);
 #else
     void scale_to_fit_print_volume(const DynamicPrintConfig& config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT

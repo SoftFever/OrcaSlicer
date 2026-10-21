@@ -1478,7 +1478,7 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 }
 
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
-void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d& bed_center, const BoundingBoxf3& print_volume)
+void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d& bed_center, const std::vector<BoundingBoxf3>& print_volumes)
 {
     auto fit = [this](double s, Vec3d offset) {
         if (s <= 0.0 || s == 1.0)
@@ -1508,18 +1508,27 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume, const Vec2d
         //wxGetApp().obj_manipul()->set_dirty();
     };
 
-    auto fit_rectangle = [this, fit, &print_volume]() {
-        const Vec3d print_volume_size = print_volume.size();
-
+    auto fit_rectangle = [this, fit, &print_volumes]() {
         // adds 1/100th of a mm on all sides to avoid false out of print volume detections due to floating-point roundings
         const Vec3d box_size = get_bounding_box().size() + 0.02 * Vec3d::Ones();
 
-        const double sx = (box_size.x() != 0.0) ? print_volume_size.x() / box_size.x() : 0.0;
-        const double sy = (box_size.y() != 0.0) ? print_volume_size.y() / box_size.y() : 0.0;
-        const double sz = (box_size.z() != 0.0) ? print_volume_size.z() / box_size.z() : 0.0;
+        double best_s = 0.0;
+        const BoundingBoxf3* best = nullptr;
+        for (const BoundingBoxf3& print_volume : print_volumes) {
+            const Vec3d print_volume_size = print_volume.size();
 
-        if (sx != 0.0 && sy != 0.0 && sz != 0.0)
-            fit(std::min(sx, std::min(sy, sz)), print_volume.center() - get_bounding_box().center());
+            const double sx = (box_size.x() != 0.0) ? print_volume_size.x() / box_size.x() : 0.0;
+            const double sy = (box_size.y() != 0.0) ? print_volume_size.y() / box_size.y() : 0.0;
+            const double sz = (box_size.z() != 0.0) ? print_volume_size.z() / box_size.z() : 0.0;
+
+            if (sx != 0.0 && sy != 0.0 && sz != 0.0 && std::min(sx, std::min(sy, sz)) > best_s) {
+                best_s = std::min(sx, std::min(sy, sz));
+                best = &print_volume;
+            }
+        }
+
+        if (best != nullptr)
+            fit(best_s, best->center() - get_bounding_box().center());
     };
 
     auto fit_circle = [this, fit, &bed_center](const BuildVolume& volume) {
