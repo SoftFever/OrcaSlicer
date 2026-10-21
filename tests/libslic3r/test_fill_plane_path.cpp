@@ -26,13 +26,11 @@ constexpr double output_scale = 1'000'000.;
 class TestableHilbertCurve : public FillHilbertCurve
 {
 public:
-    Points generate_points(double resolution, double smooth_factor = 0., coord_t max_coordinate = 7,
-                           InfillSmoothCurve curve = InfillSmoothCurve::Quintic)
+    Points generate_points(double resolution, double smooth_factor = 0., coord_t max_coordinate = 7)
     {
         InfillPolylineOutput output(output_scale);
         FillParams params;
         params.smooth_factor = smooth_factor;
-        params.smooth_curve  = curve;
         FillHilbertCurve::generate(0, 0, max_coordinate, max_coordinate, resolution, params, output);
         return std::move(output.result());
     }
@@ -144,37 +142,27 @@ TEST_CASE("Smoothed Hilbert curve honors path resolution", "[FillPlanePath]")
 TEST_CASE("Smoothed Hilbert corners turn by the same angle at every vertex", "[FillPlanePath]")
 {
     // A planner slows down at a vertex by how much it turns, so a rounded corner spreads its turn evenly.
-    for (const InfillSmoothCurve curve : { InfillSmoothCurve::Arc, InfillSmoothCurve::Quintic, InfillSmoothCurve::Septic }) {
-        const Points smooth = TestableHilbertCurve().generate_points(0.0035, 1., 1, curve);
-        std::vector<double> turns;
-        for (size_t i = 1; i + 1 < smooth.size(); ++i) {
-            const Vec2d  incoming = (smooth[i] - smooth[i - 1]).cast<double>().normalized();
-            const Vec2d  outgoing = (smooth[i + 1] - smooth[i]).cast<double>().normalized();
-            const double turn     = std::atan2(std::abs(cross2(incoming, outgoing)), incoming.dot(outgoing));
-            if (turn > 1e-6)
-                turns.push_back(turn);
-        }
-        REQUIRE(turns.size() > 2);
-        const auto [sharpest, gentlest] = std::minmax_element(turns.begin(), turns.end());
-        REQUIRE_THAT(*gentlest, Catch::Matchers::WithinRel(*sharpest, 0.02));
+    const Points smooth = TestableHilbertCurve().generate_points(0.0035, 1., 1);
+    std::vector<double> turns;
+    for (size_t i = 1; i + 1 < smooth.size(); ++i) {
+        const Vec2d  incoming = (smooth[i] - smooth[i - 1]).cast<double>().normalized();
+        const Vec2d  outgoing = (smooth[i + 1] - smooth[i]).cast<double>().normalized();
+        const double turn     = std::atan2(std::abs(cross2(incoming, outgoing)), incoming.dot(outgoing));
+        if (turn > 1e-6)
+            turns.push_back(turn);
     }
+    REQUIRE(turns.size() > 2);
+    const auto [sharpest, gentlest] = std::minmax_element(turns.begin(), turns.end());
+    REQUIRE_THAT(*gentlest, Catch::Matchers::WithinRel(*sharpest, 0.02));
 }
 
-TEST_CASE("Hilbert smoothing eases into the turn with the continuous and smooth curvature curves", "[FillPlanePath]")
+TEST_CASE("Hilbert smoothing eases into the turn", "[FillPlanePath]")
 {
-    // Every vertex turns by the same angle, so the edges are as long as the curve is gentle: the arc keeps a
-    // constant curvature, continuous curvature starts it from zero at the legs, and smooth curvature also starts
-    // its rate from zero, so its edges shorten even faster away from the legs.
-    auto first_to_second = [](InfillSmoothCurve curve) {
-        const std::vector<double> edges = first_corner_edges(TestableHilbertCurve().generate_points(0.0002, 1., 1, curve));
-        REQUIRE(edges.size() >= 16);
-        return edges[0] / edges[1];
-    };
-    REQUIRE_THAT(first_to_second(InfillSmoothCurve::Arc), Catch::Matchers::WithinRel(1., 0.05));
-    const double g2 = first_to_second(InfillSmoothCurve::Quintic);
-    const double g3 = first_to_second(InfillSmoothCurve::Septic);
-    REQUIRE(g2 > 1.1);
-    REQUIRE(g3 > g2);
+    // Every vertex turns by the same angle, so the edges are as long as the curve is gentle. The curvature starts
+    // from zero at the legs, so the edges shorten away from them.
+    const std::vector<double> edges = first_corner_edges(TestableHilbertCurve().generate_points(0.0002, 1., 1));
+    REQUIRE(edges.size() >= 16);
+    REQUIRE(edges[0] / edges[1] > 1.1);
 }
 
 TEST_CASE("Octagram spiral smoothing rounds the turns of the spiral", "[FillPlanePath]")

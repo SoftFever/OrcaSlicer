@@ -98,11 +98,10 @@ struct FillParams
     float                adaptive_infill_interior_density { 0.f };
     AdaptiveInfillGradient adaptive_infill_gradient { AdaptiveInfillGradient::Linear };
 
-    // Orca: corner smoothing factor in the range [0, 1] and the curve rounding the corners.
+    // Orca: corner smoothing factor in the range [0, 1].
     double      smooth_factor { 0. };
-    InfillSmoothCurve smooth_curve { InfillSmoothCurve::Quintic };
     // The corner smoothing in scaled coordinates.
-    CornerSmoothing corner_smoothing() const { return CornerSmoothing{smooth_factor, smooth_curve, scaled<double>(resolution)}; }
+    CornerSmoothing corner_smoothing() const { return CornerSmoothing{smooth_factor, scaled<double>(resolution)}; }
 
     // For Lateral lattice
     coordf_t    lateral_lattice_angle_1    { 0.f };

@@ -12,7 +12,6 @@
 #include "../Point.hpp"
 #include "../Polygon.hpp"
 #include "../Polyline.hpp"
-#include "../PrintConfig.hpp"
 
 namespace Slic3r {
 
@@ -27,7 +26,6 @@ struct CornerSmoothing
 {
     // Fraction of the shorter adjoining leg a curve may reach along it, relative to half of that leg.
     double            factor { 0. };
-    InfillSmoothCurve curve { InfillSmoothCurve::Quintic };
     // The G-code resolution: a rounded corner keeps within it of its curve, and its vertices stand out of the
     // path by at least it, so that simplifying the path to it keeps them.
     double            tolerance { 0. };

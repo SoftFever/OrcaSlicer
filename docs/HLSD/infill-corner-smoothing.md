@@ -4,9 +4,9 @@
 
 `sparse_infill_smooth_factor` rounds the corners of the sparse infill paths of
 the patterns `is_smoothable_infill_pattern()` lists, so the toolhead does not
-slow to near a stop in every corner. `sparse_infill_smooth_curve` picks the
-curve. `FillCornerSmoothing` does the rounding for every pattern; the fills only
-call it on their paths before clipping and before `multiline_fill()` copies them.
+slow to near a stop in every corner. `FillCornerSmoothing` does the rounding for
+every pattern; the fills only call it on their paths before clipping and before
+`multiline_fill()` copies them.
 
 The design is shaped by how firmware plans speed. Klipper, Marlin 2 with
 junction deviation and OrcaSlicer's estimator limit the speed at the junction of
@@ -15,26 +15,19 @@ the centripetal part. A curve is printed as straight moves, so its speed depends
 on how it is cut into moves as much as on its shape, and the cut decides the size
 of the G-code.
 
-## The curves
+## The curve
 
 Each corner is replaced by a curve that runs from `reach` before it along the
 incoming leg to `reach` after it along the outgoing one, `reach` being the factor
 times half of the shorter leg, so the curves of two corners never overlap.
 
-- Tangent arc is the circular arc tangent to both legs, a G1 join. It has the
-  lowest peak curvature for a reach, but its curvature jumps from zero at both legs.
-- Continuous curvature is a quintic Bézier curve whose first three control points
-  on each leg are equally spaced, which makes its curvature zero at the legs, a
-  G2 join.
-- Smooth curvature is a septic Bézier curve with four control points on each leg,
-  which also makes the rate of its curvature zero there, a G3 join.
-
-The choices are named for what they do rather than their continuity class, as G1,
-G2 and G3 are also the G-code moves.
-
-The control points are 0.3 (quintic) and 0.2 (septic) of the reach apart. Tuning
-the spacing to the turn angle lowers the peak curvature of sharp turns but made
-no measurable difference to print time.
+The curve is a quintic Bézier curve whose first three control points on each leg
+are equally spaced, 0.3 of the reach apart, which makes its curvature zero at the
+legs: the toolhead eases into the turn. A circular arc takes fewer vertices within
+the resolution and prints slower, and a septic curve, whose rate of curvature is
+also zero at the legs, prints no faster than the quintic one and takes longer to
+slice. Tuning the spacing to the turn angle lowers the peak curvature of sharp
+turns but made no measurable difference to print time.
 
 ## The vertices
 
@@ -46,7 +39,7 @@ where the curve is nearly straight and leave the sharpest turn in the middle.
 The number of vertices follows the G-code resolution (`resolution`), as the rest
 of the G-code does: it is the fewest that keep the polygon within the resolution
 of its curve. The arc of the curve's peak curvature gives the first count, which
-the flatter parts of a Bézier curve may raise. The count is never so high that a
+the flatter parts of the curve may raise. The count is never so high that a
 vertex stands out of the chord of its neighbours by less than the resolution, as
 `LayerRegion::simplify_*` simplifies the infill to it afterwards and would drop
 that vertex again.
@@ -58,7 +51,7 @@ takes faster, for a larger G-code file.
 A corner of a given turn and vertex count is the same shape at any reach, scaled.
 `CornerSmoother` builds each shape once at unit reach and scales it, as some
 patterns (Octagram Spiral) change the reach at every corner, and searching the
-tangents of a Bézier curve is what slicing spends its time on.
+tangents of the curve is what slicing spends its time on.
 
 ## Constraints
 

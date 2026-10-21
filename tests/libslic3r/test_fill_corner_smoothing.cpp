@@ -13,7 +13,6 @@
 #include "libslic3r/Fill/FillCornerSmoothing.hpp"
 #include "libslic3r/Line.hpp"
 #include "libslic3r/Polyline.hpp"
-#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/libslic3r.h"
 
 using namespace Slic3r;
@@ -58,10 +57,10 @@ double distance_to(const Polyline &polyline, const Point &point)
 
 const double tolerance = scaled<double>(0.0125);
 
-// The default curve at the given factor, flattened to the given resolution.
+// The smoothing at the given factor, flattened to the given resolution.
 CornerSmoothing smoothing(double factor, double resolution = tolerance)
 {
-    return CornerSmoothing{ factor, InfillSmoothCurve::Quintic, resolution };
+    return CornerSmoothing{ factor, resolution };
 }
 
 } // namespace
@@ -230,38 +229,34 @@ TEST_CASE("Corner smoothing ignores vertices splitting a straight leg", "[FillCo
 
 TEST_CASE("Corner smoothing turns by the same angle at every vertex of a corner", "[FillCornerSmoothing]")
 {
-    for (const InfillSmoothCurve curve : { InfillSmoothCurve::Arc, InfillSmoothCurve::Quintic, InfillSmoothCurve::Septic }) {
-        Polyline smooth = asymmetric_corner();
-        smooth_polyline_corners(smooth, CornerSmoothing{ 1., curve, tolerance });
-        REQUIRE(smooth.size() > 4);
-        double sharpest = 0., gentlest = PI;
-        for (size_t i = 1; i + 1 < smooth.size(); ++i) {
-            const Vec2d  incoming = (smooth[i] - smooth[i - 1]).cast<double>().normalized();
-            const Vec2d  outgoing = (smooth[i + 1] - smooth[i]).cast<double>().normalized();
-            const double turn     = std::atan2(std::abs(cross2(incoming, outgoing)), incoming.dot(outgoing));
-            sharpest = std::max(sharpest, turn);
-            gentlest = std::min(gentlest, turn);
-        }
-        // The vertices together make up the right angle of the corner.
-        REQUIRE_THAT(sharpest * double(smooth.size() - 2), Catch::Matchers::WithinRel(0.5 * PI, 0.02));
-        REQUIRE_THAT(gentlest, Catch::Matchers::WithinRel(sharpest, 0.02));
+    Polyline smooth = asymmetric_corner();
+    smooth_polyline_corners(smooth, smoothing(1.));
+    REQUIRE(smooth.size() > 4);
+    double sharpest = 0., gentlest = PI;
+    for (size_t i = 1; i + 1 < smooth.size(); ++i) {
+        const Vec2d  incoming = (smooth[i] - smooth[i - 1]).cast<double>().normalized();
+        const Vec2d  outgoing = (smooth[i + 1] - smooth[i]).cast<double>().normalized();
+        const double turn     = std::atan2(std::abs(cross2(incoming, outgoing)), incoming.dot(outgoing));
+        sharpest = std::max(sharpest, turn);
+        gentlest = std::min(gentlest, turn);
     }
+    // The vertices together make up the right angle of the corner.
+    REQUIRE_THAT(sharpest * double(smooth.size() - 2), Catch::Matchers::WithinRel(0.5 * PI, 0.02));
+    REQUIRE_THAT(gentlest, Catch::Matchers::WithinRel(sharpest, 0.02));
 }
 
 TEST_CASE("Corner smoothing keeps within the resolution of its curve", "[FillCornerSmoothing]")
 {
-    for (const InfillSmoothCurve curve : { InfillSmoothCurve::Arc, InfillSmoothCurve::Quintic, InfillSmoothCurve::Septic }) {
-        // The curve itself, up to 0.2 microns.
-        Polyline fine = asymmetric_corner();
-        smooth_polyline_corners(fine, CornerSmoothing{ 1., curve, scaled<double>(0.0002) });
-        auto vertices = [curve, &fine](double resolution) {
-            Polyline smooth = asymmetric_corner();
-            smooth_polyline_corners(smooth, CornerSmoothing{ 1., curve, scaled<double>(resolution) });
-            for (const Point &point : smooth.points)
-                REQUIRE(distance_to(fine, point) <= scaled<double>(resolution + 0.0002));
-            return smooth.size() - 2;
-        };
-        // A coarser resolution takes fewer vertices.
-        REQUIRE(vertices(0.05) < vertices(0.0125));
-    }
+    // The curve itself, up to 0.2 microns.
+    Polyline fine = asymmetric_corner();
+    smooth_polyline_corners(fine, smoothing(1., scaled<double>(0.0002)));
+    auto vertices = [&fine](double resolution) {
+        Polyline smooth = asymmetric_corner();
+        smooth_polyline_corners(smooth, smoothing(1., scaled<double>(resolution)));
+        for (const Point &point : smooth.points)
+            REQUIRE(distance_to(fine, point) <= scaled<double>(resolution + 0.0002));
+        return smooth.size() - 2;
+    };
+    // A coarser resolution takes fewer vertices.
+    REQUIRE(vertices(0.05) < vertices(0.0125));
 }

@@ -11,7 +11,6 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Polyline.hpp"
 #include "libslic3r/Polygon.hpp"
-#include "libslic3r/PrintConfig.hpp"
 
 namespace Slic3r {
 
@@ -19,56 +18,44 @@ namespace Slic3r {
 // coincide, so the corner would be rounded into a degenerate loop instead of a hairpin.
 static constexpr const double min_smoothed_turn_cosine = -0.9;
 
-// Spacing of the control points of the Bezier corner curves along each leg, as a fraction of the reach.
-static constexpr const double quintic_spacing = 0.3;
-static constexpr const double septic_spacing  = 0.2;
+// Spacing of the control points of the corner curve along each leg, as a fraction of the reach.
+static constexpr const double control_spacing = 0.3;
 
 // Bounds the vertices of a corner whatever the tolerance.
 static constexpr const size_t max_corner_vertices = 256;
 // Bounds the corners a smoother keeps, for paths turning by ever new angles.
 static constexpr const size_t max_cached_corners = 4096;
 
-// The control points of a Bezier corner curve, up to the eight of the septic one.
-struct ControlPoints
-{
-    std::array<Vec2d, 8> points;
-    size_t               size { 0 };
-};
+// The control points of the quintic Bezier corner curve.
+using ControlPoints = std::array<Vec2d, 6>;
 
 // The control points of the corner curve in a frame where the incoming leg runs along +x into the corner at
 // the origin and the outgoing leg leaves it turning left. At each end, the first three control points are
 // collinear and equally spaced: the tangent follows the adjoining leg and the second derivative is zero,
-// so the curvature starts from zero, a G2 join. The septic curve keeps a fourth control point on each leg,
-// which also zeroes the rate of the curvature there, a G3 join.
-static ControlPoints bezier_control_points(const InfillSmoothCurve curve, const double reach, const Vec2d &outgoing)
+// so the curvature starts from zero and the toolhead eases into the turn.
+static ControlPoints bezier_control_points(const double reach, const Vec2d &outgoing)
 {
-    const bool    septic  = curve == InfillSmoothCurve::Septic;
-    const size_t  per_leg = septic ? 4 : 3;
-    const double  spacing = (septic ? septic_spacing : quintic_spacing) * reach;
-    ControlPoints control;
-    for (size_t i = 0; i < per_leg; ++i)
-        control.points[control.size++] = Vec2d(-(reach - double(i) * spacing), 0.);
-    for (size_t i = per_leg; i-- > 0;)
-        control.points[control.size++] = (reach - double(i) * spacing) * outgoing;
-    return control;
+    const double spacing = control_spacing * reach;
+    return { Vec2d(-reach, 0.), Vec2d(-(reach - spacing), 0.), Vec2d(-(reach - 2. * spacing), 0.),
+             (reach - 2. * spacing) * outgoing, (reach - spacing) * outgoing, reach * outgoing };
 }
 
-// The first and second derivatives of a Bezier curve, by de Casteljau down to its last three points.
+// The first and second derivatives of the curve, by de Casteljau down to its last three points.
 static std::pair<Vec2d, Vec2d> bezier_derivatives(const ControlPoints &control, const double t)
 {
-    std::array<Vec2d, 8> work = control.points;
-    for (size_t count = control.size; count > 3; --count)
+    ControlPoints work = control;
+    for (size_t count = work.size(); count > 3; --count)
         for (size_t i = 0; i + 1 < count; ++i)
             work[i] = (1. - t) * work[i] + t * work[i + 1];
-    const double degree = double(control.size - 1);
+    const double degree = double(work.size() - 1);
     return { degree * ((1. - t) * (work[1] - work[0]) + t * (work[2] - work[1])),
              degree * (degree - 1.) * (work[2] - 2. * work[1] + work[0]) };
 }
 
 static Vec2d bezier_point(const ControlPoints &control, const double t)
 {
-    std::array<Vec2d, 8> work = control.points;
-    for (size_t count = control.size; count > 1; --count)
+    ControlPoints work = control;
+    for (size_t count = work.size(); count > 1; --count)
         for (size_t i = 0; i + 1 < count; ++i)
             work[i] = (1. - t) * work[i] + t * work[i + 1];
     return work.front();
@@ -79,19 +66,15 @@ double CornerSmoother::peak_curvature_by_reach(const double cosine)
     if (const auto it = m_peak_curvatures.find(cosine); it != m_peak_curvatures.end())
         return it->second;
 
-    const double turn = std::acos(std::clamp(cosine, -1., 1.));
-    double       peak = 0.;
-    if (m_smoothing.curve == InfillSmoothCurve::Arc) {
-        peak = std::tan(0.5 * turn);
-    } else {
-        const ControlPoints control = bezier_control_points(m_smoothing.curve, 1., Vec2d(cosine, std::sin(turn)));
-        static constexpr const size_t samples = 256;
-        for (size_t i = 0; i <= samples; ++i) {
-            const auto [first, second] = bezier_derivatives(control, double(i) / double(samples));
-            const double speed = first.norm();
-            if (speed > EPSILON)
-                peak = std::max(peak, std::abs(cross2(first, second)) / (speed * speed * speed));
-        }
+    const double                  turn    = std::acos(std::clamp(cosine, -1., 1.));
+    const ControlPoints           control = bezier_control_points(1., Vec2d(cosine, std::sin(turn)));
+    static constexpr const size_t samples = 256;
+    double                        peak    = 0.;
+    for (size_t i = 0; i <= samples; ++i) {
+        const auto [first, second] = bezier_derivatives(control, double(i) / double(samples));
+        const double speed = first.norm();
+        if (speed > EPSILON)
+            peak = std::max(peak, std::abs(cross2(first, second)) / (speed * speed * speed));
     }
     if (m_peak_curvatures.size() >= max_cached_corners)
         m_peak_curvatures.clear();
@@ -110,37 +93,28 @@ double CornerSmoother::tangent_polygon(const double cosine, const size_t count, 
     std::vector<std::pair<Vec2d, Vec2d>> tangents;
     tangents.reserve(2 * count + 1);
     tangents.emplace_back(Vec2d(-1., 0.), Vec2d(1., 0.));
-    if (m_smoothing.curve == InfillSmoothCurve::Arc) {
-        const double radius = 1. / std::tan(0.5 * turn);
-        const Vec2d  center(-1., radius);
-        for (size_t i = 1; i < 2 * count; ++i) {
-            const double angle = 0.5 * turn * double(i) / double(count);
-            tangents.emplace_back(center + radius * Vec2d(std::sin(angle), -std::cos(angle)), Vec2d(std::cos(angle), std::sin(angle)));
+    const ControlPoints control = bezier_control_points(1., outgoing);
+    double              from    = 0.;
+    for (size_t i = 1; i < 2 * count; ++i) {
+        // The direction of the tangent grows monotonically along the curve, so Newton steps on it converge
+        // within the bracket of the parameter; a step leaving the bracket is replaced by a bisection.
+        const double angle = 0.5 * turn * double(i) / double(count);
+        double       low = from, high = 1., t = 0.5 * (low + high);
+        for (int iteration = 0; iteration < 64 && high - low > 1e-15; ++iteration) {
+            const auto [first, second] = bezier_derivatives(control, t);
+            const double error = std::atan2(first.y(), first.x()) - angle;
+            if (std::abs(error) < 1e-14)
+                break;
+            if (error < 0.)
+                low = t;
+            else
+                high = t;
+            const double rate = cross2(first, second) / first.squaredNorm();
+            const double next = rate > 0. ? t - error / rate : low;
+            t = next > low && next < high ? next : 0.5 * (low + high);
         }
-    } else {
-        const ControlPoints control = bezier_control_points(m_smoothing.curve, 1., outgoing);
-        double              from    = 0.;
-        for (size_t i = 1; i < 2 * count; ++i) {
-            // The direction of the tangent grows monotonically along the curve, so Newton steps on it converge
-            // within the bracket of the parameter; a step leaving the bracket is replaced by a bisection.
-            const double angle = 0.5 * turn * double(i) / double(count);
-            double       low = from, high = 1., t = 0.5 * (low + high);
-            for (int iteration = 0; iteration < 64 && high - low > 1e-15; ++iteration) {
-                const auto [first, second] = bezier_derivatives(control, t);
-                const double error = std::atan2(first.y(), first.x()) - angle;
-                if (std::abs(error) < 1e-14)
-                    break;
-                if (error < 0.)
-                    low = t;
-                else
-                    high = t;
-                const double rate = cross2(first, second) / first.squaredNorm();
-                const double next = rate > 0. ? t - error / rate : low;
-                t = next > low && next < high ? next : 0.5 * (low + high);
-            }
-            from = low;
-            tangents.emplace_back(bezier_point(control, t), bezier_derivatives(control, t).first.normalized());
-        }
+        from = low;
+        tangents.emplace_back(bezier_point(control, t), bezier_derivatives(control, t).first.normalized());
     }
     tangents.emplace_back(outgoing, outgoing);
 
@@ -180,7 +154,7 @@ const std::vector<Vec2d> *CornerSmoother::corner_vertices(const double reach, co
     // Simplifying the path to the tolerance drops a vertex standing out of the chord of its neighbours by less,
     // which the sharpest vertex of the curve does at finer steps than this.
     const size_t most  = size_t(std::min(double(max_corner_vertices), turn / std::sqrt(2. * curvature * tolerance)));
-    // The count an arc of the peak curvature takes; the flatter parts of a Bezier curve may need more.
+    // The count an arc of the peak curvature takes; the flatter parts of the curve may need more.
     size_t       count = std::min(most, size_t(std::ceil(turn / std::sqrt(8. * curvature * tolerance) - EPSILON)));
     if (count < 2)
         return nullptr;

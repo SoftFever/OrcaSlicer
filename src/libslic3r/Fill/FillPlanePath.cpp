@@ -343,7 +343,7 @@ template<typename GenerateFn>
 static void generate_path(InfillPolylineOutput &output, const FillParams &params, const double resolution, GenerateFn generate)
 {
     // The path runs in units of the line spacing, as the resolution passed in does.
-    const CornerSmoothing smoothing{ params.smooth_factor, params.smooth_curve, resolution };
+    const CornerSmoothing smoothing{ params.smooth_factor, resolution };
     auto run = [&smoothing, &generate](auto &out) {
         if (sanitize_smooth_factor(smoothing.factor) == 0.) {
             generate(out);
