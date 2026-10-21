@@ -178,7 +178,7 @@ static ComboBox* make_combo(wxWindow* parent)
 // every row and every caller resolved it to index 0 no matter what the user had picked — silently,
 // because index 0 is a legal answer. SetClientData() flips the type to wxClientData_Void, after
 // which the value survives the round trip.
-static int combo_append_index(ComboBox* c, const wxString& label, int index)
+template<class C> static int combo_append_index(C* c, const wxString& label, int index)
 {
     const int row = c->Append(label, wxNullBitmap);
     c->SetClientData(unsigned(row), reinterpret_cast<void*>(intptr_t(index)));
@@ -1991,13 +1991,18 @@ DesignPanel::DesignPanel(wxWindow* parent)
     }
 
     // --- Hole (positioned circular cut) ---
-    auto* hform = two_col_form();
-
-    m_hole_plane = make_combo(m_cards);
+    CardModel* c_m_box_hole = add_card(m_box_hole, "design_hole", _L_CONTEXT("Hole", "Design"));
+    m_hdr_hole = c_m_box_hole->title();
+    m_hole_plane = c_m_box_hole->make_combo();
+    
     m_hole_plane->Append(_L_CONTEXT("XY", "Axis"));
+    
     m_hole_plane->Append(_L_CONTEXT("XZ", "Axis"));
+    
     m_hole_plane->Append(_L_CONTEXT("YZ", "Axis"));
+    
     m_hole_plane->SetSelection(0);
+
     // Picking a plane here is an explicit choice: drop any on-face hijack (a stale face pick
     // could keep m_hole_on_face true, so the dropdown was ignored and the hole drilled on the
     // face's plane instead of the chosen XY/XZ/YZ).
@@ -2009,90 +2014,70 @@ DesignPanel::DesignPanel(wxWindow* parent)
         refresh_preview();
         e.Skip();
     });
-    hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Hole plane")), 0, wxALIGN_CENTER_VERTICAL);
-    hform->Add(m_hole_plane, 0, wxEXPAND);
-
-    m_hole_diameter = make_spin(m_cards, 6.0);
-    hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Diameter")), 0, wxALIGN_CENTER_VERTICAL);
-    hform->Add(spin_frame(m_hole_diameter), 0, wxEXPAND);
-
-    m_hole_depth = make_spin(m_cards, 10.0);
-    hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Depth (blind)")), 0, wxALIGN_CENTER_VERTICAL);
-    hform->Add(spin_frame(m_hole_depth), 0, wxEXPAND);
-
-    m_hole_x = make_spin(m_cards, 0.0, -1000.0, 1000.0);
-    hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pos X")), 0, wxALIGN_CENTER_VERTICAL);
-    hform->Add(spin_frame(m_hole_x), 0, wxEXPAND);
-
-    m_hole_y = make_spin(m_cards, 0.0, -1000.0, 1000.0);
-    hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pos Y")), 0, wxALIGN_CENTER_VERTICAL);
-    hform->Add(spin_frame(m_hole_y), 0, wxEXPAND);
-
-    m_hole_through = new CheckBox(m_cards);
+    c_m_box_hole->row(_L("Hole plane"), m_hole_plane);
+    m_hole_diameter = c_m_box_hole->make_spin(6.0);
+    c_m_box_hole->row(_L("Diameter"), m_hole_diameter);
+    m_hole_depth = c_m_box_hole->make_spin(10.0);
+    c_m_box_hole->row(_L("Depth (blind)"), m_hole_depth);
+    m_hole_x = c_m_box_hole->make_spin(0.0, -1000.0, 1000.0);
+    c_m_box_hole->row(_L("Pos X"), m_hole_x);
+    m_hole_y = c_m_box_hole->make_spin(0.0, -1000.0, 1000.0);
+    c_m_box_hole->row(_L("Pos Y"), m_hole_y);
+    m_hole_through = c_m_box_hole->make_check();
+    
     m_hole_through->SetValue(true);
-    hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Through")), 0, wxALIGN_CENTER_VERTICAL);
-    hform->Add(m_hole_through, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
-
-    m_hole_target_label = new wxStaticText(m_cards, wxID_ANY, _L("(none — uses Hole plane)"));
-    hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("On face")), 0, wxALIGN_CENTER_VERTICAL);
-    hform->Add(m_hole_target_label, 0, wxALIGN_CENTER_VERTICAL);
-
-    m_box_hole = new wxBoxSizer(wxVERTICAL);
-    m_box_hole->Add(card_header(m_cards, "design_hole", _L_CONTEXT("Hole", "Design"), m_hdr_hole), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_hole->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_hole->Add(hform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-    cards->Add(m_box_hole, 0, wxEXPAND);
+    c_m_box_hole->row(_L("Through"), m_hole_through);
+    m_hole_target_label = c_m_box_hole->make_text(_L("(none — uses Hole plane)"));
+    c_m_box_hole->row(_L("On face"), m_hole_target_label);
 
     // --- Thread (helical) ---
-    auto* tform = two_col_form();
-
-    m_thread_plane = make_combo(m_cards);
+    CardModel* c_m_box_thread = add_card(m_box_thread, "design_thread", _L("Thread"));
+    m_hdr_thread = c_m_box_thread->title();
+    m_thread_plane = c_m_box_thread->make_combo();
+    
     m_thread_plane->Append(_L_CONTEXT("XY", "Axis"));
+    
     m_thread_plane->Append(_L_CONTEXT("XZ", "Axis"));
+    
     m_thread_plane->Append(_L_CONTEXT("YZ", "Axis"));
+    
     m_thread_plane->SetSelection(0);
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Thread plane")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(m_thread_plane, 0, wxEXPAND);
+    c_m_box_thread->row(_L("Thread plane"), m_thread_plane);
+
 
     // Standard designation picker — fills pitch/depth (and nominal radius) from the
     // ISO metric / Unified imperial tables. "Custom" leaves the manual spins alone.
-    m_thread_std = make_combo(m_cards);
+    m_thread_std = c_m_box_thread->make_combo();
+    
     m_thread_std->Append(_L("Custom"));
+    
     for (const ThreadSpec& s : thread_standards())
         m_thread_std->Append(s.name);
+    
     m_thread_std->SetSelection(0);
+    
     m_thread_std->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { apply_thread_standard(); });
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L_CONTEXT("Standard", "Thread standard")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(m_thread_std, 0, wxEXPAND);
+    c_m_box_thread->row(_L_CONTEXT("Standard", "Thread standard"), m_thread_std);
+
 
     // Threads are specified by DIAMETER (M6 = Ø6); the value is derived from the picked cylindrical
     // surface / circular edge, so it's a readout users rarely type. Stored field holds the diameter.
-    m_thread_radius = make_spin(m_cards, 10.0);
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Diameter")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(spin_frame(m_thread_radius), 0, wxEXPAND);
-
-    m_thread_pitch = make_spin(m_cards, 2.0);
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pitch")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(spin_frame(m_thread_pitch), 0, wxEXPAND);
-
-    m_thread_height = make_spin(m_cards, 10.0);
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Length")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(spin_frame(m_thread_height), 0, wxEXPAND);
-
-    m_thread_depth = make_spin(m_cards, 1.0);
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Thread depth")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(spin_frame(m_thread_depth), 0, wxEXPAND);
-
-    m_thread_x = make_spin(m_cards, 0.0, -1000.0, 1000.0);
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pos X")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(spin_frame(m_thread_x), 0, wxEXPAND);
-
-    m_thread_y = make_spin(m_cards, 0.0, -1000.0, 1000.0);
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pos Y")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(spin_frame(m_thread_y), 0, wxEXPAND);
-
-    m_thread_internal = new CheckBox(m_cards);
+    m_thread_radius = c_m_box_thread->make_spin(10.0);
+    c_m_box_thread->row(_L("Diameter"), m_thread_radius);
+    m_thread_pitch = c_m_box_thread->make_spin(2.0);
+    c_m_box_thread->row(_L("Pitch"), m_thread_pitch);
+    m_thread_height = c_m_box_thread->make_spin(10.0);
+    c_m_box_thread->row(_L("Length"), m_thread_height);
+    m_thread_depth = c_m_box_thread->make_spin(1.0);
+    c_m_box_thread->row(_L("Thread depth"), m_thread_depth);
+    m_thread_x = c_m_box_thread->make_spin(0.0, -1000.0, 1000.0);
+    c_m_box_thread->row(_L("Pos X"), m_thread_x);
+    m_thread_y = c_m_box_thread->make_spin(0.0, -1000.0, 1000.0);
+    c_m_box_thread->row(_L("Pos Y"), m_thread_y);
+    m_thread_internal = c_m_box_thread->make_check();
+    
     m_thread_internal->SetValue(false);
+
     // The diameter field is the NOMINAL (major) diameter either way; what the role changes is
     // the depth — an internal thread's groove runs from the tap-drill (minor) diameter out to
     // the major one, an external one's from the major in to the root — so re-derive it.
@@ -2100,255 +2085,184 @@ DesignPanel::DesignPanel(wxWindow* parent)
         apply_thread_standard();
         e.Skip();
     });
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Internal")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(m_thread_internal, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
-
-    m_thread_target_label = new wxStaticText(m_cards, wxID_ANY, _L("(none — uses Thread plane)"));
-    tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("On face")), 0, wxALIGN_CENTER_VERTICAL);
-    tform->Add(m_thread_target_label, 0, wxALIGN_CENTER_VERTICAL);
-
-    m_box_thread = new wxBoxSizer(wxVERTICAL);
-    m_box_thread->Add(card_header(m_cards, "design_thread", _L("Thread"), m_hdr_thread), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_thread->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_thread->Add(tform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-    cards->Add(m_box_thread, 0, wxEXPAND);
+    c_m_box_thread->row(_L("Internal"), m_thread_internal);
+    m_thread_target_label = c_m_box_thread->make_text(_L("(none — uses Thread plane)"));
+    c_m_box_thread->row(_L("On face"), m_thread_target_label);
 
     // --- Revolve (sweep a sketch profile about an in-plane axis) ---
-    m_box_revolve = new wxBoxSizer(wxVERTICAL);
-    m_box_revolve->Add(card_header(m_cards, "design_revolve", _L("Revolve"), m_hdr_revolve), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_revolve->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_revolve_sketch_label = new wxStaticText(m_cards, wxID_ANY, _L("Sketch: —"));
-    m_box_revolve->Add(m_revolve_sketch_label, 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    {
-        auto* rform = two_col_form();
-
-        m_revolve_angle = make_spin(m_cards, 360.0, 1.0, 360.0);
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Angle (°)")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(spin_frame(m_revolve_angle), 0, wxEXPAND);
-
-        m_revolve_axis = make_combo(m_cards);
+    CardModel* c_m_box_revolve = add_card(m_box_revolve, "design_revolve", _L("Revolve"));
+    m_hdr_revolve = c_m_box_revolve->title();
+    m_revolve_sketch_label = c_m_box_revolve->make_text(_L("Sketch: —"));
+    c_m_box_revolve->note_text(m_revolve_sketch_label);
+    
+    {    m_revolve_angle = c_m_box_revolve->make_spin(360.0, 1.0, 360.0);
+    c_m_box_revolve->row(_L("Angle (°)"), m_revolve_angle);
+    m_revolve_axis = c_m_box_revolve->make_combo();
+    
         m_revolve_axis->Append(_L("Plane X"));
+    
         m_revolve_axis->Append(_L("Plane Y"));
+    
         m_revolve_axis->SetSelection(0);
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Axis")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(m_revolve_axis, 0, wxEXPAND);
-
-        m_revolve_mode = make_combo(m_cards);
-        m_revolve_mode->Append(_L("New body"));   // same four words as Extrude
+    c_m_box_revolve->row(_L("Axis"), m_revolve_axis);
+    m_revolve_mode = c_m_box_revolve->make_combo();
+    
+        m_revolve_mode->Append(_L("New body"));
+   // same four words as Extrude
         m_revolve_mode->Append(_L_CONTEXT("Join", "Boolean Mode"));
+    
         m_revolve_mode->Append(_L_CONTEXT("Cut", "Boolean Mode"));
+    
         m_revolve_mode->Append(_L("Intersect"));
+    
         m_revolve_mode->SetSelection(0);
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Result")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(m_revolve_mode, 0, wxEXPAND);
-
-        m_revolve_flip = new CheckBox(m_cards);
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Flip direction")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(m_revolve_flip, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
-
-        m_box_revolve->Add(rform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_revolve->row(_L("Result"), m_revolve_mode);
+    m_revolve_flip = c_m_box_revolve->make_check();
+    c_m_box_revolve->row(_L("Flip direction"), m_revolve_flip);
+    
     }
-    cards->Add(m_box_revolve, 0, wxEXPAND);
-
     // --- Sweep (sweep a profile sketch along a path sketch) ---
-    m_box_sweep = new wxBoxSizer(wxVERTICAL);
-    m_box_sweep->Add(card_header(m_cards, "design_sweep", _L("Sweep"), m_hdr_sweep), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_sweep->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_sweep_profile_label = new wxStaticText(m_cards, wxID_ANY, _L("Profile: —"));
-    m_box_sweep->Add(m_sweep_profile_label, 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    {
-        auto* sform = two_col_form();
-
-        m_sweep_path = make_combo(m_cards);
-        sform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Path")), 0, wxALIGN_CENTER_VERTICAL);
-        sform->Add(m_sweep_path, 0, wxEXPAND);
-
-        m_sweep_mode = make_combo(m_cards);
-        m_sweep_mode->Append(_L("New body"));   // same four words as Extrude
+    CardModel* c_m_box_sweep = add_card(m_box_sweep, "design_sweep", _L("Sweep"));
+    m_hdr_sweep = c_m_box_sweep->title();
+    m_sweep_profile_label = c_m_box_sweep->make_text(_L("Profile: —"));
+    c_m_box_sweep->note_text(m_sweep_profile_label);
+    
+    {    m_sweep_path = c_m_box_sweep->make_combo();
+    c_m_box_sweep->row(_L("Path"), m_sweep_path);
+    m_sweep_mode = c_m_box_sweep->make_combo();
+    
+        m_sweep_mode->Append(_L("New body"));
+   // same four words as Extrude
         m_sweep_mode->Append(_L_CONTEXT("Join", "Boolean Mode"));
+    
         m_sweep_mode->Append(_L_CONTEXT("Cut", "Boolean Mode"));
+    
         m_sweep_mode->Append(_L("Intersect"));
+    
         m_sweep_mode->SetSelection(0);
-        sform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Result")), 0, wxALIGN_CENTER_VERTICAL);
-        sform->Add(m_sweep_mode, 0, wxEXPAND);
-
-        m_box_sweep->Add(sform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_sweep->row(_L("Result"), m_sweep_mode);
+    
     }
-    cards->Add(m_box_sweep, 0, wxEXPAND);
-
     // --- Pattern (replicate the target body: linear or circular) ---
-    m_box_pattern = new wxBoxSizer(wxVERTICAL);
-    m_box_pattern->Add(card_header(m_cards, "design_pattern", _L_CONTEXT("Pattern", "Design"), m_hdr_pattern), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_pattern->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
     {
-        auto* pform = two_col_form();
+        CardModel* c = add_card(m_box_pattern, "design_pattern", _L_CONTEXT("Pattern", "Design"));
+        m_hdr_pattern = c->title();
 
-        m_pattern_type = make_combo(m_cards);
+        m_pattern_what = c->combo(_L("Repeat"));
+        m_pattern_what->Append(_L("Whole body"));
+        m_pattern_what->Append(_L("Selected features"));
+        m_pattern_what->SetSelection(0);
+        m_pattern_what->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { sync_pattern_mode(); refresh_preview(); });
+
+        m_pattern_type = c->combo(_L("Type"));
         m_pattern_type->Append(_L_CONTEXT("Linear", "Design"));
         m_pattern_type->Append(_L_CONTEXT("Circular", "Design"));
         m_pattern_type->Append(_L("Mirror"));   // of selected features only
         m_pattern_type->SetSelection(0);
         m_pattern_type->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { sync_pattern_mode(); refresh_preview(); });
-        pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Type")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Add(m_pattern_type, 0, wxEXPAND);
 
-        m_pattern_count = make_spin(m_cards, 3, 1, 999);
-        pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Count")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Add(spin_frame(m_pattern_count), 0, wxEXPAND);
+        m_pattern_count   = c->spin(_L("Count"), 3, 1, 999);
+        m_pattern_spacing = c->spin(_L("Spacing"), 20.0, 0.01, 100000.0);
 
-        m_pattern_spacing = make_spin(m_cards, 20.0, 0.01, 100000.0);
-        pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Spacing")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Add(spin_frame(m_pattern_spacing), 0, wxEXPAND);
-
-        m_pattern_dir = make_combo(m_cards);
+        m_pattern_dir = c->combo(_L("Direction"));
         m_pattern_dir->Append(_L("Plane X"));
         m_pattern_dir->Append(_L("Plane Y"));
         m_pattern_dir->SetSelection(0);
-        pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Direction")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Add(m_pattern_dir, 0, wxEXPAND);
 
-        m_pattern_angle = make_spin(m_cards, 360.0, 1.0, 360.0);
-        pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Total angle (°)")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Add(spin_frame(m_pattern_angle), 0, wxEXPAND);
+        m_pattern_angle = c->spin(_L("Total angle (°)"), 360.0, 1.0, 360.0);
 
-        for (wxSpinCtrlDouble* sp : { m_pattern_count, m_pattern_spacing, m_pattern_angle })
+        for (NumField* sp : { m_pattern_count, m_pattern_spacing, m_pattern_angle })
             sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
         m_pattern_dir->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
 
-        m_pattern_what = make_combo(m_cards);
-        m_pattern_what->Append(_L("Whole body"));
-        m_pattern_what->Append(_L("Selected features"));
-        m_pattern_what->SetSelection(0);
-        m_pattern_what->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { sync_pattern_mode(); refresh_preview(); });
-        pform->Insert(0, new wxStaticText(m_cards, wxID_ANY, _L("Repeat")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Insert(1, m_pattern_what, 0, wxEXPAND);
-
-        m_box_pattern->Add(pform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-
         // Selected-features mode: which features, along which world axis, a second grid direction, a mirror-plane offset.
-        m_pattern_feat_box = new wxBoxSizer(wxVERTICAL);
-        m_pattern_feat_list = new wxCheckListBox(m_cards, wxID_ANY, wxDefaultPosition, m_cards->FromDIP(wxSize(-1, 90)));
+        m_pattern_feat_group = c->begin_group();
+        m_pattern_feat_list = c->checklist(_L("Features to repeat"));
         m_pattern_feat_list->Bind(wxEVT_CHECKLISTBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        m_pattern_feat_box->Add(new wxStaticText(m_cards, wxID_ANY, _L("Features to repeat")), 0, wxBOTTOM, 4);
-        m_pattern_feat_box->Add(m_pattern_feat_list, 0, wxEXPAND | wxBOTTOM, 6);
-        auto* fform = two_col_form();
-        auto axis_combo = [&]() {
-            ComboBox* c = make_combo(m_cards);
-            c->Append(_L("World X")); c->Append(_L("World Y")); c->Append(_L("World Z"));
-            c->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-            return c;
+        auto axis_combo = [this, c](const wxString& label) {
+            ChoiceField* a = c->combo(label);
+            a->Append(_L("World X")); a->Append(_L("World Y")); a->Append(_L("World Z"));
+            a->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
+            return a;
         };
-        m_pattern_axis = axis_combo();
+        m_pattern_axis = axis_combo(_L("Axis / normal"));
         m_pattern_axis->SetSelection(0);
-        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Axis / normal")), 0, wxALIGN_CENTER_VERTICAL);
-        fform->Add(m_pattern_axis, 0, wxEXPAND);
-        m_pattern_count2 = make_spin(m_cards, 1, 1, 500);
-        m_pattern_spacing2 = make_spin(m_cards, 20.0, 0.01, 100000.0);
-        m_pattern_axis2 = axis_combo();
+        m_pattern_count2   = c->spin(_L("2nd count"), 1, 1, 500);
+        m_pattern_spacing2 = c->spin(_L("2nd spacing"), 20.0, 0.01, 100000.0);
+        m_pattern_axis2 = axis_combo(_L("2nd axis"));
         m_pattern_axis2->SetSelection(1);
-        m_pattern_mirror_off = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        for (wxSpinCtrlDouble* sp : { m_pattern_count2, m_pattern_spacing2, m_pattern_mirror_off })
+        m_pattern_mirror_off = c->spin(_L("Mirror offset"), 0.0, -100000.0, 100000.0);
+        for (NumField* sp : { m_pattern_count2, m_pattern_spacing2, m_pattern_mirror_off })
             sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("2nd count")), 0, wxALIGN_CENTER_VERTICAL);
-        fform->Add(spin_frame(m_pattern_count2), 0, wxEXPAND);
-        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("2nd spacing")), 0, wxALIGN_CENTER_VERTICAL);
-        fform->Add(spin_frame(m_pattern_spacing2), 0, wxEXPAND);
-        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("2nd axis")), 0, wxALIGN_CENTER_VERTICAL);
-        fform->Add(m_pattern_axis2, 0, wxEXPAND);
-        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Mirror offset")), 0, wxALIGN_CENTER_VERTICAL);
-        fform->Add(spin_frame(m_pattern_mirror_off), 0, wxEXPAND);
-        m_pattern_feat_box->Add(fform, 0, wxEXPAND);
-        m_box_pattern->Add(m_pattern_feat_box, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+        c->end_group();
     }
-    cards->Add(m_box_pattern, 0, wxEXPAND);
 
     // --- Boolean (combine two existing bodies: union / subtract / intersect) ---
-    m_box_boolean = new wxBoxSizer(wxVERTICAL);
-    m_box_boolean->Add(card_header(m_cards, "design_boolean", _L("Boolean"), m_hdr_boolean), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_boolean->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* bform = two_col_form();
-
-        m_bool_op = make_combo(m_cards);
-        m_bool_op->Append(_L_CONTEXT("Join", "Boolean Mode"));   // the Extrude result word; the offer row says the same
+    CardModel* c_m_box_boolean = add_card(m_box_boolean, "design_boolean", _L("Boolean"));
+    m_hdr_boolean = c_m_box_boolean->title();
+    
+    {    m_bool_op = c_m_box_boolean->make_combo();
+    
+        m_bool_op->Append(_L_CONTEXT("Join", "Boolean Mode"));
+   // the Extrude result word; the offer row says the same
         m_bool_op->Append(_L("Subtract"));
+    
         m_bool_op->Append(_L("Intersect"));
+    
         m_bool_op->SetSelection(0);
+    
         m_bool_op->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        bform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Operation")), 0, wxALIGN_CENTER_VERTICAL);
-        bform->Add(m_bool_op, 0, wxEXPAND);
-
-        m_bool_target = make_combo(m_cards);
+    c_m_box_boolean->row(_L("Operation"), m_bool_op);
+    m_bool_target = c_m_box_boolean->make_combo();
+    
         m_bool_target->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        bform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Target (kept)")), 0, wxALIGN_CENTER_VERTICAL);
-        bform->Add(m_bool_target, 0, wxEXPAND);
-
-        m_bool_tool = make_combo(m_cards);
+    c_m_box_boolean->row(_L("Target (kept)"), m_bool_target);
+    m_bool_tool = c_m_box_boolean->make_combo();
+    
         m_bool_tool->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        bform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Tool")), 0, wxALIGN_CENTER_VERTICAL);
-        bform->Add(m_bool_tool, 0, wxEXPAND);
+    c_m_box_boolean->row(_L("Tool"), m_bool_tool);
+
 
         // Fuzzy tolerance (mm): the main use is a tool body cutting a destination — a small
         // tolerance lets near-coincident mating faces resolve into a clean cut instead of a
         // failed boolean or sliver faces. 0 = exact.
-        m_bool_tol = make_spin(m_cards, 0.0, 0.0, 100.0);
+    m_bool_tol = c_m_box_boolean->make_spin(0.0, 0.0, 100.0);
+    
         m_bool_tol->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        bform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Tolerance")), 0, wxALIGN_CENTER_VERTICAL);
-        bform->Add(spin_frame(m_bool_tol), 0, wxEXPAND);
-
-        m_box_boolean->Add(bform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-
-        m_bool_keep = new CheckBox(m_cards);
+    c_m_box_boolean->row(_L("Tolerance"), m_bool_tol);
+    m_bool_keep = c_m_box_boolean->make_check();
+    
         m_bool_keep->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) { refresh_preview(); });
-        auto* keeprow = new wxBoxSizer(wxHORIZONTAL);
-        keeprow->Add(new wxStaticText(m_cards, wxID_ANY, _L("Keep tool body")), 0, wxALIGN_CENTER_VERTICAL);
-        keeprow->AddStretchSpacer();
-        keeprow->Add(m_bool_keep, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_boolean->Add(keeprow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_boolean->row(_L("Keep tool body"), m_bool_keep);
+    
     }
-    cards->Add(m_box_boolean, 0, wxEXPAND);
-
     // --- Cut (split a body with a plane): parameters only; ✓/✗ live on the ribbon ---
-    m_box_cut = new wxBoxSizer(wxVERTICAL);
-    m_box_cut->Add(card_header(m_cards, "design_cut", _L_CONTEXT("Cut", "Design"), m_hdr_cut), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_cut->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* cform = two_col_form();
-
-        m_cut_target = make_combo(m_cards);
+    CardModel* c_m_box_cut = add_card(m_box_cut, "design_cut", _L_CONTEXT("Cut", "Design"));
+    m_hdr_cut = c_m_box_cut->title();
+    
+    {    m_cut_target = c_m_box_cut->make_combo();
+    
         m_cut_target->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        cform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Body")), 0, wxALIGN_CENTER_VERTICAL);
-        cform->Add(m_cut_target, 0, wxEXPAND);
-
-        m_cut_plane = make_combo(m_cards);
+    c_m_box_cut->row(_L("Body"), m_cut_target);
+    m_cut_plane = c_m_box_cut->make_combo();
+    
         m_cut_plane->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        cform->Add(new wxStaticText(m_cards, wxID_ANY, _L_CONTEXT("Plane", "Design")), 0, wxALIGN_CENTER_VERTICAL);
-        cform->Add(m_cut_plane, 0, wxEXPAND);
-
-        m_cut_offset = make_spin(m_cards, 0.0, -10000.0, 10000.0);
+    c_m_box_cut->row(_L_CONTEXT("Plane", "Design"), m_cut_plane);
+    m_cut_offset = c_m_box_cut->make_spin(0.0, -10000.0, 10000.0);
+    
         m_cut_offset->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        cform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Offset")), 0, wxALIGN_CENTER_VERTICAL);
-        cform->Add(spin_frame(m_cut_offset), 0, wxEXPAND);
-
-        m_box_cut->Add(cform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        // The cut always leaves BOTH pieces as separate bodies (a non-destructive split);
-        // delete one from the tree afterwards if you only want a half.
+    c_m_box_cut->row(_L("Offset"), m_cut_offset);
     }
-    cards->Add(m_box_cut, 0, wxEXPAND);
 
     // --- Insert (Text / SVG placement): Confirm/Cancel for the in-canvas art transform ---
-    m_box_insert = new wxBoxSizer(wxVERTICAL);
-    m_box_insert->Add(card_header(m_cards, "design_text", _L("Insert"), m_hdr_insert), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_insert->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_insert->Add(new wxStaticText(m_cards, wxID_ANY,
-        _L("Drag a corner to size, the center to move.\nConfirm or Cancel in the toolbar above.")),
-        0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
-    cards->Add(m_box_insert, 0, wxEXPAND);
+    CardModel* c_m_box_insert = add_card(m_box_insert, "design_text", _L("Insert"));
+    m_hdr_insert = c_m_box_insert->title();
+    c_m_box_insert->note(_L("Drag a corner to size, the center to move.\nConfirm or Cancel in the toolbar above."));
 
     // --- Plane (datum/reference plane: offset + tilt from a base plane; no solid) ---
-    m_box_plane = new wxBoxSizer(wxVERTICAL);
-    m_box_plane->Add(card_header(m_cards, "design_plane", _L_CONTEXT("Plane", "Design"), m_hdr_plane), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_plane->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
+    CardModel* c_m_box_plane = add_card(m_box_plane, "design_plane", _L_CONTEXT("Plane", "Design"));
+    m_hdr_plane = c_m_box_plane->title();
+    
     {
         // Plane type chooses which inputs matter (Onshape/Fusion parity):
         //   Offset      = Base (or Face A) + Offset (+ Tilt about a base axis)
@@ -2357,435 +2271,356 @@ DesignPanel::DesignPanel(wxWindow* parent)
         //   Tangent     = Face A (a cylinder) + Angle° around its axis
         //   Two edges   = Edge A + Edge B
         //   Coincident  = Face A (lie on that face)
-        m_plane_type = make_combo(m_cards);
+    m_plane_type = c_m_box_plane->make_combo();
+    
         for (const wxString& t : { _L("Offset"), _L("Angle"), _L("Midplane"),
                                    _L("Tangent"), _L("Two edges"), _L("Coincident") })
             m_plane_type->Append(t);
+    
         m_plane_type->SetSelection(0);
-        m_box_plane->Add(new wxStaticText(m_cards, wxID_ANY, _L("Plane type")), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_plane->Add(m_plane_type, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-
-        auto* plform = two_col_form();
-
-        m_plane_base = make_combo(m_cards);
-        populate_plane_choices(m_plane_base);   // XY/XZ/YZ + any existing datum planes
+    c_m_box_plane->note(_L("Plane type"));
+    c_m_box_plane->wide(m_plane_type);
+    m_plane_base = c_m_box_plane->make_combo();
+    
+        populate_plane_choices(m_plane_base);
+   // XY/XZ/YZ + any existing datum planes
         // TRN Plane tool: the reference plane (XY, XZ, YZ or a datum) the new plane is built from.
-        plform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Base")), 0, wxALIGN_CENTER_VERTICAL);
-        plform->Add(m_plane_base, 0, wxEXPAND);
-
-        m_plane_offset = make_spin(m_cards, 20.0, -100000.0, 100000.0);
-        plform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Offset")), 0, wxALIGN_CENTER_VERTICAL);
-        plform->Add(spin_frame(m_plane_offset), 0, wxEXPAND);
-
-        m_plane_tilt = make_spin(m_cards, 0.0, -180.0, 180.0);
-        plform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Angle (°)")), 0, wxALIGN_CENTER_VERTICAL);
-        plform->Add(spin_frame(m_plane_tilt), 0, wxEXPAND);
-
-        m_plane_tilt_axis = make_combo(m_cards);
+    c_m_box_plane->row(_L("Base"), m_plane_base);
+    m_plane_offset = c_m_box_plane->make_spin(20.0, -100000.0, 100000.0);
+    c_m_box_plane->row(_L("Offset"), m_plane_offset);
+    m_plane_tilt = c_m_box_plane->make_spin(0.0, -180.0, 180.0);
+    c_m_box_plane->row(_L("Angle (°)"), m_plane_tilt);
+    m_plane_tilt_axis = c_m_box_plane->make_combo();
+    
         m_plane_tilt_axis->Append(_L("Base X"));
+    
         m_plane_tilt_axis->Append(_L("Base Y"));
+    
         m_plane_tilt_axis->SetSelection(0);
-        plform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Tilt axis")), 0, wxALIGN_CENTER_VERTICAL);
-        plform->Add(m_plane_tilt_axis, 0, wxEXPAND);
+    c_m_box_plane->row(_L("Tilt axis"), m_plane_tilt_axis);
+
 
         // Contextual reference picks: arm a target, then click a solid face/edge in the canvas.
-        auto pick_row = [&](const wxString& label, ::Button*& btn, wxStaticText*& lbl, PlanePick target) {
-            btn = new ::Button(m_cards, label);
-            btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
-            lbl = new wxStaticText(m_cards, wxID_ANY, _L("(none)"));
-            btn->Bind(wxEVT_BUTTON, [this, target](wxCommandEvent&) { arm_plane_pick(target); });
-            plform->Add(btn);
-            plform->Add(lbl, 0, wxALIGN_CENTER_VERTICAL);
-        };
-        pick_row(_L("Pick Face A"), m_plane_pick_faceA, m_plane_faceA_lbl, PlanePick::FaceA);
-        pick_row(_L("Pick Face B"), m_plane_pick_faceB, m_plane_faceB_lbl, PlanePick::FaceB);
-        pick_row(_L("Pick Edge A"), m_plane_pick_edgeA, m_plane_edgeA_lbl, PlanePick::EdgeA);
-        pick_row(_L("Pick Edge B"), m_plane_pick_edgeB, m_plane_edgeB_lbl, PlanePick::EdgeB);
-
-        m_plane_usize = make_spin(m_cards, 60.0, 1.0, 100000.0);
-        plform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Size U")), 0, wxALIGN_CENTER_VERTICAL);
-        plform->Add(spin_frame(m_plane_usize), 0, wxEXPAND);
-        m_plane_vsize = make_spin(m_cards, 60.0, 1.0, 100000.0);
-        plform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Size V")), 0, wxALIGN_CENTER_VERTICAL);
-        plform->Add(spin_frame(m_plane_vsize), 0, wxEXPAND);
-
-        m_box_plane->Add(plform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_plane->pick(_L("Pick Face A"), m_plane_pick_faceA, m_plane_faceA_lbl, _L("(none)"));
+    
+    m_plane_pick_faceA->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { arm_plane_pick(PlanePick::FaceA); });
+    c_m_box_plane->pick(_L("Pick Face B"), m_plane_pick_faceB, m_plane_faceB_lbl, _L("(none)"));
+    
+    m_plane_pick_faceB->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { arm_plane_pick(PlanePick::FaceB); });
+    c_m_box_plane->pick(_L("Pick Edge A"), m_plane_pick_edgeA, m_plane_edgeA_lbl, _L("(none)"));
+    
+    m_plane_pick_edgeA->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { arm_plane_pick(PlanePick::EdgeA); });
+    c_m_box_plane->pick(_L("Pick Edge B"), m_plane_pick_edgeB, m_plane_edgeB_lbl, _L("(none)"));
+    
+    m_plane_pick_edgeB->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { arm_plane_pick(PlanePick::EdgeB); });
+    m_plane_usize = c_m_box_plane->make_spin(60.0, 1.0, 100000.0);
+    c_m_box_plane->row(_L("Size U"), m_plane_usize);
+    m_plane_vsize = c_m_box_plane->make_spin(60.0, 1.0, 100000.0);
+    c_m_box_plane->row(_L("Size V"), m_plane_vsize);
+    
     }
-    cards->Add(m_box_plane, 0, wxEXPAND);
-
     // --- Loft (skin a solid through 2+ ordered profile sketches) ---
-    m_box_loft = new wxBoxSizer(wxVERTICAL);
-    m_box_loft->Add(card_header(m_cards, "design_loft", _L("Loft"), m_hdr_loft), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_loft->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_loft->Add(new wxStaticText(m_cards, wxID_ANY, _L("Profiles (check 2+, in order):")),
-                    0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_loft_list = new wxCheckListBox(m_cards, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(-1, 120)));
+    CardModel* c_m_box_loft = add_card(m_box_loft, "design_loft", _L("Loft"));
+    m_hdr_loft = c_m_box_loft->title();
+    c_m_box_loft->note(_L("Profiles (check 2+, in order):"));
+    m_loft_list = c_m_box_loft->make_checklist();
+    
     m_loft_list->Bind(wxEVT_CHECKLISTBOX, [this](wxCommandEvent&) { refresh_preview(); });
-    m_box_loft->Add(m_loft_list, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-    {
-        auto* lform = two_col_form();
-
-        m_loft_mode = make_combo(m_cards);
-        m_loft_mode->Append(_L("New body"));   // same four words as Extrude
+    c_m_box_loft->wide(m_loft_list);
+    
+    {    m_loft_mode = c_m_box_loft->make_combo();
+    
+        m_loft_mode->Append(_L("New body"));
+   // same four words as Extrude
         m_loft_mode->Append(_L_CONTEXT("Join", "Boolean Mode"));
+    
         m_loft_mode->Append(_L_CONTEXT("Cut", "Boolean Mode"));
+    
         m_loft_mode->Append(_L("Intersect"));
+    
         m_loft_mode->SetSelection(0);
-        lform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Result")), 0, wxALIGN_CENTER_VERTICAL);
-        lform->Add(m_loft_mode, 0, wxEXPAND);
-
-        m_box_loft->Add(lform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_loft->row(_L("Result"), m_loft_mode);
+    
+    }    m_loft_ruled = c_m_box_loft->make_check();
+    
+    {    c_m_box_loft->row(_L("Ruled (straight) sections"), m_loft_ruled);
+    m_loft_start_cond = c_m_box_loft->make_combo();
+    
+        m_loft_start_cond->Append(_L("Contact"));
+    
+        m_loft_start_cond->Append(_L("Normal to profile"));
+    
+        m_loft_start_cond->SetSelection(0);
+    
+        m_loft_start_cond->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
+    c_m_box_loft->row(_L("Start condition"), m_loft_start_cond);
+    m_loft_end_cond = c_m_box_loft->make_combo();
+    
+        m_loft_end_cond->Append(_L("Contact"));
+    
+        m_loft_end_cond->Append(_L("Normal to profile"));
+    
+        m_loft_end_cond->SetSelection(0);
+    
+        m_loft_end_cond->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
+    c_m_box_loft->row(_L("End condition"), m_loft_end_cond);
+    
     }
-    m_loft_ruled = new CheckBox(m_cards);
-    {
-        auto* lrow = new wxBoxSizer(wxHORIZONTAL);
-        lrow->Add(new wxStaticText(m_cards, wxID_ANY, _L("Ruled (straight) sections")), 0, wxALIGN_CENTER_VERTICAL);
-        lrow->AddStretchSpacer();
-        lrow->Add(m_loft_ruled, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_loft->Add(lrow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        // End conditions (smooth lofts): how the skin leaves the first profile and arrives at the last.
-        auto* cform = two_col_form();
-        auto cond = [&](const wxString& label, ComboBox*& c) {
-            c = make_combo(m_cards);
-            c->Append(_L("Contact"));
-            c->Append(_L("Normal to profile"));
-            c->SetSelection(0);
-            c->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-            cform->Add(new wxStaticText(m_cards, wxID_ANY, label), 0, wxALIGN_CENTER_VERTICAL);
-            cform->Add(c, 0, wxEXPAND);
-        };
-        cond(_L("Start condition"), m_loft_start_cond);
-        cond(_L("End condition"), m_loft_end_cond);
-        m_box_loft->Add(cform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-    }
-    cards->Add(m_box_loft, 0, wxEXPAND);
 
     // --- Surface Extrude (sheet body from sketch) ---
-    m_box_surf_extrude = new wxBoxSizer(wxVERTICAL);
-    m_box_surf_extrude->Add(card_header(m_cards, "design_extrude", _L("Surface Extrude"), m_hdr_surf_extrude), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_surf_extrude->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_surf_extrude_sketch_label = new wxStaticText(m_cards, wxID_ANY, _L("Sketch: —"));
-    m_box_surf_extrude->Add(m_surf_extrude_sketch_label, 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    {
-        auto* sform = two_col_form();
-        m_surf_extrude_distance = make_spin(m_cards, 10);
-        sform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Distance")), 0, wxALIGN_CENTER_VERTICAL);
-        sform->Add(spin_frame(m_surf_extrude_distance), 0, wxEXPAND);
-        m_box_surf_extrude->Add(sform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    CardModel* c_m_box_surf_extrude = add_card(m_box_surf_extrude, "design_extrude", _L("Surface Extrude"));
+    m_hdr_surf_extrude = c_m_box_surf_extrude->title();
+    m_surf_extrude_sketch_label = c_m_box_surf_extrude->make_text(_L("Sketch: —"));
+    c_m_box_surf_extrude->note_text(m_surf_extrude_sketch_label);
+    
+    {    m_surf_extrude_distance = c_m_box_surf_extrude->make_spin(10);
+    c_m_box_surf_extrude->row(_L("Distance"), m_surf_extrude_distance);
+    
     }
-    cards->Add(m_box_surf_extrude, 0, wxEXPAND);
-
     // --- Surface Revolve (sheet body from sketch about axis) ---
-    m_box_surf_revolve = new wxBoxSizer(wxVERTICAL);
-    m_box_surf_revolve->Add(card_header(m_cards, "design_revolve", _L("Surface Revolve"), m_hdr_surf_revolve), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_surf_revolve->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_surf_revolve_sketch_label = new wxStaticText(m_cards, wxID_ANY, _L("Sketch: —"));
-    m_box_surf_revolve->Add(m_surf_revolve_sketch_label, 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    {
-        auto* rform = two_col_form();
-        m_surf_revolve_angle = make_spin(m_cards, 360.0, 1.0, 360.0);
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Angle (°)")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(spin_frame(m_surf_revolve_angle), 0, wxEXPAND);
-        m_surf_revolve_axis = make_combo(m_cards);
+    CardModel* c_m_box_surf_revolve = add_card(m_box_surf_revolve, "design_revolve", _L("Surface Revolve"));
+    m_hdr_surf_revolve = c_m_box_surf_revolve->title();
+    m_surf_revolve_sketch_label = c_m_box_surf_revolve->make_text(_L("Sketch: —"));
+    c_m_box_surf_revolve->note_text(m_surf_revolve_sketch_label);
+    
+    {    m_surf_revolve_angle = c_m_box_surf_revolve->make_spin(360.0, 1.0, 360.0);
+    c_m_box_surf_revolve->row(_L("Angle (°)"), m_surf_revolve_angle);
+    m_surf_revolve_axis = c_m_box_surf_revolve->make_combo();
+    
         m_surf_revolve_axis->Append(_L("Plane X"));
+    
         m_surf_revolve_axis->Append(_L("Plane Y"));
+    
         m_surf_revolve_axis->SetSelection(0);
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Axis")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(m_surf_revolve_axis, 0, wxEXPAND);
-        m_surf_revolve_flip = new CheckBox(m_cards);
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Flip direction")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(m_surf_revolve_flip, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
-        m_box_surf_revolve->Add(rform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_surf_revolve->row(_L("Axis"), m_surf_revolve_axis);
+    m_surf_revolve_flip = c_m_box_surf_revolve->make_check();
+    c_m_box_surf_revolve->row(_L("Flip direction"), m_surf_revolve_flip);
+    
     }
-    cards->Add(m_box_surf_revolve, 0, wxEXPAND);
-
     // --- Surface Loft (sheet skin through 2+ ordered profile sketches) ---
-    m_box_surf_loft = new wxBoxSizer(wxVERTICAL);
-    m_box_surf_loft->Add(card_header(m_cards, "design_loft", _L("Surface Loft"), m_hdr_surf_loft), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_surf_loft->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_surf_loft->Add(new wxStaticText(m_cards, wxID_ANY, _L("Profiles (check 2+, in order):")),
-                         0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_surf_loft_list = new wxCheckListBox(m_cards, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(-1, 120)));
+    CardModel* c_m_box_surf_loft = add_card(m_box_surf_loft, "design_loft", _L("Surface Loft"));
+    m_hdr_surf_loft = c_m_box_surf_loft->title();
+    c_m_box_surf_loft->note(_L("Profiles (check 2+, in order):"));
+    m_surf_loft_list = c_m_box_surf_loft->make_checklist();
+    
     m_surf_loft_list->Bind(wxEVT_CHECKLISTBOX, [this](wxCommandEvent&) { refresh_preview(); });
-    m_box_surf_loft->Add(m_surf_loft_list, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-    m_surf_loft_ruled = new CheckBox(m_cards);
-    {
-        auto* lrow = new wxBoxSizer(wxHORIZONTAL);
-        lrow->Add(new wxStaticText(m_cards, wxID_ANY, _L("Ruled (straight) sections")), 0, wxALIGN_CENTER_VERTICAL);
-        lrow->AddStretchSpacer();
-        lrow->Add(m_surf_loft_ruled, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_surf_loft->Add(lrow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_surf_loft->wide(m_surf_loft_list);
+    m_surf_loft_ruled = c_m_box_surf_loft->make_check();
+    
+    {    c_m_box_surf_loft->row(_L("Ruled (straight) sections"), m_surf_loft_ruled);
+    
     }
-    cards->Add(m_box_surf_loft, 0, wxEXPAND);
 
     // --- Surface Fill (one-face sheet from sketch boundary) ---
-    m_box_surf_fill = new wxBoxSizer(wxVERTICAL);
-    m_box_surf_fill->Add(card_header(m_cards, "design_surface", _L("Surface Fill"), m_hdr_surf_fill), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_surf_fill->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_surf_fill_sketch_label = new wxStaticText(m_cards, wxID_ANY, _L("Sketch: —"));
-    m_box_surf_fill->Add(m_surf_fill_sketch_label, 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_surf_fill->Add(new wxStaticText(m_cards, wxID_ANY,
-                          _L("Fills the sketch's closed boundary with a smooth face.")),
-                         0, wxLEFT | wxRIGHT, 12);
-    cards->Add(m_box_surf_fill, 0, wxEXPAND);
+    CardModel* c_m_box_surf_fill = add_card(m_box_surf_fill, "design_surface", _L("Surface Fill"));
+    m_hdr_surf_fill = c_m_box_surf_fill->title();
+    m_surf_fill_sketch_label = c_m_box_surf_fill->make_text(_L("Sketch: —"));
+    c_m_box_surf_fill->note_text(m_surf_fill_sketch_label);
+    c_m_box_surf_fill->note(_L("Fills the sketch's closed boundary with a smooth face."));
 
     // --- Surface Offset (offset a sheet body) ---
-    m_box_surf_offset = new wxBoxSizer(wxVERTICAL);
-    m_box_surf_offset->Add(card_header(m_cards, "design_offset", _L("Surface Offset"), m_hdr_surf_offset), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_surf_offset->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* oform = two_col_form();
-        m_surf_offset_body = make_combo(m_cards);
+    CardModel* c_m_box_surf_offset = add_card(m_box_surf_offset, "design_offset", _L("Surface Offset"));
+    m_hdr_surf_offset = c_m_box_surf_offset->title();
+    
+    {    m_surf_offset_body = c_m_box_surf_offset->make_combo();
+    
         m_surf_offset_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        oform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Sheet body")), 0, wxALIGN_CENTER_VERTICAL);
-        oform->Add(m_surf_offset_body, 0, wxEXPAND);
-        m_surf_offset_distance = make_spin(m_cards, 1.0, -100000.0, 100000.0);
+    c_m_box_surf_offset->row(_L("Sheet body"), m_surf_offset_body);
+    m_surf_offset_distance = c_m_box_surf_offset->make_spin(1.0, -100000.0, 100000.0);
+    
         m_surf_offset_distance->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        oform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Offset")), 0, wxALIGN_CENTER_VERTICAL);
-        oform->Add(spin_frame(m_surf_offset_distance), 0, wxEXPAND);
-        m_box_surf_offset->Add(oform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_surf_offset->Add(new wxStaticText(m_cards, wxID_ANY,
-                                  _L("Offsets a sheet body's shell. Positive = outward, negative = inward.")),
-                               0, wxLEFT | wxRIGHT, 12);
+    c_m_box_surf_offset->row(_L("Offset"), m_surf_offset_distance);
+    c_m_box_surf_offset->note(_L("Offsets a sheet body's shell. Positive = outward, negative = inward."));
+    
     }
-    cards->Add(m_box_surf_offset, 0, wxEXPAND);
-
     // --- Thicken Surface (thicken a sheet body into a solid) ---
-    m_box_surf_thicken = new wxBoxSizer(wxVERTICAL);
-    m_box_surf_thicken->Add(card_header(m_cards, "design_thicken", _L("Thicken Surface"), m_hdr_surf_thicken), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_surf_thicken->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* tform = two_col_form();
-        m_surf_thicken_body = make_combo(m_cards);
+    CardModel* c_m_box_surf_thicken = add_card(m_box_surf_thicken, "design_thicken", _L("Thicken Surface"));
+    m_hdr_surf_thicken = c_m_box_surf_thicken->title();
+    
+    {    m_surf_thicken_body = c_m_box_surf_thicken->make_combo();
+    
         m_surf_thicken_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Sheet body")), 0, wxALIGN_CENTER_VERTICAL);
-        tform->Add(m_surf_thicken_body, 0, wxEXPAND);
-        m_surf_thicken_thickness = make_spin(m_cards, 1.0, 0.01, 100000.0);
+    c_m_box_surf_thicken->row(_L("Sheet body"), m_surf_thicken_body);
+    m_surf_thicken_thickness = c_m_box_surf_thicken->make_spin(1.0, 0.01, 100000.0);
+    
         m_surf_thicken_thickness->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Thickness")), 0, wxALIGN_CENTER_VERTICAL);
-        tform->Add(spin_frame(m_surf_thicken_thickness), 0, wxEXPAND);
-        m_surf_thicken_flip = new CheckBox(m_cards);
+    c_m_box_surf_thicken->row(_L("Thickness"), m_surf_thicken_thickness);
+    m_surf_thicken_flip = c_m_box_surf_thicken->make_check();
+    
         m_surf_thicken_flip->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) { refresh_preview(); });
-        tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Flip direction")), 0, wxALIGN_CENTER_VERTICAL);
-        tform->Add(m_surf_thicken_flip, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
-        m_box_surf_thicken->Add(tform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_surf_thicken->Add(new wxStaticText(m_cards, wxID_ANY,
-                                  _L("Thickens a sheet body into a solid. Flip reverses the direction.")),
-                               0, wxLEFT | wxRIGHT, 12);
+    c_m_box_surf_thicken->row(_L("Flip direction"), m_surf_thicken_flip);
+    c_m_box_surf_thicken->note(_L("Thickens a sheet body into a solid. Flip reverses the direction."));
+    
     }
-    cards->Add(m_box_surf_thicken, 0, wxEXPAND);
-
     // --- Shell (hollow the current body to a wall thickness, removing one picked face) ---
-    auto* sform = two_col_form();
-    m_shell_thickness = make_spin(m_cards, 2.0, 0.01, 100000.0);
-    sform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Thickness")), 0, wxALIGN_CENTER_VERTICAL);
-    sform->Add(spin_frame(m_shell_thickness), 0, wxEXPAND);
-    m_shell_face_label = new wxStaticText(m_cards, wxID_ANY, _L("(all faces — closed hollow)"));
-    sform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Open face")), 0, wxALIGN_CENTER_VERTICAL);
-    sform->Add(m_shell_face_label, 0, wxALIGN_CENTER_VERTICAL);
-    m_shell_add_btn = new ::Button(m_cards, _L("Add picked face"));
+    CardModel* c_m_box_shell = add_card(m_box_shell, "design_shell", _L_CONTEXT("Shell", "Design"));
+    m_hdr_shell = c_m_box_shell->title();
+    m_shell_thickness = c_m_box_shell->make_spin(2.0, 0.01, 100000.0);
+    c_m_box_shell->row(_L("Thickness"), m_shell_thickness);
+    m_shell_face_label = c_m_box_shell->make_text(_L("(all faces — closed hollow)"));
+    c_m_box_shell->row(_L("Open face"), m_shell_face_label);
+    m_shell_add_btn = c_m_box_shell->make_button(_L("Add picked face"));
+    
     m_shell_add_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+    
     m_shell_add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         if (m_sel_solid_face < 0) { set_status(StatusKind::Error, _L("Click a face on the body first, then Add picked face")); return; }
         if (std::find(m_shell_extra.begin(), m_shell_extra.end(), m_sel_solid_face) == m_shell_extra.end()) m_shell_extra.push_back(m_sel_solid_face);
         sync_face_list_labels();
         refresh_preview();
     });
-    sform->Add(0, 0);
-    sform->Add(m_shell_add_btn, 0, wxALIGN_CENTER_VERTICAL);
-
-    m_box_shell = new wxBoxSizer(wxVERTICAL);
-    m_box_shell->Add(card_header(m_cards, "design_shell", _L_CONTEXT("Shell", "Design"), m_hdr_shell), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_shell->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_shell->Add(new wxStaticText(m_cards, wxID_ANY,
-                        _L("Pick a solid face to open it, then set the wall thickness.")),
-                     0, wxLEFT | wxRIGHT, 12);
-    m_box_shell->Add(sform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-    cards->Add(m_box_shell, 0, wxEXPAND);
+    c_m_box_shell->row(wxString(), m_shell_add_btn);
+    c_m_box_shell->note(_L("Pick a solid face to open it, then set the wall thickness."));
 
     // --- Draft (taper a single picked solid face about the body bottom) ---
-    auto* drform = two_col_form();
-    m_draft_angle = make_spin(m_cards, 5.0, -89.0, 89.0);
-    drform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Angle (°)")), 0, wxALIGN_CENTER_VERTICAL);
-    drform->Add(spin_frame(m_draft_angle), 0, wxEXPAND);
-    m_draft_face_label = new wxStaticText(m_cards, wxID_ANY, _L("(pick a side face)"));
-    drform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Face")), 0, wxALIGN_CENTER_VERTICAL);
-    drform->Add(m_draft_face_label, 0, wxALIGN_CENTER_VERTICAL);
-    m_draft_add_btn = new ::Button(m_cards, _L("Add picked face"));
+    CardModel* c_m_box_draft = add_card(m_box_draft, "design_draft", _L("Draft"));
+    m_hdr_draft = c_m_box_draft->title();
+    m_draft_angle = c_m_box_draft->make_spin(5.0, -89.0, 89.0);
+    c_m_box_draft->row(_L("Angle (°)"), m_draft_angle);
+    m_draft_face_label = c_m_box_draft->make_text(_L("(pick a side face)"));
+    c_m_box_draft->row(_L("Face"), m_draft_face_label);
+    m_draft_add_btn = c_m_box_draft->make_button(_L("Add picked face"));
+    
     m_draft_add_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+    
     m_draft_add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         if (m_sel_solid_face < 0) { set_status(StatusKind::Error, _L("Click a face on the body first, then Add picked face")); return; }
         if (std::find(m_draft_extra.begin(), m_draft_extra.end(), m_sel_solid_face) == m_draft_extra.end()) m_draft_extra.push_back(m_sel_solid_face);
         sync_face_list_labels();
         refresh_preview();
     });
-    drform->Add(0, 0);
-    drform->Add(m_draft_add_btn, 0, wxALIGN_CENTER_VERTICAL);
-
-    m_box_draft = new wxBoxSizer(wxVERTICAL);
-    m_box_draft->Add(card_header(m_cards, "design_draft", _L("Draft"), m_hdr_draft), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_draft->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    m_box_draft->Add(new wxStaticText(m_cards, wxID_ANY,
-                        _L("Pick a side face, then set the draft angle. The face pivots about the body base.")),
-                     0, wxLEFT | wxRIGHT, 12);
-    m_box_draft->Add(drform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-    cards->Add(m_box_draft, 0, wxEXPAND);
+    c_m_box_draft->row(wxString(), m_draft_add_btn);
+    c_m_box_draft->note(_L("Pick a side face, then set the draft angle. The face pivots about the body base."));
 
     // --- Transform (rigid move/rotate of an existing body) ---
-    m_box_transform = new wxBoxSizer(wxVERTICAL);
-    m_box_transform->Add(card_header(m_cards, "design_move", _L("Transform"), m_hdr_transform), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_transform->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* xform = two_col_form();
-        m_xf_body = make_combo(m_cards);
+    CardModel* c_m_box_transform = add_card(m_box_transform, "design_move", _L("Transform"));
+    m_hdr_transform = c_m_box_transform->title();
+    
+    {    m_xf_body = c_m_box_transform->make_combo();
+    
         m_xf_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Body")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(m_xf_body, 0, wxEXPAND);
-        m_xf_dx = make_spin(m_cards, 0.0, -100000.0, 100000.0);
+    c_m_box_transform->row(_L("Body"), m_xf_body);
+    m_xf_dx = c_m_box_transform->make_spin(0.0, -100000.0, 100000.0);
+    
         m_xf_dx->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Translate X")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(spin_frame(m_xf_dx), 0, wxEXPAND);
-        m_xf_dy = make_spin(m_cards, 0.0, -100000.0, 100000.0);
+    c_m_box_transform->row(_L("Translate X"), m_xf_dx);
+    m_xf_dy = c_m_box_transform->make_spin(0.0, -100000.0, 100000.0);
+    
         m_xf_dy->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Translate Y")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(spin_frame(m_xf_dy), 0, wxEXPAND);
-        m_xf_dz = make_spin(m_cards, 0.0, -100000.0, 100000.0);
+    c_m_box_transform->row(_L("Translate Y"), m_xf_dy);
+    m_xf_dz = c_m_box_transform->make_spin(0.0, -100000.0, 100000.0);
+    
         m_xf_dz->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Translate Z")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(spin_frame(m_xf_dz), 0, wxEXPAND);
-        m_xf_axis = make_combo(m_cards);
+    c_m_box_transform->row(_L("Translate Z"), m_xf_dz);
+    m_xf_axis = c_m_box_transform->make_combo();
+    
         m_xf_axis->Append(_L_CONTEXT("X", "Axis"));
+    
         m_xf_axis->Append(_L_CONTEXT("Y", "Axis"));
+    
         m_xf_axis->Append(_L_CONTEXT("Z", "Axis"));
-        m_xf_axis->SetSelection(2);  // default Z
+    
+        m_xf_axis->SetSelection(2);
+  // default Z
         m_xf_axis->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Rotate axis")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(m_xf_axis, 0, wxEXPAND);
-        m_xf_angle = make_spin(m_cards, 0.0, -360.0, 360.0);
+    c_m_box_transform->row(_L("Rotate axis"), m_xf_axis);
+    m_xf_angle = c_m_box_transform->make_spin(0.0, -360.0, 360.0);
+    
         m_xf_angle->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Angle (°)")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(spin_frame(m_xf_angle), 0, wxEXPAND);
-        m_xf_pivot_x = make_spin(m_cards, 0.0, -100000.0, 100000.0);
+    c_m_box_transform->row(_L("Angle (°)"), m_xf_angle);
+    m_xf_pivot_x = c_m_box_transform->make_spin(0.0, -100000.0, 100000.0);
+    
         m_xf_pivot_x->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pivot X")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(spin_frame(m_xf_pivot_x), 0, wxEXPAND);
-        m_xf_pivot_y = make_spin(m_cards, 0.0, -100000.0, 100000.0);
+    c_m_box_transform->row(_L("Pivot X"), m_xf_pivot_x);
+    m_xf_pivot_y = c_m_box_transform->make_spin(0.0, -100000.0, 100000.0);
+    
         m_xf_pivot_y->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pivot Y")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(spin_frame(m_xf_pivot_y), 0, wxEXPAND);
-        m_xf_pivot_z = make_spin(m_cards, 0.0, -100000.0, 100000.0);
+    c_m_box_transform->row(_L("Pivot Y"), m_xf_pivot_y);
+    m_xf_pivot_z = c_m_box_transform->make_spin(0.0, -100000.0, 100000.0);
+    
         m_xf_pivot_z->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        xform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pivot Z")), 0, wxALIGN_CENTER_VERTICAL);
-        xform->Add(spin_frame(m_xf_pivot_z), 0, wxEXPAND);
-        m_box_transform->Add(xform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_xf_copy = new CheckBox(m_cards);
+    c_m_box_transform->row(_L("Pivot Z"), m_xf_pivot_z);
+    m_xf_copy = c_m_box_transform->make_check();
+    
         m_xf_copy->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) { refresh_preview(); });
-        auto* cpro = new wxBoxSizer(wxHORIZONTAL);
-        cpro->Add(new wxStaticText(m_cards, wxID_ANY, _L("Keep original (make a copy)")), 0, wxALIGN_CENTER_VERTICAL);
-        cpro->AddStretchSpacer();
-        cpro->Add(m_xf_copy, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_transform->Add(cpro, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_transform->Add(new wxStaticText(m_cards, wxID_ANY,
-                               _L("Translate and/or rotate the selected body. Rotation is applied about the pivot, then translation follows.")),
-                            0, wxLEFT | wxRIGHT, 12);
+    c_m_box_transform->row(_L("Keep original (make a copy)"), m_xf_copy);
+    c_m_box_transform->note(_L("Translate and/or rotate the selected body. Rotation is applied about the pivot, then translation follows."));
+    
     }
-    cards->Add(m_box_transform, 0, wxEXPAND);
-
     // --- Mirror (reflect a body about a plane) ---
-    m_box_mirror = new wxBoxSizer(wxVERTICAL);
-    m_box_mirror->Add(card_header(m_cards, "design_mirror", _L_CONTEXT("Mirror", "Design"), m_hdr_mirror), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_mirror->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* mform = two_col_form();
-        m_mirror_body = make_combo(m_cards);
+    CardModel* c_m_box_mirror = add_card(m_box_mirror, "design_mirror", _L_CONTEXT("Mirror", "Design"));
+    m_hdr_mirror = c_m_box_mirror->title();
+    
+    {    m_mirror_body = c_m_box_mirror->make_combo();
+    
         m_mirror_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Body")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(m_mirror_body, 0, wxEXPAND);
-        m_mirror_plane = make_combo(m_cards);
+    c_m_box_mirror->row(_L("Body"), m_mirror_body);
+    m_mirror_plane = c_m_box_mirror->make_combo();
+    
         m_mirror_plane->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Mirror plane")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(m_mirror_plane, 0, wxEXPAND);
-        m_box_mirror->Add(mform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_mirror_keep = new CheckBox(m_cards);
+    c_m_box_mirror->row(_L("Mirror plane"), m_mirror_plane);
+    m_mirror_keep = c_m_box_mirror->make_check();
+    
         m_mirror_keep->SetValue(true);
+    
         m_mirror_keep->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) { refresh_preview(); });
-        auto* mkrow = new wxBoxSizer(wxHORIZONTAL);
-        mkrow->Add(new wxStaticText(m_cards, wxID_ANY, _L("Keep original")), 0, wxALIGN_CENTER_VERTICAL);
-        mkrow->AddStretchSpacer();
-        mkrow->Add(m_mirror_keep, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_mirror->Add(mkrow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_mirror->Add(new wxStaticText(m_cards, wxID_ANY,
-                            _L("Reflect the selected body about a plane. The mirror is always a new body; keeping the original gives you both.")),
-                         0, wxLEFT | wxRIGHT, 12);
+    c_m_box_mirror->row(_L("Keep original"), m_mirror_keep);
+    c_m_box_mirror->note(_L("Reflect the selected body about a plane. The mirror is always a new body; keeping the original gives you both."));
+    
     }
-    cards->Add(m_box_mirror, 0, wxEXPAND);
-
     // --- Thicken (offset one solid face into a thin plate) ---
-    m_box_thicken = new wxBoxSizer(wxVERTICAL);
-    m_box_thicken->Add(card_header(m_cards, "design_thicken", _L("Thicken"), m_hdr_thicken), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_thicken->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* tform = two_col_form();
-        m_thicken_body = make_combo(m_cards);
+    CardModel* c_m_box_thicken = add_card(m_box_thicken, "design_thicken", _L("Thicken"));
+    m_hdr_thicken = c_m_box_thicken->title();
+    
+    {    m_thicken_body = c_m_box_thicken->make_combo();
+    
         m_thicken_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Body")), 0, wxALIGN_CENTER_VERTICAL);
-        tform->Add(m_thicken_body, 0, wxEXPAND);
-        m_thicken_face_label = new wxStaticText(m_cards, wxID_ANY, _L("(pick a solid face)"));
-        tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Face")), 0, wxALIGN_CENTER_VERTICAL);
-        tform->Add(m_thicken_face_label, 0, wxALIGN_CENTER_VERTICAL);
-        m_thicken_thickness = make_spin(m_cards, 2.0, 0.01, 100000.0);
+    c_m_box_thicken->row(_L("Body"), m_thicken_body);
+    m_thicken_face_label = c_m_box_thicken->make_text(_L("(pick a solid face)"));
+    c_m_box_thicken->row(_L("Face"), m_thicken_face_label);
+    m_thicken_thickness = c_m_box_thicken->make_spin(2.0, 0.01, 100000.0);
+    
         m_thicken_thickness->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        tform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Thickness")), 0, wxALIGN_CENTER_VERTICAL);
-        tform->Add(spin_frame(m_thicken_thickness), 0, wxEXPAND);
-        m_box_thicken->Add(tform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_thicken_flip = new CheckBox(m_cards);
+    c_m_box_thicken->row(_L("Thickness"), m_thicken_thickness);
+    m_thicken_flip = c_m_box_thicken->make_check();
+    
         m_thicken_flip->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) { refresh_preview(); });
-        auto* trow = new wxBoxSizer(wxHORIZONTAL);
-        trow->Add(new wxStaticText(m_cards, wxID_ANY, _L("Flip direction")), 0, wxALIGN_CENTER_VERTICAL);
-        trow->AddStretchSpacer();
-        trow->Add(m_thicken_flip, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_thicken->Add(trow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_thicken->Add(new wxStaticText(m_cards, wxID_ANY,
-                              _L("Pick a solid face and offset it into a new thin body. Not for sheet bodies — use Thicken Surface for those.")),
-                           0, wxLEFT | wxRIGHT, 12);
+    c_m_box_thicken->row(_L("Flip direction"), m_thicken_flip);
+    c_m_box_thicken->note(_L("Pick a solid face and offset it into a new thin body. Not for sheet bodies — use Thicken Surface for those."));
+    
     }
-    cards->Add(m_box_thicken, 0, wxEXPAND);
-
     // --- Rib (thin wall from an open sketch line, fused to a body) ---
-    m_box_rib = new wxBoxSizer(wxVERTICAL);
-    m_box_rib->Add(card_header(m_cards, "design_rib", _L_CONTEXT("Rib", "Design"), m_hdr_rib), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_rib->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* rform = two_col_form();
-        m_rib_body = make_combo(m_cards);
+    CardModel* c_m_box_rib = add_card(m_box_rib, "design_rib", _L_CONTEXT("Rib", "Design"));
+    m_hdr_rib = c_m_box_rib->title();
+    
+    {    m_rib_body = c_m_box_rib->make_combo();
+    
         m_rib_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Target body")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(m_rib_body, 0, wxEXPAND);
-        m_rib_sketch = make_combo(m_cards);
+    c_m_box_rib->row(_L("Target body"), m_rib_body);
+    m_rib_sketch = c_m_box_rib->make_combo();
+    
         m_rib_sketch->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Sketch")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(m_rib_sketch, 0, wxEXPAND);
-        m_rib_entity = new wxSpinCtrl(m_cards, wxID_ANY, "", wxDefaultPosition, FromDIP(wxSize(90, -1)),
-                                      wxSP_ARROW_KEYS | wxBORDER_SIMPLE);
+    c_m_box_rib->row(_L("Sketch"), m_rib_sketch);
+    m_rib_entity = c_m_box_rib->make_spin(0, 0, 999);
+    m_rib_entity->SetDigits(0);
+    
         m_rib_entity->SetRange(0, 999);
+    
         m_rib_entity->SetValue(0);
-        m_rib_entity->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent&) { refresh_preview(); });
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Entity index")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(m_rib_entity, 0, wxEXPAND);
-        m_rib_thickness = make_spin(m_cards, 2.0, 0.01, 100000.0);
+    
+        m_rib_entity->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
+    c_m_box_rib->row(_L("Entity index"), m_rib_entity);
+    m_rib_thickness = c_m_box_rib->make_spin(2.0, 0.01, 100000.0);
+    
         m_rib_thickness->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Thickness")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(spin_frame(m_rib_thickness), 0, wxEXPAND);
-        m_rib_depth = make_spin(m_cards, 10.0, 0.01, 100000.0);
+    c_m_box_rib->row(_L("Thickness"), m_rib_thickness);
+    m_rib_depth = c_m_box_rib->make_spin(10.0, 0.01, 100000.0);
+    
         m_rib_depth->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        rform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Depth")), 0, wxALIGN_CENTER_VERTICAL);
-        rform->Add(spin_frame(m_rib_depth), 0, wxEXPAND);
-        m_box_rib->Add(rform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_rib->Add(new wxStaticText(m_cards, wxID_ANY,
-                          _L("Grow a thin wall from an open sketch Line entity, fused to the target body. Entity index is the position of the open Line in the sketch.")),
-                       0, wxLEFT | wxRIGHT, 12);
+    c_m_box_rib->row(_L("Depth"), m_rib_depth);
+    c_m_box_rib->note(_L("Grow a thin wall from an open sketch Line entity, fused to the target body. Entity index is the position of the open Line in the sketch."));
+    
     }
-    cards->Add(m_box_rib, 0, wxEXPAND);
 
     // --- Sheet metal (rule, base flange, edge flange, contour flange, hem, unfold, refold) ---
     m_box_sheet = new wxBoxSizer(wxVERTICAL);
@@ -2872,42 +2707,36 @@ DesignPanel::DesignPanel(wxWindow* parent)
     cards->Add(m_box_sheet, 0, wxEXPAND);
 
     // --- Project (project body edges onto a plane as sketch entities) ---
-    m_box_project = new wxBoxSizer(wxVERTICAL);
-    m_box_project->Add(card_header(m_cards, "design_sketch", _L_CONTEXT("Project", "Design"), m_hdr_project), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_project->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* pform = two_col_form();
-        m_proj_source_body = make_combo(m_cards);
+    CardModel* c_m_box_project = add_card(m_box_project, "design_sketch", _L_CONTEXT("Project", "Design"));
+    m_hdr_project = c_m_box_project->title();
+    
+    {    m_proj_source_body = c_m_box_project->make_combo();
+    
         m_proj_source_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Source")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Add(m_proj_source_body, 0, wxEXPAND);
-        m_proj_face_label = new wxStaticText(m_cards, wxID_ANY, _L("(all edges)"));
-        pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Face")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Add(m_proj_face_label, 0, wxALIGN_CENTER_VERTICAL);
-        m_proj_plane = make_combo(m_cards);
+    c_m_box_project->row(_L("Source"), m_proj_source_body);
+    m_proj_face_label = c_m_box_project->make_text(_L("(all edges)"));
+    c_m_box_project->row(_L("Face"), m_proj_face_label);
+    m_proj_plane = c_m_box_project->make_combo();
+    
         populate_plane_choices(m_proj_plane);
+    
         m_proj_plane->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Target plane")), 0, wxALIGN_CENTER_VERTICAL);
-        pform->Add(m_proj_plane, 0, wxEXPAND);
-        m_box_project->Add(pform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_project->Add(new wxStaticText(m_cards, wxID_ANY,
-                              _L("Project the edges of a body, or a whole sketch (Use), onto a plane. A projected sketch stays linked: edit the original and the projection follows. Pick a face to project only its edges, or leave the face empty to project the whole body.")),
-                           0, wxLEFT | wxRIGHT, 12);
+    c_m_box_project->row(_L("Target plane"), m_proj_plane);
+    c_m_box_project->note(_L("Project the edges of a body, or a whole sketch (Use), onto a plane. A projected sketch stays linked: edit the original and the projection follows. Pick a face to project only its edges, or leave the face empty to project the whole body."));
+    
     }
-    cards->Add(m_box_project, 0, wxEXPAND);
-
     // --- Delete Face (remove faces, heal the solid) ---
-    m_box_delete_face = new wxBoxSizer(wxVERTICAL);
-    m_box_delete_face->Add(card_header(m_cards, "design_delete", _L("Delete Face"), m_hdr_delete_face), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_delete_face->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* dform = two_col_form();
-        m_del_face_body = make_combo(m_cards);
+    CardModel* c_m_box_delete_face = add_card(m_box_delete_face, "design_delete", _L("Delete Face"));
+    m_hdr_delete_face = c_m_box_delete_face->title();
+    
+    {    m_del_face_body = c_m_box_delete_face->make_combo();
+    
         m_del_face_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Body")), 0, wxALIGN_CENTER_VERTICAL);
-        dform->Add(m_del_face_body, 0, wxEXPAND);
-        m_del_face_add_btn = new ::Button(m_cards, _L("Add picked face"));
+    c_m_box_delete_face->row(_L("Body"), m_del_face_body);
+    m_del_face_add_btn = c_m_box_delete_face->make_button(_L("Add picked face"));
+    
         m_del_face_add_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+    
         m_del_face_add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
             // Say why nothing happened. Clicking with no face picked used to be a silent no-op,
             // which is indistinguishable from the button being broken.
@@ -2929,242 +2758,155 @@ DesignPanel::DesignPanel(wxWindow* parent)
                     s += wxString::Format(_L("Face %d"), m_del_faces[i]);
                 }
                 m_del_face_list->SetLabel(s.empty() ? _L("(none)") : s);
-                m_del_face_list->GetParent()->Layout();
                 m_del_face_list->Refresh();
                 refresh_preview();
             }
         });
-        dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Faces to delete")), 0, wxALIGN_CENTER_VERTICAL);
-        dform->Add(m_del_face_add_btn, 0, wxALIGN_CENTER_VERTICAL);
-        m_del_face_list = new wxStaticText(m_cards, wxID_ANY, _L("(none)"));
-        dform->Add(0, 0);
-        dform->Add(m_del_face_list, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_delete_face->Add(dform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_delete_face->Add(new wxStaticText(m_cards, wxID_ANY,
-                                  _L("Pick a solid face, then click 'Add picked face' to accumulate faces. Confirm to remove all listed faces and heal the solid.")),
-                               0, wxLEFT | wxRIGHT, 12);
+    c_m_box_delete_face->row(_L("Faces to delete"), m_del_face_add_btn);
+    m_del_face_list = c_m_box_delete_face->make_text(_L("(none)"));
+    c_m_box_delete_face->row(wxString(), m_del_face_list);
+    c_m_box_delete_face->note(_L("Pick a solid face, then click 'Add picked face' to accumulate faces. Confirm to remove all listed faces and heal the solid."));
+    
     }
-    cards->Add(m_box_delete_face, 0, wxEXPAND);
-
     // --- Helix (helical curve) ---
-    m_box_helix = new wxBoxSizer(wxVERTICAL);
-    m_box_helix->Add(card_header(m_cards, "design_thread", _L("Helix"), m_hdr_helix), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_helix->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        auto* hform = two_col_form();
-        m_helix_plane = make_combo(m_cards);
+    CardModel* c_m_box_helix = add_card(m_box_helix, "design_thread", _L("Helix"));
+    m_hdr_helix = c_m_box_helix->title();
+    
+    {    m_helix_plane = c_m_box_helix->make_combo();
+    
         populate_plane_choices(m_helix_plane);
+    
         m_helix_plane->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
-        hform->Add(new wxStaticText(m_cards, wxID_ANY, _L_CONTEXT("Plane", "Design")), 0, wxALIGN_CENTER_VERTICAL);
-        hform->Add(m_helix_plane, 0, wxEXPAND);
-        m_helix_radius = make_spin(m_cards, 10.0, 0.01, 10000.0);
+    c_m_box_helix->row(_L_CONTEXT("Plane", "Design"), m_helix_plane);
+    m_helix_radius = c_m_box_helix->make_spin(10.0, 0.01, 10000.0);
+    
         m_helix_radius->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Radius")), 0, wxALIGN_CENTER_VERTICAL);
-        hform->Add(spin_frame(m_helix_radius), 0, wxEXPAND);
-        m_helix_pitch = make_spin(m_cards, 5.0, 0.01, 10000.0);
+    c_m_box_helix->row(_L("Radius"), m_helix_radius);
+    m_helix_pitch = c_m_box_helix->make_spin(5.0, 0.01, 10000.0);
+    
         m_helix_pitch->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Pitch")), 0, wxALIGN_CENTER_VERTICAL);
-        hform->Add(spin_frame(m_helix_pitch), 0, wxEXPAND);
-        m_helix_height = make_spin(m_cards, 20.0, 0.01, 10000.0);
+    c_m_box_helix->row(_L("Pitch"), m_helix_pitch);
+    m_helix_height = c_m_box_helix->make_spin(20.0, 0.01, 10000.0);
+    
         m_helix_height->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        hform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Height")), 0, wxALIGN_CENTER_VERTICAL);
-        hform->Add(spin_frame(m_helix_height), 0, wxEXPAND);
-        m_box_helix->Add(hform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_helix_left_handed = new CheckBox(m_cards);
+    c_m_box_helix->row(_L("Height"), m_helix_height);
+    m_helix_left_handed = c_m_box_helix->make_check();
+    
         m_helix_left_handed->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) { refresh_preview(); });
-        auto* hrow = new wxBoxSizer(wxHORIZONTAL);
-        hrow->Add(new wxStaticText(m_cards, wxID_ANY, _L("Left-handed")), 0, wxALIGN_CENTER_VERTICAL);
-        hrow->AddStretchSpacer();
-        hrow->Add(m_helix_left_handed, 0, wxALIGN_CENTER_VERTICAL);
-        m_box_helix->Add(hrow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        m_helix_taper = make_spin(m_cards, 0.0, -89.0, 89.0);
+    c_m_box_helix->row(_L("Left-handed"), m_helix_left_handed);
+    m_helix_taper = c_m_box_helix->make_spin(0.0, -89.0, 89.0);
+    
         m_helix_taper->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
-        auto* tvalform = two_col_form();
-        tvalform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Taper (°)")), 0, wxALIGN_CENTER_VERTICAL);
-        tvalform->Add(spin_frame(m_helix_taper), 0, wxEXPAND);
-        m_box_helix->Add(tvalform, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
-        m_box_helix->Add(new wxStaticText(m_cards, wxID_ANY,
-                            _L("A helical curve (spring path). Use as a sweep path to build springs, coils, or augers.")),
-                         0, wxLEFT | wxRIGHT, 12);
+    c_m_box_helix->row(_L("Taper (°)"), m_helix_taper);
+    c_m_box_helix->note(_L("A helical curve (spring path). Use as a sweep path to build springs, coils, or augers."));
+    
     }
-    cards->Add(m_box_helix, 0, wxEXPAND);
-
     // --- Axis (datum axis: line through two points or derived from geometry) ---
-    m_box_axis = new wxBoxSizer(wxVERTICAL);
-    m_box_axis->Add(card_header(m_cards, "design_line", _L("Axis"), m_hdr_axis), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_axis->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
-    {
-        m_axis_type = make_combo(m_cards);
+    CardModel* c_m_box_axis = add_card(m_box_axis, "design_line", _L("Axis"));
+    m_hdr_axis = c_m_box_axis->title();
+    
+    {    m_axis_type = c_m_box_axis->make_combo();
+    
         for (const wxString& t : { _L("Two points"), _L("Face normal"), _L("Cylinder centerline"),
                                    _L("Plane intersection"), _L("Along edge") })
             m_axis_type->Append(t);
+    
         m_axis_type->SetSelection(0);
-        m_box_axis->Add(new wxStaticText(m_cards, wxID_ANY, _L("Axis type")), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_axis->Add(m_axis_type, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_axis->note(_L("Axis type"));
+    c_m_box_axis->wide(m_axis_type);
+    
 
-        auto* axform = two_col_form();
-
-        auto ax_pick = [&](const wxString& label, ::Button*& btn, wxStaticText*& lbl, AxisPick target) {
-            btn = new ::Button(m_cards, label);
-            btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
-            lbl = new wxStaticText(m_cards, wxID_ANY, _L("(none)"));
-            btn->Bind(wxEVT_BUTTON, [this, target](wxCommandEvent&) { arm_axis_pick(target); });
-            axform->Add(btn);
-            axform->Add(lbl, 0, wxALIGN_CENTER_VERTICAL);
-        };
-        ax_pick(_L("Pick Face"),  m_axis_pick_face, m_axis_face_lbl, AxisPick::Face);
-        ax_pick(_L("Pick Edge"),  m_axis_pick_edge, m_axis_edge_lbl, AxisPick::Edge);
-
-        m_axis_plane_a = make_combo(m_cards);
+    c_m_box_axis->pick(_L("Pick Face"), m_axis_pick_face, m_axis_face_lbl, _L("(none)"));
+    m_axis_pick_face->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { arm_axis_pick(AxisPick::Face); });
+    
+    c_m_box_axis->pick(_L("Pick Edge"), m_axis_pick_edge, m_axis_edge_lbl, _L("(none)"));
+    m_axis_pick_edge->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { arm_axis_pick(AxisPick::Edge); });
+    m_axis_plane_a = c_m_box_axis->make_combo();
+    
         populate_plane_choices(m_axis_plane_a);
-        axform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Plane A")), 0, wxALIGN_CENTER_VERTICAL);
-        axform->Add(m_axis_plane_a, 0, wxEXPAND);
-        m_axis_plane_b = make_combo(m_cards);
+    c_m_box_axis->row(_L("Plane A"), m_axis_plane_a);
+    m_axis_plane_b = c_m_box_axis->make_combo();
+    
         populate_plane_choices(m_axis_plane_b);
-        axform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Plane B")), 0, wxALIGN_CENTER_VERTICAL);
-        axform->Add(m_axis_plane_b, 0, wxEXPAND);
-
-        m_axis_p1x = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        m_axis_p1y = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        m_axis_p1z = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        axform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Point 1 X")), 0, wxALIGN_CENTER_VERTICAL);
-        axform->Add(spin_frame(m_axis_p1x), 0, wxEXPAND);
-        axform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Point 1 Y")), 0, wxALIGN_CENTER_VERTICAL);
-        axform->Add(spin_frame(m_axis_p1y), 0, wxEXPAND);
-        axform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Point 1 Z")), 0, wxALIGN_CENTER_VERTICAL);
-        axform->Add(spin_frame(m_axis_p1z), 0, wxEXPAND);
-
-        m_axis_p2x = make_spin(m_cards, 10.0, -100000.0, 100000.0);
-        m_axis_p2y = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        m_axis_p2z = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        axform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Point 2 X")), 0, wxALIGN_CENTER_VERTICAL);
-        axform->Add(spin_frame(m_axis_p2x), 0, wxEXPAND);
-        axform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Point 2 Y")), 0, wxALIGN_CENTER_VERTICAL);
-        axform->Add(spin_frame(m_axis_p2y), 0, wxEXPAND);
-        axform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Point 2 Z")), 0, wxALIGN_CENTER_VERTICAL);
-        axform->Add(spin_frame(m_axis_p2z), 0, wxEXPAND);
-
-        m_box_axis->Add(axform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+    c_m_box_axis->row(_L("Plane B"), m_axis_plane_b);
+    m_axis_p1x = c_m_box_axis->make_spin(0.0, -100000.0, 100000.0);
+    m_axis_p1y = c_m_box_axis->make_spin(0.0, -100000.0, 100000.0);
+    m_axis_p1z = c_m_box_axis->make_spin(0.0, -100000.0, 100000.0);
+    c_m_box_axis->row(_L("Point 1 X"), m_axis_p1x);
+    c_m_box_axis->row(_L("Point 1 Y"), m_axis_p1y);
+    c_m_box_axis->row(_L("Point 1 Z"), m_axis_p1z);
+    m_axis_p2x = c_m_box_axis->make_spin(10.0, -100000.0, 100000.0);
+    m_axis_p2y = c_m_box_axis->make_spin(0.0, -100000.0, 100000.0);
+    m_axis_p2z = c_m_box_axis->make_spin(0.0, -100000.0, 100000.0);
+    c_m_box_axis->row(_L("Point 2 X"), m_axis_p2x);
+    c_m_box_axis->row(_L("Point 2 Y"), m_axis_p2y);
+    c_m_box_axis->row(_L("Point 2 Z"), m_axis_p2z);
+    
     }
-    cards->Add(m_box_axis, 0, wxEXPAND);
-
     // --- CoordSys (datum coordinate system: point + orthonormal frame) ---
-    m_box_coordsys = new wxBoxSizer(wxVERTICAL);
-    m_box_coordsys->Add(card_header(m_cards, "design_point", _L("Coordinate system"), m_hdr_coordsys), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_coordsys->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
     {
-        m_coordsys_type = make_combo(m_cards);
+        CardModel* c = add_card(m_box_coordsys, "design_point", _L("Coordinate system"));
+        m_hdr_coordsys = c->title();
+        c->note(_L("Type"));
+        m_coordsys_type = c->make_combo();
         for (const wxString& t : { _L("Point (world)"), _L("Face + direction") })
             m_coordsys_type->Append(t);
         m_coordsys_type->SetSelection(0);
-        m_box_coordsys->Add(new wxStaticText(m_cards, wxID_ANY, _L("Type")), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_coordsys->Add(m_coordsys_type, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+        c->wide(m_coordsys_type);
 
-        m_cs_body = make_combo(m_cards);
+        c->note(_L("Body"));
+        m_cs_body = c->make_combo();
         m_cs_body->Append(_L("(all)"));
         m_cs_body->SetSelection(0);
         m_cs_body->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) {
             if (m_viewport) m_viewport->set_xray_focus(m_cs_body->GetSelection() - 1);
         });
-        m_box_coordsys->Add(new wxStaticText(m_cards, wxID_ANY, _L("Body")), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-        m_box_coordsys->Add(m_cs_body, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
-        auto* body_hint = new wxStaticText(m_cards, wxID_ANY,
-            _L("Restrict picking to one body — the others go see-through and stop catching clicks"));
-        body_hint->SetForegroundColour(dp_sec_text());
-        m_box_coordsys->Add(body_hint, 0, wxLEFT | wxRIGHT | wxTOP, 12);
+        c->wide(m_cs_body);
+        c->note(_L("Restrict picking to one body — the others go see-through and stop catching clicks"));
 
-        auto* csform = two_col_form();
+        m_cs_x = c->spin(_L_CONTEXT("X", "Axis"), 0.0, -100000.0, 100000.0);
+        m_cs_y = c->spin(_L_CONTEXT("Y", "Axis"), 0.0, -100000.0, 100000.0);
+        m_cs_z = c->spin(_L_CONTEXT("Z", "Axis"), 0.0, -100000.0, 100000.0);
 
-        m_cs_x = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        m_cs_y = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        m_cs_z = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        csform->Add(new wxStaticText(m_cards, wxID_ANY, _L_CONTEXT("X", "Axis")), 0, wxALIGN_CENTER_VERTICAL);
-        csform->Add(spin_frame(m_cs_x), 0, wxEXPAND);
-        csform->Add(new wxStaticText(m_cards, wxID_ANY, _L_CONTEXT("Y", "Axis")), 0, wxALIGN_CENTER_VERTICAL);
-        csform->Add(spin_frame(m_cs_y), 0, wxEXPAND);
-        csform->Add(new wxStaticText(m_cards, wxID_ANY, _L_CONTEXT("Z", "Axis")), 0, wxALIGN_CENTER_VERTICAL);
-        csform->Add(spin_frame(m_cs_z), 0, wxEXPAND);
-
-        auto cs_pick = [&](const wxString& label, ::Button*& btn, wxStaticText*& lbl, CoordSysPick target) {
-            btn = new ::Button(m_cards, label);
-            btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
-            lbl = new wxStaticText(m_cards, wxID_ANY, _L("(none)"));
-            btn->Bind(wxEVT_BUTTON, [this, target](wxCommandEvent&) { arm_coordsys_pick(target); });
-            csform->Add(btn);
-            csform->Add(lbl, 0, wxALIGN_CENTER_VERTICAL);
-        };
-        cs_pick(_L("Pick Face"), m_cs_pick_face, m_cs_face_lbl, CoordSysPick::Face);
+        c->pick(_L("Pick Face"), m_cs_pick_face, m_cs_face_lbl, _L("(none)"));
+        m_cs_pick_face->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { arm_coordsys_pick(CoordSysPick::Face); });
 
         // ponytail: edge pick for CoordSys with rotation-direction hint
-        m_cs_pick_edge = new ::Button(m_cards, _L("Edge (sets in-plane direction)"));
-        m_cs_pick_edge->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
-        m_cs_edge_lbl = new wxStaticText(m_cards, wxID_ANY, _L("(none)"));
+        c->pick(_L("Edge (sets in-plane direction)"), m_cs_pick_edge, m_cs_edge_lbl, _L("(none)"));
         m_cs_pick_edge->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { arm_coordsys_pick(CoordSysPick::Edge); });
-        csform->Add(m_cs_pick_edge);
-        csform->Add(m_cs_edge_lbl, 0, wxALIGN_CENTER_VERTICAL);
-        auto* edge_hint = new wxStaticText(m_cards, wxID_ANY,
-            _L("Without an edge the frame takes X from the face's first edge — pick one to choose it yourself"));
-        edge_hint->SetForegroundColour(dp_sec_text());
-        csform->Add(0, 0);   // empty left column
-        csform->Add(edge_hint, 0, wxALIGN_CENTER_VERTICAL);
+        c->row(wxString(), c->make_text(_L("Without an edge the frame takes X from the face's first edge — pick one to choose it yourself")));
 
-        m_cs_hx = make_spin(m_cards, 1.0, -100000.0, 100000.0);
-        m_cs_hy = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        m_cs_hz = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        csform->Add(new wxStaticText(m_cards, wxID_ANY, _L("X direction X")), 0, wxALIGN_CENTER_VERTICAL);
-        csform->Add(spin_frame(m_cs_hx), 0, wxEXPAND);
-        csform->Add(new wxStaticText(m_cards, wxID_ANY, _L("X direction Y")), 0, wxALIGN_CENTER_VERTICAL);
-        csform->Add(spin_frame(m_cs_hy), 0, wxEXPAND);
-        csform->Add(new wxStaticText(m_cards, wxID_ANY, _L("X direction Z")), 0, wxALIGN_CENTER_VERTICAL);
-        csform->Add(spin_frame(m_cs_hz), 0, wxEXPAND);
-
-        m_box_coordsys->Add(csform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+        m_cs_hx = c->spin(_L("X direction X"), 1.0, -100000.0, 100000.0);
+        m_cs_hy = c->spin(_L("X direction Y"), 0.0, -100000.0, 100000.0);
+        m_cs_hz = c->spin(_L("X direction Z"), 0.0, -100000.0, 100000.0);
     }
-    cards->Add(m_box_coordsys, 0, wxEXPAND);
 
     // --- Mate (assembly: align two coordinate systems) ---
-    m_box_mate = new wxBoxSizer(wxVERTICAL);
-    m_box_mate->Add(card_header(m_cards, "design_c_coincident", _L("Mate"), m_hdr_mate), 0, wxLEFT | wxRIGHT | wxTOP, 12);
-    m_box_mate->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
     {
-        auto* mform = two_col_form();
+        CardModel* c = add_card(m_box_mate, "design_c_coincident", _L("Mate"));
+        m_hdr_mate = c->title();
 
-        m_mate_kind = make_combo(m_cards);
+        m_mate_kind = c->combo(_L("Kind"));
         m_mate_kind->Append(_L("Fastened — 6 DOF locked, B driven onto A exactly"));
         m_mate_kind->Append(_L("Planar — z aligned, offset distance; free in-plane slide"));
         m_mate_kind->Append(_L("Revolute — axes collinear; free rotation about z"));
         m_mate_kind->Append(_L("Slider — orientation locked; free axial slide"));
         m_mate_kind->Append(_L("Cylindrical — axes collinear; free spin + axial slide"));
         m_mate_kind->SetSelection(0);
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Kind")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(m_mate_kind, 0, wxEXPAND);
 
         // Populate the CoordSys pickers on open; show "A (fixed)" and "B (moves)" combos.
-        m_mate_cs_a = make_combo(m_cards);
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("A (fixed)")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(m_mate_cs_a, 0, wxEXPAND);
+        m_mate_cs_a = c->combo(_L("A (fixed)"));
+        m_mate_cs_b = c->combo(_L("B (moves)"));
 
-        m_mate_cs_b = make_combo(m_cards);
-        mform->Add(new wxStaticText(m_cards, wxID_ANY, _L("B (moves)")), 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(m_mate_cs_b, 0, wxEXPAND);
+        m_offset_label = c->make_text(_L("Offset"));
+        m_mate_offset = c->make_spin(0.0, -100000.0, 100000.0);
+        c->row_t(m_offset_label, m_mate_offset);
 
-        m_offset_label = new wxStaticText(m_cards, wxID_ANY, _L("Offset"));
-        m_mate_offset = make_spin(m_cards, 0.0, -100000.0, 100000.0);
-        mform->Add(m_offset_label, 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(spin_frame(m_mate_offset), 0, wxEXPAND);
+        m_angle_label = c->make_text(_L("Angle °"));
+        m_mate_angle = c->make_spin(0.0, -360.0, 360.0);
+        c->row_t(m_angle_label, m_mate_angle);
 
-        m_angle_label = new wxStaticText(m_cards, wxID_ANY, _L("Angle \u00b0"));
-        m_mate_angle = make_spin(m_cards, 0.0, -360.0, 360.0);
-        mform->Add(m_angle_label, 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(spin_frame(m_mate_angle), 0, wxEXPAND);
-
-        m_mate_flip = new CheckBox(m_cards);
-        auto* frow = new wxBoxSizer(wxHORIZONTAL);
-        frow->Add(new wxStaticText(m_cards, wxID_ANY, _L("Flip (oppose z axes)")), 0, wxALIGN_CENTER_VERTICAL);
-        frow->AddStretchSpacer();
-        frow->Add(m_mate_flip, 0, wxALIGN_CENTER_VERTICAL);
-        mform->Add(0, 0);
-        mform->Add(frow, 0, wxEXPAND);
+        m_mate_flip = c->check(_L("Flip (oppose z axes)"));
 
         // Retitle offset/angle labels when the kind changes.
         m_mate_kind->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) {
@@ -3172,33 +2914,29 @@ DesignPanel::DesignPanel(wxWindow* parent)
             switch (kind) {
             case 0: // Fastened
                 m_offset_label->SetLabel(_L("Offset"));
-                m_angle_label->SetLabel(_L("Angle \u00b0"));
+                m_angle_label->SetLabel(_L("Angle °"));
                 break;
             case 1: // Planar
                 m_offset_label->SetLabel(_L("Plane distance"));
-                m_angle_label->SetLabel(_L("Angle \u00b0"));
+                m_angle_label->SetLabel(_L("Angle °"));
                 break;
             case 2: // Revolute
                 m_offset_label->SetLabel(_L("Axial position"));
-                m_angle_label->SetLabel(_L("Angle \u00b0"));
+                m_angle_label->SetLabel(_L("Angle °"));
                 break;
             case 3: // Slider
                 m_offset_label->SetLabel(_L("Axial position"));
-                m_angle_label->SetLabel(_L("Angle \u00b0"));
+                m_angle_label->SetLabel(_L("Angle °"));
                 break;
             case 4: // Cylindrical
                 m_offset_label->SetLabel(_L("Axial position"));
-                m_angle_label->SetLabel(_L("Angle \u00b0"));
+                m_angle_label->SetLabel(_L("Angle °"));
                 break;
             }
-            m_cards->Layout(); m_form->Layout(); m_form->FitInside();
             refresh_preview();
             e.Skip();
         });
-
-        m_box_mate->Add(mform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
     }
-    cards->Add(m_box_mate, 0, wxEXPAND);
     // Refresh the confirm state whenever the mate inputs change.
     m_mate_cs_a->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
     m_mate_cs_b->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
@@ -4014,8 +3752,8 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // the commit produced body0 - body1 (75000 mm3) when the picks asked for body1 - body0
         // (43000 mm3). Swapping keeps the pair distinct AND honours the click.
         if (m_active == Tool::Boolean && m_sel_solid_body >= 0) {
-            ComboBox* dst   = (m_bool_next_slot == 0) ? m_bool_target : m_bool_tool;
-            ComboBox* other = (m_bool_next_slot == 0) ? m_bool_tool   : m_bool_target;
+            ChoiceField* dst   = (m_bool_next_slot == 0) ? m_bool_target : m_bool_tool;
+            ChoiceField* other = (m_bool_next_slot == 0) ? m_bool_tool   : m_bool_target;
             const int row   = m_sel_solid_body;          // selection index == body index
             if (dst != nullptr && row < int(dst->GetCount())) {
                 const int prev = dst->GetSelection();
@@ -6250,7 +5988,7 @@ void DesignPanel::load_sheet_feature(const CadFeature& f)
         m_sel_solid_edges = f.dressup_edge_ids();
     }
     sheet_sync_mode();
-    auto select = [](ComboBox* c, int idx) {
+    auto select = [](auto* c, int idx) {
         for (unsigned i = 0; i < c->GetCount(); ++i)
             if (int(reinterpret_cast<intptr_t>(c->GetClientData(i))) == idx) { c->SetSelection(int(i)); return; }
     };
@@ -6441,7 +6179,7 @@ void DesignPanel::on_mass_properties()
 // real body index out of the client data (3-arg Append; the 2-arg form takes a bitmap), never
 // GetSelection(). Getting this wrong targets a solid and the kernel rejects it with
 // "target is not a sheet", which reads as a kernel bug rather than a picker bug.
-void DesignPanel::populate_sheet_body_choices(ComboBox* c) const
+template<class C> void DesignPanel::populate_sheet_body_choices(C* c) const
 {
     if (!c) return;
     const int keep = c->GetSelection();
@@ -6457,7 +6195,7 @@ void DesignPanel::populate_sheet_body_choices(ComboBox* c) const
 }
 
 // Real body index behind the current row of a sheet-filtered picker, or -1.
-int DesignPanel::sheet_choice_body(ComboBox* c)
+template<class C> int DesignPanel::sheet_choice_body(C* c)
 {
     if (!c) return -1;
     const int sel = c->GetSelection();
@@ -6467,7 +6205,7 @@ int DesignPanel::sheet_choice_body(ComboBox* c)
 
 // Select the row whose body index is `body`, so a re-edit restores the stored target rather
 // than treating it as a row number.
-void DesignPanel::select_sheet_choice(ComboBox* c, int body)
+template<class C> void DesignPanel::select_sheet_choice(C* c, int body)
 {
     if (!c) return;
     for (unsigned i = 0; i < c->GetCount(); ++i) {
@@ -6520,7 +6258,7 @@ void DesignPanel::populate_body_choices(int as_of_feature)
         tmp.features.resize(as_of_feature);
         if (tmp.recompute() && !tmp.bodies.empty()) { as_of = tmp.bodies; src = &as_of; }
     }
-    auto fill = [&](ComboBox* c, int def) {
+    auto fill = [&](auto* c, int def) {
         if (!c) return;
         c->Clear();
         for (size_t i = 0; i < src->size(); ++i) {
@@ -6570,7 +6308,7 @@ void DesignPanel::fill_project_sources(int editing_feature, bool want_sketch, in
     if (pick != wxNOT_FOUND) m_proj_source_body->SetSelection(pick);
 }
 
-void DesignPanel::fill_body_choice(ComboBox* c, int as_of_feature, int want)
+template<class C> void DesignPanel::fill_body_choice(C* c, int as_of_feature, int want)
 {
     if (!c) return;
     // Same replay as populate_body_choices, for the single-combo tools. A stored target_body
@@ -6632,7 +6370,7 @@ void DesignPanel::on_add_cut()
     refresh_tree();
 }
 
-void DesignPanel::populate_plane_choices(ComboBox* c) const
+template<class C> void DesignPanel::populate_plane_choices(C* c) const
 {
     if (!c) return;
     const int keep = c->GetSelection();
@@ -11460,11 +11198,9 @@ void DesignPanel::sync_face_list_labels()
     };
     if (m_shell_face_label) {
         m_shell_face_label->SetLabel(text(m_shell_extra, _L("(all faces — closed hollow)")));
-        if (m_shell_face_label->GetParent()) m_shell_face_label->GetParent()->Layout();
     }
     if (m_draft_face_label) {
         m_draft_face_label->SetLabel(text(m_draft_extra, _L("(pick a side face)")));
-        if (m_draft_face_label->GetParent()) m_draft_face_label->GetParent()->Layout();
     }
 }
 
@@ -11497,7 +11233,7 @@ void DesignPanel::sync_pattern_mode()
     const bool feats = m_pattern_what->GetSelection() == 1;
     const int  type  = m_pattern_type->GetSelection();
     if (!feats && type == 2) m_pattern_type->SetSelection(0);   // mirror needs features
-    m_box_pattern->Show(m_pattern_feat_box, feats, true);
+    m_pattern_feat_group->Show(feats);
     m_pattern_dir->Enable(!feats);
     const bool mirror = feats && m_pattern_type->GetSelection() == 2;
     const bool linear = feats && m_pattern_type->GetSelection() == 0;
@@ -11796,7 +11532,7 @@ void DesignPanel::update_shell_gizmo()
     m_viewport->begin_shell_gizmo(c, (-n).normalized(), m_shell_thickness->GetValue());
 }
 
-void DesignPanel::fill_revolve_axes(ComboBox* combo, std::vector<int>& ents, int sketch_ref, int axis, int entity)
+template<class C> void DesignPanel::fill_revolve_axes(C* combo, std::vector<int>& ents, int sketch_ref, int axis, int entity)
 {
     combo->Clear();
     ents.clear();
@@ -11823,7 +11559,7 @@ void DesignPanel::fill_revolve_axes(ComboBox* combo, std::vector<int>& ents, int
     combo->SetSelection(sel);
 }
 
-void DesignPanel::read_revolve_axis(ComboBox* combo, const std::vector<int>& ents, int& axis, int& entity)
+template<class C> void DesignPanel::read_revolve_axis(C* combo, const std::vector<int>& ents, int& axis, int& entity)
 {
     const int sel = combo->GetSelection();
     axis   = sel == 1 ? 1 : 0;
@@ -11997,7 +11733,7 @@ void DesignPanel::update_extrude_gizmo()
         }
         plane.origin = c;
         if (n.norm() > 1e-9) plane.normal = n.normalized();
-        wxSpinCtrlDouble* spin = off ? m_surf_offset_distance : m_surf_thicken_thickness;
+        NumField* spin = off ? m_surf_offset_distance : m_surf_thicken_thickness;
         m_viewport->set_extrude_gizmo(plane, Vec2d(0, 0), spin ? spin->GetValue() : 0.0,
                                       0.0, false,
                                       !off && m_surf_thicken_flip && m_surf_thicken_flip->GetValue());
@@ -14095,5 +13831,21 @@ void DesignPanel::on_clear_expr()
         }
     }
 }
+
+// the helpers above serve both the wx combos and the card tables
+template void DesignPanel::fill_body_choice<ComboBox>(ComboBox* c, int as_of_feature, int want);
+template void DesignPanel::fill_body_choice<ChoiceField>(ChoiceField* c, int as_of_feature, int want);
+template void DesignPanel::populate_sheet_body_choices<ComboBox>(ComboBox* c) const;
+template void DesignPanel::populate_sheet_body_choices<ChoiceField>(ChoiceField* c) const;
+template int DesignPanel::sheet_choice_body<ComboBox>(ComboBox* c);
+template int DesignPanel::sheet_choice_body<ChoiceField>(ChoiceField* c);
+template void DesignPanel::select_sheet_choice<ComboBox>(ComboBox* c, int body);
+template void DesignPanel::select_sheet_choice<ChoiceField>(ChoiceField* c, int body);
+template void DesignPanel::populate_plane_choices<ComboBox>(ComboBox* c) const;
+template void DesignPanel::populate_plane_choices<ChoiceField>(ChoiceField* c) const;
+template void DesignPanel::fill_revolve_axes<ComboBox>(ComboBox* combo, std::vector<int>& ents, int sketch_ref, int axis, int entity);
+template void DesignPanel::fill_revolve_axes<ChoiceField>(ChoiceField* combo, std::vector<int>& ents, int sketch_ref, int axis, int entity);
+template void DesignPanel::read_revolve_axis<ComboBox>(ComboBox* combo, const std::vector<int>& ents, int& axis, int& entity);
+template void DesignPanel::read_revolve_axis<ChoiceField>(ChoiceField* combo, const std::vector<int>& ents, int& axis, int& entity);
 
 }} // namespace Slic3r::GUI

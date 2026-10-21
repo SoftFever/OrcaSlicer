@@ -338,6 +338,48 @@ void draw_toggle_field(ToggleField* cb)
     field_tip(cb);
 }
 
+void draw_button_field(ButtonField* b, float em)
+{
+    (void) em;
+    ImGui::PushID(b);
+    DisabledScope dis(b->IsEnabled());
+    const std::string t = u8(b->GetLabel());
+    if (ImGui::Button(t.empty() ? "?" : t.c_str())) b->user_click();
+    ImGui::PopID();
+    field_tip(b);
+}
+
+void draw_check_list(CheckListField* l, float em)
+{
+    ImGui::PushID(l);
+    DisabledScope dis(l->IsEnabled());
+    const float h = std::min(std::max(float(l->GetCount()), 3.f), 7.f) * ImGui::GetFrameHeightWithSpacing() + 4.f * em;
+    if (ImGui::BeginChild("##list", ImVec2(0.f, h), true)) {
+        for (unsigned i = 0; i < l->GetCount(); ++i) {
+            ImGui::PushID(int(i));
+            bool on = l->IsChecked(i);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f);   // an unchecked box has to be seen on the dark panel
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.55f, 0.56f, 0.60f, 1.f));
+            if (ImGui::Checkbox(u8(l->GetString(i)).c_str(), &on)) l->user_check(i);
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            ImGui::PopID();
+        }
+    }
+    ImGui::EndChild();
+    ImGui::PopID();
+}
+
+// A line of text, in the colour the code gave it when that is a status colour.
+void draw_card_text(CardText* t)
+{
+    const wxColour c = t->colour();
+    const bool accent = c.IsOk() && is_accent(c);
+    if (accent) ImGui::PushStyleColor(ImGuiCol_Text, col_of(c));
+    ImGui::TextWrapped("%s", u8(t->GetLabel()).c_str());
+    if (accent) ImGui::PopStyleColor();
+}
+
 bool draw_button(wxWindow* w, float em)
 {
     ImGui::PushID(w);
@@ -553,26 +595,37 @@ void DesignPanel::mirror_card(CardModel& card, SidebarCtx& cx)
     ImGui::PopStyleColor();
     ImGui::Separator();
     const float lw = ImGui::GetContentRegionAvail().x * 0.42f;
-    for (const CardRow& row : card.rows()) {
-        CardField* f = row.field;
-        if (!f->IsShown()) continue;
-        ImGui::PushID(f);
-        if (row.kind == CardRow::Kind::Note) {
-            ImGui::TextWrapped("%s", u8(static_cast<CardText*>(f)->GetLabel()).c_str());
-            ImGui::PopID();
-            continue;
-        }
-        ImGui::AlignTextToFramePadding();
-        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + lw - 6.f * em);
-        ImGui::TextWrapped("%s", u8(row.label).c_str());
-        ImGui::PopTextWrapPos();
-        ImGui::SameLine(lw + ImGui::GetStyle().WindowPadding.x);
+    auto cell = [&](CardField* f) {
         const float w = std::max(ImGui::GetContentRegionAvail().x, 60.f * em);
         switch (f->kind()) {
-        case CardField::Kind::Num:    draw_num_field(static_cast<NumField*>(f), em, w);       break;
-        case CardField::Kind::Choice: draw_choice_field(static_cast<ChoiceField*>(f), w);     break;
-        case CardField::Kind::Toggle: draw_toggle_field(static_cast<ToggleField*>(f));        break;
-        case CardField::Kind::Text:   ImGui::AlignTextToFramePadding(); ImGui::TextWrapped("%s", u8(static_cast<CardText*>(f)->GetLabel()).c_str()); break;
+        case CardField::Kind::Num:      draw_num_field(static_cast<NumField*>(f), em, w);       break;
+        case CardField::Kind::Choice:   draw_choice_field(static_cast<ChoiceField*>(f), w);     break;
+        case CardField::Kind::Toggle:   draw_toggle_field(static_cast<ToggleField*>(f));        break;
+        case CardField::Kind::Button:   draw_button_field(static_cast<ButtonField*>(f), em);    break;
+        case CardField::Kind::CheckList: draw_check_list(static_cast<CheckListField*>(f), em);  break;
+        case CardField::Kind::Text:     ImGui::AlignTextToFramePadding(); draw_card_text(static_cast<CardText*>(f)); break;
+        }
+    };
+    for (const CardRow& row : card.rows()) {
+        CardField* f = row.field;
+        if (!f->IsShown() || (row.group != nullptr && !row.group->IsShown())) continue;
+        ImGui::PushID(f);
+        if (row.kind == CardRow::Kind::Note) {
+            draw_card_text(static_cast<CardText*>(f));
+        } else if (row.kind == CardRow::Kind::Wide) {
+            cell(f);
+        } else if (row.kind == CardRow::Kind::Pick) {
+            draw_button_field(static_cast<ButtonField*>(f), em);
+            ImGui::SameLine(lw + ImGui::GetStyle().WindowPadding.x);
+            ImGui::AlignTextToFramePadding();
+            draw_card_text(static_cast<CardText*>(row.field2));
+        } else {
+            ImGui::AlignTextToFramePadding();
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + lw - 6.f * em);
+            ImGui::TextWrapped("%s", u8(row.field2 != nullptr ? static_cast<CardText*>(row.field2)->GetLabel() : row.label).c_str());
+            ImGui::PopTextWrapPos();
+            ImGui::SameLine(lw + ImGui::GetStyle().WindowPadding.x);
+            cell(f);
         }
         ImGui::PopID();
         ImGui::Spacing();
