@@ -12,6 +12,7 @@
 #include <wx/dc.h>
 #include <wx/tipwin.h>
 #include <wx/colour.h>
+#include <string>
 
 class ButtonProps
 {

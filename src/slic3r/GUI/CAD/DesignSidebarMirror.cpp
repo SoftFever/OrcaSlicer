@@ -23,8 +23,13 @@
 #include <boost/log/trivial.hpp>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <wx/accel.h>
 #include <wx/button.h>
+#include <wx/colour.h>
 #include <wx/event.h>
+#include <wx/font.h>
+#include <wx/gdicmn.h>
+#include <wx/listbase.h>
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
