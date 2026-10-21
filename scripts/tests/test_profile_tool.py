@@ -1258,6 +1258,118 @@ class TestVariantNames(TreeCase):
         self.assertIn('holds the legacy variant "Direct Drive Normal"', out)
 
 
+# ---------------------------------------------------------------------------
+# legacy-compat
+# ---------------------------------------------------------------------------
+
+class TestLegacyCompat(unittest.TestCase):
+    """A base release and the current tree, each with one vendor."""
+
+    def setUp(self):
+        self.base, self.cur = Tree(), Tree()
+        self.addCleanup(self.base.cleanup)
+        self.addCleanup(self.cur.cleanup)
+
+    @staticmethod
+    def printer(tree, name, **extra):
+        tree.write("V", f"machine/{name}.json",
+                   {"type": "machine", "name": name, "instantiation": "true", **extra})
+        tree.index("V", "machine", name, f"machine/{name}.json")
+
+    @staticmethod
+    def filament(tree, name, printers, filament_id="OFpetg01", **extra):
+        tree.write("V", f"filament/{name}.json",
+                   {"type": "filament", "name": name, "instantiation": "true",
+                    "filament_id": filament_id, "compatible_printers": printers, **extra})
+        tree.index("V", "filament", name, f"filament/{name}.json")
+
+    def generate(self):
+        return apt.legacy_compatible_printers(self.base.profiles, self.cur.profiles)
+
+    def test_renamed_and_narrowed_preset_keeps_printers_a_same_id_sibling_covers(self):
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.6", "B 0.4"):
+                self.printer(tree, p)
+        self.filament(self.base, "PETG @A-all", ["A 0.4", "A 0.6", "B 0.4"])
+        self.filament(self.cur, "PETG @V A-all", ["A 0.6"], renamed_from="PETG @A-all;PETG A-all")
+        self.filament(self.cur, "PETG @A 0.4", ["A 0.4"])
+        self.assertEqual(self.generate(), {"PETG @A-all": ["A 0.4"]})
+
+    def test_each_old_name_gets_back_only_its_own_list(self):
+        # The current "PC @0.4" existed in the base and also replaces the split "PC".
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.8"):
+                self.printer(tree, p)
+        self.filament(self.base, "PC", ["A 0.4", "A 0.8"])
+        self.filament(self.base, "PC @0.4", ["A 0.4"])
+        self.filament(self.cur, "PC @0.4", ["A 0.4"], renamed_from="PC")
+        self.filament(self.cur, "PC @0.8", ["A 0.8"])
+        self.assertEqual(self.generate(), {"PC": ["A 0.8"]})
+
+    def test_old_name_now_a_base_preset_resolves_through_renamed_from(self):
+        for tree in (self.base, self.cur):
+            for p in ("I 0.4", "Plus 0.4"):
+                self.printer(tree, p)
+        self.filament(self.base, "PLA @base", ["I 0.4", "Plus 0.4"])
+        self.filament(self.cur, "PLA @base", [], instantiation="false")
+        self.filament(self.cur, "PLA @I 0.4", ["I 0.4"], renamed_from="PLA @base")
+        self.filament(self.cur, "PLA @Plus 0.4", ["Plus 0.4"])
+        self.assertEqual(self.generate(), {"PLA @base": ["Plus 0.4"]})
+
+    def test_printer_without_a_successor_is_left_out(self):
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.6"):
+                self.printer(tree, p)
+        self.filament(self.base, "PETG @A", ["A 0.4", "A 0.6"])
+        self.filament(self.cur, "PETG @A", ["A 0.6"])
+        self.filament(self.cur, "Other @A", ["A 0.4"], filament_id="OFother1")
+        self.assertEqual(self.generate(), {})
+
+    def test_printer_names_follow_printer_renames(self):
+        self.printer(self.base, "Old 0.4")
+        self.printer(self.base, "A 0.6")
+        self.printer(self.cur, "New 0.4", renamed_from="Old 0.4")
+        self.printer(self.cur, "A 0.6")
+        self.filament(self.base, "PETG @A", ["Old 0.4", "A 0.6"])
+        self.filament(self.cur, "PETG @A", ["A 0.6"])
+        self.filament(self.cur, "PETG @New", ["New 0.4"])
+        self.assertEqual(self.generate(), {"PETG @A": ["New 0.4"]})
+
+    def test_printer_without_a_shared_extruder_variant_is_left_out(self):
+        for tree in (self.base, self.cur):
+            self.printer(tree, "Direct 0.4", printer_extruder_variant=["Direct Drive Standard"])
+            self.printer(tree, "Bowden 0.4", printer_extruder_variant=["Bowden Standard"])
+        self.filament(self.base, "PETG @all", ["Direct 0.4", "Bowden 0.4"])
+        self.filament(self.cur, "PETG @all", ["Direct 0.4"],
+                      filament_extruder_variant=["Direct Drive Standard"])
+        self.filament(self.cur, "PETG @Bowden", ["Bowden 0.4"])
+        self.assertEqual(self.generate(), {})
+
+    def test_preset_now_listing_no_printer_is_skipped(self):
+        for tree in (self.base, self.cur):
+            self.printer(tree, "A 0.4")
+        self.filament(self.base, "PETG @A", ["A 0.4"])
+        self.filament(self.cur, "PETG @A", [])
+        self.assertEqual(self.generate(), {})
+
+    def test_check_passes_on_a_current_map_and_fails_on_a_stale_one(self):
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.6"):
+                self.printer(tree, p)
+        self.filament(self.base, "PETG @A", ["A 0.4", "A 0.6"])
+        self.filament(self.cur, "PETG @A", ["A 0.6"])
+        self.filament(self.cur, "PETG @A 0.4", ["A 0.4"])
+        output = os.path.join(self.cur.dir, "map.json")
+        argv = ["legacy-compat", "--base", self.base.profiles, "--profiles", self.cur.profiles,
+                "--output", output]
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(apt.main(argv), 0)
+            self.assertEqual(apt.main(argv + ["--check"]), 0)
+            with open(output, "w", encoding="utf-8") as f:
+                json.dump({"presets": {}}, f)
+            self.assertEqual(apt.main(argv + ["--check"]), 1)
+
+
 class TestDispatch(TreeCase):
     def test_each_command_reaches_its_own_writer(self):
         self.t.write("V", "filament/A.json", {"type": "filament", "name": "A"})

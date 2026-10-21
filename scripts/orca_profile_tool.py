@@ -11,6 +11,7 @@ commands:
   normalize        rewrite profile files into their canonical shape
   trim             delete profile files no <vendor>.json list references
   update-index     regenerate the *_list sections of <vendor>.json
+  legacy-compat    write the printers user presets can be migrated back to
 
 options shared by several commands:
   --vendor VENDOR      act on one vendor bundle only; repeatable, empty means all
@@ -24,6 +25,9 @@ After adding, renaming or deleting profile files, run:
   normalize -> update-index -> generate-id -> check
 normalize supplies missing types; update-index registers presets before id
 generation.
+After renaming filament presets or narrowing their compatible_printers, also
+rerun legacy-compat --base <2.4.2 profiles> so user presets made against 2.4.2
+can be migrated back to their printers; CI runs it with --check.
 Use trim only for deliberate cleanup, previewed with --dry-run: it judges against
 the current index and can delete newly added, unindexed presets.
 
@@ -3073,6 +3077,139 @@ def fix_variant_arrays(profiles_dir=PROFILES_DIR, vendors=None, dry_run=False, s
 
 
 # ---------------------------------------------------------------------------
+# legacy-compat
+# ---------------------------------------------------------------------------
+
+LEGACY_COMPAT_PATH = os.path.normpath(
+    os.path.join(SCRIPTS_DIR, "..", "resources", "info", "legacy_compatible_printers.json"))
+
+
+def _renamed_from(data):
+    """A preset's renamed_from names. Profiles write one ';'-separated string, as the
+    loader's unescape_strings_cstyle reads it; none of them quote or escape a name."""
+    value = data.get("renamed_from") or []
+    return [n for v in _as_list(value) for n in v.split(";") if n]
+
+
+def _flatten_presets(profiles_dir):
+    """Every bundle's composed filament and printer presets, for legacy-compat.
+
+    Returns (filaments, printers): filaments maps (vendor, name) to a dict with the
+    resolved compatible_printers, filament_id, extruder variants, renamed_from and
+    whether it is instantiated; printers maps each instantiated printer name to a
+    dict with its renamed_from and extruder variants. instantiation is read from the
+    preset's own file, as the loader requires every file to state it.
+    """
+    def instantiated(data):
+        return str(data.get("instantiation", "")).lower() == "true"
+
+    ofl = load_vendor_configs(profiles_dir, OFL)["filament"]
+    filaments, printers = {}, {}
+    for vendor in list_vendor_names(profiles_dir):
+        configs = load_vendor_configs(profiles_dir, vendor)
+        cache = {}
+        for name, (_rel, data) in configs["filament"].items():
+            config = compose_config(name, configs["filament"], ofl, cache, vendor == OFL)
+            filaments[(vendor, name)] = {
+                "compatible_printers": set(_as_list(config.get("compatible_printers", ([],))[0])),
+                "filament_id": config.get("filament_id", (None,))[0],
+                "variants": set(_as_list(config.get("filament_extruder_variant", ([],))[0])),
+                "instantiation": instantiated(data),
+                "renamed_from": _renamed_from(data),
+            }
+        cache = {}
+        for name, (_rel, data) in configs["machine"].items():
+            if instantiated(data):
+                config = compose_config(name, configs["machine"], {}, cache)
+                printers[name] = {
+                    "renamed_from": _renamed_from(data),
+                    "variants": set(_as_list(config.get("printer_extruder_variant", ([],))[0])),
+                }
+    return filaments, printers
+
+
+def legacy_compatible_printers(base_dir, profiles_dir=PROFILES_DIR):
+    """Printers each filament preset of the base release covered but the current
+    preset it loads as no longer lists, kept only where a current preset with
+    the same filament_id still covers that printer.
+
+    User presets store only their diff, so they inherit their parent's
+    compatible_printers; when a profile change narrows that list, a user preset
+    made against the base release disappears from printers it was used on. The
+    app offers to write these printers into such user presets. Requiring a same-id
+    successor leaves out printers a filament was deliberately taken off, and
+    requiring a shared extruder variant keeps a printer from picking up another
+    variant's values.
+
+    Keyed by the base release's preset name, which is what such a user preset's
+    inherits still says. One current preset can stand in for several old ones
+    through renamed_from, each with its own old list, so the key tells them
+    apart. An old name resolves as the loader resolves an inherits: to the
+    current selectable preset of that name, else to one listing it in
+    renamed_from. A preset that is not instantiated never enters the loader's
+    collection, so it does not stop the renamed_from lookup. Printer names are
+    translated through the printers' renamed_from. Returns
+    {old preset name: sorted printer names}.
+    """
+    old_filaments, _ = _flatten_presets(base_dir)
+    new_filaments, new_printers = _flatten_presets(profiles_dir)
+    renamed_printer = {old: new for new, rec in new_printers.items() for old in rec["renamed_from"]}
+
+    by_name, by_old_name = {}, {}
+    for (vendor, name), rec in new_filaments.items():
+        if rec["instantiation"]:
+            by_name.setdefault(name, []).append((vendor, rec))
+            for old_name in rec["renamed_from"]:
+                by_old_name.setdefault(old_name, []).append((vendor, rec))
+
+    covering = {}  # filament_id -> printers some current instantiated preset covers
+    for rec in new_filaments.values():
+        if rec["instantiation"] and rec["filament_id"]:
+            covering.setdefault(rec["filament_id"], set()).update(rec["compatible_printers"])
+
+    def shares_variant(filament, printer):
+        variants = new_printers[printer]["variants"]
+        return not filament["variants"] or not variants or bool(filament["variants"] & variants)
+
+    result = {}
+    for (vendor, name), old in sorted(old_filaments.items()):
+        # Only a selectable preset can be a user preset's parent.
+        if not old["instantiation"]:
+            continue
+        candidates = by_name.get(name) or by_old_name.get(name, [])
+        same_vendor = [r for v, r in candidates if v == vendor]
+        rec = (same_vendor or [r for _, r in candidates] or [None])[0]
+        # An empty list means every printer, so nothing can have been lost.
+        if rec is None or not rec["compatible_printers"]:
+            continue
+        lost = {renamed_printer.get(p, p) for p in old["compatible_printers"]} - rec["compatible_printers"]
+        lost &= covering.get(rec["filament_id"], set()) & set(new_printers)
+        lost = {p for p in lost if shares_variant(rec, p)}
+        if lost:
+            result.setdefault(name, set()).update(lost)
+    return {name: sorted(printers) for name, printers in result.items()}
+
+
+def run_legacy_compat(base_dir, profiles_dir, output, check):
+    presets = legacy_compatible_printers(base_dir, profiles_dir)
+    if check:
+        try:
+            with open(output, encoding="utf-8") as f:
+                current = json.load(f).get("presets")
+        except (OSError, ValueError, AttributeError):
+            current = None
+        if current != presets:
+            print_error(f"{output} is out of date; rerun legacy-compat --base {base_dir}")
+            return 1
+        print_success(f"{output} is up to date")
+        return 0
+    with open(output, "w", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps({"presets": presets}, indent=4, sort_keys=True, ensure_ascii=False) + "\n")
+    print_info(f"wrote {len(presets)} presets / {sum(map(len, presets.values()))} printers to {output}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -3093,11 +3230,17 @@ examples:
       preview resizing the variant arrays check rejects in that bundle
   orca_profile_tool.py check --strict --vendor BBL
       also hold every preset's inherited variant arrays to its own width
+  orca_profile_tool.py legacy-compat --base /tmp/v2.4.2/resources/profiles
+      rewrite resources/info/legacy_compatible_printers.json against 2.4.2's
+      profiles (git archive v2.4.2 resources/profiles | tar -x -C /tmp/v2.4.2)
 
 after adding, renaming or deleting profile files, run in this order:
   normalize -> update-index -> generate-id -> check
 normalize supplies missing types; update-index registers presets before id
 generation.
+After renaming filament presets or narrowing their compatible_printers, also
+rerun legacy-compat --base <2.4.2 profiles> so user presets made against 2.4.2
+can be migrated back to their printers; CI runs it with --check.
 Use trim only for deliberate cleanup, previewed with --dry-run: it judges against
 the current index and can delete newly added, unindexed presets.
 """
@@ -3227,6 +3370,23 @@ def build_parser():
         "Use trim only for deliberate unindexed-file cleanup, previewed with\n"
         "--dry-run; it can also delete newly authored presets.")
 
+    legacy_cmd = add(
+        "legacy-compat", [profiles_opt],
+        "write the printers user presets can be migrated back to",
+        "Compare the tree with an older release's profiles and write, per filament\n"
+        "preset of that release, the printers it covered then that the preset it now\n"
+        "loads as no longer lists, where a preset with the same filament_id still\n"
+        "covers them. The app offers to write these into user presets that inherit\n"
+        "that preset by its old name and do not set compatible_printers, so a\n"
+        "narrowed list does not hide them on printers they were made for.")
+    legacy_cmd.add_argument("--base", required=True, metavar="DIR",
+                            help="the older release's resources/profiles directory")
+    legacy_cmd.add_argument("--output", default=LEGACY_COMPAT_PATH, metavar="FILE",
+                            help="map to write (default: resources/info/"
+                                 "legacy_compatible_printers.json)")
+    legacy_cmd.add_argument("--check", action="store_true",
+                            help="fail if the map differs from what --base implies; write nothing")
+
     return parser
 
 
@@ -3259,6 +3419,9 @@ def main(argv=None):
     if args.command == "generate-id":
         return run_generate_id(profiles_dir, vendors, args.filament_id, args.setting_id,
                                args.dry_run)
+
+    if args.command == "legacy-compat":
+        return run_legacy_compat(args.base, profiles_dir, args.output, args.check)
 
     if args.command == "fix-variant":
         _changed, errors = fix_variant_arrays(profiles_dir, vendors, dry_run=args.dry_run,
