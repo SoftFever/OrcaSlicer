@@ -42,6 +42,7 @@ add_executable(${_TEST_NAME}_tests
     test_fill_plane_path.cpp
     test_adaptive_infill_field.cpp
     test_geometry.cpp
+    test_kdtree.cpp
     test_imex_arrange.cpp
     test_imex_helpers.cpp
     test_imex_zones.cpp
