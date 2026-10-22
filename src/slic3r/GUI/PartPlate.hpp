@@ -817,8 +817,10 @@ class PartPlateList : public ObjectBase
     Vec2i32 compute_plate_cell(int index, int cols) const;
     Vec2d   compute_cell_position(const Vec2i32& cell);
     Vec2i32 compute_grid_cell_for_unprintable() const;
-    // Orca: whether a plate dropped on cell would overlap another plate or capture objects that are not on it.
-    bool    is_cell_blocked(int index, const Vec2i32& cell);
+    // Orca: the plates that move, with their new cells, when plate index is dropped on cell; empty when the drop
+    // is not allowed. A plate already on cell makes room: in the dragged plate's row the plates in between shift
+    // toward the cell it leaves, in another row the plates from cell rightward shift one cell right.
+    std::map<int, Vec2i32> plan_plate_move(int index, const Vec2i32& cell);
     //generate icon textures
     void generate_icon_textures();
     void release_icon_textures();
@@ -984,7 +986,8 @@ public:
     // Area the plate covers when it sits in cell.
     BoundingBoxf compute_cell_box(const Vec2i32& cell);
     bool    can_move_plate_to_cell(int index, const Vec2i32& cell);
-    // Move the plate and its objects to cell; switches to the custom layout. Returns 0 on success.
+    // Move the plate and its objects to cell, making room as plan_plate_move() does; switches to the custom layout.
+    // Returns 0 on success.
     int     move_plate_to_cell(int index, const Vec2i32& cell);
     // Return to the automatic grid, moving plates and their objects.
     void    reset_layout();
