@@ -1352,7 +1352,7 @@ void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
         []() { return obj_list()->can_merge_to_single_object(); }, m_parent);
 }
 
-wxMenu* MenuFactory::append_menu_item_transform(wxMenu* menu, bool multi_selection, bool show_mirror, bool convert_unit)
+wxMenu* MenuFactory::append_menu_item_transform(wxMenu* menu, bool multi_selection, bool show_mirror, bool is_scalable)
 {
     wxMenu* sub_menu = new wxMenu();
 
@@ -1367,8 +1367,12 @@ wxMenu* MenuFactory::append_menu_item_transform(wxMenu* menu, bool multi_selecti
             [](wxCommandEvent&) { plater()->mirror(Z); }, "menu_mirror_z", m_parent);
     }
 
-    if(convert_unit && show_mirror)
-        sub_menu->AppendSeparator();
+    if(is_scalable){
+        if(sub_menu->GetMenuItemCount() > 0)
+            sub_menu->AppendSeparator();
+        append_menu_item_scale_selection_to_fit_print_volume(sub_menu);
+        sub_menu->AppendSeparator(); // Convert units will be added later
+    }
 
     append_submenu(menu, sub_menu, wxID_ANY, _L("Transform"), "", "", [](){return true;}, m_parent);
     return sub_menu;
@@ -1390,7 +1394,8 @@ wxMenu* MenuFactory::append_menu_item_modify(wxMenu* menu, bool multi_selection,
     }
 
     if(mesh_boolean){
-        sub_menu->AppendSeparator();
+        if(sub_menu->GetMenuItemCount() > 0)
+            sub_menu->AppendSeparator();
         // Mesh Boolean
         append_menu_item(sub_menu, wxID_ANY, _L("Mesh boolean"), _L("Mesh boolean operations including union and subtraction"),
             [](wxCommandEvent&) { obj_list()->boolean/*merge_volumes*/(); }, "", menu,
@@ -1399,7 +1404,8 @@ wxMenu* MenuFactory::append_menu_item_modify(wxMenu* menu, bool multi_selection,
     }
 
     if(is_mesh){
-        sub_menu->AppendSeparator();
+        if(sub_menu->GetMenuItemCount() > 0)
+            sub_menu->AppendSeparator();
         if(!multi_selection){ // these doesnt support multiple items
             // Object Simplify
             append_menu_item_simplify(sub_menu);
@@ -1688,7 +1694,7 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
     append_menu_items_instance_manipulation(menu);
     
     // Object Split / Mirror / Mesh Tools
-    append_menu_item_transform(menu, false /*multi_selection*/, true /*mirror*/, false /*convert_unit*/);
+    append_menu_item_transform(menu, false /*multi_selection*/, true /*mirror*/, false /*is_scalable*/);
     append_menu_item_modify(menu, false /*multi_selection*/, true /*splittable*/, true /*mesh*/, false /*mesh_boolean*/);
 
     // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
@@ -1719,7 +1725,6 @@ void MenuFactory::create_extra_object_menu()
     // Object Clone
     append_menu_item_clone(&m_object_menu);
 
-    // TODO fix fix clone + instances logic
     // Instances
     auto instances = new wxMenu();
     if (!instances) return;
@@ -1736,7 +1741,7 @@ void MenuFactory::create_extra_object_menu()
     append_menu_item_drop(&m_object_menu);
 
     // Object Align/Distribute
-    m_object_transform_menu = append_menu_item_transform(&m_object_menu, false /*multi_selection*/, true /*mirror*/, true /*convert_unit*/);
+    m_object_transform_menu = append_menu_item_transform(&m_object_menu, false /*multi_selection*/, true /*mirror*/, true /*is_scalable*/);
     append_menu_item_align_distribute(&m_object_menu);
     append_menu_item_modify(&m_object_menu, false /*multi_selection*/, true /*splittable*/, true /*mesh*/, true /*mesh_boolean*/);
     m_object_geometry_pos = m_object_menu.GetMenuItemCount(); // pos for property related items
@@ -1792,11 +1797,14 @@ void MenuFactory::create_text_part_menu()
 {
     wxMenu* menu = &m_text_part_menu;
 
+    append_menu_item_edit_text(menu);
+    menu->AppendSeparator();
+
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
-    append_menu_item_transform(&m_text_part_menu, false /*multi_selection*/, true /*mirror*/, true /*convert_unit*/);
+    append_menu_item_transform(&m_text_part_menu, false /*multi_selection*/, true /*mirror*/, false /*is_scalable*/);
     append_menu_item_modify(&m_text_part_menu, false /*multi_selection*/, false /*splittable*/, true /*mesh*/, false /*mesh_boolean*/);
-    append_menu_item_edit_text(menu);
+
     //m_text_geometry_pos = m_text_part_menu.GetMenuItemCount(); // pos for geometry related items
 
     menu->AppendSeparator();
@@ -1815,11 +1823,14 @@ void MenuFactory::create_svg_part_menu()
 {
     wxMenu* menu = &m_svg_part_menu;
 
+    append_menu_item_edit_svg(menu);
+    menu->AppendSeparator();
+
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
-    append_menu_item_transform(&m_svg_part_menu, false /*multi_selection*/, true /*mirror*/, true /*convert_unit*/);
+    append_menu_item_transform(&m_svg_part_menu, false /*multi_selection*/, true /*mirror*/, false /*is_scalable*/);
     append_menu_item_modify(&m_svg_part_menu, false /*multi_selection*/, false /*splittable*/, true /*mesh*/, false /*mesh_boolean*/);
-    append_menu_item_edit_svg(menu);
+
     //m_svg_geometry_pos = m_svg_part_menu.GetMenuItemCount(); // pos for geometry related items
 
     menu->AppendSeparator();
@@ -1841,7 +1852,7 @@ void MenuFactory::create_bbl_part_menu()
     append_menu_item_center(menu);
     append_menu_item_drop(&m_part_menu);
 
-    m_part_transform_menu = append_menu_item_transform(&m_part_menu, false /*multi_selection*/, true /*mirror*/, true /*convert_unit*/);
+    m_part_transform_menu = append_menu_item_transform(&m_part_menu, false /*multi_selection*/, true /*mirror*/, true /*is_scalable*/);
     append_menu_item_align_distribute(menu);
     append_menu_item_modify(&m_part_menu, false /*multi_selection*/, true /*splittable*/, true /*mesh*/, false /*mesh_boolean*/);
     append_menu_item_edit_text(menu);
@@ -2174,7 +2185,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_drop(menu);
 
         //ORCA switch to sub menus if new items added
-        auto transform_menu = append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*convert_unit*/);
+        auto transform_menu = append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*is_scalable*/);
         append_menu_items_convert_unit(transform_menu);
         append_menu_item_align_distribute(menu);
         //ORCA switch to sub menus if new items added
@@ -2201,7 +2212,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_drop(menu);
 
         //ORCA switch to sub menus if new items added
-        auto transform_menu = append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*convert_unit*/);
+        auto transform_menu = append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*is_scalable*/);
         append_menu_item_align_distribute(menu);
         append_menu_item_modify(menu, true /*multi_selection*/, true /*splittable*/, true /*is_mesh*/, false /*mesh_boolean*/);
         //append_menu_item_drop(menu);
