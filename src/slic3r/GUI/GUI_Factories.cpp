@@ -1443,14 +1443,18 @@ wxMenu* MenuFactory::append_menu_item_more(wxMenu* menu, bool multi_selection, b
     return sub_menu;
 }
 
-void MenuFactory::append_menu_item_precise_seam_submenu(wxMenu* menu)
+void MenuFactory::append_menu_item_precise_seam_submenu(wxMenu* menu, size_t pos)
 {
     wxString submenu_name = _L("Precise Seam Type");
 
-    // Remove existing submenu if present (menu is rebuilt on every right-click)
+    // Remove existing submenu (and the separator placed right after it) if present (menu is rebuilt on every right-click)
     const int menu_item_id = menu->FindItem(submenu_name);
-    if (menu_item_id != wxNOT_FOUND)
+    if (menu_item_id != wxNOT_FOUND) {
+        const size_t item_pos = FindPositionById(menu, menu_item_id);
+        if (item_pos != size_t(wxNOT_FOUND) && item_pos + 1 < menu->GetMenuItemCount() && menu->FindItemByPosition(item_pos + 1)->IsSeparator())
+            menu->Destroy(menu->FindItemByPosition(item_pos + 1));
         menu->Destroy(menu_item_id);
+    }
 
     // --- Precondition: ALL selected volumes must be Precise Seam ---
     // Mixed selections (PS + non-PS) are ambiguous for subtype switching: applying a subtype
@@ -1492,19 +1496,6 @@ void MenuFactory::append_menu_item_precise_seam_submenu(wxMenu* menu)
         if (!is_precise_seam(vol_type))
             return;
         selected_ps_types.push_back(vol_type);
-    }
-
-    // Match the label used by append_menu_item_change_type, including its translation.
-    int insert_pos     = wxNOT_FOUND;
-    int change_type_id = menu->FindItem(_L("Change Type"));
-    if (change_type_id != wxNOT_FOUND) {
-        for (size_t i = 0; i < menu->GetMenuItemCount(); i++) {
-            wxMenuItem* item = menu->FindItemByPosition(i);
-            if (item && item->GetId() == change_type_id) {
-                insert_pos = i + 1;  // insert directly after the Change Type entry
-                break;
-            }
-        }
     }
 
     // --- Build the subtype submenu ---
@@ -1565,7 +1556,11 @@ void MenuFactory::append_menu_item_precise_seam_submenu(wxMenu* menu)
                    "menu_precise_seam_type",
                    []() { return true; },
                    m_parent,
-                   insert_pos);
+                   pos);
+    if (pos == size_t(wxNOT_FOUND))
+        menu->AppendSeparator();
+    else
+        menu->InsertSeparator(pos + 1);
 }
 
 void MenuFactory::append_menu_item_edit_text(wxMenu *menu, size_t pos)
@@ -1589,8 +1584,13 @@ void MenuFactory::append_menu_item_edit_text(wxMenu *menu, size_t pos)
 
     if (menu != &m_text_part_menu) {
         const int menu_item_id = menu->FindItem(name);
-        if (menu_item_id != wxNOT_FOUND)
+        if (menu_item_id != wxNOT_FOUND) {
+            // Delete old menu item and the separator placed right after it
+            const size_t item_pos = FindPositionById(menu, menu_item_id);
+            if (item_pos != size_t(wxNOT_FOUND) && item_pos + 1 < menu->GetMenuItemCount() && menu->FindItemByPosition(item_pos + 1)->IsSeparator())
+                menu->Destroy(menu->FindItemByPosition(item_pos + 1));
             menu->Destroy(menu_item_id);
+        }
         if (!can_edit_text())
             return;
     }
@@ -1604,6 +1604,10 @@ void MenuFactory::append_menu_item_edit_text(wxMenu *menu, size_t pos)
         mng.open_gizmo(GLGizmosManager::Emboss);
     };
     append_menu_item(menu, wxID_ANY, name, description, open_emboss, icon, nullptr, can_edit_text, m_parent, pos);
+    if (pos == size_t(wxNOT_FOUND))
+        menu->AppendSeparator();
+    else
+        menu->InsertSeparator(pos + 1);
 }
 
 void MenuFactory::append_menu_item_edit_svg(wxMenu *menu, size_t pos)
@@ -1626,8 +1630,13 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu, size_t pos)
 
     if (menu != &m_svg_part_menu) {
         const int menu_item_id = menu->FindItem(name);
-        if (menu_item_id != wxNOT_FOUND)
+        if (menu_item_id != wxNOT_FOUND) {
+            // Delete old menu item and the separator placed right after it
+            const size_t item_pos = FindPositionById(menu, menu_item_id);
+            if (item_pos != size_t(wxNOT_FOUND) && item_pos + 1 < menu->GetMenuItemCount() && menu->FindItemByPosition(item_pos + 1)->IsSeparator())
+                menu->Destroy(menu->FindItemByPosition(item_pos + 1));
             menu->Destroy(menu_item_id);
+        }
         if (!can_edit_svg())
             return;
     }
@@ -1641,6 +1650,10 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu, size_t pos)
         mng.open_gizmo(GLGizmosManager::Svg);
     };
     append_menu_item(menu, wxID_ANY, name, description, open_svg, icon, nullptr, can_edit_svg, m_parent, pos);
+    if (pos == size_t(wxNOT_FOUND))
+        menu->AppendSeparator();
+    else
+        menu->InsertSeparator(pos + 1);
 }
 
 void MenuFactory::append_menu_item_invalidate_cut_info(wxMenu *menu, size_t pos)
@@ -1648,13 +1661,22 @@ void MenuFactory::append_menu_item_invalidate_cut_info(wxMenu *menu, size_t pos)
     const wxString menu_name = _L("Invalidate cut info");
 
     auto menu_item_id = menu->FindItem(menu_name);
-    if (menu_item_id != wxNOT_FOUND)
-        // Delete old menu item if selected object isn't cut
+    if (menu_item_id != wxNOT_FOUND) {
+        // Delete old menu item (and the separator placed right after it) if selected object isn't cut
+        const size_t item_pos = FindPositionById(menu, menu_item_id);
+        if (item_pos != size_t(wxNOT_FOUND) && item_pos + 1 < menu->GetMenuItemCount() && menu->FindItemByPosition(item_pos + 1)->IsSeparator())
+            menu->Destroy(menu->FindItemByPosition(item_pos + 1));
         menu->Destroy(menu_item_id);
+    }
 
-    if (obj_list()->has_selected_cut_object())
+    if (obj_list()->has_selected_cut_object()) {
         append_menu_item(menu, wxID_ANY, menu_name, "", [](wxCommandEvent &) { obj_list()->invalidate_cut_info_for_selection(); },
             "cut_", menu, []() { return true; }, m_parent, pos);
+        if (pos == size_t(wxNOT_FOUND))
+            menu->AppendSeparator();
+        else
+            menu->InsertSeparator(pos + 1);
+    }
 }
 
 MenuFactory::MenuFactory()
@@ -1798,7 +1820,6 @@ void MenuFactory::create_text_part_menu()
     wxMenu* menu = &m_text_part_menu;
 
     append_menu_item_edit_text(menu);
-    menu->AppendSeparator();
 
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
@@ -1824,7 +1845,6 @@ void MenuFactory::create_svg_part_menu()
     wxMenu* menu = &m_svg_part_menu;
 
     append_menu_item_edit_svg(menu);
-    menu->AppendSeparator();
 
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
@@ -2084,9 +2104,9 @@ wxMenu* MenuFactory::object_menu()
     append_menu_items_convert_unit(m_object_transform_menu);
 
     // GEOMETRY
-    append_menu_item_invalidate_cut_info(&m_object_menu, m_object_geometry_pos);
-    append_menu_item_edit_text(          &m_object_menu, m_object_geometry_pos);
-    append_menu_item_edit_svg(           &m_object_menu, m_object_geometry_pos);
+    append_menu_item_invalidate_cut_info(&m_object_menu, 0); // inserts itself to top of menu
+    append_menu_item_edit_text(          &m_object_menu, 0); // inserts itself to top of menu
+    append_menu_item_edit_svg(           &m_object_menu, 0); // inserts itself to top of menu
 
     // PROPS > Place items above printable
     size_t props_pos = FindPositionById(&m_object_menu, m_object_props_marker); // stored positions not works as expected since menu has multiple dynamic sections
@@ -2101,8 +2121,8 @@ wxMenu* MenuFactory::sla_object_menu()
     append_menu_items_convert_unit(&m_sla_object_menu);
     append_menu_item_settings(&m_sla_object_menu);
     //update_menu_items_instance_manipulation(mtObjectSLA);
-    append_menu_item_edit_text(&m_sla_object_menu, 0);
-    append_menu_item_edit_svg(&m_sla_object_menu, 0);
+    append_menu_item_edit_text(&m_sla_object_menu, 0); // inserts itself to top of menu
+    append_menu_item_edit_svg(&m_sla_object_menu, 0); // inserts itself to top of menu
 
     return &m_sla_object_menu;
 }
@@ -2114,7 +2134,7 @@ wxMenu* MenuFactory::part_menu()
     // stored positions not works as expected since menu has multiple dynamic sections
     append_menu_item_per_object_settings(&m_part_menu, FindPositionById(&m_part_menu, m_part_project_marker) + 1);
     append_menu_item_change_filament(&m_part_menu, FindPositionById(&m_part_menu, m_part_props_marker) + 1);
-    append_menu_item_precise_seam_submenu(&m_part_menu); // inserts itself right after "Change Type"
+    append_menu_item_precise_seam_submenu(&m_part_menu, 0); // inserts itself to top of menu
     return &m_part_menu;
 }
 
