@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <nlohmann/json.hpp>
 
@@ -87,37 +89,61 @@ std::string table_brand(const std::string &vendor)
 }
 } // namespace
 
+namespace {
+// One file: a vendor's worth of colours. `brand` is on the file rather than on every row, since a
+// file belongs to one brand.
+void read_file(const boost::filesystem::path &path, std::vector<FilamentTd> &out)
+{
+    boost::nowide::ifstream in(path.string());
+    if (!in.good())
+        return;
+    nlohmann::json root;
+    in >> root;
+    const std::string brand = root.value("brand", std::string());
+    for (const nlohmann::json &one : root.value("filaments", nlohmann::json::array())) {
+        FilamentTd entry;
+        entry.brand = one.value("brand", brand);
+        entry.name  = one.value("name", std::string());
+        entry.type  = one.value("type", std::string());
+        entry.td_mm = one.value("td", 0.f);
+        const std::string hex = one.value("color", std::string());
+        if (entry.brand.empty() || entry.name.empty() || entry.td_mm <= 0.f || hex.size() < 7)
+            continue;
+        const auto channel = [&hex](size_t at) { return float(std::stoi(hex.substr(at, 2), nullptr, 16)) / 255.f; };
+        entry.color = ColorRGB(channel(1), channel(3), channel(5));
+        out.push_back(std::move(entry));
+    }
+}
+
+// Every .json in a directory, in name order so a build is the same twice running.
+void read_dir(const boost::filesystem::path &dir, std::vector<FilamentTd> &out)
+{
+    boost::system::error_code ec;
+    if (!boost::filesystem::is_directory(dir, ec))
+        return;
+    std::vector<boost::filesystem::path> files;
+    for (boost::filesystem::directory_iterator it(dir, ec), end; it != end && !ec; it.increment(ec))
+        if (it->path().extension() == ".json")
+            files.push_back(it->path());
+    std::sort(files.begin(), files.end());
+    for (const boost::filesystem::path &file : files) {
+        try {
+            read_file(file, out);
+        } catch (...) {
+            // One unreadable file is one vendor's worth of colours missing, not a broken feature.
+        }
+    }
+}
+} // namespace
+
 const std::vector<FilamentTd> &filament_td_table()
 {
     static const std::vector<FilamentTd> table = []() {
         std::vector<FilamentTd> out;
-        try {
-            const std::string path = resources_dir() + "/filament_transmission_distance.json";
-            boost::nowide::ifstream in(path);
-            if (!in.good())
-                return out;
-            nlohmann::json root;
-            in >> root;
-            for (const nlohmann::json &one : root.value("filaments", nlohmann::json::array())) {
-                FilamentTd entry;
-                entry.brand = one.value("brand", std::string());
-                entry.name  = one.value("name", std::string());
-                entry.type  = one.value("type", std::string());
-                entry.td_mm = one.value("td", 0.f);
-                const std::string hex = one.value("color", std::string());
-                if (entry.name.empty() || entry.td_mm <= 0.f || hex.size() < 7)
-                    continue;
-                const auto channel = [&hex](size_t at) {
-                    return float(std::stoi(hex.substr(at, 2), nullptr, 16)) / 255.f;
-                };
-                entry.color = ColorRGB(channel(1), channel(3), channel(5));
-                out.push_back(std::move(entry));
-            }
-        } catch (...) {
-            // A table that will not parse is a table the feature does without. The field it fills in
-            // has a default, and nothing else depends on it.
-            out.clear();
-        }
+        // The user's own first, so that a value somebody measured for their own spool wins the ties
+        // against the one that shipped - the search keeps the first of equals.
+        read_dir(boost::filesystem::path(data_dir()) / "filament_td", out);
+        read_dir(boost::filesystem::path(resources_dir()) / "filament_td", out);
         return out;
     }();
     return table;
