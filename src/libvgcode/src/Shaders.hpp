@@ -274,6 +274,11 @@ static const char* Segments_Fragment_Shader =
 "in vec3 cut_color_direct;\n"
 "flat in float alpha;\n"
 "out vec4 fragment_color;\n"
+// ORCA: weighted blended order independent transparency, see ViewerImpl::render_translucent()
+"out float oit_reveal;\n"
+"uniform bool oit;\n"
+"uniform sampler2D opaque_depth;\n"
+"uniform vec2 oit_depth_range;\n"
 "float shadow_shade(vec3 position, vec3 normal) {\n"
 "  if (shadow_intensity <= 0.0)\n"
 "    return 1.0;\n"
@@ -318,6 +323,9 @@ static const char* Segments_Fragment_Shader =
 "  return abs(dot(offset, right_dir)) / half_height_width.y + abs(dot(offset, cross(right_dir, line_dir))) / half_height_width.x <= 1.0;\n"
 "}\n"
 "void main() {\n"
+// ORCA: when accumulating, the opaque scene hides what lies behind it
+"  if (oit && gl_FragCoord.z > texelFetch(opaque_depth, ivec2(gl_FragCoord.xy), 0).r)\n"
+"    discard;\n"
 "  vec3 c;\n"
 "  vec3 position = world_position;\n"
 "  vec3 normal = shadow_normal;\n"
@@ -344,6 +352,34 @@ static const char* Segments_Fragment_Shader =
 "  vec3 v = projection_matrix[3][3] == 1.0 ? vec3(0.0, 0.0, 1.0) : -normalize((view_matrix * vec4(position, 1.0)).xyz);\n"
 "  float gloss = GLOSS * pow(max(dot(v, reflect(-light_top_dir, n)), 0.0), GLOSS_SHININESS) * shade;\n"
 "  fragment_color = vec4(clamp(c, 0.0, 1.0) * alpha + gloss, alpha);\n"
+"  if (!oit)\n"
+"    return;\n"
+"  float z = clamp((-(view_matrix * vec4(position, 1.0)).z - oit_depth_range.x) / (oit_depth_range.y - oit_depth_range.x), 0.0, 1.0);\n"
+"  fragment_color *= alpha * max(pow(1.0 - z, 3.0), 1e-2);\n"
+"  oit_reveal = -log(1.0 - min(alpha, 0.999));\n"
+"}\n";
+
+// ORCA: weighted blended order independent transparency, see ViewerImpl::render_translucent()
+static const char* Translucent_Composite_Vertex_Shader =
+"#version 150\n"
+"void main() {\n"
+"  vec2 corner = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);\n"
+"  gl_Position = vec4(2.0 * corner - 1.0, 0.0, 1.0);\n"
+"}\n";
+
+static const char* Translucent_Composite_Fragment_Shader =
+"#version 150\n"
+"uniform sampler2D accum_tex;\n"
+"uniform sampler2D reveal_tex;\n"
+"uniform ivec2 origin;\n"
+"out vec4 fragment_color;\n"
+"void main() {\n"
+"  ivec2 coord = ivec2(gl_FragCoord.xy) - origin;\n"
+"  vec4 accum = texelFetch(accum_tex, coord, 0);\n"
+"  if (accum.a <= 0.0)\n"
+"    discard;\n"
+"  float coverage = 1.0 - exp(-texelFetch(reveal_tex, coord, 0).r);\n"
+"  fragment_color = vec4(accum.rgb / accum.a * coverage, coverage);\n"
 "}\n";
 
 static const char* Options_Vertex_Shader =

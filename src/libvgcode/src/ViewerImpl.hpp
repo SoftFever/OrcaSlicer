@@ -576,6 +576,47 @@ private:
     // ORCA: section view
     std::array<float, 4> m_clipping_plane{ 0.0f, 0.0f, 0.0f, 1.0f };
 
+    // ORCA: the translucent segments come in more than one color, whose blending order would show
+    bool m_translucent_colors_differ{ false };
+    AABox m_extrusions_box{ Vec3{ 0.0f, 0.0f, 0.0f }, Vec3{ 0.0f, 0.0f, 0.0f } };
+#ifndef ENABLE_OPENGL_ES
+    //
+    // ORCA: weighted blended order independent transparency, see render_translucent().
+    // The segments accumulate into ms_fbo when the canvas is multisampled, which resolves into
+    // the textures of resolve_fbo, else straight into those.
+    //
+    struct TranslucentTargets
+    {
+        unsigned int ms_fbo{ 0 };
+        unsigned int accum_rb{ 0 };
+        unsigned int reveal_rb{ 0 };
+        unsigned int resolve_fbo{ 0 };
+        unsigned int accum_tex{ 0 };
+        unsigned int reveal_tex{ 0 };
+        // the depth of the opaque scene, which hides the translucent segments behind it
+        unsigned int depth_tex{ 0 };
+        std::array<int, 2> size{ 0, 0 };
+        int samples{ 0 };
+        bool unsupported{ false };
+
+        // false when the targets cannot be made
+        bool update(int width, int height, int samples);
+        void release();
+        size_t size_in_bytes() const;
+    };
+    TranslucentTargets m_translucent_targets;
+    unsigned int m_translucent_composite_shader_id{ 0 };
+    int m_uni_translucent_composite_accum_tex_id{ -1 };
+    int m_uni_translucent_composite_reveal_tex_id{ -1 };
+    int m_uni_translucent_composite_origin_id{ -1 };
+    int m_uni_segments_oit_id{ -1 };
+    int m_uni_segments_opaque_depth_id{ -1 };
+    int m_uni_segments_oit_depth_range_id{ -1 };
+    std::array<float, 2> m_oit_depth_range{ 0.0f, 1.0f };
+#endif // ENABLE_OPENGL_ES
+    // set while render_segments() accumulates into m_translucent_targets
+    bool m_accumulating_translucent{ false };
+
     void apply_pending_updates();
     void update_view_full_range();
     void update_color_ranges();
@@ -584,6 +625,7 @@ private:
     // ORCA: translucent draws the segments whose color is translucent, otherwise the opaque ones, or all of them for the shadow casters.
     void render_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position, bool translucent = false);
     void render_options(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
+    void render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position);
     // ORCA: the program using uni must be current.
     void set_layer_colors(const LayerColorsUniforms& uni) const;
 #if VGCODE_ENABLE_COG_AND_TOOL_MARKERS

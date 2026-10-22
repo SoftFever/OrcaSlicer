@@ -231,7 +231,9 @@ std::string check_program(GLuint handle)
     return ret;
 }
 
-unsigned int init_shader(const std::string& shader_name, const char* vertex_shader, const char* fragment_shader)
+// ORCA: fragment_outputs lists the outputs of a fragment shader that writes more than one, in location order
+unsigned int init_shader(const std::string& shader_name, const char* vertex_shader, const char* fragment_shader,
+                         const std::vector<const char*>& fragment_outputs = {})
 {
     const GLuint vs_id = glCreateShader(GL_VERTEX_SHADER);
     glcheck();
@@ -258,6 +260,10 @@ unsigned int init_shader(const std::string& shader_name, const char* vertex_shad
     glcheck();
     glsafe(glAttachShader(shader_id, vs_id));
     glsafe(glAttachShader(shader_id, fs_id));
+#ifndef ENABLE_OPENGL_ES
+    for (size_t i = 0; i < fragment_outputs.size(); ++i)
+        glsafe(glBindFragDataLocation(shader_id, static_cast<GLuint>(i), fragment_outputs[i]));
+#endif // ENABLE_OPENGL_ES
     glsafe(glLinkProgram(shader_id));
     res = check_program(shader_id);
     if (!res.empty()) {
@@ -291,6 +297,12 @@ static void delete_buffers(unsigned int& id)
         id = 0;
     }
 }
+
+#ifndef ENABLE_OPENGL_ES
+// ORCA: the opaque depth, then the accumulated colors of the translucent segments, see render_translucent().
+// Past the units render_segments() and the shadow map take.
+static constexpr int TRANSLUCENT_TEXTURE_UNIT = 5;
+#endif // ENABLE_OPENGL_ES
 
 static const std::array<Color, size_t(EGCodeExtrusionRole::COUNT)> DEFAULT_EXTRUSION_ROLES_COLORS = { {
     { 230, 179, 179 }, // None
@@ -788,7 +800,14 @@ void ViewerImpl::init(const std::string& opengl_context_version)
 #ifdef ENABLE_OPENGL_ES
     m_segments_shader_id = init_shader("segments", Segments_Vertex_Shader_ES, Segments_Fragment_Shader_ES);
 #else
-    m_segments_shader_id = init_shader("segments", Segments_Vertex_Shader, Segments_Fragment_Shader);
+    m_segments_shader_id = init_shader("segments", Segments_Vertex_Shader, Segments_Fragment_Shader, { "fragment_color", "oit_reveal" });
+    m_uni_segments_oit_id             = glGetUniformLocation(m_segments_shader_id, "oit");
+    m_uni_segments_opaque_depth_id    = glGetUniformLocation(m_segments_shader_id, "opaque_depth");
+    m_uni_segments_oit_depth_range_id = glGetUniformLocation(m_segments_shader_id, "oit_depth_range");
+    m_translucent_composite_shader_id = init_shader("translucent_composite", Translucent_Composite_Vertex_Shader, Translucent_Composite_Fragment_Shader);
+    m_uni_translucent_composite_accum_tex_id  = glGetUniformLocation(m_translucent_composite_shader_id, "accum_tex");
+    m_uni_translucent_composite_reveal_tex_id = glGetUniformLocation(m_translucent_composite_shader_id, "reveal_tex");
+    m_uni_translucent_composite_origin_id     = glGetUniformLocation(m_translucent_composite_shader_id, "origin");
 #endif // ENABLE_OPENGL_ES
 
     m_uni_segments.init(m_segments_shader_id);
@@ -922,6 +941,12 @@ void ViewerImpl::shutdown()
         glsafe(glDeleteVertexArrays(1, &m_segments_caster_vao_id));
         m_segments_caster_vao_id = 0;
     }
+#ifndef ENABLE_OPENGL_ES
+    if (m_translucent_composite_shader_id != 0) {
+        glsafe(glDeleteProgram(m_translucent_composite_shader_id));
+        m_translucent_composite_shader_id = 0;
+    }
+#endif // ENABLE_OPENGL_ES
     m_initialized = false;
     OpenGLWrapper::unload_opengl();
 }
@@ -940,7 +965,9 @@ void ViewerImpl::reset()
     std::vector<PathVertex>().swap(m_vertices);
     std::vector<ColorWithAlpha>().swap(m_vertices_colors);
     m_has_translucent_colors = false;
+    m_translucent_colors_differ = false;
     m_enabled_translucent_segments_count = 0;
+    m_extrusions_box = { Vec3{ 0.0f, 0.0f, 0.0f }, Vec3{ 0.0f, 0.0f, 0.0f } };
     for (std::vector<float>& times : m_layer_start_times)
         std::vector<float>().swap(times);
     std::vector<uint32_t>().swap(m_layer_first_vertex);
@@ -970,6 +997,7 @@ void ViewerImpl::reset()
     delete_buffers(m_heights_widths_angles_buf_id);
     delete_textures(m_positions_tex_id);
     delete_buffers(m_positions_buf_id);
+    m_translucent_targets.release();
 #endif // ENABLE_OPENGL_ES
 }
 
@@ -1070,6 +1098,7 @@ void ViewerImpl::load(GCodeInputData&& gcode_data)
 
     m_settings.spiral_vase_mode = gcode_data.spiral_vase_mode;
 
+    m_extrusions_box = { Vec3{ FLT_MAX, FLT_MAX, FLT_MAX }, Vec3{ -FLT_MAX, -FLT_MAX, -FLT_MAX } };
     for (size_t i = 0; i < m_vertices.size(); ++i) {
         const PathVertex& v = m_vertices[i];
 
@@ -1087,6 +1116,10 @@ void ViewerImpl::load(GCodeInputData&& gcode_data)
 
         if (v.type == EMoveType::Extrude) {
             m_extrusion_roles.add(v.role, v.times);
+            for (size_t j = 0; j < 3; ++j) {
+                m_extrusions_box[0][j] = std::min(m_extrusions_box[0][j], v.position[j]);
+                m_extrusions_box[1][j] = std::max(m_extrusions_box[1][j], v.position[j]);
+            }
 
             auto estruder_it = m_used_extruders.find(v.extruder_id);
             if (estruder_it == m_used_extruders.end())
@@ -1413,11 +1446,19 @@ void ViewerImpl::update_colors()
     // the "normal" color on every slider move.
     const bool had_translucent_colors = m_has_translucent_colors;
     m_has_translucent_colors = false;
+    m_translucent_colors_differ = false;
+    ColorWithAlpha first_translucent = { 0, 0, 0, 0 };
     for (size_t i = 0; i < m_vertices.size(); ++i) {
         const Color color = get_vertex_color(m_vertices[i]);
         const uint8_t alpha = get_vertex_alpha(m_vertices[i]);
         m_vertices_colors[i] = { color[0], color[1], color[2], alpha };
-        m_has_translucent_colors |= alpha < 255;
+        if (alpha < 255) {
+            if (!m_has_translucent_colors)
+                first_translucent = m_vertices_colors[i];
+            else if (!m_translucent_colors_differ)
+                m_translucent_colors_differ = m_vertices_colors[i] != first_translucent;
+            m_has_translucent_colors = true;
+        }
     }
 
     update_colors_texture();
@@ -1449,8 +1490,7 @@ void ViewerImpl::render(const Mat4x4& view_matrix, const Mat4x4& projection_matr
     render_segments(view_matrix, projection_matrix, camera_position);
     render_options(view_matrix, projection_matrix);
     // ORCA: last, as the translucent segments write no depth
-    if (m_enabled_translucent_segments_count > 0)
-        render_segments(view_matrix, projection_matrix, camera_position, true);
+    render_translucent(view_matrix, projection_matrix, camera_position);
 
 #if VGCODE_ENABLE_COG_AND_TOOL_MARKERS
     if (m_settings.options_visibility[size_t(EOptionType::ToolMarker)])
@@ -1928,6 +1968,7 @@ size_t ViewerImpl::get_used_gpu_memory() const
     ret += m_colors_tex_size;
     ret += m_enabled_segments_tex_size;
     ret += m_enabled_options_tex_size;
+    ret += m_translucent_targets.size_in_bytes();
 #endif // ENABLE_OPENGL_ES
     return ret;
 }
@@ -2189,6 +2230,11 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
         glsafe(glUniform1f(m_uni_segments_saturation_id, m_saturation));
         glsafe(glUniform3fv(m_uni_segments_light_top_dir_id, 1, m_light_top_dir.data()));
         set_layer_colors(m_uni_segments_layer_colors);
+#ifndef ENABLE_OPENGL_ES
+        glsafe(glUniform1i(m_uni_segments_oit_id, m_accumulating_translucent ? 1 : 0));
+        glsafe(glUniform1i(m_uni_segments_opaque_depth_id, TRANSLUCENT_TEXTURE_UNIT));
+        glsafe(glUniform2fv(m_uni_segments_oit_depth_range_id, 1, m_oit_depth_range.data()));
+#endif // ENABLE_OPENGL_ES
     }
 
     // ORCA: the translucent segments neither hide each other nor what is drawn after them
@@ -2202,8 +2248,8 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
         glsafe(glGetIntegerv(GL_BLEND_DST_ALPHA, &curr_blend_func[3]));
         glsafe(glGetBooleanv(GL_DEPTH_WRITEMASK, &curr_depth_mask));
         glsafe(glEnable(GL_BLEND));
-        // premultiplied, the highlights are not scaled by the opacity
-        glsafe(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+        // premultiplied, the highlights are not scaled by the opacity; sums when accumulating
+        glsafe(glBlendFunc(GL_ONE, m_accumulating_translucent ? GL_ONE : GL_ONE_MINUS_SRC_ALPHA));
         glsafe(glDepthMask(GL_FALSE));
     }
 
@@ -2382,6 +2428,232 @@ void ViewerImpl::render_options(const Mat4x4& view_matrix, const Mat4x4& project
     }
 #endif // ENABLE_OPENGL_ES
     glsafe(glActiveTexture(curr_active_texture));
+}
+
+#ifndef ENABLE_OPENGL_ES
+bool ViewerImpl::TranslucentTargets::update(int width, int height, int canvas_samples)
+{
+    if (unsupported || width <= 0 || height <= 0)
+        return false;
+    int max_samples = 0;
+    glsafe(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+    const int new_samples = canvas_samples > 1 ? std::min(canvas_samples, max_samples) : 0;
+    if (resolve_fbo != 0 && size[0] == width && size[1] == height && samples == new_samples)
+        return true;
+
+    release();
+    size = { width, height };
+    samples = new_samples;
+
+    int curr_texture = 0;
+    int curr_renderbuffer = 0;
+    int curr_draw_fbo = 0;
+    int curr_read_fbo = 0;
+    glsafe(glGetIntegerv(GL_TEXTURE_BINDING_2D, &curr_texture));
+    glsafe(glGetIntegerv(GL_RENDERBUFFER_BINDING, &curr_renderbuffer));
+    glsafe(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &curr_draw_fbo));
+    glsafe(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &curr_read_fbo));
+
+    auto make_texture = [width, height](unsigned int& id, GLenum internal_format, GLenum format, GLenum type) {
+        glsafe(glGenTextures(1, &id));
+        glsafe(glBindTexture(GL_TEXTURE_2D, id));
+        glsafe(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+        glsafe(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+        glsafe(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
+        glsafe(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, type, nullptr));
+    };
+    auto make_renderbuffer = [width, height, this](unsigned int& id, GLenum internal_format) {
+        glsafe(glGenRenderbuffers(1, &id));
+        glsafe(glBindRenderbuffer(GL_RENDERBUFFER, id));
+        glsafe(glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internal_format, width, height));
+    };
+    const GLenum buffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+
+    make_texture(depth_tex, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT);
+    make_texture(accum_tex, GL_RGBA16F, GL_RGBA, GL_FLOAT);
+    make_texture(reveal_tex, GL_R16F, GL_RED, GL_FLOAT);
+    glsafe(glGenFramebuffers(1, &resolve_fbo));
+    glsafe(glBindFramebuffer(GL_FRAMEBUFFER, resolve_fbo));
+    glsafe(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accum_tex, 0));
+    glsafe(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, reveal_tex, 0));
+    glsafe(glDrawBuffers(2, buffers));
+    bool complete = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+    if (complete && samples > 0) {
+        make_renderbuffer(accum_rb, GL_RGBA16F);
+        make_renderbuffer(reveal_rb, GL_R16F);
+        glsafe(glGenFramebuffers(1, &ms_fbo));
+        glsafe(glBindFramebuffer(GL_FRAMEBUFFER, ms_fbo));
+        glsafe(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, accum_rb));
+        glsafe(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, reveal_rb));
+        glsafe(glDrawBuffers(2, buffers));
+        complete = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+    }
+
+    glsafe(glBindTexture(GL_TEXTURE_2D, curr_texture));
+    glsafe(glBindRenderbuffer(GL_RENDERBUFFER, curr_renderbuffer));
+    glsafe(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, curr_draw_fbo));
+    glsafe(glBindFramebuffer(GL_READ_FRAMEBUFFER, curr_read_fbo));
+
+    if (!complete) {
+        release();
+        unsupported = true;
+    }
+    return complete;
+}
+
+void ViewerImpl::TranslucentTargets::release()
+{
+    for (unsigned int* fbo : { &ms_fbo, &resolve_fbo }) {
+        if (*fbo != 0) {
+            glsafe(glDeleteFramebuffers(1, fbo));
+            *fbo = 0;
+        }
+    }
+    for (unsigned int* rb : { &accum_rb, &reveal_rb }) {
+        if (*rb != 0) {
+            glsafe(glDeleteRenderbuffers(1, rb));
+            *rb = 0;
+        }
+    }
+    delete_textures(accum_tex);
+    delete_textures(reveal_tex);
+    delete_textures(depth_tex);
+    size = { 0, 0 };
+    samples = 0;
+}
+
+size_t ViewerImpl::TranslucentTargets::size_in_bytes() const
+{
+    // RGBA16F, R16F and a 24 bit depth, the colors also per sample when multisampled
+    const size_t pixels = static_cast<size_t>(size[0]) * static_cast<size_t>(size[1]);
+    return pixels * (8 + 2 + 4) + pixels * static_cast<size_t>(samples) * (8 + 2);
+}
+#endif // ENABLE_OPENGL_ES
+
+void ViewerImpl::render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position)
+{
+    if (m_enabled_translucent_segments_count == 0)
+        return;
+
+#ifndef ENABLE_OPENGL_ES
+    // ORCA: a single translucent color blends alike in any order, so only more colors take the order
+    // independent path, weighted blended order independent transparency (McGuire and Bavoil, 2013),
+    // whose targets are as large as the canvas.
+    std::array<int, 4> viewport = { 0, 0, 0, 0 };
+    int draw_fbo = 0;
+    int read_fbo = 0;
+    int samples = 0;
+    if (m_translucent_colors_differ) {
+        glsafe(glGetIntegerv(GL_VIEWPORT, viewport.data()));
+        glsafe(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &draw_fbo));
+        glsafe(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &read_fbo));
+        glsafe(glGetIntegerv(GL_SAMPLES, &samples));
+    }
+    // the depth of a multisampled framebuffer object cannot be copied into a texture
+    if (!m_translucent_colors_differ || (read_fbo != 0 && samples > 0) || !m_translucent_targets.update(viewport[2], viewport[3], samples)) {
+        render_segments(view_matrix, projection_matrix, camera_position, true);
+        return;
+    }
+    const TranslucentTargets& targets = m_translucent_targets;
+    const int width = viewport[2];
+    const int height = viewport[3];
+
+    int curr_active_texture = 0;
+    std::array<int, 2> curr_textures = { 0, 0 };
+    glsafe(glGetIntegerv(GL_ACTIVE_TEXTURE, &curr_active_texture));
+    for (int i = 0; i < 2; ++i) {
+        glsafe(glActiveTexture(GL_TEXTURE0 + TRANSLUCENT_TEXTURE_UNIT + i));
+        glsafe(glGetIntegerv(GL_TEXTURE_BINDING_2D, &curr_textures[i]));
+    }
+
+    // the opaque scene, to hide the translucent segments behind it
+    glsafe(glActiveTexture(GL_TEXTURE0 + TRANSLUCENT_TEXTURE_UNIT));
+    glsafe(glBindTexture(GL_TEXTURE_2D, targets.depth_tex));
+    glsafe(glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, viewport[0], viewport[1], width, height));
+
+    // the weights fall with the depth across the extrusions
+    float near_z = FLT_MAX;
+    float far_z = -FLT_MAX;
+    for (int i = 0; i < 8; ++i) {
+        const Vec3 p = { m_extrusions_box[i & 1][0], m_extrusions_box[(i >> 1) & 1][1], m_extrusions_box[(i >> 2) & 1][2] };
+        const float z = -(view_matrix[2] * p[0] + view_matrix[6] * p[1] + view_matrix[10] * p[2] + view_matrix[14]);
+        near_z = std::min(near_z, z);
+        far_z = std::max(far_z, z);
+    }
+    m_oit_depth_range = { near_z, std::max(far_z, near_z + 1.0f) };
+
+    const std::array<float, 4> zero = { 0.0f, 0.0f, 0.0f, 0.0f };
+    glsafe(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targets.samples > 0 ? targets.ms_fbo : targets.resolve_fbo));
+    glsafe(glViewport(0, 0, width, height));
+    glsafe(glClearBufferfv(GL_COLOR, 0, zero.data()));
+    glsafe(glClearBufferfv(GL_COLOR, 1, zero.data()));
+    m_accumulating_translucent = true;
+    render_segments(view_matrix, projection_matrix, camera_position, true);
+    m_accumulating_translucent = false;
+
+    if (targets.samples > 0) {
+        glsafe(glBindFramebuffer(GL_READ_FRAMEBUFFER, targets.ms_fbo));
+        glsafe(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targets.resolve_fbo));
+        for (int i = 0; i < 2; ++i) {
+            const GLenum buffers[2] = { static_cast<GLenum>(i == 0 ? GL_COLOR_ATTACHMENT0 : GL_NONE),
+                                        static_cast<GLenum>(i == 1 ? GL_COLOR_ATTACHMENT1 : GL_NONE) };
+            glsafe(glReadBuffer(GL_COLOR_ATTACHMENT0 + i));
+            glsafe(glDrawBuffers(2, buffers));
+            glsafe(glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST));
+        }
+        const GLenum buffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+        glsafe(glDrawBuffers(2, buffers));
+    }
+    glsafe(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw_fbo));
+    glsafe(glBindFramebuffer(GL_READ_FRAMEBUFFER, read_fbo));
+    glsafe(glViewport(viewport[0], viewport[1], width, height));
+
+    // composite over the scene
+    int curr_shader = 0;
+    int curr_vertex_array = 0;
+    std::array<int, 4> curr_blend_func = { 0, 0, 0, 0 };
+    GLboolean curr_depth_mask = GL_TRUE;
+    const bool curr_blend = glIsEnabled(GL_BLEND);
+    const bool curr_depth_test = glIsEnabled(GL_DEPTH_TEST);
+    glsafe(glGetIntegerv(GL_CURRENT_PROGRAM, &curr_shader));
+    glsafe(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &curr_vertex_array));
+    glsafe(glGetIntegerv(GL_BLEND_SRC_RGB, &curr_blend_func[0]));
+    glsafe(glGetIntegerv(GL_BLEND_DST_RGB, &curr_blend_func[1]));
+    glsafe(glGetIntegerv(GL_BLEND_SRC_ALPHA, &curr_blend_func[2]));
+    glsafe(glGetIntegerv(GL_BLEND_DST_ALPHA, &curr_blend_func[3]));
+    glsafe(glGetBooleanv(GL_DEPTH_WRITEMASK, &curr_depth_mask));
+
+    glsafe(glUseProgram(m_translucent_composite_shader_id));
+    glsafe(glUniform1i(m_uni_translucent_composite_accum_tex_id, TRANSLUCENT_TEXTURE_UNIT));
+    glsafe(glUniform1i(m_uni_translucent_composite_reveal_tex_id, TRANSLUCENT_TEXTURE_UNIT + 1));
+    glsafe(glUniform2i(m_uni_translucent_composite_origin_id, viewport[0], viewport[1]));
+    glsafe(glActiveTexture(GL_TEXTURE0 + TRANSLUCENT_TEXTURE_UNIT));
+    glsafe(glBindTexture(GL_TEXTURE_2D, targets.accum_tex));
+    glsafe(glActiveTexture(GL_TEXTURE0 + TRANSLUCENT_TEXTURE_UNIT + 1));
+    glsafe(glBindTexture(GL_TEXTURE_2D, targets.reveal_tex));
+    glsafe(glEnable(GL_BLEND));
+    glsafe(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    glsafe(glDisable(GL_DEPTH_TEST));
+    glsafe(glDepthMask(GL_FALSE));
+    glsafe(glBindVertexArray(m_segments_caster_vao_id));
+    glsafe(glDrawArrays(GL_TRIANGLES, 0, 3));
+
+    glsafe(glBindVertexArray(curr_vertex_array));
+    glsafe(glDepthMask(curr_depth_mask));
+    if (curr_depth_test)
+        glsafe(glEnable(GL_DEPTH_TEST));
+    glsafe(glBlendFuncSeparate(curr_blend_func[0], curr_blend_func[1], curr_blend_func[2], curr_blend_func[3]));
+    if (!curr_blend)
+        glsafe(glDisable(GL_BLEND));
+    glsafe(glUseProgram(curr_shader));
+    for (int i = 0; i < 2; ++i) {
+        glsafe(glActiveTexture(GL_TEXTURE0 + TRANSLUCENT_TEXTURE_UNIT + i));
+        glsafe(glBindTexture(GL_TEXTURE_2D, curr_textures[i]));
+    }
+    glsafe(glActiveTexture(curr_active_texture));
+#else
+    render_segments(view_matrix, projection_matrix, camera_position, true);
+#endif // ENABLE_OPENGL_ES
 }
 
 #if VGCODE_ENABLE_COG_AND_TOOL_MARKERS

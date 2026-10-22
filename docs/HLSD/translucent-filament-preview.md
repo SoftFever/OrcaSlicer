@@ -50,10 +50,37 @@ turn into a bright opaque stripe.
 
 The translucent segments are not sorted by depth. The opaque pass draws the last printed segments
 first when looking down, to cut overdraw. The translucent pass draws them the other way round, so the
-farthest layers blend first. Overlapping surfaces of one filament share a color, so the order
-inside a layer barely shows; between two translucent filaments, it is approximate.
+farthest layers blend first. Surfaces of one color blend alike in any order, so a single translucent
+color stays in this direct pass.
+
+## More than one translucent color
+
+Between two translucent colors the blending order shows, so on desktop OpenGL the translucent
+segments then blend order independently, with weighted blended order independent transparency
+(McGuire and Bavoil, 2013), in `ViewerImpl::render_translucent()`.
+
+1. The depth of the scene drawn so far is copied into a texture. The fragment shader discards a
+   translucent fragment behind it, as there is no depth buffer to test against.
+2. Each translucent fragment adds its premultiplied color, times a weight, to an `RGBA16F` target,
+   and `-log(1 - alpha)` to an `R16F` target, with `GL_ONE, GL_ONE`. The weight is the opacity
+   times `max((1 - z)^3, 0.01)`, z being the depth across the extrusions' bounding box, so nearer
+   surfaces count more. Its ceiling keeps thousands of stacked surfaces within half float range,
+   and its floor keeps far ones out of the subnormals.
+3. When the canvas is multisampled, the targets are too, then resolved, so that translucent lines
+   keep their antialiasing.
+4. A full screen pass draws the weighted mean color over the scene, with the coverage
+   `1 - exp(-sum)`.
+
+Swapping the drawing order changes the result by at most 2 levels out of 255, against up to 246 in
+the direct pass. The targets take about 50 bytes per pixel with 4x multisampling, which is why a
+single translucent color keeps the direct pass. OpenGL ES, whose float targets are optional, always
+takes the direct pass, as does a multisampled framebuffer object, whose depth cannot be copied into
+a texture.
+
+## Cost and side effects
 
 Without depth writes, every translucent surface on screen is shaded, so the cost of the second
-pass grows with the number of translucent surfaces stacked on screen.
+pass grows with the number of translucent surfaces stacked on screen. Order independent blending
+writes 10 bytes of float data per sample instead of 4, and roughly doubles that pass again.
 The shadow casters draw depth only, so translucent toolpaths cast shadows as opaque ones do.
 The SSAO pass reads depth, so a translucent surface takes the occlusion of what lies behind it.
