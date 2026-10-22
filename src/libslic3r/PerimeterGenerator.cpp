@@ -2570,13 +2570,6 @@ void PerimeterGenerator::process_arachne()
         if (is_topmost_layer && loop_number > 0 && only_one_wall_top)
             loop_number = 0;
 
-        // If 0 wall loops are configured, skip wall generation and route all area to infill
-        if (loop_number < 0) {
-            const ExPolygons last = union_ex(surface.expolygon.simplify_p(surface_simplify_resolution));
-            this->fill_surfaces->append(last, stInternal);
-            append(*this->fill_no_overlap, last);
-            continue;
-        }
         auto apply_precise_outer_wall = config->precise_outer_wall && config->wall_sequence == WallSequence::InnerOuter;
         // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
