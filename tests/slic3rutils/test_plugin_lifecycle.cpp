@@ -1098,6 +1098,26 @@ TEST_CASE("The bundled Python trusts the system CA certificates", "[PluginLifecy
     CHECK(default_context_ca_count() > 0);
 }
 
+TEST_CASE("Waiting for Python threads at shutdown gives up on a thread that does not end", "[PluginLifecycle][Python]")
+{
+    ScopedPluginManager plugin_system;
+    if (!plugin_system.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    pybind11::gil_scoped_acquire gil;
+
+    const pybind11::module_ threading = pybind11::module_::import("threading");
+    const pybind11::object  release   = threading.attr("Event")();
+    pybind11::object worker = threading.attr("Thread")(pybind11::arg("target") = release.attr("wait"), pybind11::arg("daemon") = false);
+    worker.attr("start")();
+
+    const auto start = std::chrono::steady_clock::now();
+    CHECK(PythonInterpreter::join_non_daemon_threads(std::chrono::milliseconds(200)) == 1);
+    CHECK(std::chrono::steady_clock::now() - start < std::chrono::seconds(5));
+
+    release.attr("set")();
+    CHECK(PythonInterpreter::join_non_daemon_threads(std::chrono::seconds(5)) == 0);
+}
+
 #ifndef _WIN32 // Windows adds its system store whatever SSL_CERT_FILE names.
 TEST_CASE("SSL_CERT_FILE still overrides the bundled Python's default CA certificates", "[PluginLifecycle][Python]")
 {
