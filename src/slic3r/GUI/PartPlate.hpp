@@ -94,6 +94,13 @@ class PartPlateList;
 
 using GCodeResult = GCodeProcessorResult;
 
+// What estimate_wipe_tower_polygon did to a saved tower position that no longer fits the plate.
+struct WipeTowerRelocation
+{
+    bool moved            = false; // re-placed, not just snapped onto the bound it was dropped past
+    bool overlaps_objects = false; // no spot on the plate was clear of the objects, so it sits on one
+};
+
 class PartPlate : public ObjectBase
 {
 public:
@@ -254,6 +261,9 @@ private:
     int picking_id_component(int idx) const;
 
     void on_filament_map_mode_change();
+    // What a re-placed tower keeps clear of: each printable instance's convex hull, grown by its
+    // brim and the tower margin, in plate coordinates.
+    Polygons wipe_tower_obstacles(const DynamicPrintConfig &config) const;
 
 public:
     static constexpr unsigned int PLATE_NAME_HOVER_ID = 6;
@@ -457,7 +467,10 @@ public:
     // use_global_objects skips the containment test, which the CLI needs before objects are
     // assigned to plates - the layer height is then the project's thinnest, which over-reserves.
     WipeTowerFootprint estimate_wipe_tower_footprint(const DynamicPrintConfig & config, int plate_extruder_size = 0, bool use_global_objects = false) const;
-    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    // relocation: callers that store the returned position pass it, so a re-placed tower is
+    // moved clear of the plate's objects where there is room, and they are told it moved.
+    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int plate_extruder_size = 0, bool use_global_objects = false,
+                                                            WipeTowerRelocation *relocation = nullptr) const;
     bool check_objects_empty_and_gcode3mf(std::vector<int> &result) const;
     // get used filaments from config, 1 based idx
     // expand_mixed_slots = false keeps mixed filament slots as slots instead of their components.
