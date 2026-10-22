@@ -234,6 +234,13 @@ enum class PowerLossRecoveryMode {
     Disable,
 };
 
+// Orca
+enum class ArcFittingMode {
+    Disabled,
+    Enabled,
+    SparseInfill,
+};
+
 // BBS
 enum class WallSequence {
     InnerOuter,
@@ -823,6 +830,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(WipeTowerWallType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ToolChangeOrderingType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PowerLossRecoveryMode)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ArcFittingMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SurfaceFillOrder)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AdaptiveInfillMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AdaptiveInfillGradient)
@@ -1693,7 +1701,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              printing_by_object_gcode))
     ((ConfigOptionFloats,              deretraction_speed))
     //BBS
-    ((ConfigOptionBool,                enable_arc_fitting))
+    ((ConfigOptionEnum<ArcFittingMode>, enable_arc_fitting))
     ((ConfigOptionString,              machine_end_gcode))
     ((ConfigOptionStrings,             filament_end_gcode))
     ((ConfigOptionFloatsNullable,      filament_flow_ratio))
