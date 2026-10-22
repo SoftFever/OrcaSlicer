@@ -13333,8 +13333,8 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
     def->tooltip = L("Total cost of the material wasted on the wipe tower. Calculated from filament_cost value in Filament Settings.");
 
     def = this->add("total_wipe_tower_filament", coFloat);
-    def->label = L("Wipe tower volume");
-    def->tooltip = L("Total filament volume extruded on the wipe tower.");
+    def->label = L("Total wipe tower filament");
+    def->tooltip = L("Total length of filament used on the wipe tower, in mm.");
 
     def = this->add("used_filament", coFloat);
     def->label = L("Used filament");
@@ -13507,7 +13507,7 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"layer_change_gcode",          {"layer_num", "layer_z", "max_layer_z", "most_used_physical_extruder_id",
                                       "current_filament_id", "current_nozzle_id", "curr_y_acceleration_limit",
                                       "curr_accumulated_mass", "curr_layer_mass"}},
-    {"timelapse_gcode",             {"layer_num", "layer_z", "max_layer_z", "most_used_physical_extruder_id",
+    {"time_lapse_gcode",            {"layer_num", "layer_z", "max_layer_z", "most_used_physical_extruder_id",
                                       "curr_physical_extruder_id", "timelapse_pos_x", "timelapse_pos_y",
                                       "has_timelapse_safe_pos", "timelapse_inline_photo",
                                       "farthest_point_timelapse_enabled", "clear_to_x0"}},
@@ -13562,7 +13562,8 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
 // Common Defs
     def = this->add("layer_num", coInt);
     def->label = L("Layer number");
-    def->tooltip = L("Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based.");
+    def->tooltip = L("Index of the current layer. The index is zero-based (first layer has index 0). Before the first "
+                     "layer starts, it is -1. In extrusion role change G-code, the index is one-based (first layer has index 1).");
 
     def = this->add("layer_z", coFloat);
     def->label = L("Layer Z");
@@ -13574,7 +13575,11 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
 
     def = this->add("filament_extruder_id", coInt);
     def->label = L("Filament extruder ID");
-    def->tooltip = L("The current extruder ID. The same as current_extruder.");
+    def->tooltip = L("In filament start G-code, the index of the filament that is being loaded. In filament end G-code, "
+                     "the index of the filament that is being unloaded. The index is zero-based (first filament has "
+                     "index 0). At a tool change, filament end G-code gets the extruder index instead, unless the Type 1 "
+                     "wipe tower does the tool change. Machine end G-code gets the value from the last filament end "
+                     "G-code at the end of the print.");
 
     new_def("current_filament_id", coInt, L("Current filament ID"), L("Index of the currently active filament. The index is zero-based (first filament has index 0)."));
     new_def("current_extruder_id", coInt, L("Current extruder ID"), L("Index of the currently active physical extruder. The index is zero-based (first extruder has index 0)."));
@@ -13590,7 +13595,7 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     new_def("curr_accumulated_mass", coFloat, L("Current accumulated mass"), L("Accumulated printed mass at the current layer."));
     new_def("curr_layer_mass", coFloat, L("Current layer mass"), L("Printed mass of the previous layer."));
 
-// timelapse_gcode
+// time_lapse_gcode
     new_def("curr_physical_extruder_id", coInt, L("Current physical extruder ID"), L("Index of the physical extruder active for the current layer. The index is zero-based (first extruder has index 0)."));
     new_def("timelapse_pos_x", coInt, L("Timelapse position X"), L("Selected X position for timelapse capture."));
     new_def("timelapse_pos_y", coInt, L("Timelapse position Y"), L("Selected Y position for timelapse capture."));
@@ -13600,8 +13605,8 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     new_def("clear_to_x0", coBool, L("Clear to X0"), L("Whether the timelapse move is clear to X0."));
 
 // change_filament_gcode
-    new_def("previous_extruder", coInt, L("Previous extruder"), L("Index of the extruder that is being unloaded. The index is zero based (first extruder has index 0)."));
-    new_def("next_extruder", coInt, L("Next extruder"), L("Index of the extruder that is being loaded. The index is zero based (first extruder has index 0)."));
+    new_def("previous_extruder", coInt, L("Previous extruder"), L("Index of the filament that is being unloaded. The index is zero-based (first filament has index 0). At the start of the print, when no filament is loaded yet, it is -1."));
+    new_def("next_extruder", coInt, L("Next extruder"), L("Index of the filament that is being loaded. The index is zero-based (first filament has index 0)."));
     new_def("current_hotend", coInt, L("Current hotend"), L("Zero-based extruder index of the outgoing filament. On Bambu printers it is -1, or the nozzle ID when a filament moves between nozzles across layers."));
     new_def("next_hotend", coInt, L("Next hotend"), L("Zero-based extruder index of the incoming filament. On Bambu printers it is -1, or the nozzle ID when a filament moves between nozzles across layers."));
     new_def("next_nozzle_id", coInt, L("Next nozzle ID"), L("Index of the nozzle associated with the incoming filament. The index is zero-based (first nozzle has index 0)."));
