@@ -14,7 +14,8 @@ toolpaths, so the inside of a translucent part and whatever lies behind it show 
   pause or a custom G-code, which these views draw grey.
 - A filament with less than 10% opacity is drawn as white at 30%, as `adjust_color_for_rendering()`
   does in Prepare. Otherwise a fully clear filament would not be drawn at all.
-- The legend swatches carry the same opacity.
+- The legend swatches carry the same opacity, drawn over the white and grey checkerboard of the
+  sidebar's clear filament swatch so that they read on the dark legend.
 - The opacity is that of 0.4 mm of the filament. Each translucent segment raises it to the length
   of the view ray through the centre of its diamond section, `1 - (1 - a)^(path / 0.4)`, so thin
   layers stacked under the camera add up as one thick layer would, and a wall seen side on keeps

@@ -126,6 +126,18 @@ namespace GUI {
 //        _u8L("Filament")
 //    };
 
+// ORCA: a translucent filament swatch goes over the checkerboard of the sidebar's clear swatch
+static void add_swatch(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max, const ColorRGBA& color)
+{
+    if (color.is_transparent()) {
+        for (int i = 0; i < 4; ++i)
+            for (int j = 0; j < 4; ++j)
+                draw_list->AddRectFilled(ImLerp(min, max, ImVec2(0.25f * i, 0.25f * j)), ImLerp(min, max, ImVec2(0.25f * (i + 1), 0.25f * (j + 1))),
+                                         (i + j) % 2 == 0 ? IM_COL32_WHITE : IM_COL32(217, 217, 217, 255));
+    }
+    draw_list->AddRectFilled(min, max, ImGuiWrapper::to_ImU32(color));
+}
+
 static std::string get_view_type_string(libvgcode::EViewType view_type)
 {
     if (view_type == libvgcode::EViewType::Summary)
@@ -3520,8 +3532,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         // render icon
         ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y);
 
-        draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
-            ImGuiWrapper::to_ImU32(color));
+        add_swatch(draw_list, { pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale }, color);
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(20.0 * m_scale, 6.0 * m_scale));
 
@@ -4125,8 +4136,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         switch (type) {
         default:
         case EItemType::Rect: {
-            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
-                                     ImGuiWrapper::to_ImU32(color));
+            add_swatch(draw_list, { pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale }, color);
             break;
         }
         case EItemType::Circle: {
@@ -5172,11 +5182,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImVec2 pos = ImGui::GetCursorScreenPos();
             pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
 
-            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGuiWrapper::to_ImU32(color1));
+            add_swatch(draw_list, { pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f }, color1);
             pos.x += icon_size;
-            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGuiWrapper::to_ImU32(color2));
+            add_swatch(draw_list, { pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f }, color2);
 
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second - times.first)));
@@ -5191,8 +5199,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImVec2 pos = ImGui::GetCursorScreenPos();
             pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
 
-            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGuiWrapper::to_ImU32(color));
+            add_swatch(draw_list, { pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f }, color);
 
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second)));
