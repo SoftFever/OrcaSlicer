@@ -60,15 +60,20 @@ tinted highlight of the default shading an untinted one computed per fragment, n
 opacity, so that the filaments look alike and a clear one keeps its gloss instead of fading into
 the background. `GLCanvas3D::_render_gcode()` switches it with `Viewer::set_gloss()`. Without
 realistic view a translucent filament is matte and an opaque one keeps the default shading. The
-highlight takes the normal across the extrusion: the rounded ends would otherwise catch it as a
-bright spot at the start and end of every line. There
+highlight takes the normal of the rounded extrusion a segment stands for, an ellipse of its height
+and width around its centre line, rather than that of its facets: it then runs smoothly across a
+joint, where the facets of two segments would catch it apart, and it fades out towards the tip of a
+path end, whose normal runs along the extrusion. There
 is no Fresnel term: an extrusion seen end-on would turn into a bright opaque stripe.
 
 Each segment reaches half a line width past its ends, to fill the outside of a turn or round off a
 path end, so two segments of a path overlap at their joint. Depth hides that between opaque ones,
-but blending would draw the joint twice. A translucent segment is therefore cut, in the fragment
-shader, at the bisector plane of each joint with a translucent neighbour in the vertex list, so
-that every joint is drawn once.
+but blending would draw the joint twice, and the highlight of realistic view shows the caps sticking
+out of an opaque one. A translucent segment, and in realistic view any segment, is therefore cut in
+the fragment shader at the bisector plane of each joint of its path, keeping 0.02 mm past it: the
+faces each segment turns to the camera do not quite meet without their caps. A vertex where two
+segments of a path meet carries 0.5 on top of its layer in the w of its position, which the shaders
+otherwise read as an int.
 
 The translucent segments are not sorted by depth. The opaque pass draws the last printed segments
 first when looking down, to cut overdraw. The translucent pass draws them the other way round, so the

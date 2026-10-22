@@ -1045,8 +1045,10 @@ static void extract_pos_and_or_hwa(const std::vector<PathVertex>& vertices, floa
         }
         
         if (positions != nullptr) {
-            // ORCA: the last component, there to comply with GL_RGBA32F format, carries the layer the shaders grey and dim by
-            Vec4 position = { v.position[0], v.position[1], v.position[2], static_cast<float>(v.layer_id) };
+            // ORCA: the last component, there to comply with GL_RGBA32F format, carries the layer the shaders grey and dim by,
+            // plus 0.5 at the joint of two segments, which the shaders read as an int, see joint_a in Segments_Vertex_Shader
+            Vec4 position = { v.position[0], v.position[1], v.position[2],
+                              static_cast<float>(v.layer_id) + (prev_line_valid && this_line_valid ? 0.5f : 0.0f) };
             if (move_type == EMoveType::Extrude)
                 // push down extrusion vertices by half height to render them at the right z
                 position[2] -= 0.5f * v.height;

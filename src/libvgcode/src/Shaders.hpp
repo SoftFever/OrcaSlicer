@@ -106,12 +106,13 @@ static const char* Segments_Vertex_Shader =
 "  else\n"
 "    line_right_dir = normalize(cross(line_dir, UP));\n"
 "  vec3 line_up_dir = normalize(cross(line_right_dir, line_dir));\n"
-// ORCA: blended, the overlap of two translucent segments at a joint would be drawn twice, so each is cut
-// at the bisector plane of a joint with the translucent segment next to it in the path
+// ORCA: two segments of a path overlap at their joint, which blending would draw twice and the highlight of
+// realistic view shows on opaque ones too, so each is cut at the bisector plane of the joint. The w of a
+// position carries 0.5 at a joint, see extract_pos_and_or_hwa().
 "  joint_a = vec4(0.0);\n"
 "  joint_b = vec4(0.0);\n"
-"  if (alpha < 1.0) {\n"
-"    if (id_a > 0 && texelFetch(color_tex, id_a - 1).a < 1.0) {\n"
+"  if (alpha < 1.0 || gloss_strength > 0.0) {\n"
+"    if (id_a > 0 && fract(texelFetch(position_tex, id_a).w) > 0.25) {\n"
 "      vec3 prev = pos_a - texelFetch(position_tex, id_a - 1).xyz;\n"
 "      vec3 n = dot(prev, prev) > 1e-8 ? normalize(prev) + line_dir : vec3(0.0);\n"
 "      if (dot(n, n) > 1e-4) {\n"
@@ -119,7 +120,7 @@ static const char* Segments_Vertex_Shader =
 "        joint_a = vec4(n, -dot(n, pos_a));\n"
 "      }\n"
 "    }\n"
-"    if (id_b + 1 < textureSize(color_tex) && texelFetch(color_tex, id_b + 1).a < 1.0) {\n"
+"    if (id_b + 1 < textureSize(position_tex) && fract(texelFetch(position_tex, id_b).w) > 0.25) {\n"
 "      vec3 next = texelFetch(position_tex, id_b + 1).xyz - pos_b;\n"
 "      vec3 n = dot(next, next) > 1e-8 ? line_dir + normalize(next) : vec3(0.0);\n"
 "      if (dot(n, n) > 1e-4) {\n"
@@ -367,7 +368,8 @@ static const char* Segments_Fragment_Shader =
 "  return abs(dot(offset, right_dir)) / half_height_width.y + abs(dot(offset, cross(right_dir, line_dir))) / half_height_width.x <= 1.0;\n"
 "}\n"
 "void main() {\n"
-"  if (dot(vec4(world_position, 1.0), joint_a) < 0.0 || dot(vec4(world_position, 1.0), joint_b) < 0.0)\n"
+// ORCA: with 0.02 mm of overlap, where the faces each segment turns to the camera leave gaps without their caps
+"  if (dot(vec4(world_position, 1.0), joint_a) < -0.02 || dot(vec4(world_position, 1.0), joint_b) < -0.02)\n"
 "    discard;\n"
 // ORCA: in the transparency passes, the opaque scene hides what lies behind it
 "  if (oit_pass != 0 && gl_FragCoord.z > texelFetch(opaque_depth, ivec2(gl_FragCoord.xy), 0).r)\n"
@@ -382,6 +384,7 @@ static const char* Segments_Fragment_Shader =
 "  vec3 c;\n"
 "  vec3 position = world_position;\n"
 "  vec3 normal = shadow_normal;\n"
+"  bool cut_face = false;\n"
 "  float shade;\n"
 "  if (dot(vec4(world_position, 1.0), clipping_plane) >= 0.0) {\n"
 "    shade = shadow_shade(position, normal);\n"
@@ -390,19 +393,32 @@ static const char* Segments_Fragment_Shader =
 "  else {\n"
 "    if (!find_cut(position))\n"
 "      discard;\n"
+"    cut_face = true;\n"
 "    normal = mat3(view_matrix) * -clipping_plane.xyz;\n"
 "    shade = shadow_shade(position, normal);\n"
 "    c = color + cut_color_direct * shade;\n"
 "  }\n"
 "  c *= exposure;\n"
 "  c = mix(vec3(dot(c, LUMA)), c, saturation);\n"
-// ORCA: the normal across the extrusion, else its rounded ends catch the highlight as a bright spot
+// ORCA: the highlight takes the normal of the rounded extrusion the segment stands for, an ellipse of its height
+// and width around its centre line, smooth across a joint, where the facets of two segments would catch it
+// apart. It fades out towards the tip of a path end, whose normal runs along the extrusion.
 "  float gloss = 0.0;\n"
 "  if (gloss_strength > 0.0) {\n"
-"    vec3 along = mat3(view_matrix) * (texelFetch(position_tex, segment_id + 1).xyz - texelFetch(position_tex, segment_id).xyz);\n"
-"    vec3 n = dot(along, along) > 1e-8 ? normal - dot(normal, along) / dot(along, along) * along : normal;\n"
+"    vec3 across = normalize(normal);\n"
+"    vec3 start = texelFetch(position_tex, segment_id).xyz;\n"
+"    vec3 line = texelFetch(position_tex, segment_id + 1).xyz - start;\n"
+"    float length_sq = dot(line, line);\n"
+"    if (!cut_face && length_sq > 1e-8) {\n"
+"      float t = clamp(dot(position - start, line) / length_sq, 0.0, 1.0);\n"
+"      vec2 half_height_width = 0.5 * mix(texelFetch(height_width_angle_tex, segment_id).xy, texelFetch(height_width_angle_tex, segment_id + 1).xy, t);\n"
+"      vec3 radial = position - start - t * line;\n"
+"      vec3 n = vec3(radial.xy / (half_height_width.y * half_height_width.y), radial.z / (half_height_width.x * half_height_width.x));\n"
+"      n = dot(n, n) > 1e-12 ? normalize(n) : UP;\n"
+"      across = mat3(view_matrix) * (n - dot(n, line) / length_sq * line);\n"
+"    }\n"
 "    vec3 v = projection_matrix[3][3] == 1.0 ? vec3(0.0, 0.0, 1.0) : -normalize((view_matrix * vec4(position, 1.0)).xyz);\n"
-"    gloss = dot(n, n) > 1e-8 ? gloss_strength * pow(max(dot(v, reflect(-light_top_dir, normalize(n))), 0.0), GLOSS_SHININESS) * shade : 0.0;\n"
+"    gloss = dot(across, across) > 1e-8 ? gloss_strength * dot(across, across) * pow(max(dot(v, reflect(-light_top_dir, normalize(across))), 0.0), GLOSS_SHININESS) * shade : 0.0;\n"
 "  }\n"
 "  if (alpha == 1.0) {\n"
 "    fragment_color = vec4(clamp(c + gloss, 0.0, 1.0), 1.0);\n"
