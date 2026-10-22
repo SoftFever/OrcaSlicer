@@ -110,8 +110,8 @@ bool GLGizmoMove3D::on_is_activable() const
 
 void GLGizmoMove3D::on_set_state() {
     if (get_state() == On) {
-        m_last_selected_obejct_idx = -1;
-        m_last_selected_volume_idx = -1;
+        m_last_selected_obejct_idx = -2;
+        m_last_selected_volume_idx = -2;
         change_cs_by_selection();
     }
     if (m_object_manipulation)
@@ -441,7 +441,7 @@ void GLGizmoMove3D::render_align_preview()
 }
 
 void GLGizmoMove3D::change_cs_by_selection() {
-    int          obejct_idx, volume_idx;
+    int          obejct_idx = -1, volume_idx = -1;
     ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(obejct_idx, volume_idx);
     if (m_last_selected_obejct_idx == obejct_idx && m_last_selected_volume_idx == volume_idx) {
         return;
