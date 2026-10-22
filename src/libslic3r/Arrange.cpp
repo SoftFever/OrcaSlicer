@@ -122,8 +122,8 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* prin
 
 void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, ArrangeParams& params) {
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
-    Points      bedpts = get_shrink_bedpts(print_cfg, params);
-    BoundingBox bedbb = Polygon(bedpts).bounding_box();
+    // A brim reaching the printable area's edge is fine, so measure against the full bed.
+    BoundingBox bedbb = Polygon(get_bed_shape(*print_cfg)).bounding_box();
     // set obj distance for auto seq_print
     if (params.is_seq_print) {
         bool all_objects_are_short = std::all_of(selected.begin(), selected.end(), [&](ArrangePolygon& ap) { return ap.height < params.nozzle_height; });
@@ -144,14 +144,30 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
         // 3. otherwise, use each object's own brim width
         ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 :
             plate_has_tree_support ? scaled(brim_max / 2) : scaled(ap.brim_width);
-        BoundingBox apbb = ap.poly.contour.bounding_box();
-        auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
-        auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
-        if (diffx > 0 && diffy > 0) {
-            auto min_diff = std::min(diffx, diffy);
-            ap.inflation = std::min(min_diff / 2, ap.inflation);
-        }
+        if (params.min_obj_distance != 0)
+            return; // an explicit object distance is the user's call, not ours to shrink
+        // An item cannot be larger than the printable area, inflation included. Inflating
+        // an almost bed filling item would leave it too big to ever be placed.
+        BoundingBox apbb   = ap.poly.contour.bounding_box();
+        auto        diffx  = bedbb.size().x() - apbb.size().x();
+        auto        diffy  = bedbb.size().y() - apbb.size().y();
+        ap.inflation = std::max<coord_t>(0, std::min({ ap.inflation, diffx / 2, diffy / 2 }));
         });
+
+    // Give the bed margin, which the arrange bed keeps from the printable area, back
+    // where the largest item needs it. The skirt keeps its room: pushing a skirt off
+    // the bed is worse than saying the item does not fit.
+    if (!selected.empty()) {
+        coord_t max_width = 0, max_height = 0;
+        for (const ArrangePolygon &ap : selected) {
+            BoundingBox apbb = ap.poly.contour.bounding_box();
+            max_width        = std::max(max_width, apbb.size().x() + 2 * ap.inflation);
+            max_height       = std::max(max_height, apbb.size().y() + 2 * ap.inflation);
+        }
+        auto margin = [](coord_t bed, coord_t item) { return std::max(0., unscale<double>(bed - item) / 2.); };
+        params.bed_shrink_x = std::min<double>(params.bed_shrink_x, std::max<double>(params.brim_skirt_distance, margin(bedbb.size().x(), max_width)));
+        params.bed_shrink_y = std::min<double>(params.bed_shrink_y, std::max<double>(params.brim_skirt_distance, margin(bedbb.size().y(), max_height)));
+    }
 }
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)

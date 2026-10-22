@@ -3372,7 +3372,37 @@ WipeTowerFootprint PartPlate::estimate_wipe_tower_footprint(const DynamicPrintCo
     return Slic3r::estimate_wipe_tower_footprint(config, resolve_wipe_tower_type(config), filament_ids, layer_height, max_height);
 }
 
-arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const DynamicPrintConfig& config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int plate_extruder_size, bool use_global_objects) const
+Polygons PartPlate::wipe_tower_obstacles(const DynamicPrintConfig &config) const
+{
+	Polygons obstacles;
+	for (const auto &[obj_id, instance_id] : obj_to_instance_set) {
+		if (!valid_instance(obj_id, instance_id))
+			continue;
+		const ModelObject   *object   = m_model->objects[obj_id];
+		const ModelInstance *instance = object->instances[instance_id];
+		if (!instance->printable)
+			continue;
+		// A sinking object counts its whole outline, the part below the bed included.
+		Polygon hull = object->convex_hull_2d(instance->get_matrix());
+		if (hull.size() < 3)
+			continue;
+		hull.translate(-scaled(m_origin.x()), -scaled(m_origin.y()));
+		// An object's own setting wins over the print preset's.
+		auto option_of = [&object, &config](const char *key) {
+			const ConfigOption *opt = object->config.option(key);
+			return opt != nullptr ? opt : config.option(key);
+		};
+		// An auto brim is only sized while slicing, so it is taken at the brim width option too.
+		const ConfigOption *brim_type  = option_of("brim_type");
+		const ConfigOption *brim_width = option_of("brim_width");
+		const double brim = brim_type != nullptr && brim_width != nullptr && brim_type->getInt() != static_cast<int>(btNoBrim) ? brim_width->getFloat() : 0.;
+		append(obstacles, offset(hull, static_cast<float>(scaled(brim + WIPE_TOWER_MARGIN))));
+	}
+	return obstacles;
+}
+
+arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const DynamicPrintConfig& config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int plate_extruder_size, bool use_global_objects,
+                                                            WipeTowerRelocation *relocation) const
 {
 	float x = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_x"))->get_at(plate_index);
 	float y = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_y"))->get_at(plate_index);
@@ -3405,10 +3435,40 @@ arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const Dynamic
 	// mesh, a couple of mm inside this reserved estimate), so a drop can land slightly out
 	// of bounds — snap it onto the bound; only far-out positions get the comfort re-place.
 	const float tol = 5.f;
-	if (x < margin - tol || x > x_hi + tol) x = std::clamp(x, x_lo_c, x_hi_c);
-	else                                    x = std::clamp(x, margin, x_hi);
-	if (y < margin - tol || y > y_hi + tol) y = std::clamp(y, y_lo_c, y_hi_c);
-	else                                    y = std::clamp(y, margin, y_hi);
+	const float saved_x = x, saved_y = y;
+	const bool  replace_x = x < margin - tol || x > x_hi + tol;
+	const bool  replace_y = y < margin - tol || y > y_hi + tol;
+	x = replace_x ? std::clamp(x, x_lo_c, x_hi_c) : std::clamp(x, margin, x_hi);
+	y = replace_y ? std::clamp(y, y_lo_c, y_hi_c) : std::clamp(y, margin, y_hi);
+	if (relocation != nullptr && (replace_x || replace_y)) {
+		relocation->moved = true;
+		// The footprint keeps clear of every object and its brim, and turns about its anchor
+		// as the tower does.
+		Polygon tower({ {scaled(-wp_brim_width), scaled(-wp_brim_width)},
+		                {scaled(w + wp_brim_width), scaled(-wp_brim_width)},
+		                {scaled(w + wp_brim_width), scaled(depth + wp_brim_width)},
+		                {scaled(-wp_brim_width), scaled(depth + wp_brim_width)} });
+		if (const auto *rotation = config.option<ConfigOptionFloat>("wipe_tower_rotation_angle"); rotation != nullptr && rotation->value != 0.)
+			tower.rotate(Geometry::deg2rad(rotation->value));
+		const Polygons objects = wipe_tower_obstacles(config);
+		const Point    placed(scaled(x), scaled(y));
+		// The re-placed spot stands when it is clear. Otherwise take the clear spot nearest the
+		// saved position, keeping the comfort margin where the plate leaves room for it.
+		if (!nearest_clear_wipe_tower_anchor(BoundingBox(placed, placed), tower, objects, placed)) {
+			const Point saved(scaled(saved_x), scaled(saved_y));
+			std::optional<Point> clear = nearest_clear_wipe_tower_anchor(
+				BoundingBox(Point(scaled(x_lo_c), scaled(y_lo_c)), Point(scaled(x_hi_c), scaled(y_hi_c))), tower, objects, saved);
+			if (!clear)
+				clear = nearest_clear_wipe_tower_anchor(BoundingBox(Point(scaled(margin), scaled(margin)), Point(scaled(x_hi), scaled(y_hi))),
+				                                        tower, objects, saved);
+			if (clear) {
+				x = static_cast<float>(unscaled(clear->x()));
+				y = static_cast<float>(unscaled(clear->y()));
+			} else {
+				relocation->overlaps_objects = true;
+			}
+		}
+	}
     wt_pos(0) = x;
     wt_pos(1) = y;
     wt_pos(2) = 0.f;
@@ -7048,19 +7108,14 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 {
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, selected %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % selected % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
 
+	// UNARRANGED means the item could not be placed, so it has no bed to map onto and
+	// must be left where the user had it. Moving it to a virtual bed here would shift
+	// it off the plate, because no such plate is created for it afterwards.
+	if (arrange_polygon.bed_idx == arrangement::UNARRANGED)
+		return;
+
 	if ((selected) || (arrange_polygon.bed_idx != PartPlateList::MAX_PLATES_COUNT))
 	{
-		if (arrange_polygon.bed_idx == -1)
-		{
-			// outarea for large object
-			arrange_polygon.bed_idx = m_plate_list.size();
-			BoundingBox apbox = get_extents(arrange_polygon.transformed_poly());  // the item may have been rotated
-			auto        apbox_size = apbox.size();
-
-			arrange_polygon.translation(X) = 0.5 * apbox_size[0];
-			arrange_polygon.translation(Y) = scaled<double>(static_cast<double>(m_plate_depth)) - 0.5 * apbox_size[1];
-		}
-
 		arrange_polygon.row = arrange_polygon.bed_idx / m_plate_cols;
 		arrange_polygon.col = arrange_polygon.bed_idx % m_plate_cols;
 		arrange_polygon.translation(X) += scaled<double>(plate_stride_x() * arrange_polygon.col);
