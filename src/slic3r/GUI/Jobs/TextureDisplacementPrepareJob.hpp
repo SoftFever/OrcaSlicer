@@ -9,6 +9,7 @@
 #include "Job.hpp"
 
 #include "libslic3r/ObjectID.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
 
 namespace Slic3r {
@@ -44,6 +45,10 @@ struct TextureDisplacementPrepareVolume
     indexed_triangle_set                  base_mesh;
     TextureDisplacementFacetsData         masks;
     std::vector<TextureDisplacementLayer> layers;
+    // The part's own UV channel (ModelVolume::texture_uv), empty when it has none. prepare_mesh()
+    // resamples it onto the mesh it produces, and the commit puts it back - like the masks, it is
+    // indexed by triangle and so cannot survive the stages on its own.
+    std::vector<Vec2f>                    model_uv;
 };
 
 struct TextureDisplacementPrepareInput
@@ -64,9 +69,9 @@ struct TextureDisplacementPrepareInput
 
 class TextureDisplacementPrepareJob : public Job
 {
-    TextureDisplacementPrepareInput                               m_input;
-    std::vector<TextureDisplacementPrepareResult>                 m_results;
-    std::function<void(TextureDisplacementPrepareOutcome)>        m_on_finished;
+    TextureDisplacementPrepareInput                            m_input;
+    std::vector<TextureDisplacementPrepareResult>              m_results;
+    std::function<void(TextureDisplacementPrepareOutcome)>     m_on_finished;
 
 public:
     TextureDisplacementPrepareJob(TextureDisplacementPrepareInput                        &&input,

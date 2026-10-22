@@ -898,9 +898,9 @@ void GLGizmoEmboss::on_render_input_window(float x, float y, float bottom_limit)
 
     // Not known situation when could happend this is only for sure
     if (!m_is_unknown_font && !m_style_manager.is_active_font())
-        create_notification_not_valid_font("No active font in style. Select correct one.");
+        create_notification_not_valid_font(_u8L("No active font in style. Select correct one."));
     else if (!m_is_unknown_font && !m_style_manager.get_wx_font().IsOk())
-        create_notification_not_valid_font("WxFont is not loaded properly.");
+        create_notification_not_valid_font(_u8L("WxFont is not loaded properly."));
 
     double screen_scale = wxDisplay(wxGetApp().plater()).GetScaleFactor();
 
@@ -1089,8 +1089,8 @@ EmbossStyles GLGizmoEmboss::create_default_styles()
         styles.push_back(WxFontUtils::create_emboss_style(wx_font, _u8L("First font")));
     } else {
         // On current OS is not installed any correct TTF font
-        // use font packed with Slic3r
-        std::string font_path = Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf";
+        // use font packed with OrcaSlicer
+        std::string font_path = Slic3r::resources_dir() + "/fonts/HarmonyOS_Sans_SC_Regular.ttf";
         styles.push_back(EmbossStyle{_u8L("Default font"), font_path, EmbossStyle::Type::file_path});
     }
     return styles;

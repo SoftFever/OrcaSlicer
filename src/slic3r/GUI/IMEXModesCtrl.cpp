@@ -321,15 +321,21 @@ bool IMEXModesCtrl::fix_row_name(Row& r) {
 IMEXModesCtrl::RoleStyle IMEXModesCtrl::role_style(std::optional<ImexRole> role) {
     // Gray / "Inactive" is the no-role answer; every role gets an explicit case so a new
     // one is a compile-time -Wswitch prompt rather than a tile that silently renders gray.
+    // TRN IDEX/IQEX role of a tool head that takes no part in the mode.
+    const wxString inactive = _L_CONTEXT("Inactive", "IDEX/IQEX role");
     if (!role)
-        return { wxColour(90, 90, 90), *wxWHITE, "Inactive" };
+        return { wxColour(90, 90, 90), *wxWHITE, inactive };
     switch (*role) {
-    case ImexRole::Primary: return { wxColour(50,  160, 50),  *wxWHITE, "Primary" };  // green
-    case ImexRole::Copy:    return { wxColour(60,  120, 210), *wxWHITE, "Copy"    };  // blue
-    case ImexRole::Mirror:  return { wxColour(210, 130, 20),  *wxWHITE, "Mirror"  };  // amber
-    case ImexRole::Span:    return { wxColour(180, 180, 40),  *wxWHITE, "Span"    };  // yellow
+    // TRN IDEX/IQEX role: the tool head the slicer generates paths for.
+    case ImexRole::Primary: return { wxColour(50,  160, 50),  *wxWHITE, _L_CONTEXT("Primary", "IDEX/IQEX role") };  // green
+    // TRN IDEX/IQEX role: the tool head prints a copy of the Primary's paths.
+    case ImexRole::Copy:    return { wxColour(60,  120, 210), *wxWHITE, _L_CONTEXT("Copy", "IDEX/IQEX role")    };  // blue
+    // TRN IDEX/IQEX role: the tool head prints a mirror image of the Primary's paths.
+    case ImexRole::Mirror:  return { wxColour(210, 130, 20),  *wxWHITE, _L_CONTEXT("Mirror", "IDEX/IQEX role")  };  // amber
+    // TRN IDEX/IQEX role: multicolor partner of the Primary on the same gantry.
+    case ImexRole::Span:    return { wxColour(180, 180, 40),  *wxWHITE, _L_CONTEXT("Span", "IDEX/IQEX role")    };  // yellow
     }
-    return { wxColour(90, 90, 90), *wxWHITE, "Inactive" };  // keeps every compiler quiet
+    return { wxColour(90, 90, 90), *wxWHITE, inactive };  // keeps every compiler quiet
 }
 
 wxString IMEXModesCtrl::role_hint(ImexRole role) {

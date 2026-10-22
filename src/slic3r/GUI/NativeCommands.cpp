@@ -365,7 +365,7 @@ std::vector<NativeCommand> build_command_catalog()
         return object_op(wxGetApp().plater(), [](Plater* p) { return !p->is_selection_empty(); }, [](Plater* p) { p->center_selection(); });
     });
     add_with_icon("obj_drop", L("Drop to Bed"), L("Object"), "toolbar_flatten", [](const std::string&) {
-        return object_op(wxGetApp().plater(), [](Plater* p) { return !p->is_selection_empty(); }, [](Plater* p) { p->drop_selection(); });
+        return object_op(wxGetApp().plater(), [](Plater* p) { return p->get_selection().can_drop(); }, [](Plater* p) { p->drop_selection(); });
     });
     add("obj_fit_volume", L("Scale to Fit Print Volume"), L("Object"), [](const std::string&) {
         return object_op(
@@ -587,6 +587,10 @@ std::vector<NativeCommand> build_command_catalog()
     });
     add_with_icon("help_open_config_folder", L("Show Configuration Folder"), L("Help"), "open_project", [](const std::string&) {
         Slic3r::GUI::desktop_open_datadir_folder();
+        return AppActionRunResult{AppActionRunResult::Level::Success};
+    });
+    add("help_migrate_filament_presets", L("Migrate Filament Presets"), L("Help"), [](const std::string&) {
+        wxGetApp().check_legacy_user_filament_presets(true);
         return AppActionRunResult{AppActionRunResult::Level::Success};
     });
     add("help_troubleshoot", L("Troubleshoot Center"), L("Help"), [](const std::string&) {

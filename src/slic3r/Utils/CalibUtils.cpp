@@ -1497,7 +1497,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
     for (const auto &cali_info : cali_infos.calib_datas) {
         wxString name = "";
-        if (is_multi_extruder) { name = cali_info.extruder_id == MAIN_EXTRUDER_ID ? _L("right") + " ": _L("left") + " "; }
+        if (is_multi_extruder) { name = cali_info.extruder_id == MAIN_EXTRUDER_ID ? _L("right") : _L("left"); }
 
         float cali_diameter = cali_info.nozzle_diameter;
         int   extruder_id   = cali_info.extruder_id;
@@ -1508,6 +1508,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
 
         if (is_approx(double(cali_info.nozzle_diameter), 0.2) && !obj->is_series_x()) {
+            // TRN %s is "left" or "right".
             error_message = wxString::Format(_L("The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."), name);
             return false;
         }
@@ -1516,6 +1517,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
         if (!obj->GetExtderSystem()->NozzleDiameterMatchesOrUnknown(extruder_id, cali_info.nozzle_diameter)) {
             if (is_multi_extruder)
+                // TRN %s is "left" or "right".
                 error_message = wxString::Format(_L("The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
                                "Please click the Sync button above and restart the calibration."), name);
             else
@@ -1526,6 +1528,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
         if (nozzle_volume_type == NozzleFlowType::NONE_FLOWTYPE) {
             if (is_multi_extruder)
+                // TRN %s is "left" or "right".
                 error_message = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
             else
                 error_message = nozzle_not_set_text;
@@ -1534,6 +1537,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
         if (NozzleVolumeType(nozzle_volume_type - 1) != cali_info.nozzle_volume_type) {
             if (is_multi_extruder)
+                // TRN %s is "left" or "right".
                 error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                 "Please click the Sync button above and restart the calibration."), name);
             else
@@ -1558,7 +1562,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
     for (const auto &cali_info : cali_infos) {
         wxString name = "";
-        if (is_multi_extruder) { name = cali_info.extruder_id == MAIN_EXTRUDER_ID ? _L("right") + " " : _L("left") + " "; }
+        if (is_multi_extruder) { name = cali_info.extruder_id == MAIN_EXTRUDER_ID ? _L("right") : _L("left"); }
 
         if (cali_info.params.mode == CalibMode::Calib_Auto_PA_Line && !is_support_auto_pa_cali(cali_info.filament_prest->filament_id)) {
             error_message = _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");

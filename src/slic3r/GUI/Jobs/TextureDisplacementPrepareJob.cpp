@@ -9,7 +9,6 @@
 #include <optional>
 #include <utility>
 #include <string>
-#include <utility>
 #include <vector>
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Jobs/Worker.hpp"
@@ -45,14 +44,15 @@ void TextureDisplacementPrepareJob::process(Ctl &ctl)
     // The progress hook is not just cosmetic: the framework's notification only grows a close button
     // once it reaches 100%, and below that it shows Cancel, which is wired through here. Reporting is
     // throttled to whole percentage points because every call repaints the notification and wakes the
-    // idle loop. Each part gets its own slice of the range, in order, so one bar covers them all.
+    // idle loop.
+    // Each part gets its own slice of the range, in order, so one bar covers them all.
     const size_t count = m_input.volumes.size();
     m_results.resize(count);
     int last_reported = 1;
     for (size_t i = 0; i < count; ++i) {
         const TextureDisplacementPrepareVolume &volume = m_input.volumes[i];
         m_results[i] = GLGizmoTextureDisplacement::prepare_mesh(volume.base_mesh, volume.masks, volume.layers,
-                                                                m_input.params, m_input.color,
+                                                                volume.model_uv, m_input.params, m_input.color,
                                                                 [&ctl, &status, &last_reported, i, count](int percent) {
                                                                     if (ctl.was_canceled())
                                                                         return false;
@@ -83,7 +83,6 @@ void TextureDisplacementPrepareJob::finalize(bool canceled, std::exception_ptr &
 
     if (canceled || eptr)
         return;
-
     // One part losing its paint stops the whole prepare, exactly as it stops a single-part one: the
     // promise is that a prepare which cannot carry the paint changes nothing, and committing the other
     // parts would break it halfway. The message that follows tells the user to remesh by hand instead.
@@ -129,6 +128,10 @@ void TextureDisplacementPrepareJob::finalize(bool canceled, std::exception_ptr &
             volume->restore_painting(saved_painting);
             for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot)
                 volume->texture_displacement_facet(slot).set_data(std::move(m_results[i].masks[size_t(slot)]));
+            // The model's own UV channel, resampled onto the new mesh by the run. Also put back after
+            // restore_painting(), which resets it along with the extra facets for the same reason: it is
+            // indexed by triangle and the triangles have changed.
+            volume->texture_uv = std::move(m_results[i].uv);
         }
 
         if (ObjectList *obj_list = wxGetApp().obj_list()) {

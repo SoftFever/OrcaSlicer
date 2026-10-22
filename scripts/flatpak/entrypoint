@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
-# Work-around https://gitlab.gnome.org/GNOME/gnome-build-meta/-/issues/754
-grep -q org.freedesktop.Platform.GL.nvidia /.flatpak-info && export WEBKIT_DISABLE_DMABUF_RENDERER=1
+# WebKit's NVIDIA DMABUF workaround (gnome-build-meta#754) is applied by the
+# binary itself, gated on the runtime WebKitGTK version (src/OrcaSlicer.cpp).
 
 # Work-around https://github.com/bambulab/BambuStudio/issues/3440
 # Use LC_NUMERIC instead of LC_ALL to prevent decimal separator issues

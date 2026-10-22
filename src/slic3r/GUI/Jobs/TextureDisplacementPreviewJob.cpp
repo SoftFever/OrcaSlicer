@@ -56,7 +56,9 @@ void TextureDisplacementPreviewJob::process(Ctl &ctl)
         if (color != nullptr)
             color_request.out_triangle = &m_results[i].triangle_color;
         m_results[i].mesh = build_texture_displacement(volume.base_mesh, volume.layers, volume.facets_data,
-                                                       volume.options, still_wanted, color, volume.volume_to_world);
+                                                       volume.options, still_wanted, color, volume.volume_to_world,
+                                                       nullptr, nullptr,
+                                                       volume.model_uv.empty() ? nullptr : &volume.model_uv);
         if (!still_wanted(0)) {
             m_results.clear();
             return;

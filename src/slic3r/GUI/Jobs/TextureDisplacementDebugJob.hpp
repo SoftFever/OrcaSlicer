@@ -47,6 +47,9 @@ struct TextureDisplacementDebugInput
     // Only the quantizer is used, and only by the refinement's colour criterion - the debug run
     // produces no colour of its own.
     TextureColorSettings                  color;
+    // The volume's own UV channel (ModelVolume::texture_uv), so the recipe captured here is the one a
+    // ModelUV layer actually bakes through. Empty when the volume has none.
+    std::vector<Vec2f>                    model_uv;
 
     // The edge scan behind the open / non-manifold counts is a sort over every half-edge, which on a
     // multi-million triangle stage costs more than the stage did. On by default because a stage that

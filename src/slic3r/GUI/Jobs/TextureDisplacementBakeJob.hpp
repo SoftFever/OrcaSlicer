@@ -17,10 +17,10 @@ namespace Slic3r { class ModelVolume; }
 
 namespace Slic3r::GUI {
 
-// One model part's share of a bake: its own mesh, its own paint masks, and the layer stack to displace
-// it by. Captured by value on the main thread when the job is queued so the worker thread never
-// touches the live Model concurrently with the UI (mirrors how EmbossJob's DataBase is captured
-// before process() runs).
+// One model part's share of a bake: its own mesh, its own paint masks and UV channel, and the layer
+// stack to displace it by. Captured by value on the main thread when the job is queued so the worker
+// thread never touches the live Model concurrently with the UI (mirrors how EmbossJob's DataBase is
+// captured before process() runs).
 struct TextureDisplacementBakeVolume
 {
     ObjectID                              volume_id;
@@ -31,14 +31,18 @@ struct TextureDisplacementBakeVolume
     // Mesh coordinates -> world millimetres. Captured here with everything else so the worker never
     // reaches back into the live Model for it. See build_texture_displacement().
     Transform3d                           volume_to_world = Transform3d::Identity();
+    // The part's own UV channel (ModelVolume::texture_uv), empty when it has none: what a ModelUV
+    // layer maps through, and what the commit puts back on the baked mesh.
+    std::vector<Vec2f>                    model_uv;
 };
 
 struct TextureDisplacementBakeInput
 {
     // Every model part the bake acts on, in the object's own volume order. An object made of several
     // parts carries one entry per part the paint actually reaches: the layer stack is the object's,
-    // but each part is displaced through its own mesh and its own masks. Baking only the first part is
-    // what made texture displacement silently ignore every other body of a multibody object.
+    // but each part is displaced through its own mesh, its own masks and its own UV channel. Baking
+    // only the first part is what made texture displacement silently ignore every other body of a
+    // multibody object.
     std::vector<TextureDisplacementBakeVolume> volumes;
     // Captured on the main thread, and shared by every part: the palette comes from the project's
     // filaments and from the layer stack, neither of which is per part. Empty unless some layer is
@@ -67,13 +71,13 @@ private:
     // What the bake produced for one part of m_input.volumes, at the same index.
     struct VolumeResult
     {
-        TriangleMesh     mesh;
-        // Per triangle of `mesh`: the palette entry to print it in, as its index + 1 (0 = leave alone).
-        // Empty unless a layer asked for colour. See TextureColorRequest; finalize() turns these into
-        // filaments.
+        TriangleMesh         mesh;
+        // Per triangle of `mesh`: the palette entry to print it in, as its index + 1 (0 = leave
+        // alone). Empty unless a layer asked for colour. See TextureColorRequest; finalize() turns
+        // these into filaments.
         std::vector<uint8_t> triangle_color;
         // What the bake spent, for the message it leaves behind when the budget capped the detail.
-        TextureBakeStats stats;
+        TextureBakeStats     stats;
     };
 
     TextureDisplacementBakeInput m_input;

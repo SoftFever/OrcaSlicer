@@ -26,6 +26,9 @@ struct TextureDisplacementPreviewVolume
     // Mesh coordinates -> world millimetres, so the preview is displaced in the same space the bake
     // is and the two cannot disagree. See build_texture_displacement().
     Transform3d                           volume_to_world = Transform3d::Identity();
+    // The part's own UV channel (ModelVolume::texture_uv), so a ModelUV layer previews through the
+    // same layout it will bake through. Empty when the part has none.
+    std::vector<Vec2f>                    model_uv;
 };
 
 struct TextureDisplacementPreviewInput

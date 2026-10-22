@@ -297,6 +297,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , printable(true)
     , visible(true)
     , is_active(true)
+    , on_hidden_plate(false)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
     , is_outside(false)
@@ -699,7 +700,7 @@ void GLVolume::render_with_outline(const GUI::Size& cnv_size)
 }
 
 //BBS add render for simple case
-void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors, bool ban_light)
+void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors, bool ban_light, bool ban_color_volume)
 {
     if (this->is_left_handed())
         glFrontFace(GL_CW);
@@ -733,7 +734,7 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
         }
     } while (0);
 
-    if (color_volume && !picking) {
+    if (color_volume && !picking && !ban_color_volume) {
         const bool brighten_selected = selected && !disabled && !force_native_color && !force_neutral_color;
 
         // when force_transparent, we need to keep the alpha
@@ -824,6 +825,8 @@ bool GLVolume::is_below_printbed() const
 
 void GLVolume::render_sinking_contours()
 {
+    if (!is_active)
+        return;
     m_sinking_contours.render();
 }
 

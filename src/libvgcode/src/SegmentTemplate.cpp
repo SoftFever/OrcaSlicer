@@ -21,7 +21,9 @@ namespace libvgcode {
 // the triangles that share it: the shader runs 8 times per segment instead of 24.
 static constexpr const std::array<uint8_t, 8> VERTEX_DATA = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-static constexpr const std::array<uint8_t, 24> INDEX_DATA = {
+// 16-bit indices: GCN 1/2 GPUs have no 8-bit index support, and some of their drivers
+// emulate it wrongly in instanced draws.
+static constexpr const std::array<uint16_t, 24> INDEX_DATA = {
     0, 1, 2, // front spike
     0, 2, 3, // front spike
     0, 3, 4, // right/bottom body 
@@ -37,7 +39,7 @@ void SegmentTemplate::init()
     if (m_vao_id != 0)
         return;
 
-    m_size_in_bytes_gpu += (VERTEX_DATA.size() + INDEX_DATA.size()) * sizeof(uint8_t);
+    m_size_in_bytes_gpu += VERTEX_DATA.size() * sizeof(uint8_t) + INDEX_DATA.size() * sizeof(uint16_t);
 
     int curr_vertex_array;
     glsafe(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &curr_vertex_array));
@@ -61,7 +63,7 @@ void SegmentTemplate::init()
     // and restored together with the vao.
     glsafe(glGenBuffers(1, &m_ibo_id));
     glsafe(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo_id));
-    glsafe(glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_DATA.size() * sizeof(uint8_t), INDEX_DATA.data(), GL_STATIC_DRAW));
+    glsafe(glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_DATA.size() * sizeof(uint16_t), INDEX_DATA.data(), GL_STATIC_DRAW));
 
     glsafe(glBindBuffer(GL_ARRAY_BUFFER, curr_array_buffer));
     glsafe(glBindVertexArray(curr_vertex_array));
@@ -94,7 +96,7 @@ void SegmentTemplate::render(size_t count)
     glsafe(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &curr_vertex_array));
 
     glsafe(glBindVertexArray(m_vao_id));
-    glsafe(glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(INDEX_DATA.size()), GL_UNSIGNED_BYTE,
+    glsafe(glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(INDEX_DATA.size()), GL_UNSIGNED_SHORT,
                                    nullptr, static_cast<GLsizei>(count)));
     glsafe(glBindVertexArray(curr_vertex_array));
 }

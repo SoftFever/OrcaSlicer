@@ -456,7 +456,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     // per-show in on_show() rather than gated here at construction time.
     auto labeled_box_model = new LabeledStaticBox(this, _L("Test model"));
     m_model_box = new wxStaticBoxSizer(labeled_box_model, wxHORIZONTAL);
-    m_rbModel = new RadioGroup(this, { _L("Standard"), _L("Overhang") }, wxVERTICAL);
+    m_rbModel = new RadioGroup(this, { _L_CONTEXT("Standard", "Test model"), _L_CONTEXT("Overhang", "Test model") }, wxVERTICAL);
     m_model_box->Add(m_rbModel, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(m_model_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
@@ -679,7 +679,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     // Settings
     wxString start_vol_str = _L("Start volumetric speed: ");
     wxString end_vol_str   = _L("End volumetric speed: ");
-    wxString vol_step_str  = _L("Step") + ": ";
+    wxString vol_step_str  = _L_CONTEXT("Step", "Increment") + ": ";
     int text_max = GetTextMax(this, std::vector<wxString>{start_vol_str, end_vol_str, vol_step_str});
 
     auto st_size = wxSize(text_max, -1);
@@ -792,7 +792,7 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     // Settings
     wxString start_str    = _L("Start speed: ");
     wxString end_vol_str  = _L("End speed: ");
-    wxString vol_step_str = _L("Step") + ": ";
+    wxString vol_step_str = _L_CONTEXT("Step", "Increment") + ": ";
     int text_max = GetTextMax(this, std::vector<wxString>{start_str, end_vol_str, vol_step_str});
 
     auto st_size = wxSize(text_max, -1);
@@ -1054,7 +1054,7 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     // Settings
     wxString start_length_str = _L("Start retraction length: ");
     wxString end_length_str   = _L("End retraction length: ");
-    wxString length_step_str  = _L("Step") + ": ";
+    wxString length_step_str  = _L_CONTEXT("Step", "Increment") + ": ";
     int text_max = GetTextMax(this, std::vector<wxString>{start_length_str, end_length_str, length_step_str});
 
     auto st_size = wxSize(text_max, -1);
@@ -1212,8 +1212,8 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
     // Settings
-    wxString x_axis_str = reprap_firmware ? _L("Frequency (Start / End): ") : "X " + _L("Start / End") + ": ";
-    wxString y_axis_str = "Y " + _L("Start / End") + ": ";
+    wxString x_axis_str = reprap_firmware ? _L("Frequency (Start / End): ") : _L("X Start / End: ");
+    wxString y_axis_str = _L("Y Start / End: ");
     int text_max = GetTextMax(this, std::vector<wxString>{x_axis_str, y_axis_str});
 
     auto st_size = wxSize(text_max, -1);
@@ -1437,8 +1437,8 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
     // Settings
-    wxString freq_str = reprap_firmware ? _L("Frequency: ") : _L("Frequency") + " X / Y: ";
-    wxString damp_str = _L("Damp") + " " + _L("Start / End") + ": ";
+    wxString freq_str = reprap_firmware ? _L("Frequency: ") : _L("Frequency X / Y: ");
+    wxString damp_str = _L("Damp (Start / End): ");
     int text_max = GetTextMax(this, std::vector<wxString>{freq_str, damp_str});
 
     auto st_size = wxSize(text_max, -1);
