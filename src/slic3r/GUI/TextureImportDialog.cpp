@@ -32,6 +32,8 @@
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "libslic3r/TexturePainting.hpp"
 #include "slic3r/GUI/Widgets/SpinInput.hpp"
+#include <slic3r/GUI/Widgets/Button.hpp>
+#include <slic3r/GUI/Widgets/Label.hpp>
 #include "libslic3r/TriangleMesh.hpp"
 #include <memory>
 #include <mutex>
