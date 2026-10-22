@@ -48,7 +48,8 @@ is not sorted and the second pass is skipped, so the first draws exactly what it
    inside a translucent part behind its surface, instead of on top of it.
 
 `Viewer::render()` draws the first two; `Viewer::render_translucent()` draws the third, which
-`GLCanvas3D::_render_gcode_translucent()` calls after the SSAO pass. The occlusion that pass reads
+`GLCanvas3D::_render_gcode_translucent()` calls after the SSAO pass. Drawn that late, the pass turns the
+depth test on itself, as the passes before it may leave it off. The occlusion that pass reads
 from depth would otherwise shade a translucent surface as the surface behind it, as it would the
 centre of mass marker. FXAA still comes after, and so do the sequential view markers drawn by
 `GCodeViewer::render_scene()`, which hide the translucent toolpaths behind them.

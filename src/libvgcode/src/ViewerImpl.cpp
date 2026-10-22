@@ -2248,12 +2248,15 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
 #endif // ENABLE_OPENGL_ES
     }
 
-    // ORCA: the translucent segments neither hide each other nor what is drawn after them
+    // ORCA: the translucent segments neither hide each other nor what is drawn after them. Drawn late in the
+    // frame, they cannot count on the depth test the toolpaths left on, which hides them behind opaque ones.
     const bool curr_blend = glIsEnabled(GL_BLEND);
+    const bool curr_depth_test = glIsEnabled(GL_DEPTH_TEST);
     std::array<int, 4> curr_blend_func = { 0, 0, 0, 0 };
     std::array<int, 2> curr_blend_equation = { 0, 0 };
     GLboolean curr_depth_mask = GL_TRUE;
     if (translucent) {
+        glsafe(glEnable(GL_DEPTH_TEST));
         glsafe(glGetIntegerv(GL_BLEND_SRC_RGB, &curr_blend_func[0]));
         glsafe(glGetIntegerv(GL_BLEND_DST_RGB, &curr_blend_func[1]));
         glsafe(glGetIntegerv(GL_BLEND_SRC_ALPHA, &curr_blend_func[2]));
@@ -2339,6 +2342,8 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
     if (curr_cull_face)
         glsafe(glEnable(GL_CULL_FACE));
     if (translucent) {
+        if (!curr_depth_test)
+            glsafe(glDisable(GL_DEPTH_TEST));
         glsafe(glDepthMask(curr_depth_mask));
         glsafe(glBlendEquationSeparate(curr_blend_equation[0], curr_blend_equation[1]));
         glsafe(glBlendFuncSeparate(curr_blend_func[0], curr_blend_func[1], curr_blend_func[2], curr_blend_func[3]));
