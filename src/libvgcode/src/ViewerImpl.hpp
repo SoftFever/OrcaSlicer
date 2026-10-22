@@ -325,8 +325,9 @@ private:
 
     // Cache for the colors to reduce the need to recalculate colors of all the vertices.
     std::vector<ColorWithAlpha> m_vertices_colors;
-    // ORCA: whether render() needs its blended pass
+    // ORCA: the enabled segments list the translucent ones last, see update_enabled_entities().
     bool m_has_translucent_colors{ false };
+    size_t m_enabled_translucent_segments_count{ 0 };
 
     //
     // Variables used for toolpaths visibiliity
@@ -382,6 +383,7 @@ private:
         int segment_index_tex{ -1 };
         int reverse_order{ -1 };
         int instances_count{ -1 };
+        int first_instance{ -1 };
         int clipping_plane{ -1 };
 
         void init(unsigned int shader_id);
@@ -395,7 +397,6 @@ private:
     int m_uni_segments_exposure_id{ -1 };
     int m_uni_segments_saturation_id{ -1 };
     int m_uni_segments_light_top_dir_id{ -1 };
-    int m_uni_segments_translucent_id{ -1 };
     // ORCA: the layers greyed or dimmed around the one the sliders show, in the segments and options shaders.
     struct LayerColorsUniforms
     {
@@ -444,7 +445,8 @@ private:
         void set_positions(const std::vector<Vec4>& positions);
         void set_heights_widths_angles(const std::vector<Vec4>& heights_widths_angles);
         void set_colors(const std::vector<ColorWithAlpha>& colors);
-        void set_enabled_segments(const std::vector<uint32_t>& enabled_segments);
+        // ORCA: with colors, each texture lists its opaque segments first, then its translucent ones.
+        void set_enabled_segments(const std::vector<uint32_t>& enabled_segments, const std::vector<ColorWithAlpha>* colors);
         void set_enabled_options(const std::vector<uint32_t>& enabled_options);
         void reset();
         size_t get_count() const { return m_count; }
@@ -452,6 +454,7 @@ private:
         std::pair<unsigned int, size_t> get_heights_widths_angles_tex_id(size_t id) const;
         std::pair<unsigned int, size_t> get_colors_tex_id(size_t id) const;
         std::pair<unsigned int, size_t> get_enabled_segments_tex_id(size_t id) const;
+        size_t get_enabled_translucent_segments_count(size_t id) const { return m_tex_ids[id].enabled_translucent_segments; }
         std::pair<unsigned int, size_t> get_enabled_options_tex_id(size_t id) const;
 
         size_t get_enabled_segments_count() const;
@@ -500,6 +503,7 @@ private:
             // OpenGL texture to store enabled segments
             //
             std::pair<unsigned int, size_t> enabled_segments{ 0, 0 };
+            size_t enabled_translucent_segments{ 0 };
             //
             // OpenGL texture to store enabled options
             //
@@ -577,7 +581,7 @@ private:
     void update_color_ranges();
     void update_heights_widths();
     uint8_t get_vertex_alpha(const PathVertex& v) const;
-    // ORCA: translucent draws only the segments whose color is translucent, the other pass only the opaque ones.
+    // ORCA: translucent draws the segments whose color is translucent, otherwise the opaque ones, or all of them for the shadow casters.
     void render_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position, bool translucent = false);
     void render_options(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
     // ORCA: the program using uni must be current.

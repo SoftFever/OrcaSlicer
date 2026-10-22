@@ -520,7 +520,7 @@ void ViewerImpl::TextureData::set_colors(const std::vector<ColorWithAlpha>& colo
     glsafe(glPixelStorei(GL_UNPACK_ALIGNMENT, curr_unpack_alignment));
 }
 
-void ViewerImpl::TextureData::set_enabled_segments(const std::vector<uint32_t>& enabled_segments)
+void ViewerImpl::TextureData::set_enabled_segments(const std::vector<uint32_t>& enabled_segments, const std::vector<ColorWithAlpha>* colors)
 {
     if (m_count == 0)
         return;
@@ -528,6 +528,7 @@ void ViewerImpl::TextureData::set_enabled_segments(const std::vector<uint32_t>& 
     for (TexIds& ids : m_tex_ids) {
         delete_textures(ids.enabled_segments.first);
         ids.enabled_segments.second = 0;
+        ids.enabled_translucent_segments = 0;
     }
 
     m_enabled_segments_size = 0;
@@ -551,6 +552,12 @@ void ViewerImpl::TextureData::set_enabled_segments(const std::vector<uint32_t>& 
         if (!new_tex)
             curr_segments.push_back(seg - static_cast<uint32_t>(curr_tex_id * tex_capacity));
         if (i + 1 == enabled_segments.size() || new_tex) {
+            if (colors != nullptr) {
+                const size_t offset = curr_tex_id * tex_capacity;
+                const auto translucent_begin = std::stable_partition(curr_segments.begin(), curr_segments.end(),
+                    [colors, offset](uint32_t s) { return (*colors)[offset + s][3] == 255; });
+                m_tex_ids[curr_tex_id].enabled_translucent_segments = static_cast<size_t>(std::distance(translucent_begin, curr_segments.end()));
+            }
             const auto [w, h] = width_height(curr_segments.size());
 
             glsafe(glGenTextures(1, &m_tex_ids[curr_tex_id].enabled_segments.first));
@@ -755,6 +762,7 @@ void ViewerImpl::SegmentsUniforms::init(unsigned int shader_id)
     segment_index_tex      = glGetUniformLocation(shader_id, "segment_index_tex");
     reverse_order          = glGetUniformLocation(shader_id, "reverse_order");
     instances_count        = glGetUniformLocation(shader_id, "instances_count");
+    first_instance         = glGetUniformLocation(shader_id, "first_instance");
     // ORCA: section view
     clipping_plane         = glGetUniformLocation(shader_id, "clipping_plane");
 }
@@ -792,7 +800,6 @@ void ViewerImpl::init(const std::string& opengl_context_version)
     m_uni_segments_exposure_id               = glGetUniformLocation(m_segments_shader_id, "exposure");
     m_uni_segments_saturation_id             = glGetUniformLocation(m_segments_shader_id, "saturation");
     m_uni_segments_light_top_dir_id          = glGetUniformLocation(m_segments_shader_id, "light_top_dir");
-    m_uni_segments_translucent_id            = glGetUniformLocation(m_segments_shader_id, "translucent");
     m_uni_segments_layer_colors.init(m_segments_shader_id);
     glcheck();
     assert(m_uni_segments.view_matrix != -1 &&
@@ -933,6 +940,7 @@ void ViewerImpl::reset()
     std::vector<PathVertex>().swap(m_vertices);
     std::vector<ColorWithAlpha>().swap(m_vertices_colors);
     m_has_translucent_colors = false;
+    m_enabled_translucent_segments_count = 0;
     for (std::vector<float>& times : m_layer_start_times)
         std::vector<float>().swap(times);
     std::vector<uint32_t>().swap(m_layer_first_vertex);
@@ -1279,10 +1287,21 @@ void ViewerImpl::update_enabled_entities()
             enabled_segments.push_back(static_cast<uint32_t>(i));
     }
 
+    // ORCA: so that each pass of render() draws only its own segments, in print order
+    m_enabled_translucent_segments_count = 0;
+    const auto is_opaque = [this](uint32_t id) { return m_vertices_colors[id][3] == 255; };
 #ifdef ENABLE_OPENGL_ES
-    m_texture_data.set_enabled_segments(enabled_segments);
+    if (m_has_translucent_colors)
+        m_enabled_translucent_segments_count = static_cast<size_t>(std::count_if(enabled_segments.begin(), enabled_segments.end(),
+            [&is_opaque](uint32_t id) { return !is_opaque(id); }));
+    m_texture_data.set_enabled_segments(enabled_segments, m_has_translucent_colors ? &m_vertices_colors : nullptr);
     m_texture_data.set_enabled_options(enabled_options);
 #else
+    if (m_has_translucent_colors) {
+        const auto translucent_begin = std::stable_partition(enabled_segments.begin(), enabled_segments.end(), is_opaque);
+        m_enabled_translucent_segments_count = static_cast<size_t>(std::distance(translucent_begin, enabled_segments.end()));
+    }
+
     m_enabled_segments_count = enabled_segments.size();
     m_enabled_options_count = enabled_options.size();
 
@@ -1392,6 +1411,7 @@ void ViewerImpl::update_colors()
     // If some part of the preview should be rendered in dark grey, it is taken
     // care of in the shaders, see set_layer_colors(). That is to avoid the need to recalculate
     // the "normal" color on every slider move.
+    const bool had_translucent_colors = m_has_translucent_colors;
     m_has_translucent_colors = false;
     for (size_t i = 0; i < m_vertices.size(); ++i) {
         const Color color = get_vertex_color(m_vertices[i]);
@@ -1399,9 +1419,13 @@ void ViewerImpl::update_colors()
         m_vertices_colors[i] = { color[0], color[1], color[2], alpha };
         m_has_translucent_colors |= alpha < 255;
     }
-    
+
     update_colors_texture();
     m_settings.update_colors = false;
+
+    // ORCA: the enabled segments are sorted by opacity
+    if (had_translucent_colors || m_has_translucent_colors)
+        update_enabled_entities();
 }
 
 void ViewerImpl::apply_pending_updates()
@@ -1425,7 +1449,7 @@ void ViewerImpl::render(const Mat4x4& view_matrix, const Mat4x4& projection_matr
     render_segments(view_matrix, projection_matrix, camera_position);
     render_options(view_matrix, projection_matrix);
     // ORCA: last, as the translucent segments write no depth
-    if (m_has_translucent_colors)
+    if (m_enabled_translucent_segments_count > 0)
         render_segments(view_matrix, projection_matrix, camera_position, true);
 
 #if VGCODE_ENABLE_COG_AND_TOOL_MARKERS
@@ -2164,7 +2188,6 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
         glsafe(glUniform1f(m_uni_segments_exposure_id, m_exposure));
         glsafe(glUniform1f(m_uni_segments_saturation_id, m_saturation));
         glsafe(glUniform3fv(m_uni_segments_light_top_dir_id, 1, m_light_top_dir.data()));
-        glsafe(glUniform1i(m_uni_segments_translucent_id, translucent ? 1 : 0));
         set_layer_colors(m_uni_segments_layer_colors);
     }
 
@@ -2185,8 +2208,15 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
 
     glsafe(glDisable(GL_CULL_FACE));
 
-    auto draw = [this, &uni](size_t count) {
+    // ORCA: of the count enabled segments, the last translucent_count are the translucent ones
+    auto draw = [this, &uni, translucent](size_t count, size_t translucent_count) {
+        const size_t first = translucent ? count - translucent_count : 0;
+        if (!m_rendering_shadow_casters)
+            count = translucent ? translucent_count : count - translucent_count;
+        if (count == 0)
+            return;
         glsafe(glUniform1i(uni.instances_count, static_cast<int>(count)));
+        glsafe(glUniform1i(uni.first_instance, static_cast<int>(first)));
         if (!m_rendering_shadow_casters) {
             m_segment_template.render(count);
             return;
@@ -2217,7 +2247,7 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
         glsafe(glBindTexture(GL_TEXTURE_2D, m_texture_data.get_colors_tex_id(i).first));
         glsafe(glActiveTexture(GL_TEXTURE3));
         glsafe(glBindTexture(GL_TEXTURE_2D, id));
-        draw(count);
+        draw(count, m_texture_data.get_enabled_translucent_segments_count(i));
     }
 #else
     std::array<int, 4> curr_bound_texture = { 0, 0, 0, 0 };
@@ -2240,7 +2270,7 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
     glsafe(glBindTexture(GL_TEXTURE_BUFFER, m_enabled_segments_tex_id));
     glsafe(glTexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, m_enabled_segments_buf_id));
 
-    draw(m_enabled_segments_count);
+    draw(m_enabled_segments_count, m_enabled_translucent_segments_count);
 #endif // ENABLE_OPENGL_ES
 
     if (curr_cull_face)

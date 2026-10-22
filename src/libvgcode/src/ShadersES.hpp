@@ -51,7 +51,7 @@ static const char* Segments_Vertex_Shader_ES =
 "flat out int segment_id;\n"
 "out vec3 cut_color_direct;\n"
 // ORCA: the opaque and the translucent segments are drawn in separate passes, see ViewerImpl::render_segments().
-"uniform bool translucent;\n"
+"uniform int first_instance;\n"
 "flat out float alpha;\n"
 // ORCA: the layers greyed or dimmed around the one the sliders show, see ViewerImpl::set_layer_colors().
 "uniform ivec2 lit_layers;\n"
@@ -85,13 +85,9 @@ static const char* Segments_Vertex_Shader_ES =
 "}\n"
 "void main() {\n"
 "  int vertex_id = int(vertex_id_float);\n"
-"  int instance = reverse_order ? instances_count - 1 - gl_InstanceID : gl_InstanceID;\n"
+"  int instance = first_instance + (reverse_order ? instances_count - 1 - gl_InstanceID : gl_InstanceID);\n"
 "  int id_a = int(texelFetch(segment_index_tex, tex_coord_u(segment_index_tex, instance), 0).r);\n"
 "  alpha = texelFetch(color_tex, tex_coord(color_tex, id_a), 0).a;\n"
-"  if ((alpha < 1.0) != translucent) {\n"
-"    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);\n"
-"    return;\n"
-"  }\n"
 "  int id_b = id_a + 1;\n"
 "  vec3 pos_a = texelFetch(position_tex, tex_coord(position_tex, id_a), 0).xyz;\n"
 "  vec3 pos_b = texelFetch(position_tex, tex_coord(position_tex, id_b), 0).xyz;\n"
