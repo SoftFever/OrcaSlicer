@@ -94,9 +94,9 @@ public:
     //
     void set_light_top_dir(const Vec3& direction);
     //
-    // ORCA: whether translucent filaments catch a highlight, on by default; the caller ties it to the realistic view.
+    // ORCA: whether the filaments catch an untinted highlight, on by default; the caller ties it to the realistic view.
     //
-    void set_translucent_gloss(bool gloss);
+    void set_gloss(bool gloss);
 
     //
     // ************************************************************************

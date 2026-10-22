@@ -9898,7 +9898,7 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
                               (_shadow_mode() != EShadowMode::Off || cfg->get_bool(SETTING_OPENGL_PHONG_SSAO));
     m_gcode_viewer.set_tone(lossy_passes ? 1.1f : 1.0f, 1.15f);
     m_gcode_viewer.set_light_top_dir(_static_light_dir_eye().value_or(Vec3d(-0.4574957, 0.4574957, 0.7624929)));
-    m_gcode_viewer.set_translucent_gloss(_is_realistic_view_enabled());
+    m_gcode_viewer.set_gloss(_is_realistic_view_enabled());
 
     m_gcode_viewer.render_scene(canvas_width, canvas_height);
     _bind_gcode_shadow_map(false);

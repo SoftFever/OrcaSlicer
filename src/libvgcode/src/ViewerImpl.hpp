@@ -99,7 +99,7 @@ public:
     // ORCA: section view, see Viewer::set_clipping_plane()
     void set_clipping_plane(const std::array<float, 4>& plane) { m_clipping_plane = plane; }
     void set_light_top_dir(const Vec3& direction) { m_light_top_dir = direction; }
-    void set_translucent_gloss(bool gloss) { m_translucent_gloss = gloss; }
+    void set_gloss(bool gloss) { m_gloss = gloss; }
 
     EViewType get_view_type() const { return m_settings.view_type; }
     void set_view_type(EViewType type);
@@ -579,8 +579,8 @@ private:
     float m_saturation{ 1.0f };
     // ORCA: the light the segments shader shades with, in eye space.
     Vec3 m_light_top_dir{ -0.4574957f, 0.4574957f, 0.7624929f };
-    // ORCA: the highlight of translucent filaments, see set_translucent_gloss()
-    bool m_translucent_gloss{ true };
+    // ORCA: the untinted highlight of the filaments, see set_gloss()
+    bool m_gloss{ true };
 
     // ORCA: section view
     std::array<float, 4> m_clipping_plane{ 0.0f, 0.0f, 0.0f, 1.0f };

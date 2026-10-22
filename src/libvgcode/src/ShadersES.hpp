@@ -16,6 +16,7 @@ static const char* Segments_Vertex_Shader_ES =
 "#define POINTY_CAPS\n"
 "#define FIX_TWISTING\n"
 "uniform vec3 light_top_dir;\n"
+"uniform float gloss_strength;\n"
 "const float light_top_diffuse = 0.6 * 0.8;\n"
 // ORCA: the specular was 0.6 * 0.125, too faint to give the filament any sheen.
 "const float light_top_specular = 0.6 * 0.25;\n"
@@ -78,7 +79,7 @@ static const char* Segments_Vertex_Shader_ES =
 "  float top_specular = light_top_specular * pow(max(dot(-normalize(eye_position), reflect(-light_top_dir, eye_normal)), 0.0), light_top_shininess);\n"
 "  return top_diffuse + front_diffuse + top_specular;\n"
 "}\n"
-// ORCA: a translucent filament takes its highlight in the fragment shader, untinted
+// ORCA: in realistic view, and on a translucent filament, the highlight is the fragment shader's, untinted
 "float diffuse_lighting(vec3 eye_normal) {\n"
 "  return light_top_diffuse * max(dot(eye_normal, light_top_dir), 0.0) + light_front_diffuse * max(dot(eye_normal, light_front_dir), 0.0);\n"
 "}\n"
@@ -210,12 +211,12 @@ static const char* Segments_Vertex_Shader_ES =
 "  vec3 eye_normal = (view_matrix * vec4(normalize(pos - endpoint_pos), 0.0)).xyz;\n"
 "  vec3 color_base = decode_color(texelFetch(color_tex, tex_coord(color_tex, id), 0).rgb, id, int(texelFetch(position_tex, tex_coord(position_tex, id), 0).w));\n"
 "  color = color_base * (ambient + emission);\n"
-"  color_direct = color_base * (alpha < 1.0 ? diffuse_lighting(eye_normal) : direct_lighting(eye_position, eye_normal));\n"
+"  color_direct = color_base * ((alpha < 1.0 || gloss_strength > 0.0) ? diffuse_lighting(eye_normal) : direct_lighting(eye_position, eye_normal));\n"
 "  world_position = pos;\n"
 "  shadow_normal = eye_normal;\n"
 "  segment_id = id_a;\n"
 "  cut_color_direct = clipping_plane.xyz == vec3(0.0) ? vec3(0.0) :\n"
-"    color_base * (alpha < 1.0 ? diffuse_lighting(mat3(view_matrix) * -clipping_plane.xyz) :\n"
+"    color_base * ((alpha < 1.0 || gloss_strength > 0.0) ? diffuse_lighting(mat3(view_matrix) * -clipping_plane.xyz) :\n"
 "                                direct_lighting(eye_position, mat3(view_matrix) * -clipping_plane.xyz));\n"
 "  gl_Position = projection_matrix * vec4(eye_position, 1.0);\n"
 "}\n";
@@ -323,7 +324,7 @@ static const char* Segments_Fragment_Shader_ES =
 "uniform lowp sampler2D height_width_angle_tex;\n"
 "const vec3 UP = vec3(0, 0, 1);\n"
 "const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);\n"
-// ORCA: translucent filaments are glossy in realistic view, with an untinted highlight their opacity does not dim
+// ORCA: in realistic view every filament is glossy, with an untinted highlight a translucent one's opacity does not dim
 "uniform float gloss_strength;\n"
 "const float GLOSS_SHININESS = 80.0;\n"
 "in vec3 color;\n"
@@ -403,16 +404,19 @@ static const char* Segments_Fragment_Shader_ES =
 "  }\n"
 "  c *= exposure;\n"
 "  c = mix(vec3(dot(c, LUMA)), c, saturation);\n"
+// ORCA: the normal across the extrusion, else its rounded ends catch the highlight as a bright spot
+"  float gloss = 0.0;\n"
+"  if (gloss_strength > 0.0) {\n"
+"    vec3 along = mat3(view_matrix) * (fetch(position_tex, segment_id + 1).xyz - fetch(position_tex, segment_id).xyz);\n"
+"    vec3 n = dot(along, along) > 1e-8 ? normal - dot(normal, along) / dot(along, along) * along : normal;\n"
+"    vec3 v = projection_matrix[3][3] == 1.0 ? vec3(0.0, 0.0, 1.0) : -normalize((view_matrix * vec4(position, 1.0)).xyz);\n"
+"    gloss = dot(n, n) > 1e-8 ? gloss_strength * pow(max(dot(v, reflect(-light_top_dir, normalize(n))), 0.0), GLOSS_SHININESS) * shade : 0.0;\n"
+"  }\n"
 "  if (alpha == 1.0) {\n"
-"    fragment_color = vec4(clamp(c, 0.0, 1.0), 1.0);\n"
+"    fragment_color = vec4(clamp(c + gloss, 0.0, 1.0), 1.0);\n"
 "    return;\n"
 "  }\n"
 // ORCA: translucent, premultiplied
-// ORCA: the normal across the extrusion, else its rounded ends catch the highlight as a bright spot
-"  vec3 along = mat3(view_matrix) * (fetch(position_tex, segment_id + 1).xyz - fetch(position_tex, segment_id).xyz);\n"
-"  vec3 n = dot(along, along) > 1e-8 ? normal - dot(normal, along) / dot(along, along) * along : normal;\n"
-"  vec3 v = projection_matrix[3][3] == 1.0 ? vec3(0.0, 0.0, 1.0) : -normalize((view_matrix * vec4(position, 1.0)).xyz);\n"
-"  float gloss = dot(n, n) > 1e-8 ? gloss_strength * pow(max(dot(v, reflect(-light_top_dir, normalize(n))), 0.0), GLOSS_SHININESS) * shade : 0.0;\n"
 "  fragment_color = vec4(clamp(c, 0.0, 1.0) * alpha + gloss, alpha);\n"
 "}\n";
 
