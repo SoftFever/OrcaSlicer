@@ -388,6 +388,50 @@ TEST_CASE("Toolchange gcode is bracketed against FanMover splitting its moves", 
     CHECK(count_occurrences(gcode_str, ";_FAN_MOVER_SKIP_START") <= 1);
 }
 
+TEST_CASE("Filament start and end G-code get the same placeholders on every toolchange path", "[MultiFilament]")
+{
+    const std::string path = GENERATE(as<std::string>{}, "direct", "type1");
+    CAPTURE(path);
+
+    DynamicPrintConfig config = multifilament_config(2, {
+        { "skirt_loops", 0 },
+        { "brim_type",   "no_brim" },
+    });
+    std::vector<std::vector<Slic3r::ConfigBase::SetDeserializeItem>> per_object_overrides;
+    if (path == "direct") {
+        config.set_deserialize_strict({ { "print_sequence", "by object" } });
+        per_object_overrides = { {}, { { "outer_wall_filament_id", "2" }, { "inner_wall_filament_id", "2" } } };
+    } else {
+        config.set_deserialize_strict({
+            { "enable_prime_tower", true },
+            { "wipe_tower_type",    "type1" },
+            { "prime_tower_width",  35 },
+            { "wipe_tower_x",       120 },
+            { "wipe_tower_y",       120 },
+            { "printable_area",     "0x0,200x0,200x200,0x200" },
+        });
+        per_object_overrides = { { { "extruder", "1" } }, { { "extruder", "2" } } };
+    }
+    const std::string start = "; filament start [filament_extruder_id] [layer_num] [layer_z] [max_layer_z]";
+    const std::string end   = "; filament end [filament_extruder_id] [layer_num] [layer_z] [max_layer_z]";
+    config.set_key_value("filament_start_gcode", new ConfigOptionStrings({ start, start }));
+    config.set_key_value("filament_end_gcode", new ConfigOptionStrings({ end, end }));
+
+    std::string gcode;
+    REQUIRE_NOTHROW(gcode = slice_with_object_overrides({ cube(20), cube(20) }, config, per_object_overrides));
+    CHECK(gcode.find("\n; filament start 1 ") != std::string::npos);
+    if (path == "direct") {
+        CHECK(gcode.find("\n; filament end 0 ") != std::string::npos);
+    } else {
+        // Most layers unload filament 1, which the extruder index (always 0 on this single nozzle) can't show,
+        // and the end of the print adds at most one such line.
+        size_t unloads_of_1 = 0;
+        for (size_t pos = gcode.find("\n; filament end 1 "); pos != std::string::npos; pos = gcode.find("\n; filament end 1 ", pos + 1))
+            ++unloads_of_1;
+        CHECK(unloads_of_1 > 1);
+    }
+}
+
 // With wait_for_temp_on_wipe_tower the blocking M109 moves from right after the Tn command to
 // a stop point parked beside the wipe tower (heat-up drool falls next to the tower, not onto
 // its top): tagged with _WAIT_FOR_TEMP_ON_WIPE_TOWER, after the toolchange and before the
