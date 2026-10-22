@@ -1,0 +1,884 @@
+{
+ "source": "OpenPrintTag material database",
+ "url": "https://github.com/OpenPrintTag/openprinttag-database",
+ "license": "MIT",
+ "copyright": "Copyright 2025 Prusa Research a.s.",
+ "unit": "mm",
+ "filaments": [
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Arctic Teal",
+   "type": "PLA",
+   "color": "#61bcc3",
+   "td": 0.6
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Army Beige",
+   "type": "PLA",
+   "color": "#dbbaa5",
+   "td": 0.7
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Army Blue",
+   "type": "PLA",
+   "color": "#2e4462",
+   "td": 0.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Army Brown",
+   "type": "PLA",
+   "color": "#795a4d",
+   "td": 0.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Army Dark Green",
+   "type": "PLA",
+   "color": "#5f6244",
+   "td": 0.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Army Light Green",
+   "type": "PLA",
+   "color": "#ab8c02",
+   "td": 0.8
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Army Purple",
+   "type": "PLA",
+   "color": "#36364a",
+   "td": 0.2
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Army Red",
+   "type": "PLA",
+   "color": "#bf312e",
+   "td": 0.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Ash Grey",
+   "type": "PLA",
+   "color": "#485155",
+   "td": 0.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Charcoal Black",
+   "type": "PLA",
+   "color": "#2f2e30",
+   "td": 0.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Cotton White",
+   "type": "PLA",
+   "color": "#f4efeb",
+   "td": 4.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Earth Brown",
+   "type": "PLA",
+   "color": "#7c594a",
+   "td": 0.2
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Electric Indigo",
+   "type": "PLA",
+   "color": "#6858a9",
+   "td": 0.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Emerald Green",
+   "type": "PLA",
+   "color": "#22624f",
+   "td": 0.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Forest Green",
+   "type": "PLA",
+   "color": "#60ad70",
+   "td": 0.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Fossil Grey",
+   "type": "PLA",
+   "color": "#8a8c94",
+   "td": 0.4
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Grass Green",
+   "type": "PLA",
+   "color": "#32bc46",
+   "td": 0.6
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Lava Red",
+   "type": "PLA",
+   "color": "#ed2f2e",
+   "td": 1.9
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Lavender Purple",
+   "type": "PLA",
+   "color": "#9572bf",
+   "td": 0.6
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Lime Green",
+   "type": "PLA",
+   "color": "#d7d602",
+   "td": 2.4
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Lotus Pink",
+   "type": "PLA",
+   "color": "#dd76c0",
+   "td": 2.0
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted Blue",
+   "type": "PLA",
+   "color": "#5f778e",
+   "td": 0.5
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted Green",
+   "type": "PLA",
+   "color": "#777e71",
+   "td": 0.5
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted Mauve",
+   "type": "PLA",
+   "color": "#a36d82",
+   "td": 0.9
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted Moss",
+   "type": "PLA",
+   "color": "#92864f",
+   "td": 0.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted Purple",
+   "type": "PLA",
+   "color": "#7c5c78",
+   "td": 0.6
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted Red",
+   "type": "PLA",
+   "color": "#d84b2e",
+   "td": 1.4
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted Teal",
+   "type": "PLA",
+   "color": "#5d989e",
+   "td": 0.4
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted Terracotta",
+   "type": "PLA",
+   "color": "#c06443",
+   "td": 0.8
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Muted White",
+   "type": "PLA",
+   "color": "#bbada4",
+   "td": 0.7
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Banana",
+   "type": "PLA",
+   "color": "#f7d475",
+   "td": 3.6
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Beige",
+   "type": "PLA",
+   "color": "#e4d0b0",
+   "td": 1.6
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Candy",
+   "type": "PLA",
+   "color": "#f0d6d9",
+   "td": 2.9
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Coral",
+   "type": "PLA",
+   "color": "#f09a7e",
+   "td": 2.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Ice",
+   "type": "PLA",
+   "color": "#a4d0df",
+   "td": 1.8
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Mint",
+   "type": "PLA",
+   "color": "#d2debb",
+   "td": 2.9
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Peach",
+   "type": "PLA",
+   "color": "#f6bf8b",
+   "td": 3.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Peanut",
+   "type": "PLA",
+   "color": "#bf9573",
+   "td": 0.7
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Periwinkle",
+   "type": "PLA",
+   "color": "#d3c6ff",
+   "td": 1.5
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Pastel Watermelon",
+   "type": "PLA",
+   "color": "#ee474b",
+   "td": 2.4
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Raspberry Blue",
+   "type": "PLA",
+   "color": "#5472d0",
+   "td": 0.5
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Sakura Pink",
+   "type": "PLA",
+   "color": "#eaadbd",
+   "td": 2.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Sapphire Blue",
+   "type": "PLA",
+   "color": "#0163a6",
+   "td": 0.5
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Savannah Yellow",
+   "type": "PLA",
+   "color": "#f3c432",
+   "td": 3.5
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Seafoam Green",
+   "type": "PLA",
+   "color": "#7dd4be",
+   "td": 1.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Sky Blue",
+   "type": "PLA",
+   "color": "#1ac5fc",
+   "td": 1.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Sunrise Orange",
+   "type": "PLA",
+   "color": "#f88b17",
+   "td": 2.9
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Sunshine Yellow",
+   "type": "PLA",
+   "color": "#f9da07",
+   "td": 2.3
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Wine Burgundy",
+   "type": "PLA",
+   "color": "#753e4c",
+   "td": 0.1
+  },
+  {
+   "brand": "polymaker",
+   "name": "Panchroma Matte PLA Wood Brown",
+   "type": "PLA",
+   "color": "#ab7449",
+   "td": 0.2
+  },
+  {
+   "brand": "printedsolid",
+   "name": "Jessie Premium PLA 3DPN Vanilla Bean Ice Cream",
+   "type": "PLA",
+   "color": "#acb1ba",
+   "td": 2.3
+  },
+  {
+   "brand": "printedsolid",
+   "name": "Jessie Premium PLA Bold Blue",
+   "type": "PLA",
+   "color": "#2e56f1",
+   "td": 2.4
+  },
+  {
+   "brand": "printedsolid",
+   "name": "Jessie Premium PLA Golden Winner Glitter",
+   "type": "PLA",
+   "color": "#816300",
+   "td": 2.7
+  },
+  {
+   "brand": "printedsolid",
+   "name": "Jessie Premium PLA Green Slime Glitter",
+   "type": "PLA",
+   "color": "#a1ac21",
+   "td": 3.7
+  },
+  {
+   "brand": "printedsolid",
+   "name": "Jessie Premium PLA Limer Green",
+   "type": "PLA",
+   "color": "#7fe200",
+   "td": 2.0
+  },
+  {
+   "brand": "printedsolid",
+   "name": "Jessie Premium PLA Neon Green",
+   "type": "PLA",
+   "color": "#c4dc00",
+   "td": 9.0
+  },
+  {
+   "brand": "printedsolid",
+   "name": "Jessie Premium PLA Quarter White",
+   "type": "PLA",
+   "color": "#efefef",
+   "td": 6.1
+  },
+  {
+   "brand": "printedsolid",
+   "name": "Jessie Premium PLA White",
+   "type": "PLA",
+   "color": "#ffffff",
+   "td": 3.1
+  },
+  {
+   "brand": "prusament",
+   "name": "ASA Jet Black",
+   "type": "ASA",
+   "color": "#292824",
+   "td": 0.4
+  },
+  {
+   "brand": "prusament",
+   "name": "ASA Lipstick Red",
+   "type": "ASA",
+   "color": "#d02f37",
+   "td": 2.0
+  },
+  {
+   "brand": "prusament",
+   "name": "ASA Natural",
+   "type": "ASA",
+   "color": "#d6d6cd",
+   "td": 6.5
+  },
+  {
+   "brand": "prusament",
+   "name": "ASA Prusa Galaxy Black",
+   "type": "ASA",
+   "color": "#3e413f",
+   "td": 0.1
+  },
+  {
+   "brand": "prusament",
+   "name": "ASA Prusa Orange",
+   "type": "ASA",
+   "color": "#f55928",
+   "td": 4.4
+  },
+  {
+   "brand": "prusament",
+   "name": "ASA Sapphire Blue",
+   "type": "ASA",
+   "color": "#3b4468",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "ASA Signal White",
+   "type": "ASA",
+   "color": "#e3dfd9",
+   "td": 2.4
+  },
+  {
+   "brand": "prusament",
+   "name": "PC Blend Carbon Fiber Black",
+   "type": "PC",
+   "color": "#262727",
+   "td": 0.1
+  },
+  {
+   "brand": "prusament",
+   "name": "PC Blend Jet Black",
+   "type": "PC",
+   "color": "#24292a",
+   "td": 0.4
+  },
+  {
+   "brand": "prusament",
+   "name": "PC Blend Natural",
+   "type": "PC",
+   "color": "#dfdfd3",
+   "td": 11.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PC Blend Prusa Orange",
+   "type": "PC",
+   "color": "#ea5e1a",
+   "td": 6.4
+  },
+  {
+   "brand": "prusament",
+   "name": "PC Blend Urban Grey",
+   "type": "PC",
+   "color": "#999596",
+   "td": 0.5
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Anthracite Grey",
+   "type": "PETG",
+   "color": "#3f4647",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Carbon Fiber Black",
+   "type": "PETG",
+   "color": "#3b353a",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Carmine Red",
+   "type": "PETG",
+   "color": "#b54230",
+   "td": 6.2
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Chalky Blue",
+   "type": "PETG",
+   "color": "#6f9aaa",
+   "td": 0.6
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Clear",
+   "type": "PETG",
+   "color": "#e4e7e5",
+   "td": 100.0
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Jet Black",
+   "type": "PETG",
+   "color": "#292b2b",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Jungle Green",
+   "type": "PETG",
+   "color": "#007249",
+   "td": 0.5
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Lipstick Red",
+   "type": "PETG",
+   "color": "#bb2e33",
+   "td": 2.8
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Mango Yellow",
+   "type": "PETG",
+   "color": "#f2b70a",
+   "td": 2.6
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Matte Black",
+   "type": "PETG",
+   "color": "#303635",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Neon Green",
+   "type": "PETG",
+   "color": "#a6ec5f",
+   "td": 75.0
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Ocean Blue",
+   "type": "PETG",
+   "color": "#194c55",
+   "td": 3.0
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Pistachio Green",
+   "type": "PETG",
+   "color": "#93a683",
+   "td": 0.9
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Prusa Galaxy Black",
+   "type": "PETG",
+   "color": "#3d3e3d",
+   "td": 0.2
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Prusa Orange",
+   "type": "PETG",
+   "color": "#eb5405",
+   "td": 6.2
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Prusa Orange Transparent",
+   "type": "PETG",
+   "color": "#f17231",
+   "td": 44.2
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Signal White",
+   "type": "PETG",
+   "color": "#e5e0e3",
+   "td": 3.4
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Terracotta Light",
+   "type": "PETG",
+   "color": "#b87f6a",
+   "td": 1.5
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Tungsten 75%",
+   "type": "PETG",
+   "color": "#545252",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Ultramarine Blue",
+   "type": "PETG",
+   "color": "#2b3b61",
+   "td": 8.2
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Urban Grey",
+   "type": "PETG",
+   "color": "#95908d",
+   "td": 0.5
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG V0 Jet Black",
+   "type": "PETG",
+   "color": "#363331",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG V0 Natural",
+   "type": "PETG",
+   "color": "#dee2da",
+   "td": 10.4
+  },
+  {
+   "brand": "prusament",
+   "name": "PETG Yellow Gold",
+   "type": "PETG",
+   "color": "#9a8524",
+   "td": 9.2
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Army Green",
+   "type": "PLA",
+   "color": "#524f2f",
+   "td": 0.4
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Azure Blue",
+   "type": "PLA",
+   "color": "#008fbe",
+   "td": 5.5
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Blend Lime Green",
+   "type": "PLA",
+   "color": "#9eb426",
+   "td": 3.5
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Blend Ms. Pink",
+   "type": "PLA",
+   "color": "#ff36ac",
+   "td": 4.1
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Blend My Silverness",
+   "type": "PLA",
+   "color": "#8894a3",
+   "td": 1.0
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Blend Oh My Gold",
+   "type": "PLA",
+   "color": "#daa900",
+   "td": 4.1
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Blend Pearl White",
+   "type": "PLA",
+   "color": "#d1d8df",
+   "td": 5.4
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Blend Royal Blue",
+   "type": "PLA",
+   "color": "#0065aa",
+   "td": 0.8
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Blend Viva La Bronze",
+   "type": "PLA",
+   "color": "#bc8624",
+   "td": 1.9
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Galaxy Green",
+   "type": "PLA",
+   "color": "#334728",
+   "td": 3.2
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Galaxy Purple",
+   "type": "PLA",
+   "color": "#563b7c",
+   "td": 4.7
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Galaxy Silver",
+   "type": "PLA",
+   "color": "#a4a0a3",
+   "td": 6.4
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Gentleman's Grey",
+   "type": "PLA",
+   "color": "#294748",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Gravity Grey",
+   "type": "PLA",
+   "color": "#a9a9b0",
+   "td": 0.7
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Jet Black",
+   "type": "PLA",
+   "color": "#222f2e",
+   "td": 0.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Lipstick Red",
+   "type": "PLA",
+   "color": "#c20019",
+   "td": 3.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Marble Grey",
+   "type": "PLA",
+   "color": "#c2c2c5",
+   "td": 3.5
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Mystic Brown",
+   "type": "PLA",
+   "color": "#582c2f",
+   "td": 1.8
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Mystic Green",
+   "type": "PLA",
+   "color": "#5f5d3d",
+   "td": 1.0
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Opal Green",
+   "type": "PLA",
+   "color": "#005d48",
+   "td": 4.0
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Pearl Mouse",
+   "type": "PLA",
+   "color": "#968d80",
+   "td": 2.3
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Pineapple Yellow",
+   "type": "PLA",
+   "color": "#eabd00",
+   "td": 7.6
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Pristine White",
+   "type": "PLA",
+   "color": "#e9e7e4",
+   "td": 5.1
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Prusa Galaxy Black",
+   "type": "PLA",
+   "color": "#4b4545",
+   "td": 0.2
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Prusa Orange",
+   "type": "PLA",
+   "color": "#ff7041",
+   "td": 6.6
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Simply Green",
+   "type": "PLA",
+   "color": "#6fa02d",
+   "td": 3.0
+  },
+  {
+   "brand": "prusament",
+   "name": "PLA Vanilla White",
+   "type": "PLA",
+   "color": "#e1d3c3",
+   "td": 7.1
+  },
+  {
+   "brand": "prusament",
+   "name": "rPLA Algae Pigment",
+   "type": "PLA",
+   "color": "#674b42",
+   "td": 4.2
+  },
+  {
+   "brand": "prusament",
+   "name": "rPLA Corn Pigment",
+   "type": "PLA",
+   "color": "#b37b47",
+   "td": 6.2
+  },
+  {
+   "brand": "prusament",
+   "name": "rPLA Risotto Pigment",
+   "type": "PLA",
+   "color": "#ccc9c0",
+   "td": 11.0
+  },
+  {
+   "brand": "prusament",
+   "name": "rPLA Wine Pigment",
+   "type": "PLA",
+   "color": "#5e4940",
+   "td": 2.8
+  }
+ ]
+}

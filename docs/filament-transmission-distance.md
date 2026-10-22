@@ -6,18 +6,28 @@ above for a nearly clear one. It is the number every translucent-layer colour to
 
 Nothing in slicing reads it. The option exists so that the value has somewhere to live.
 
-## Why no values ship with the profiles
+## Why the values are a table and not preset defaults
 
 Every published transmission distance is **per colour**. OrcaSlicer's filament presets are **per
 product line**: `Panchroma PLA Matte @base` covers every colour Polymaker sells under that name, and
 their own published values for that one line run from about 0.1 to about 4.1. There is no colour to
-attach a number to, so putting one on the preset would mean choosing a representative colour - an
+attach a number to, so a default on the preset would mean choosing a representative colour - an
 editorial guess wearing the clothes of a measurement, and wrong for most spools of that line.
 
-No source states the conditions either: not a layer height, not an instrument, not an illuminant. A
-transmission distance without its method is approximate however good its provenance.
+So the values ship as `resources/filament_transmission_distance.json`, keyed by colour, and
+`filament_td_lookup()` consults it for a filament whose preset is still at the option's default. It
+needs both halves to agree: at least two words in common with a line the table knows, and a colour
+within 6 dE of one of that line's colours. That threshold is measured against the table rather than
+chosen - inside a line the colours are well separated, so at 12 the worst pair it holds could be
+confused (Cotton White at 4.1 against Pastel Candy at 2.9), while at 6 the worst remaining confusion
+is 0.1 mm. No match is the right answer when in doubt: a white filament handed the number measured
+for a grey one is worse than a default, because it is wrong and it looks measured.
 
-So the field ships empty-handed, and the value comes from whoever has the spool.
+A value somebody typed, or measured, always wins over the table.
+
+The table is small - 125 colours across three brands - and it is a seed rather than coverage. No
+source states the conditions either: not a layer height, not an instrument, not an illuminant. A
+transmission distance without its method is approximate however good its provenance.
 
 ## Getting a value
 
@@ -35,7 +45,7 @@ profile knows what is safe to copy.
 
 | Source | Licence | Shape |
 | --- | --- | --- |
-| [OpenPrintTag material database](https://github.com/OpenPrintTag/openprinttag-database) | MIT, Copyright 2025 Prusa Research a.s. | ~125 per-colour values across Prusament, Polymaker and Printed Solid. The only openly licensed set whose numbers trace back to the brand that published them. |
+| [OpenPrintTag material database](https://github.com/OpenPrintTag/openprinttag-database) | MIT, Copyright 2025 Prusa Research a.s. | ~125 per-colour values across Prusament, Polymaker and Printed Solid. The only openly licensed set whose numbers trace back to the brand that published them, and the one this ships. |
 | [Prusa's HueForge TD and hex table](https://help.prusa3d.com/article/hueforge-filament-transparency-values-and-hexcodes_762314) | none stated | ~78 per-colour values for Prusament, measured by Prusa for its own filament. |
 | [Polymaker's hex codes and transmission distances](https://wiki.polymaker.com/polymaker-products/more-about-our-products/hex-codes-and-transmission-distances) | none stated | ~400 per-colour values, the largest manufacturer table. |
 
