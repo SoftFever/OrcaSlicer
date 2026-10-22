@@ -28,6 +28,11 @@ if (ORCA_TOOLS)
     target_link_libraries(generate_system_cache libslic3r boost_headeronly)
     target_compile_definitions(generate_system_cache PRIVATE ${_DEV_DEFS})
 
+    # opc_json: decodes a per-vendor <vendor>.opc cache to editable JSON and rebuilds it.
+    add_executable(opc_json opc_json.cpp)
+    target_link_libraries(opc_json libslic3r boost_headeronly)
+    target_compile_definitions(opc_json PRIVATE ${_DEV_DEFS})
+
     # texture_unwrap_dump: reports the LSCM unwrap of a saved project's texture displacement layers,
     # chart by chart, so a defect can be reproduced from the project file instead of from a screenshot.
     add_executable(texture_unwrap_dump texture_unwrap_dump.cpp)
