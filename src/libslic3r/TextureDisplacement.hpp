@@ -599,8 +599,9 @@ DecodedHeightTexture downscale_height_texture(const DecodedHeightTexture &src, i
 // colour PNGs are accepted; for a colour source the height is its luminance, using the same
 // coefficients wxImage::ConvertToGreyscale() uses, so a texture imported as colour displaces exactly
 // as it did when the importer flattened it to grey on the way in. Returns an empty
-// DecodedHeightTexture if image_data is empty or is not a PNG at all.
-DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer);
+// DecodedHeightTexture if image_data is empty or is not a PNG at all. keep_decoded = false leaves the
+// result out of the decode cache, for one-off reads such as a picker thumbnail that must not hold full-size pixels.
+DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer, bool keep_decoded = true);
 
 // decode_height_texture(layer).has_color(), answered from the decode cache rather than from a copy of the
 // texture - cheap enough to ask every frame. Smoothing does not change it, so the raw decode is what is read.

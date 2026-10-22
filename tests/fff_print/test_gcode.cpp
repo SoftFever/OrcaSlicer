@@ -51,6 +51,44 @@ TEST_CASE("Klipper object labels name each copy without the characters Klipper c
     }
 }
 
+// The outline written to EXCLUDE_OBJECT_DEFINE is simplified with exclude_object_tolerance. A larger value must
+// leave fewer points, which keeps the exclude-object array small on printers that stall while parsing it.
+TEST_CASE("A larger exclude object tolerance writes fewer outline points", "[GCode]")
+{
+    const auto slice_with_tolerance = [](const std::string &tolerance) {
+        DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+        config.set_deserialize_strict({{"gcode_flavor", "klipper"}, {"exclude_object", "1"},
+                                       {"exclude_object_tolerance", tolerance}});
+        // Default facet angle (2 degrees): 180 hull points, well inside either tolerance.
+        return Test::slice({make_cylinder(20., 5.)}, config);
+    };
+    // Points of the POLYGON=[[x,y],...] on the first EXCLUDE_OBJECT_DEFINE line.
+    const auto polygon_points = [](const std::string &gcode) {
+        const size_t define = gcode.find("EXCLUDE_OBJECT_DEFINE");
+        REQUIRE(define != std::string::npos);
+        const size_t begin = gcode.find("POLYGON=", define);
+        REQUIRE(begin != std::string::npos);
+        const std::string polygon = gcode.substr(begin, gcode.find('\n', begin) - begin);
+        size_t points = 1;
+        for (size_t pos = polygon.find("],["); pos != std::string::npos; pos = polygon.find("],[", pos + 1))
+            ++points;
+        return points;
+    };
+
+    const size_t fine   = polygon_points(slice_with_tolerance("0.1"));
+    const size_t coarse = polygon_points(slice_with_tolerance("0.4"));
+    INFO("points at 0.1 mm: " << fine << ", at 0.4 mm: " << coarse);
+    CHECK(coarse >= 4);
+    CHECK(coarse < fine);
+}
+
+// Existing profiles must keep writing the outlines they wrote when the tolerance was a constant 0.1 mm.
+TEST_CASE("The exclude object tolerance defaults to the former fixed 0.1 mm", "[GCode]")
+{
+    CHECK_THAT(DynamicPrintConfig::full_print_config().opt_float("exclude_object_tolerance"),
+               Catch::Matchers::WithinAbs(0.1, 1e-9));
+}
+
 // Firmwares read the compatibility header lines (Anycubic's GoKlipper heats the bed with
 // first_layer_bed_temperature), so they must describe the filament the plate prints, not filament 1.
 TEST_CASE("The G-code header names the first layer temperatures of the filament the plate prints", "[GCode]")

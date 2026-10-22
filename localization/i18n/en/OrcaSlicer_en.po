@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2026-06-17 15:44-0300\n"
 "Last-Translator: Alexandre Folle de Menezes\n"
 "Language-Team: \n"
@@ -1633,16 +1633,16 @@ msgstr ""
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr ""
 
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr ""
 
 msgid "No embossed file"
 msgstr ""
 
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr ""
 
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr ""
 
 msgid "Face the camera"
@@ -4575,7 +4575,7 @@ msgstr ""
 msgid "Unknown C++ exception."
 msgstr ""
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr ""
 
 msgid "Slicing complete"
@@ -6045,7 +6045,7 @@ msgstr ""
 msgid "Size:"
 msgstr ""
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
@@ -10653,6 +10653,9 @@ msgstr ""
 msgid "Send Failed"
 msgstr ""
 
+msgid "No available printers"
+msgstr ""
+
 msgid "The name length exceeds the limit."
 msgstr ""
 
@@ -12311,7 +12314,7 @@ msgstr ""
 msgid "Left mouse"
 msgstr ""
 
-msgid "Available anywhere in the window, even while typing in a text field."
+msgid "Available anywhere in the window."
 msgstr ""
 
 msgid "Run favorite 1 to 10"
@@ -12406,9 +12409,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
-msgstr ""
-
-msgid "Global shortcuts also apply while typing."
 msgstr ""
 
 msgid "A key that types a character cannot be a global shortcut."
@@ -15639,6 +15639,12 @@ msgid "Exclude objects"
 msgstr ""
 
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
+msgstr ""
+
+msgid "Outline tolerance"
+msgstr ""
+
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
 msgstr ""
 
 msgid "Verbose G-code"
@@ -20536,7 +20542,7 @@ msgid "test %s start..."
 msgstr ""
 
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr ""
 
 #, c-format, boost-format
@@ -26488,17 +26494,18 @@ msgstr ""
 msgid "Basic Colors"
 msgstr ""
 
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
 msgid "Orca Palette"
 msgstr ""
 
-#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "RAL Classic"
 msgstr ""
 
-#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "Gradients"
 msgstr ""
 
+msgctxt "Color picker"
 msgid "Solid"
 msgstr ""
 
@@ -26873,7 +26880,7 @@ msgstr ""
 msgid "Medium violet red"
 msgstr ""
 
-msgid "PaleV violet red"
+msgid "Pale violet red"
 msgstr ""
 
 msgid "Deep pink"
@@ -27035,7 +27042,7 @@ msgstr ""
 msgid "Shallow sky"
 msgstr ""
 
-msgid "Electric bel"
+msgid "Electric blue"
 msgstr ""
 
 msgid "Dolphin"
@@ -27104,7 +27111,7 @@ msgstr ""
 msgid "Maize yellow"
 msgstr ""
 
-msgid "Dalmatian yellow"
+msgid "Daffodil yellow"
 msgstr ""
 
 msgid "Brown beige"
@@ -27365,7 +27372,7 @@ msgstr ""
 msgid "Turquoise blue"
 msgstr ""
 
-msgid "Capsanthin violet"
+msgid "Capri blue"
 msgstr ""
 
 msgid "Ocean blue"
@@ -27479,7 +27486,7 @@ msgstr ""
 msgid "Silver grey"
 msgstr ""
 
-msgid "Olivestone"
+msgid "Olive grey"
 msgstr ""
 
 msgid "Moss grey"
@@ -28067,10 +28074,19 @@ msgstr ""
 msgid "Built-in"
 msgstr ""
 
+msgid "My textures"
+msgstr ""
+
 msgid "No textures found."
 msgstr ""
 
-msgid "My textures"
+msgid "Texture libraries"
+msgstr ""
+
+msgid "Explore more texture libraries"
+msgstr ""
+
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
 msgstr ""
 
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -30123,6 +30139,9 @@ msgstr ""
 msgid "Slicing Pipeline"
 msgstr ""
 
+msgid "Resource Texture"
+msgstr ""
+
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr ""
 
@@ -30236,6 +30255,24 @@ msgid "Plugin directory contains both .py and .whl entry files"
 msgstr ""
 
 msgid "Plugin directory does not contain a .py or .whl entry file"
+msgstr ""
+
+msgid "Resource texture directory is not set"
+msgstr ""
+
+msgid "Resource texture directory could not be resolved"
+msgstr ""
+
+msgid "Resource texture path is not a directory"
+msgstr ""
+
+msgid "Plugin folder could not be resolved"
+msgstr ""
+
+msgid "Resource texture directory is outside the plugin folder"
+msgstr ""
+
+msgid "Resource texture directory could not be read"
 msgstr ""
 
 #, boost-format
@@ -30594,7 +30631,7 @@ msgstr ""
 
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr ""
 
 #. TRN %1% is a tag in the G-code file that must not be translated.
@@ -30682,7 +30719,7 @@ msgstr ""
 msgid "Failed making a temporary copy of G-code file %1% before running a post-processing script: %2%"
 msgstr ""
 
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr ""
 
 #, boost-format

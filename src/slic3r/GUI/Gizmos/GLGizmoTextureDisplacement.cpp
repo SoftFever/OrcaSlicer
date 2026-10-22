@@ -174,6 +174,10 @@ constexpr int HEIGHT_TEX_MAX_PX = 2048;
 // The full-size image is only ever adjusted once, on commit.
 constexpr int ADJUST_PREVIEW_MAX_PX = 384;
 
+// Library textures the texture picker decodes per frame. Each decode runs on the GUI thread, so the
+// rest of the visible tiles fill in over the following frames instead of in one stall.
+constexpr int PICKER_LOADS_PER_FRAME = 2;
+
 // How many rings of vertex-adjacent triangles either side of the paint's edge join the border refine
 // band (see collect_paint_region()). Two is enough to grade the size change without the band's own
 // cost growing to matter: it is a ring around a perimeter, not an area.
@@ -4118,7 +4122,7 @@ const GLGizmoTextureDisplacement::LibraryTexture *GLGizmoTextureDisplacement::ge
     if (entry.image_data) {
         TextureDisplacementLayer probe;
         probe.image_data = entry.image_data;
-        entry.thumbnail  = upload_height_thumbnail(decode_height_texture(probe));
+        entry.thumbnail  = upload_height_thumbnail(decode_height_texture(probe, /* keep_decoded */ false));
         if (!entry.thumbnail)
             entry.image_data.reset(); // decoded to nothing usable - treat it as a failed load
     } else {
@@ -4331,6 +4335,8 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
     std::optional<TextureLibraryEntry> to_remove;
     bool                               import_clicked = false;
     bool                               download_clicked = false;
+    int                                loads_left       = PICKER_LOADS_PER_FRAME;
+    bool                               loads_deferred   = false;
 
     // Tiles are placed on the four-column grid explicitly rather than flowed with SameLine(): a user tile
     // overlays a remove button on its corner, and that button would otherwise be "the previous item" the
@@ -4348,11 +4354,30 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
     };
     // One section's tiles, in the order the section holds them (shipped alphabetically, pack textures by
     // name, the user's own most recently used first - the order texture_library() produced); a user tile
-    // carries a remove button on hover. Returns how many it drew.
+    // carries a remove button on hover. Returns how many tiles it laid out, drawn or not.
     const auto grid = [&](const ImVec2 &origin, const std::vector<const TextureLibraryEntry *> &entries, bool removable) {
         int n = 0;
         for (const TextureLibraryEntry *entry : entries) {
-            ImGui::SetCursorScreenPos(tile_pos(origin, n++));
+            const ImVec2 rect_min = tile_pos(origin, n++);
+            const ImVec2 rect_max = ImVec2(rect_min.x + tile, rect_min.y + tile);
+            const bool   current  = entry->path == layer->path;
+            // The selected tile is centred even when it is off screen, so it is drawn and loaded next frame.
+            if (current && m_picker_reveal_selected) {
+                ImGui::SetScrollFromPosY(0.5f * (rect_min.y + rect_max.y) - ImGui::GetWindowPos().y, 0.5f);
+                m_parent.request_extra_frame();
+            }
+            if (!ImGui::IsRectVisible(rect_min, rect_max))
+                continue;
+            // Thumbnails decode on this thread, so only a few per frame; the rest fill in on later frames.
+            const bool cached = m_library_textures.count(entry->path) != 0;
+            if (!cached && loads_left == 0) {
+                loads_deferred = true;
+                dl->AddRectFilled(rect_min, rect_max, ImGui::GetColorU32(ImGuiCol_FrameBg), style.FrameRounding);
+                continue;
+            }
+            if (!cached)
+                --loads_left;
+            ImGui::SetCursorScreenPos(rect_min);
             ImGui::PushID(entry->path.c_str());
             const LibraryTexture *tex     = get_library_texture(entry->path);
             GLTexture            *thumb   = tex != nullptr ? tex->thumbnail.get() : nullptr;
@@ -4375,7 +4400,6 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
             if (removable)
                 ImGui::SetItemAllowOverlap(); // the remove button drawn over its corner takes its own clicks
             const ImVec2 a       = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax();
-            const bool   current = entry->path == layer->path;
             const bool   hovered = ImGui::IsItemHovered();
             // The layer's current texture carries an accent ring, and the tile under the pointer a thinner,
             // fainter one. Both are drawn inside the tile, where the grid's clip rect never cuts them.
@@ -4384,9 +4408,6 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
                 dl->AddRect(ImVec2(a.x + 0.5f * w, a.y + 0.5f * w), ImVec2(b.x - 0.5f * w, b.y - 0.5f * w),
                             ImGui::GetColorU32(current ? orca : ImVec4(orca.x, orca.y, orca.z, 0.6f)), 0.f, 0, w);
             }
-            // Centred, as far as the scroll range allows, so the textures around it are in view too.
-            if (current && m_picker_reveal_selected)
-                ImGui::SetScrollFromPosY(0.5f * (a.y + b.y) - ImGui::GetWindowPos().y, 0.5f);
             if (hovered)
                 panel_tooltip(entry->name);
 
@@ -4575,6 +4596,8 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         ImGui::TextDisabled("%s", _u8L("PNG, JPG or BMP - converted to a height map on import. Hover one of yours to remove it.").c_str());
         ImGui::PopTextWrapPos();
     }
+    if (loads_deferred)
+        m_parent.request_extra_frame();
     // Done whether or not the current texture was drawn: one in a collapsed section stays where it is.
     m_picker_reveal_selected = false;
     ImGui::EndChild();
