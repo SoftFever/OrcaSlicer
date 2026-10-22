@@ -73,7 +73,11 @@ out of an opaque one. A translucent segment, and in realistic view any segment, 
 the fragment shader at the bisector plane of each joint of its path, keeping 0.02 mm past it: the
 faces each segment turns to the camera do not quite meet without their caps. A vertex where two
 segments of a path meet carries 0.5 on top of its layer in the w of its position, which the shaders
-otherwise read as an int.
+otherwise read as an int. That includes the joints across the vertex repeated in place that starts
+a new path wherever the flow, acceleration or jerk changes (`starts_path()` in
+`LibVGCodeWrapper.cpp`), which real G-code has at most of its joints: the shader then takes the
+neighbour one vertex further, and the caps the angle of the joint, which the vertex data leaves at 0
+there.
 
 The translucent segments are not sorted by depth. The opaque pass draws the last printed segments
 first when looking down, to cut overdraw. The translucent pass draws them the other way round, so the

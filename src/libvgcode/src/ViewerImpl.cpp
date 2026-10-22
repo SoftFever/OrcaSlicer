@@ -1010,6 +1010,25 @@ void ViewerImpl::reset()
 // To let all drivers be happy, we use GL_RGBA32F format, so we need to add an extra float
 // to position and heights_widths_angles vectors
 
+// whether a line is drawn from vertex i to vertex i + 1
+static bool is_line(const std::vector<PathVertex>& vertices, size_t i)
+{
+    return i + 1 < vertices.size() && vertices[i + 1].position != vertices[i].position &&
+           vertices[i + 1].type == vertices[i].type && vertices[i].type != EMoveType::Seam;
+}
+
+// ORCA: whether two lines meet at vertex i, also across the vertex repeated in place that starts a path split
+// where a value the preview colors by changes, see starts_path() in LibVGCodeWrapper.cpp
+static bool is_joint(const std::vector<PathVertex>& vertices, size_t i)
+{
+    auto repeated = [&vertices](size_t j) {
+        return j + 1 < vertices.size() && vertices[j + 1].position == vertices[j].position && vertices[j + 1].type == vertices[j].type;
+    };
+    const bool before = i > 0 && (is_line(vertices, i - 1) || (i > 1 && repeated(i - 1) && is_line(vertices, i - 2)));
+    const bool after = is_line(vertices, i) || (repeated(i) && is_line(vertices, i + 1));
+    return before && after;
+}
+
 static void extract_pos_and_or_hwa(const std::vector<PathVertex>& vertices, float travels_radius, float wipes_radius, BitSet<>& valid_lines_bitset,
     std::vector<Vec4>* positions = nullptr, std::vector<Vec4>* heights_widths_angles = nullptr, bool update_bitset = false) {
   static constexpr const Vec3 ZERO = { 0.0f, 0.0f, 0.0f };
@@ -1029,10 +1048,7 @@ static void extract_pos_and_or_hwa(const std::vector<PathVertex>& vertices, floa
         const EMoveType move_type = v.type;
         const bool prev_line_valid = i > 0 && valid_lines_bitset[i - 1];
         const Vec3 prev_line = prev_line_valid ? v.position - vertices[i - 1].position : ZERO;
-        const bool this_line_valid = i + 1 < vertices.size() &&
-                                     vertices[i + 1].position != v.position &&
-                                     vertices[i + 1].type == move_type &&
-                                     move_type != EMoveType::Seam;
+        const bool this_line_valid = is_line(vertices, i);
         const Vec3 this_line = this_line_valid ? vertices[i + 1].position - v.position : ZERO;
 
         if (this_line_valid) {
@@ -1048,7 +1064,7 @@ static void extract_pos_and_or_hwa(const std::vector<PathVertex>& vertices, floa
             // ORCA: the last component, there to comply with GL_RGBA32F format, carries the layer the shaders grey and dim by,
             // plus 0.5 at the joint of two segments, which the shaders read as an int, see joint_a in Segments_Vertex_Shader
             Vec4 position = { v.position[0], v.position[1], v.position[2],
-                              static_cast<float>(v.layer_id) + (prev_line_valid && this_line_valid ? 0.5f : 0.0f) };
+                              static_cast<float>(v.layer_id) + (is_joint(vertices, i) ? 0.5f : 0.0f) };
             if (move_type == EMoveType::Extrude)
                 // push down extrusion vertices by half height to render them at the right z
                 position[2] -= 0.5f * v.height;
