@@ -389,6 +389,7 @@ function ShowRecentFileList( pList )
 	}
 	
 	$("#FileList").html(strHtml);	
+	TranslatePage();   // translate the data-i18n attributes on the freshly inserted cards
 	
     Set_RecentFile_MouseRightBtn_Event();
 	UpdateRecentClearBtnDisplay();
