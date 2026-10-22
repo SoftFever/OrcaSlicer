@@ -1,6 +1,7 @@
 #include "PresetComboBoxes.hpp"
 
 #include <climits>
+#include <cstring>
 #include <boost/log/trivial.hpp>
 #include <cassert>
 #include <boost/algorithm/string/replace.hpp>
