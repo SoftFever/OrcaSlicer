@@ -22,8 +22,7 @@ int report_denied(PluginAuditManager&       mgr,
 
 // Used only when the manager is not in observation mode. The GUI implementation consults the
 // install state, prompts and persists; the probe implementation fails closed.
-bool request_filesystem_read_permissions(const std::string&              plugin_key,
-                                         const std::vector<std::string>& paths);
+bool request_permissions(const std::string& plugin_key, const PluginPermissions& requested);
 
 // Decides an event that no allowed root or running operation covered. The GUI implementation
 // reads the install state and prompts; the probe implementation fails closed. In observation

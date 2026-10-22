@@ -11,11 +11,12 @@
 
 namespace Slic3r::plugin_audit {
 
-bool request_filesystem_read_permissions(const std::string&              plugin_key,
-                                         const std::vector<std::string>& paths)
+bool request_permissions(const std::string& plugin_key, const PluginPermissions& requested)
 {
-    BOOST_LOG_TRIVIAL(warning) << "[PROBE] Refusing filesystem read permission request for " << plugin_key
-                               << " (" << paths.size() << " path(s)): the headless probe does not evaluate grants";
+    (void) requested;
+
+    BOOST_LOG_TRIVIAL(warning) << "[PROBE] Refusing permission request for " << plugin_key
+                               << ": the headless probe does not evaluate grants";
     return false;
 }
 
