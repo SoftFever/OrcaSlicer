@@ -368,6 +368,9 @@ class GLCanvas3D
             Point start_position_2D{ Invalid_2D_Point };
             Vec3d start_position_3D{ Invalid_3D_Point };
             int move_volume_idx{ -1 };
+            // ORCA Alt+click on an already selected part removes it from the selection, but only on mouse up
+            // and only if no drag happened in between, so Alt+drag still moves the selected parts.
+            int alt_remove_volume_idx{ -1 };
             bool move_requires_threshold{ false };
             Point move_start_threshold_position_2D{ Invalid_2D_Point };
             // Orca: Keep the world-space point selected at the start of a mouse pan.

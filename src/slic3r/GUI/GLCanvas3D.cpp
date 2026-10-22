@@ -5012,8 +5012,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             // So a part can be removed from a fully selected object too. Removing the only selected part clears the selection.
                             if (!already_selected)
                                 m_selection.add_volumes(Selection::Volume, {(unsigned int) volume_idx}, false);
-                            else
-                                m_selection.remove_volumes(Selection::Volume, {(unsigned int) volume_idx});
+                            else {
+                                // Don't remove the part yet: the user may be starting an Alt+drag to move the selection.
+                                // The removal is applied on left up if the mouse was not dragged (see LeftUp handling below).
+                                m_mouse.drag.alt_remove_volume_idx = volume_idx;
+                                m_mouse.drag.move_requires_threshold = true;
+                                m_mouse.drag.move_start_threshold_position_2D = pos;
+                            }
                         }
                         else if (alt_down) {
                             // Select just the clicked part, also when an object is selected.
@@ -5287,6 +5292,23 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Let the plater know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+        }
+        else if (evt.LeftUp() && !m_mouse.ignore_left_up && !m_mouse.dragging && m_mouse.drag.alt_remove_volume_idx != -1) {
+            // ORCA Alt+click (press and release without dragging) on a selected part removes it from the selection.
+            // Deferred from left down so that Alt+drag still moves the selected parts instead of deselecting them.
+            const int volume_idx = m_mouse.drag.alt_remove_volume_idx;
+            if (volume_idx < (int) m_volumes.volumes.size() && m_selection.contains_volume(volume_idx)) {
+                m_selection.remove_volumes(Selection::Volume, {(unsigned int) volume_idx});
+
+                if (m_selection.is_empty())
+                    m_gizmos.reset_all_states();
+                else
+                    m_gizmos.refresh_on_off_state();
+
+                m_gizmos.update_data();
+                post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+                m_dirty = true;
+            }
         }
         else if (evt.LeftUp() && m_picking_enabled && m_rectangle_selection.is_dragging() && m_layers_editing.state != LayersEditing::Editing) {
             //BBS: don't use alt as de-select
@@ -6208,6 +6230,7 @@ void GLCanvas3D::mouse_up_cleanup()
     m_moving = false;
     m_camera_movement = false;
     m_mouse.drag.move_volume_idx = -1;
+    m_mouse.drag.alt_remove_volume_idx = -1;
     m_mouse.set_start_position_3D_as_invalid();
     m_mouse.set_start_position_2D_as_invalid();
     m_mouse.dragging = false;
