@@ -5234,7 +5234,15 @@ void GCodeProcessor::process_G1(const std::array<std::optional<double>, 4>& axes
 
         if (origin == G1DiscretizationOrigin::G1)
             m_extruded_last_z = m_end_position[Z];
-        m_options_z_corrector.update(m_height);
+        // The queued blocks of the moves after the erased one follow them down the list.
+        if (const std::optional<size_t> erased = m_options_z_corrector.update(m_height)) {
+            for (TimeMachine& machine : m_time_processor.machines) {
+                for (TimeBlock& block : machine.blocks) {
+                    if (block.move_id > *erased)
+                        --block.move_id;
+                }
+            }
+        }
 
         if (m_forced_width > 0.0f)
             m_width = m_forced_width;
@@ -7958,6 +7966,7 @@ void GCodeProcessor::calculate_time(GCodeProcessorResult& result, size_t keep_la
                                 it->second : block.move_id + (unsigned int)inserted_actual_speed_moves_count;
         }
     }
+    m_options_z_corrector.on_moves_inserted(m_actual_speed_id_map);
 }
 
 void GCodeProcessor::simulate_st_synchronize(float additional_time, EMoveType target_move_type)
