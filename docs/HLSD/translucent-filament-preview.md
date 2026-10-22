@@ -54,8 +54,15 @@ centre of mass marker. FXAA still comes after, and so do the sequential view mar
 
 A translucent segment takes its diffuse light in its own color, scaled by its opacity, and a
 highlight computed per fragment, untinted and not scaled, so a clear filament keeps its gloss
-instead of fading into the background. There is no Fresnel term: an extrusion seen end-on would
-turn into a bright opaque stripe.
+instead of fading into the background. The highlight takes the normal across the extrusion: the
+rounded ends would otherwise catch it as a bright spot at the start and end of every line. There
+is no Fresnel term: an extrusion seen end-on would turn into a bright opaque stripe.
+
+Each segment reaches half a line width past its ends, to fill the outside of a turn or round off a
+path end, so two segments of a path overlap at their joint. Depth hides that between opaque ones,
+but blending would draw the joint twice. A translucent segment is therefore cut, in the fragment
+shader, at the bisector plane of each joint with a translucent neighbour in the vertex list, so
+that every joint is drawn once.
 
 The translucent segments are not sorted by depth. The opaque pass draws the last printed segments
 first when looking down, to cut overdraw. The translucent pass draws them the other way round, so the
