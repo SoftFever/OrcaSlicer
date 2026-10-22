@@ -16,6 +16,7 @@
 
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Point.hpp"
+#include <cstddef>
 #include <fstream>
 #include <ios>
 #include <string>
@@ -48,6 +49,131 @@ TEST_CASE("Klipper object labels name each copy without the characters Klipper c
         CHECK(gcode.find("EXCLUDE_OBJECT_DEFINE NAME=" + instance_label + " ") != std::string::npos);
         CHECK(gcode.find("EXCLUDE_OBJECT_START NAME=" + instance_label + "\n") != std::string::npos);
     }
+}
+
+// The outline written to EXCLUDE_OBJECT_DEFINE is simplified with exclude_object_tolerance. A larger value must
+// leave fewer points, which keeps the exclude-object array small on printers that stall while parsing it.
+TEST_CASE("A larger exclude object tolerance writes fewer outline points", "[GCode]")
+{
+    const auto slice_with_tolerance = [](const std::string &tolerance) {
+        DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+        config.set_deserialize_strict({{"gcode_flavor", "klipper"}, {"exclude_object", "1"},
+                                       {"exclude_object_tolerance", tolerance}});
+        // Default facet angle (2 degrees): 180 hull points, well inside either tolerance.
+        return Test::slice({make_cylinder(20., 5.)}, config);
+    };
+    // Points of the POLYGON=[[x,y],...] on the first EXCLUDE_OBJECT_DEFINE line.
+    const auto polygon_points = [](const std::string &gcode) {
+        const size_t define = gcode.find("EXCLUDE_OBJECT_DEFINE");
+        REQUIRE(define != std::string::npos);
+        const size_t begin = gcode.find("POLYGON=", define);
+        REQUIRE(begin != std::string::npos);
+        const std::string polygon = gcode.substr(begin, gcode.find('\n', begin) - begin);
+        size_t points = 1;
+        for (size_t pos = polygon.find("],["); pos != std::string::npos; pos = polygon.find("],[", pos + 1))
+            ++points;
+        return points;
+    };
+
+    const size_t fine   = polygon_points(slice_with_tolerance("0.1"));
+    const size_t coarse = polygon_points(slice_with_tolerance("0.4"));
+    INFO("points at 0.1 mm: " << fine << ", at 0.4 mm: " << coarse);
+    CHECK(coarse >= 4);
+    CHECK(coarse < fine);
+}
+
+// Existing profiles must keep writing the outlines they wrote when the tolerance was a constant 0.1 mm.
+TEST_CASE("The exclude object tolerance defaults to the former fixed 0.1 mm", "[GCode]")
+{
+    CHECK_THAT(DynamicPrintConfig::full_print_config().opt_float("exclude_object_tolerance"),
+               Catch::Matchers::WithinAbs(0.1, 1e-9));
+}
+
+// Firmwares read the compatibility header lines (Anycubic's GoKlipper heats the bed with
+// first_layer_bed_temperature), so they must describe the filament the plate prints, not filament 1.
+TEST_CASE("The G-code header names the first layer temperatures of the filament the plate prints", "[GCode]")
+{
+    const std::string formula = GENERATE("by_first_filament", "by_highest_temp");
+    DYNAMIC_SECTION("bed_temperature_formula " << formula) {
+        // Filament 1: bed 60, nozzle 200. Filament 2: bed 100, nozzle 250. Everything prints with filament 2.
+        DynamicPrintConfig config = Test::multifilament_config(2, {
+            {"bed_temperature_formula", formula},
+            // Authored 1..n as PresetBundle writes it; the all-1s default collapses every per-filament value
+            // to filament 1.
+            {"filament_self_index", "1,2"},
+            {"filament_extruder_variant", "Direct Drive Standard;Direct Drive Standard"},
+            {"enable_prime_tower", 0},
+            {"nozzle_temperature_initial_layer", "200,250"},
+            {"nozzle_temperature", "200,250"},
+            {"supertack_plate_temp_initial_layer", "60,100"},
+            {"cool_plate_temp_initial_layer", "60,100"},
+            {"textured_cool_plate_temp_initial_layer", "60,100"},
+            {"eng_plate_temp_initial_layer", "60,100"},
+            {"hot_plate_temp_initial_layer", "60,100"},
+            {"textured_plate_temp_initial_layer", "60,100"},
+            {"sparse_infill_filament_id", 2},
+            {"internal_solid_filament_id", 2},
+            {"top_surface_filament_id", 2},
+            {"bottom_surface_filament_id", 2},
+            {"outer_wall_filament_id", 2},
+            {"inner_wall_filament_id", 2},
+            {"skirt_loops", 0},
+            {"brim_type", "no_brim"},
+        });
+        const std::string gcode = Test::slice({Test::cube(20)}, config);
+
+        const auto header_value = [&gcode](const std::string& key) {
+            const std::string token = "; " + key + " = ";
+            const size_t pos = gcode.find(token);
+            REQUIRE(pos != std::string::npos);
+            return std::stoi(gcode.substr(pos + token.size()));
+        };
+        CHECK(header_value("first_layer_bed_temperature") == 100);
+        CHECK(header_value("first_layer_temperature") == 250);
+    }
+}
+
+// Printing by object reassigns the initial filament to each object's first filament while it emits the objects, so
+// the header must still name the filament the print starts with: the firmware heats the bed for the first object.
+TEST_CASE("The G-code header names the first object's filament when printing by object", "[GCode]")
+{
+    // Filament 1: bed 60, nozzle 200. Filament 2: bed 100, nozzle 250. Object 1 prints with filament 2, object 2
+    // with filament 1.
+    DynamicPrintConfig config = Test::multifilament_config(2, {
+        {"print_sequence", "by object"},
+        {"bed_temperature_formula", "by_first_filament"},
+        {"filament_self_index", "1,2"},
+        {"filament_extruder_variant", "Direct Drive Standard;Direct Drive Standard"},
+        {"enable_prime_tower", 0},
+        {"nozzle_temperature_initial_layer", "200,250"},
+        {"nozzle_temperature", "200,250"},
+        {"supertack_plate_temp_initial_layer", "60,100"},
+        {"cool_plate_temp_initial_layer", "60,100"},
+        {"textured_cool_plate_temp_initial_layer", "60,100"},
+        {"eng_plate_temp_initial_layer", "60,100"},
+        {"hot_plate_temp_initial_layer", "60,100"},
+        {"textured_plate_temp_initial_layer", "60,100"},
+        {"skirt_loops", 0},
+        {"brim_type", "no_brim"},
+    });
+    const std::string gcode = Test::slice_with_object_overrides({Test::cube(20), Test::cube(20)}, config,
+                                                                {{{"extruder", "2"}}, {{"extruder", "1"}}});
+
+    // Filament 2 starts and filament 1 follows, so the last object's filament differs from the first one's.
+    const size_t first_t1 = gcode.find("\nT1");
+    const size_t first_t0 = gcode.find("\nT0");
+    REQUIRE(first_t1 != std::string::npos);
+    REQUIRE(first_t0 != std::string::npos);
+    REQUIRE(first_t1 < first_t0);
+
+    const auto header_value = [&gcode](const std::string& key) {
+        const std::string token = "; " + key + " = ";
+        const size_t pos = gcode.find(token);
+        REQUIRE(pos != std::string::npos);
+        return std::stoi(gcode.substr(pos + token.size()));
+    };
+    CHECK(header_value("first_layer_bed_temperature") == 100);
+    CHECK(header_value("first_layer_temperature") == 250);
 }
 
 TEST_CASE("Object label comments number each object and copy with or without exclude object", "[GCode]")

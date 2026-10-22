@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 10:04-0300\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -744,6 +744,9 @@ msgstr "mm"
 msgid "Part selection"
 msgstr "Val av del"
 
+msgid "Select multiple objects"
+msgstr "Välj flera objekt"
+
 # AI Translated
 msgid "Fixed step drag"
 msgstr "Dra i fasta steg"
@@ -814,8 +817,83 @@ msgid "Relative"
 msgstr "Relativ"
 
 # AI Translated
+msgid "Selection"
+msgstr "Markering"
+
+msgid "Plate"
+msgstr "Platta"
+
+# AI Translated
+# Needs human review: Glossary has no Swedish rendering for Distribute; matches the existing 'Justera/Fördela'.
+msgid "Distribute"
+msgstr "Fördela"
+
+# AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "Koordinatsystem som används för transformeringar."
+
+# AI Translated
+msgid "Reference for alignment"
+msgstr "Referens för justering"
+
+# AI Translated
+msgid "Select at least 3 parts or objects"
+msgstr "Välj minst 3 delar eller objekt"
+
+# AI Translated
+msgid "Align left"
+msgstr "Justera vänsterkant"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Justera mitten i sidled"
+
+# AI Translated
+msgid "Align right"
+msgstr "Justera högerkant"
+
+# AI Translated
+msgid "Align front"
+msgstr "Justera framkant"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Justera mitten i djupled"
+
+# AI Translated
+msgid "Align back"
+msgstr "Justera bakkant"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Justera nederkant"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Justera mitten i höjdled"
+
+# AI Translated
+msgid "Align top"
+msgstr "Justera överkant"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Fördela i sidled"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Fördela i djupled"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Fördela i höjdled"
+
+msgid "Drop"
+msgstr "Släpp"
+
+# AI Translated
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr "Flytta markeringen längs Z så att dess lägsta punkt når byggplattan."
 
 # AI Translated
 msgid "Absolute"
@@ -1858,7 +1936,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Formens linje (%1%) innehåller något som inte stöds: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Ogiltigt tillstånd, rapportera stegen för att återskapa det på GitHub"
 
 # AI Translated
@@ -1866,11 +1944,11 @@ msgid "No embossed file"
 msgstr "Ingen präglad fil"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "SVG-fil saknas i den präglade formen"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Data för SVG-filen saknas"
 
 # AI Translated
@@ -2261,6 +2339,22 @@ msgstr "Öppnar monterings-gizmot"
 # AI Translated
 msgid "Leaving Assembly gizmo"
 msgstr "Lämnar monterings-gizmot"
+
+# AI Translated
+msgid "Parts of a cut object cannot be moved"
+msgstr "Delar av ett klippt objekt kan inte flyttas"
+
+# AI Translated
+msgid "Aligning to the plate is available in X and Y only"
+msgstr "Justering mot plattan är bara tillgänglig i X och Y"
+
+# AI Translated
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr "Avaktivera automatiskt nedsläpp för de valda objekten för att flytta dem i Z"
+
+# AI Translated
+msgid "All selected objects must be on the same plate"
+msgstr "Alla valda objekt måste ligga på samma platta"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -3567,63 +3661,12 @@ msgid "Center"
 msgstr "Centrera"
 
 # AI Translated
-msgid "Distribute left-right"
-msgstr "Fördela i sidled"
-
-# AI Translated
-msgid "Distribute front-back"
-msgstr "Fördela i djupled"
-
-# AI Translated
-msgid "Distribute top-bottom"
-msgstr "Fördela i höjdled"
-
-# AI Translated
-msgid "Align left"
-msgstr "Justera vänsterkant"
-
-# AI Translated
-msgid "Align left-right center"
-msgstr "Justera mitten i sidled"
-
-# AI Translated
-msgid "Align right"
-msgstr "Justera högerkant"
-
-# AI Translated
-msgid "Align front"
-msgstr "Justera framkant"
-
-# AI Translated
-msgid "Align front-back center"
-msgstr "Justera mitten i djupled"
-
-# AI Translated
-msgid "Align back"
-msgstr "Justera bakkant"
-
-# AI Translated
-msgid "Align bottom"
-msgstr "Justera nederkant"
-
-# AI Translated
-msgid "Align top-bottom center"
-msgstr "Justera mitten i höjdled"
-
-# AI Translated
-msgid "Align top"
-msgstr "Justera överkant"
-
-# AI Translated
 msgid "Align/Distribute"
 msgstr "Justera/Fördela"
 
 # AI Translated
 msgid "Align and distribute objects"
 msgstr "Justera och fördela objekt"
-
-msgid "Drop"
-msgstr "Släpp"
 
 msgid "Edit Process Settings"
 msgstr "Redigera Process Inställningar"
@@ -4010,9 +4053,6 @@ msgstr "Ingen Brim"
 
 msgid "Outer wall speed"
 msgstr "Ytterväggs hastighet"
-
-msgid "Plate"
-msgstr "Platta"
 
 # AI Translated
 msgid "Brim"
@@ -5407,7 +5447,7 @@ msgstr "Spara projekt och starta om programmet."
 msgid "Unknown C++ exception."
 msgstr "Okänt C++-undantag."
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "Processera G-Code från Föregående fil…"
 
 msgid "Slicing complete"
@@ -7094,6 +7134,11 @@ msgstr "Axlar"
 
 msgid "Gridlines"
 msgstr "Rutnät"
+
+# AI Translated
+# Needs human review: Glossary has no Swedish rendering for Focus mode yet; check Fokusläge fits the view-mode name.
+msgid "Focus mode"
+msgstr "Fokusläge"
 
 msgid "Labels"
 msgstr "Etiketter"
@@ -11856,6 +11901,14 @@ msgid "Show incompatible/unsupported presets in the printer and filament dropdow
 msgstr "Visa inkompatibla förinställningar och förinställningar som inte stöds i rullgardinslistorna för skrivare och filament. Dessa förinställningar kan inte väljas."
 
 # AI Translated
+msgid "Export statistics with G-code"
+msgstr "Exportera statistik med G-code"
+
+# AI Translated
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Om det är aktiverat skrivs statistiken även som JSON bredvid G-code-filen vid export, som <name>.statistics.json, och en exporterad beredd 3MF-fil innehåller den: utskriftstid, totaler för filament och linjetyper, samt samma sak per lager och per objekt."
+
+# AI Translated
 msgid "Experimental Features"
 msgstr "Experimentella funktioner"
 
@@ -12752,6 +12805,10 @@ msgstr "Det gick inte att ladda upp filen till skrivarens lagring. Försök igen
 # AI Translated
 msgid "Send Failed"
 msgstr "Sändningen misslyckades"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Inga tillgängliga skrivare"
 
 msgid "The name length exceeds the limit."
 msgstr "Namnlängden överskrider gränsen."
@@ -14592,10 +14649,6 @@ msgid "from/to"
 msgstr "från/till"
 
 # AI Translated
-msgid "Please choose the filament color"
-msgstr "Välj filamentfärg"
-
-# AI Translated
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Molnagenten är inte tillgänglig. Starta om OrcaSlicer och försök igen."
 
@@ -14808,8 +14861,8 @@ msgid "Left mouse"
 msgstr "Vänster musknapp"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Tillgängligt överallt i fönstret, även när du skriver i ett textfält."
+msgid "Available anywhere in the window."
+msgstr "Tillgängligt var som helst i fönstret."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -14834,9 +14887,6 @@ msgstr "Tillgängligt när 3D-vyn på fliken Förbered har fokus."
 
 msgid "Select a part"
 msgstr "Välj del"
-
-msgid "Select multiple objects"
-msgstr "Välj flera objekt"
 
 msgid "Select objects by rectangle"
 msgstr "Välj objekt efter rektangel"
@@ -14923,10 +14973,6 @@ msgstr "%s är tilldelat till %s. Vill du tilldela det till %s i stället?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "Standardkortkommandot %s är tilldelat till %s. Vill du tilldela det till %s i stället?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Globala kortkommandon gäller även när du skriver."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -15408,6 +15454,11 @@ msgstr "modifieraren \"%1%\" för \"%2%\" (%3% totalt) hade ingen effekt på sö
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "Sömmens placering kan skilja sig från det förväntade."
+
+# AI Translated
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr "Det gick inte att skriva G-code-statistiken till %1%."
 
 # AI Translated
 msgid "Internal Bridge"
@@ -19166,6 +19217,14 @@ msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Aktivera det här alternativet för att lägga till kommandot EXCLUDE OBJECT i G-code."
 
 # AI Translated
+msgid "Outline tolerance"
+msgstr "Konturtolerans"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Största avvikelse för objektkonturen som skrivs till EXCLUDE_OBJECT_DEFINE från den ursprungliga konturen. Större värden ger färre punkter, vilket hjälper fast programvara som hänger sig vid tolkning av G-code med många objekt. 0 behåller alla punkter."
+
+# AI Translated
 msgid "Verbose G-code"
 msgstr "Utförlig G-code"
 
@@ -22747,6 +22806,14 @@ msgstr "Mata ut katalog"
 msgid "This is the output directory for exported files."
 msgstr "Mata ut katalogen för exporterade filer."
 
+# AI Translated
+msgid "Export statistics"
+msgstr "Exportera statistik"
+
+# AI Translated
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Skriv statistiken för varje beredd platta som JSON, som plate_N.statistics.json bredvid dess G-code i utdatamappen och inuti 3MF-filen från --export-3mf: utskriftstid, totaler för filament och linjetyper, samt samma sak per lager och per objekt."
+
 msgid "Debug level"
 msgstr "Felsökningsnivå"
 
@@ -25366,7 +25433,7 @@ msgstr "test av %s startar..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "test av %s: IP uppslagen = %s"
 
 # AI Translated
@@ -32128,10 +32195,6 @@ msgid "Slicing and printing"
 msgstr "Beredning och utskrift"
 
 # AI Translated
-msgid "Selection"
-msgstr "Markering"
-
-# AI Translated
 msgid "Editing"
 msgstr "Redigering"
 
@@ -33035,6 +33098,1648 @@ msgstr[0] "Den aktuella filamentlistan innehåller inte %s. Ett projektfilament 
 msgstr[1] "Den aktuella filamentlistan innehåller inte %s. Projektfilament som det blandade filamentet kräver skapas automatiskt efter uppdelningen."
 
 # AI Translated
+msgid "Color Picker"
+msgstr "Färgväljare"
+
+# AI Translated
+msgid "Basic Colors"
+msgstr "Grundfärger"
+
+# AI Translated
+# Needs human review: Glossary has no Swedish rendering for Palette; check 'palett' (also Paletter).
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "Orca Palette"
+msgstr "Orca-palett"
+
+# AI Translated
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL Klassisk"
+
+# AI Translated
+msgid "Gradients"
+msgstr "Gradienter"
+
+# AI Translated
+msgctxt "Color picker"
+msgid "Solid"
+msgstr "Enfärgad"
+
+# AI Translated
+msgid "Gradient"
+msgstr "Gradient"
+
+# AI Translated
+msgid "Gradient start"
+msgstr "Gradientstart"
+
+# AI Translated
+msgid "Gradient end"
+msgstr "Gradientslut"
+
+# AI Translated
+msgid "Gradient color"
+msgstr "Gradientfärg"
+
+# AI Translated
+msgid "Add color"
+msgstr "Lägg till färg"
+
+# AI Translated
+msgid "Remove color"
+msgstr "Ta bort färg"
+
+# AI Translated
+msgid "Saturation"
+msgstr "Färgmättnad"
+
+# AI Translated
+msgid "Original color"
+msgstr "Ursprunglig färg"
+
+# AI Translated
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr "Spara aktuell färg"
+
+# AI Translated
+# Needs human review: Glossary has no Swedish rendering for Palette; check 'Paletter'.
+msgid "Palettes"
+msgstr "Paletter"
+
+# AI Translated
+msgid "Search colors"
+msgstr "Sök färger"
+
+# AI Translated
+msgid "Filter colors"
+msgstr "Filtrera färger"
+
+# AI Translated
+msgid "No matching colors"
+msgstr "Inga matchande färger"
+
+# AI Translated
+msgid "Hex color"
+msgstr "Hexfärg"
+
+# AI Translated
+msgid "Opacity"
+msgstr "Opacitet"
+
+# AI Translated
+msgid "Opacity percent"
+msgstr "Opacitet i procent"
+
+# AI Translated
+msgid "Save color"
+msgstr "Spara färg"
+
+# AI Translated
+msgid "Enter a complete hexadecimal color"
+msgstr "Ange en komplett hexadecimal färg"
+
+# AI Translated
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr "Det aktuella flerfärgsvalet behålls tills du väljer en annan färg."
+
+# AI Translated
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr "Upp till %d färger stöds."
+
+# AI Translated
+msgid "Crimson"
+msgstr "Karmosinröd"
+
+# AI Translated
+msgid "Orange red"
+msgstr "Orangeröd"
+
+# AI Translated
+msgid "Tomato"
+msgstr "Tomatröd"
+
+# AI Translated
+msgid "Orange"
+msgstr "Orange"
+
+# AI Translated
+msgid "Dark orange"
+msgstr "Mörkorange"
+
+# AI Translated
+msgid "Gold"
+msgstr "Guld"
+
+# AI Translated
+# Needs human review: CSS color; check Träbrun conveys burlywood (light tan wood).
+msgid "Burly wood"
+msgstr "Träbrun"
+
+# AI Translated
+msgid "Bisque"
+msgstr "Aprikosbeige"
+
+# AI Translated
+msgid "Misty rose"
+msgstr "Dimrosa"
+
+# AI Translated
+msgid "Light yellow"
+msgstr "Ljusgul"
+
+# AI Translated
+msgid "Lemon chiffon"
+msgstr "Citronchiffong"
+
+# AI Translated
+msgid "Beige"
+msgstr "Beige"
+
+# AI Translated
+msgid "Light golden rod yellow"
+msgstr "Ljus gullrisgul"
+
+# AI Translated
+msgid "Pale golden rod"
+msgstr "Blek gullrisgul"
+
+# AI Translated
+msgid "Khaki"
+msgstr "Khaki"
+
+# AI Translated
+msgid "Dark khaki"
+msgstr "Mörk khaki"
+
+# AI Translated
+msgid "Peach puff"
+msgstr "Persikokräm"
+
+# AI Translated
+msgid "Moccasin"
+msgstr "Mockasin"
+
+# AI Translated
+msgid "Papaya whip"
+msgstr "Papayakräm"
+
+# AI Translated
+msgid "Blanched almond"
+msgstr "Blancherad mandel"
+
+# AI Translated
+msgid "Antique white"
+msgstr "Antikvit"
+
+# AI Translated
+msgid "Navajo white"
+msgstr "Navajovit"
+
+# AI Translated
+msgid "Wheat"
+msgstr "Vete"
+
+# AI Translated
+msgid "Golden rod"
+msgstr "Gullrisgul"
+
+# AI Translated
+msgid "Chocolate"
+msgstr "Choklad"
+
+# AI Translated
+msgid "Peru"
+msgstr "Peru"
+
+# AI Translated
+msgid "Fire brick"
+msgstr "Tegelröd"
+
+# AI Translated
+msgid "Sienna"
+msgstr "Sienna"
+
+# AI Translated
+msgid "Saddle brown"
+msgstr "Sadelbrun"
+
+# AI Translated
+msgid "Brown"
+msgstr "Brun"
+
+# AI Translated
+msgid "Rosy brown"
+msgstr "Rosabrun"
+
+# AI Translated
+msgid "Salmon"
+msgstr "Lax"
+
+# AI Translated
+msgid "Light salmon"
+msgstr "Ljus lax"
+
+# AI Translated
+msgid "Dark salmon"
+msgstr "Mörk lax"
+
+# AI Translated
+msgid "Sandy brown"
+msgstr "Sandbrun"
+
+# AI Translated
+msgid "Coral"
+msgstr "Korall"
+
+# AI Translated
+msgid "Light coral"
+msgstr "Ljus korall"
+
+# AI Translated
+msgid "Indian red"
+msgstr "Indianröd"
+
+# AI Translated
+msgid "Dark red"
+msgstr "Mörkröd"
+
+# AI Translated
+# Needs human review: Kept as Maroon (loan word); Rödbrun/Brunröd are taken by RAL names.
+msgid "Maroon"
+msgstr "Maroon"
+
+# AI Translated
+msgid "Green yellow"
+msgstr "Gröngul"
+
+# AI Translated
+msgid "Yellow green"
+msgstr "Gulgrön"
+
+# AI Translated
+msgid "Chartreuse"
+msgstr "Chartreuse"
+
+# AI Translated
+msgid "Lawn green"
+msgstr "Gräsmattegrön"
+
+# AI Translated
+msgid "Lime green"
+msgstr "Limegrön"
+
+# AI Translated
+msgid "Spring green"
+msgstr "Vårgrön"
+
+# AI Translated
+msgid "Medium spring green"
+msgstr "Mellan vårgrön"
+
+# AI Translated
+msgid "Lime"
+msgstr "Lime"
+
+# AI Translated
+msgid "Forest green"
+msgstr "Skogsgrön"
+
+# AI Translated
+msgid "Dark green"
+msgstr "Mörkgrön"
+
+# AI Translated
+msgid "Olive drab"
+msgstr "Armégrön"
+
+# AI Translated
+msgid "Olive"
+msgstr "Oliv"
+
+# AI Translated
+msgid "Dark olive green"
+msgstr "Mörk olivgrön"
+
+# AI Translated
+msgid "Pale green"
+msgstr "Blekgrön"
+
+# AI Translated
+msgid "Light green"
+msgstr "Ljusgrön"
+
+# AI Translated
+msgid "Medium sea green"
+msgstr "Mellan havsgrön"
+
+# AI Translated
+msgid "Sea green"
+msgstr "Havsgrön"
+
+# AI Translated
+msgid "Dark sea green"
+msgstr "Mörk havsgrön"
+
+# AI Translated
+msgid "Cadet blue"
+msgstr "Kadettblå"
+
+# AI Translated
+msgid "Medium aqua marine"
+msgstr "Mellan akvamarin"
+
+# AI Translated
+msgid "Turquoise"
+msgstr "Turkos"
+
+# AI Translated
+msgid "Medium turquoise"
+msgstr "Mellanturkos"
+
+# AI Translated
+msgid "Dark turquoise"
+msgstr "Mörkturkos"
+
+# AI Translated
+msgid "Pale turquoise"
+msgstr "Blekturkos"
+
+# AI Translated
+msgid "Aqua"
+msgstr "Aqua"
+
+# AI Translated
+msgid "Light cyan"
+msgstr "Ljuscyan"
+
+# AI Translated
+msgid "Mint cream"
+msgstr "Mintkräm"
+
+# AI Translated
+msgid "Honey dew"
+msgstr "Honungsmelon"
+
+# AI Translated
+msgid "Aquamarine"
+msgstr "Akvamarin"
+
+# AI Translated
+msgid "Light sea green"
+msgstr "Ljus havsgrön"
+
+# AI Translated
+msgid "Dark cyan"
+msgstr "Mörkcyan"
+
+# AI Translated
+# Needs human review: Rendered Petrol; check it reads as teal.
+msgid "Teal"
+msgstr "Petrol"
+
+# AI Translated
+msgid "Dark slate gray"
+msgstr "Mörk skiffergrå"
+
+# AI Translated
+msgid "Light slate gray"
+msgstr "Ljus skiffergrå"
+
+# AI Translated
+msgid "Slate gray"
+msgstr "Skiffergrå"
+
+# AI Translated
+msgid "Deep sky blue"
+msgstr "Djup himmelsblå"
+
+# AI Translated
+msgid "Dodger Blue"
+msgstr "Dodgerblå"
+
+# AI Translated
+msgid "Sky blue"
+msgstr "Himmelsblå"
+
+# AI Translated
+msgid "Light sky blue"
+msgstr "Ljus himmelsblå"
+
+# AI Translated
+msgid "Light blue"
+msgstr "Ljusblå"
+
+# AI Translated
+msgid "Powder blue"
+msgstr "Pulverblå"
+
+# AI Translated
+msgid "Light steel blue"
+msgstr "Ljus stålblå"
+
+# AI Translated
+msgid "Steel blue"
+msgstr "Stålblå"
+
+# AI Translated
+msgid "Cornflower blue"
+msgstr "Blåklintsblå"
+
+# AI Translated
+msgid "Royal blue"
+msgstr "Kungsblå"
+
+# AI Translated
+msgid "Medium blue"
+msgstr "Mellanblå"
+
+# AI Translated
+msgid "Midnight blue"
+msgstr "Midnattsblå"
+
+# AI Translated
+msgid "Dark blue"
+msgstr "Mörkblå"
+
+# AI Translated
+msgid "Navy"
+msgstr "Marinblå"
+
+# AI Translated
+msgid "Slate blue"
+msgstr "Skifferblå"
+
+# AI Translated
+msgid "Dark slate blue"
+msgstr "Mörk skifferblå"
+
+# AI Translated
+msgid "Medium slate blue"
+msgstr "Mellan skifferblå"
+
+# AI Translated
+msgid "Blue violet"
+msgstr "Blåviolett"
+
+# AI Translated
+msgid "Indigo"
+msgstr "Indigo"
+
+# AI Translated
+msgid "Dark violet"
+msgstr "Mörkviolett"
+
+# AI Translated
+msgid "Dark orchid"
+msgstr "Mörk orkidé"
+
+# AI Translated
+msgid "Medium orchid"
+msgstr "Mellan orkidé"
+
+# AI Translated
+msgid "Orchid"
+msgstr "Orkidé"
+
+# AI Translated
+msgid "Violet"
+msgstr "Violett"
+
+# AI Translated
+msgid "Medium purple"
+msgstr "Mellanlila"
+
+# AI Translated
+msgid "Purple"
+msgstr "Lila"
+
+# AI Translated
+msgid "Rebecca purple"
+msgstr "Rebecca-lila"
+
+# AI Translated
+msgid "Medium violet red"
+msgstr "Mellan violettröd"
+
+# AI Translated
+msgid "Pale violet red"
+msgstr "Blek violettröd"
+
+# AI Translated
+msgid "Deep pink"
+msgstr "Djuprosa"
+
+# AI Translated
+msgid "Hot pink"
+msgstr "Knallrosa"
+
+# AI Translated
+msgid "Light pink"
+msgstr "Ljusrosa"
+
+# AI Translated
+msgid "Pink"
+msgstr "Rosa"
+
+# AI Translated
+msgid "Plum"
+msgstr "Plommon"
+
+# AI Translated
+msgid "Thistle"
+msgstr "Tistel"
+
+# AI Translated
+msgid "Fuchsia"
+msgstr "Fuchsia"
+
+# AI Translated
+msgid "Dark magenta"
+msgstr "Mörk magenta"
+
+# AI Translated
+msgid "Linen"
+msgstr "Linne"
+
+# AI Translated
+msgid "Old lace"
+msgstr "Gammal spets"
+
+# AI Translated
+msgid "Sea shell"
+msgstr "Snäckskal"
+
+# AI Translated
+msgid "Ivory"
+msgstr "Elfenben"
+
+# AI Translated
+msgid "Floral white"
+msgstr "Blomvit"
+
+# AI Translated
+msgid "Lavender blush"
+msgstr "Lavendelrosa"
+
+# AI Translated
+msgid "Ghost white"
+msgstr "Spökvit"
+
+# AI Translated
+msgid "Alice blue"
+msgstr "Alice-blå"
+
+# AI Translated
+msgid "Lavender"
+msgstr "Lavendel"
+
+# AI Translated
+msgid "White smoke"
+msgstr "Rökvit"
+
+# AI Translated
+msgid "Gainsboro"
+msgstr "Gainsboro"
+
+# AI Translated
+msgid "Black"
+msgstr "Svart"
+
+# AI Translated
+msgid "Coral fire"
+msgstr "Korallglöd"
+
+# AI Translated
+msgid "Sea anemone"
+msgstr "Havsanemon"
+
+# AI Translated
+msgid "Deep abyss"
+msgstr "Djup avgrund"
+
+# AI Translated
+msgid "Lobster red"
+msgstr "Hummerröd"
+
+# AI Translated
+msgid "Sandy clay"
+msgstr "Sandlera"
+
+# AI Translated
+msgid "Driftwood"
+msgstr "Drivved"
+
+# AI Translated
+msgid "Sea buckthorn"
+msgstr "Havtorn"
+
+# AI Translated
+msgid "Sunset reef"
+msgstr "Solnedgångsrev"
+
+# AI Translated
+msgid "Tiger coral"
+msgstr "Tigerkorall"
+
+# AI Translated
+msgid "Pink coral"
+msgstr "Rosa korall"
+
+# AI Translated
+msgid "Seashell glow"
+msgstr "Snäckskalsglöd"
+
+# AI Translated
+msgid "Sand"
+msgstr "Sand"
+
+# AI Translated
+msgid "Golden kelp"
+msgstr "Gyllene tång"
+
+# AI Translated
+msgid "Sunlit dune"
+msgstr "Solbelyst dyn"
+
+# AI Translated
+msgid "Amber nautilus"
+msgstr "Bärnstensnautilus"
+
+# AI Translated
+msgid "Sea lemon"
+msgstr "Havscitron"
+
+# AI Translated
+msgid "Pale starfish"
+msgstr "Blek sjöstjärna"
+
+# AI Translated
+msgid "Spring tide"
+msgstr "Springflod"
+
+# AI Translated
+msgid "Lime algae"
+msgstr "Limealg"
+
+# AI Translated
+msgid "Sea grass"
+msgstr "Ålgräs"
+
+# AI Translated
+msgid "Neon plankton"
+msgstr "Neonplankton"
+
+# AI Translated
+msgid "Kelp forest"
+msgstr "Tångskog"
+
+# AI Translated
+msgid "Emerald wave"
+msgstr "Smaragdvåg"
+
+# AI Translated
+msgid "Whale shadow"
+msgstr "Valskugga"
+
+# AI Translated
+msgid "Sea turtle"
+msgstr "Havssköldpadda"
+
+# AI Translated
+msgid "Lagoon"
+msgstr "Lagun"
+
+# AI Translated
+msgid "Tropical current"
+msgstr "Tropisk ström"
+
+# AI Translated
+msgid "Midnight trench"
+msgstr "Midnattsgrav"
+
+# AI Translated
+msgid "Dark kelp"
+msgstr "Mörk tång"
+
+# AI Translated
+msgid "Crystal surf"
+msgstr "Kristallbränning"
+
+# AI Translated
+msgid "Turquoise bay"
+msgstr "Turkos vik"
+
+# AI Translated
+msgid "Sky over reef"
+msgstr "Himmel över revet"
+
+# AI Translated
+# Needs human review: Ocean-themed color name; check 'Grund himmel' reads as a color.
+msgid "Shallow sky"
+msgstr "Grund himmel"
+
+# AI Translated
+msgid "Electric blue"
+msgstr "Elektrisk blå"
+
+# AI Translated
+msgid "Dolphin"
+msgstr "Delfin"
+
+# AI Translated
+msgid "Ocean depths"
+msgstr "Havsdjup"
+
+# AI Translated
+msgid "Whale"
+msgstr "Val"
+
+# AI Translated
+msgid "Indigo abyss"
+msgstr "Indigoavgrund"
+
+# AI Translated
+msgid "Sea urchin"
+msgstr "Sjöborre"
+
+# AI Translated
+msgid "Lavender coral"
+msgstr "Lavendelkorall"
+
+# AI Translated
+msgid "Violet tide"
+msgstr "Violett tidvatten"
+
+# AI Translated
+msgid "Deep sea orchid"
+msgstr "Djuphavsorkidé"
+
+# AI Translated
+msgid "Neon jelly"
+msgstr "Neonmanet"
+
+# AI Translated
+msgid "Fuchsia coral"
+msgstr "Fuchsiakorall"
+
+# AI Translated
+msgid "Pink jellyfish"
+msgstr "Rosa manet"
+
+# AI Translated
+msgid "Foam"
+msgstr "Skum"
+
+# AI Translated
+msgid "Seashell white"
+msgstr "Snäckskalsvit"
+
+# AI Translated
+msgid "Pebble gray"
+msgstr "Kiselgrå"
+
+# AI Translated
+msgid "Storm cloud"
+msgstr "Stormmoln"
+
+# AI Translated
+msgid "Ink black"
+msgstr "Bläckssvart"
+
+# AI Translated
+msgid "Green beige"
+msgstr "Grönbeige"
+
+# AI Translated
+msgid "Sand yellow"
+msgstr "Sandgul"
+
+# AI Translated
+msgid "Signal yellow"
+msgstr "Signalgul"
+
+# AI Translated
+msgid "Golden yellow"
+msgstr "Gyllengul"
+
+# AI Translated
+msgid "Honey yellow"
+msgstr "Honungsgul"
+
+# AI Translated
+msgid "Maize yellow"
+msgstr "Majsgul"
+
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Påskliljegul"
+
+# AI Translated
+msgid "Brown beige"
+msgstr "Brunbeige"
+
+# AI Translated
+msgid "Lemon yellow"
+msgstr "Citrongul"
+
+# AI Translated
+msgid "Oyster white"
+msgstr "Ostronvit"
+
+# AI Translated
+msgid "Light ivory"
+msgstr "Ljust elfenben"
+
+# AI Translated
+msgid "Zinc yellow"
+msgstr "Zinkgul"
+
+# AI Translated
+msgid "Grey beige"
+msgstr "Gråbeige"
+
+# AI Translated
+msgid "Olive yellow"
+msgstr "Olivgul"
+
+# AI Translated
+msgid "Rape yellow"
+msgstr "Rapsgul"
+
+# AI Translated
+msgid "Traffic yellow"
+msgstr "Trafikgul"
+
+# AI Translated
+msgid "Ochre yellow"
+msgstr "Ockragul"
+
+# AI Translated
+msgid "Traffic orange yellow"
+msgstr "Trafikorangegul"
+
+# AI Translated
+msgid "Curry"
+msgstr "Curry"
+
+# AI Translated
+msgid "Melon yellow"
+msgstr "Melongul"
+
+# AI Translated
+msgid "Broom yellow"
+msgstr "Ginstgul"
+
+# AI Translated
+msgid "Dahlia yellow"
+msgstr "Dahliagul"
+
+# AI Translated
+msgid "Pastel yellow"
+msgstr "Pastellgul"
+
+# AI Translated
+msgid "Pearl beige"
+msgstr "Pärlbeige"
+
+# AI Translated
+msgid "Pearl gold"
+msgstr "Pärlguld"
+
+# AI Translated
+msgid "Sun yellow"
+msgstr "Solgul"
+
+# AI Translated
+msgid "Yellow orange"
+msgstr "Gulorange"
+
+# AI Translated
+msgid "Deep orange"
+msgstr "Djuporange"
+
+# AI Translated
+msgid "Vermilion"
+msgstr "Cinnober"
+
+# AI Translated
+msgid "Pearl orange"
+msgstr "Pärlorange"
+
+# AI Translated
+msgid "Pure orange"
+msgstr "Ren orange"
+
+# AI Translated
+msgid "Luminous orange"
+msgstr "Lysorange"
+
+# AI Translated
+msgid "Luminous bright orange"
+msgstr "Ljus lysorange"
+
+# AI Translated
+msgid "Bright red orange"
+msgstr "Ljus rödorange"
+
+# AI Translated
+msgid "Traffic orange"
+msgstr "Trafikorange"
+
+# AI Translated
+msgid "Signal orange"
+msgstr "Signalorange"
+
+# AI Translated
+msgid "Salmon orange"
+msgstr "Laxorange"
+
+# AI Translated
+msgid "Pearl pink"
+msgstr "Pärlrosa"
+
+# AI Translated
+msgid "Copper orange"
+msgstr "Kopparorange"
+
+# AI Translated
+msgid "Signal brown"
+msgstr "Signalbrun"
+
+# AI Translated
+# Needs human review: Odd RAL name; translated literally as Granorange.
+msgid "Fir orange"
+msgstr "Granorange"
+
+# AI Translated
+msgid "Signal red"
+msgstr "Signalröd"
+
+# AI Translated
+msgid "Luminous red"
+msgstr "Lysröd"
+
+# AI Translated
+msgid "Carmine red"
+msgstr "Karminröd"
+
+# AI Translated
+msgid "Pearl carmine red"
+msgstr "Pärlkarminröd"
+
+# AI Translated
+msgid "Pure red"
+msgstr "Ren röd"
+
+# AI Translated
+msgid "Luminous deep red"
+msgstr "Djup lysröd"
+
+# AI Translated
+msgid "Currant red"
+msgstr "Vinbärsröd"
+
+# AI Translated
+msgid "Pearl ruby red"
+msgstr "Pärlrubinröd"
+
+# AI Translated
+msgid "Fire red"
+msgstr "Eldröd"
+
+# AI Translated
+msgid "Ruby red"
+msgstr "Rubinröd"
+
+# AI Translated
+msgid "Purple red"
+msgstr "Lilaröd"
+
+# AI Translated
+msgid "Wine red"
+msgstr "Vinröd"
+
+# AI Translated
+msgid "Black red"
+msgstr "Svartröd"
+
+# AI Translated
+msgid "Oxide red"
+msgstr "Oxidröd"
+
+# AI Translated
+msgid "Brown red"
+msgstr "Brunröd"
+
+# AI Translated
+msgid "Pine red"
+msgstr "Tallröd"
+
+# AI Translated
+msgid "Tomato red"
+msgstr "Tomatröd"
+
+# AI Translated
+msgid "Antique pink"
+msgstr "Antikrosa"
+
+# AI Translated
+msgid "Coral red"
+msgstr "Korallröd"
+
+# AI Translated
+msgid "Rose"
+msgstr "Ros"
+
+# AI Translated
+msgid "Strawberry red"
+msgstr "Jordgubbsröd"
+
+# AI Translated
+msgid "Traffic red"
+msgstr "Trafikröd"
+
+# AI Translated
+msgid "Salmon pink"
+msgstr "Laxrosa"
+
+# AI Translated
+msgid "Luminous rose"
+msgstr "Lysrosa"
+
+# AI Translated
+msgid "Luminous bright red"
+msgstr "Ljus lysröd"
+
+# AI Translated
+msgid "Raspberry red"
+msgstr "Hallonröd"
+
+# AI Translated
+msgid "Orient red"
+msgstr "Orientröd"
+
+# AI Translated
+msgid "Pearl ruby"
+msgstr "Pärlrubin"
+
+# AI Translated
+msgid "Red purple"
+msgstr "Rödlila"
+
+# AI Translated
+msgid "Red violet"
+msgstr "Rödviolett"
+
+# AI Translated
+msgid "Heather violet"
+msgstr "Ljungviolett"
+
+# AI Translated
+msgid "Bordeaux violet"
+msgstr "Bordeauxviolett"
+
+# AI Translated
+msgid "Mahogany"
+msgstr "Mahogny"
+
+# AI Translated
+msgid "Grey purple"
+msgstr "Grålila"
+
+# AI Translated
+msgid "Signal violet"
+msgstr "Signalviolett"
+
+# AI Translated
+msgid "Fir green"
+msgstr "Grangrön"
+
+# AI Translated
+# Needs human review: RAL name; check the Swedish form.
+msgid "Sabine grey"
+msgstr "Sabinegrå"
+
+# AI Translated
+msgid "Pearl violet"
+msgstr "Pärlviolett"
+
+# AI Translated
+msgid "Pearl blackberry"
+msgstr "Pärlbjörnbär"
+
+# AI Translated
+msgid "Green blue"
+msgstr "Grönblå"
+
+# AI Translated
+msgid "Ultramarine blue"
+msgstr "Ultramarinblå"
+
+# AI Translated
+msgid "Sapphire blue"
+msgstr "Safirblå"
+
+# AI Translated
+msgid "Black blue"
+msgstr "Svartblå"
+
+# AI Translated
+msgid "Signal blue"
+msgstr "Signalblå"
+
+# AI Translated
+msgid "Brilliant blue"
+msgstr "Briljantblå"
+
+# AI Translated
+msgid "Grey blue"
+msgstr "Gråblå"
+
+# AI Translated
+msgid "Azure blue"
+msgstr "Azurblå"
+
+# AI Translated
+msgid "Gentian blue"
+msgstr "Gentianablå"
+
+# AI Translated
+msgid "Cobalt blue"
+msgstr "Koboltblå"
+
+# AI Translated
+msgid "Pigeon blue"
+msgstr "Duvblå"
+
+# AI Translated
+msgid "Traffic blue"
+msgstr "Trafikblå"
+
+# AI Translated
+msgid "Turquoise blue"
+msgstr "Turkosblå"
+
+# AI Translated
+msgid "Capri blue"
+msgstr "Capriblå"
+
+# AI Translated
+msgid "Ocean blue"
+msgstr "Havsblå"
+
+# AI Translated
+msgid "Water blue"
+msgstr "Vattenblå"
+
+# AI Translated
+msgid "Night blue"
+msgstr "Nattblå"
+
+# AI Translated
+msgid "Distant blue"
+msgstr "Avlägsen blå"
+
+# AI Translated
+msgid "Pastel blue"
+msgstr "Pastellblå"
+
+# AI Translated
+msgid "Pearl gentian blue"
+msgstr "Pärlgentianablå"
+
+# AI Translated
+msgid "Pearl midnight blue"
+msgstr "Pärlmidnattsblå"
+
+# AI Translated
+msgid "Patina green"
+msgstr "Patinagrön"
+
+# AI Translated
+msgid "Emerald green"
+msgstr "Smaragdgrön"
+
+# AI Translated
+msgid "Leaf green"
+msgstr "Lövgrön"
+
+# AI Translated
+msgid "Olive green"
+msgstr "Olivgrön"
+
+# AI Translated
+msgid "Blue green"
+msgstr "Blågrön"
+
+# AI Translated
+msgid "Moss green"
+msgstr "Mossgrön"
+
+# AI Translated
+msgid "Grey olive"
+msgstr "Gråoliv"
+
+# AI Translated
+msgid "Pine green"
+msgstr "Tallgrön"
+
+# AI Translated
+msgid "Pine brown"
+msgstr "Tallbrun"
+
+# AI Translated
+msgid "Grass green"
+msgstr "Gräsgrön"
+
+# AI Translated
+msgid "Reseda green"
+msgstr "Resedagrön"
+
+# AI Translated
+msgid "Brown green"
+msgstr "Brungrön"
+
+# AI Translated
+msgid "Reed green"
+msgstr "Vassgrön"
+
+# AI Translated
+msgid "Black green"
+msgstr "Svartgrön"
+
+# AI Translated
+msgid "Turquoise green"
+msgstr "Turkosgrön"
+
+# AI Translated
+msgid "May green"
+msgstr "Majgrön"
+
+# AI Translated
+msgid "Chrome oxide green"
+msgstr "Kromoxidgrön"
+
+# AI Translated
+msgid "Traffic green"
+msgstr "Trafikgrön"
+
+# AI Translated
+msgid "Fern green"
+msgstr "Ormbunksgrön"
+
+# AI Translated
+msgid "Opal green"
+msgstr "Opalgrön"
+
+# AI Translated
+msgid "Mint green"
+msgstr "Mintgrön"
+
+# AI Translated
+msgid "Bronze green"
+msgstr "Bronsgrön"
+
+# AI Translated
+msgid "Pearl green"
+msgstr "Pärlgrön"
+
+# AI Translated
+# Needs human review: RAL name; check the Swedish form.
+msgid "Sax turquoise"
+msgstr "Saxturkos"
+
+# AI Translated
+msgid "Pearl turquoise"
+msgstr "Pärlturkos"
+
+# AI Translated
+msgid "Pearl jade"
+msgstr "Pärljade"
+
+# AI Translated
+msgid "Pure green"
+msgstr "Ren grön"
+
+# AI Translated
+msgid "Luminous green"
+msgstr "Lysgrön"
+
+# AI Translated
+msgid "Squirrel grey"
+msgstr "Ekorrgrå"
+
+# AI Translated
+msgid "Silver grey"
+msgstr "Silvergrå"
+
+# AI Translated
+msgid "Olive grey"
+msgstr "Olivgrå"
+
+# AI Translated
+msgid "Moss grey"
+msgstr "Mossgrå"
+
+# AI Translated
+msgid "Signal grey"
+msgstr "Signalgrå"
+
+# AI Translated
+msgid "Mouse grey"
+msgstr "Musgrå"
+
+# AI Translated
+msgid "Beige grey"
+msgstr "Beigegrå"
+
+# AI Translated
+msgid "Khaki grey"
+msgstr "Khakigrå"
+
+# AI Translated
+msgid "Green grey"
+msgstr "Gröngrå"
+
+# AI Translated
+msgid "Tarpaulin grey"
+msgstr "Presenninggrå"
+
+# AI Translated
+msgid "Iron grey"
+msgstr "Järngrå"
+
+# AI Translated
+msgid "Basalt grey"
+msgstr "Basaltgrå"
+
+# AI Translated
+msgid "Brown grey"
+msgstr "Brungrå"
+
+# AI Translated
+msgid "Slate grey"
+msgstr "Skiffergrå"
+
+# AI Translated
+msgid "Anthracite grey"
+msgstr "Antracitgrå"
+
+# AI Translated
+msgid "Light grey"
+msgstr "Ljusgrå"
+
+# AI Translated
+msgid "Umber grey"
+msgstr "Umbragrå"
+
+# AI Translated
+msgid "Concrete grey"
+msgstr "Betonggrå"
+
+# AI Translated
+msgid "Graphite grey"
+msgstr "Grafitgrå"
+
+# AI Translated
+msgid "Granite grey"
+msgstr "Granitgrå"
+
+# AI Translated
+msgid "Stone grey"
+msgstr "Stengrå"
+
+# AI Translated
+msgid "Pebble grey"
+msgstr "Kiselgrå"
+
+# AI Translated
+msgid "Cement grey"
+msgstr "Cementgrå"
+
+# AI Translated
+msgid "Yellow grey"
+msgstr "Gulgrå"
+
+# AI Translated
+msgid "Platinum grey"
+msgstr "Platinagrå"
+
+# AI Translated
+msgid "Dusty grey"
+msgstr "Dammgrå"
+
+# AI Translated
+msgid "Agate grey"
+msgstr "Agatgrå"
+
+# AI Translated
+msgid "Quartz grey"
+msgstr "Kvartsgrå"
+
+# AI Translated
+msgid "Window grey"
+msgstr "Fönstergrå"
+
+# AI Translated
+msgid "Traffic grey A"
+msgstr "Trafikgrå A"
+
+# AI Translated
+msgid "Traffic grey B"
+msgstr "Trafikgrå B"
+
+# AI Translated
+msgid "Silk grey"
+msgstr "Sidengrå"
+
+# AI Translated
+msgid "Telegrey 1"
+msgstr "Telegrå 1"
+
+# AI Translated
+msgid "Telegrey 2"
+msgstr "Telegrå 2"
+
+# AI Translated
+msgid "Telegrey 4"
+msgstr "Telegrå 4"
+
+# AI Translated
+msgid "Pearl mouse grey"
+msgstr "Pärlmusgrå"
+
+# AI Translated
+msgid "Green brown"
+msgstr "Grönbrun"
+
+# AI Translated
+msgid "Ochre brown"
+msgstr "Ockrabrun"
+
+# AI Translated
+msgid "Clay brown"
+msgstr "Lerbrun"
+
+# AI Translated
+msgid "Copper brown"
+msgstr "Kopparbrun"
+
+# AI Translated
+msgid "Chocolate brown"
+msgstr "Chokladbrun"
+
+# AI Translated
+msgid "Olive brown"
+msgstr "Olivbrun"
+
+# AI Translated
+msgid "Nut brown"
+msgstr "Nötbrun"
+
+# AI Translated
+msgid "Red brown"
+msgstr "Rödbrun"
+
+# AI Translated
+msgid "Sepia brown"
+msgstr "Sepiabrun"
+
+# AI Translated
+msgid "Chestnut brown"
+msgstr "Kastanjebrun"
+
+# AI Translated
+msgid "Mahogany brown"
+msgstr "Mahognybrun"
+
+# AI Translated
+msgid "Grey brown"
+msgstr "Gråbrun"
+
+# AI Translated
+msgid "Pearl copper"
+msgstr "Pärlkoppar"
+
+# AI Translated
+msgid "Beige brown"
+msgstr "Beigebrun"
+
+# AI Translated
+msgid "Pearl mocha brown"
+msgstr "Pärlmockabrun"
+
+# AI Translated
+msgid "Earth brown"
+msgstr "Jordbrun"
+
+# AI Translated
+msgid "Pearl brown"
+msgstr "Pärlbrun"
+
+# AI Translated
+msgid "Cream"
+msgstr "Kräm"
+
+# AI Translated
+msgid "Grey white"
+msgstr "Gråvit"
+
+# AI Translated
+msgid "Signal white"
+msgstr "Signalvit"
+
+# AI Translated
+msgid "Signal black"
+msgstr "Signalsvart"
+
+# AI Translated
+msgid "Jet black"
+msgstr "Kolsvart"
+
+# AI Translated
+msgid "White aluminium"
+msgstr "Vitt aluminium"
+
+# AI Translated
+msgid "Grey aluminium"
+msgstr "Grått aluminium"
+
+# AI Translated
+msgid "Pure white"
+msgstr "Ren vit"
+
+# AI Translated
+msgid "Graphite black"
+msgstr "Grafitsvart"
+
+# AI Translated
+msgid "Traffic white"
+msgstr "Trafikvit"
+
+# AI Translated
+msgid "Traffic black"
+msgstr "Trafiksvart"
+
+# AI Translated
+msgid "Papyrus white"
+msgstr "Papyrusvit"
+
+# AI Translated
+msgid "Pearl light grey"
+msgstr "Pärl-ljusgrå"
+
+# AI Translated
+msgid "Metal: Silver"
+msgstr "Metall: Silver"
+
+# AI Translated
+msgid "Metal: Brass"
+msgstr "Metall: Mässing"
+
+# AI Translated
+msgid "Metal: Gold"
+msgstr "Metall: Guld"
+
+# AI Translated
+msgid "Metal: Copper"
+msgstr "Metall: Koppar"
+
+# AI Translated
+msgid "Metal: Bronze"
+msgstr "Metall: Brons"
+
+# AI Translated
+msgid "Nature: Pearl"
+msgstr "Natur: Pärla"
+
+# AI Translated
+msgid "Nature: Rainbow"
+msgstr "Natur: Regnbåge"
+
+# AI Translated
+msgid "Nature: Clear Sky"
+msgstr "Natur: Klar himmel"
+
+# AI Translated
+msgid "Nature: Sunset"
+msgstr "Natur: Solnedgång"
+
+# AI Translated
+msgid "Wood: Dark"
+msgstr "Trä: Mörkt"
+
+# AI Translated
+msgid "Wood: Medium"
+msgstr "Trä: Medel"
+
+# AI Translated
+msgid "Wood: Light"
+msgstr "Trä: Ljust"
+
+# AI Translated
 msgid "Alternate nozzles:"
 msgstr "Alternativa nozzlar:"
 
@@ -33509,12 +35214,24 @@ msgid "Built-in"
 msgstr "Inbyggda"
 
 # AI Translated
+msgid "My textures"
+msgstr "Mina texturer"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Inga texturer hittades."
 
 # AI Translated
-msgid "My textures"
-msgstr "Mina texturer"
+msgid "Texture libraries"
+msgstr "Texturbibliotek"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Utforska fler texturbibliotek"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Öppnar OrcaCloud på startsidan för att bläddra bland insticksmoduler."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -33918,6 +35635,14 @@ msgid "How wide one copy of the texture is on the model. Smaller repeats the pat
 msgstr "Hur bred en kopia av texturen är på modellen. Mindre värden upprepar mönstret oftare och gör detaljerna finare; med Sida vid sida avstängt är detta storleken på den enda kopian."
 
 # AI Translated
+msgid "Larger"
+msgstr "Större"
+
+# AI Translated
+msgid "Smaller"
+msgstr "Mindre"
+
+# AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Vrider texturen på ytan, i grader - för att rikta in ett mönster mot en kant på modellen."
 
@@ -33990,6 +35715,16 @@ msgstr "Blandade färger"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Det högsta antalet blandade filament som en inbakning får lägga till. De väljs ur texturens färger, och endast de som inbakningen faktiskt använder skapas."
+
+# AI Translated
+# Needs human review: Bare label in the app; check Få/Många fit their context.
+msgid "Few"
+msgstr "Få"
+
+# AI Translated
+# Needs human review: Bare label in the app; check Få/Många fit their context.
+msgid "Many"
+msgstr "Många"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -34114,10 +35849,6 @@ msgstr "Projektionsram"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Öppnar ett fönster som du drar över modellen. Det du kan se genom det är det som får texturen, och dess kant blir projektionens kant."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Opacitet"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -34348,6 +36079,16 @@ msgstr "Ombyggnad av mesh"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Triangelstorleken som hela modellen byggs om med, i millimeter. Förskjutning fungerar bäst på en jämn mesh; det är detta som skapar en sådan av en ojämn import."
+
+# AI Translated
+# Needs human review: Bare label in the app; check Före/Efter fit their context.
+msgid "Before"
+msgstr "Före"
+
+# AI Translated
+# Needs human review: Bare label in the app; check Före/Efter fit their context.
+msgid "After"
+msgstr "Efter"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -36220,6 +37961,10 @@ msgid "Slicing Pipeline"
 msgstr "Beredningspipeline"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Resurstextur"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "Insticksmodulens konfigurationsgränssnitt var tomt. Standardredigeraren visas."
 
@@ -36365,6 +38110,30 @@ msgstr "Insticksmodulens mapp innehåller både .py- och .whl-startfiler"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Insticksmodulens mapp innehåller ingen .py- eller .whl-startfil"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Mappen för resurstexturer är inte angiven"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Mappen för resurstexturer kunde inte lösas upp"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Sökvägen för resurstexturer är ingen mapp"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Insticksmodulens mapp kunde inte lösas upp"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Mappen för resurstexturer ligger utanför insticksmodulens mapp"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Mappen för resurstexturer kunde inte läsas"
 
 # AI Translated
 #, boost-format
@@ -36826,7 +38595,7 @@ msgstr "Det gick inte att läsa in konfigurationsfilen \"%1%\": %2%"
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "Inte en G-code-fil som genererats av %1%."
 
 # AI Translated
@@ -36946,7 +38715,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "Det gick inte att skapa en tillfällig kopia av G-code-filen %1% innan ett efterbearbetningsskript kördes: %2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "Efterbearbetningen hittar inte den exporterade G-code-filen"
 
 # AI Translated
@@ -37329,6 +39098,32 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning?"
+
+# AI Translated
+# Needs human review: Possibly meant Daffodil yellow (RAL 1007); translated literally.
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Dalmatinergul"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "Capsanthinviolett"
+
+# AI Translated
+# Needs human review: Probably RAL Olive grey; translated as Olivgrå.
+#~ msgid "Olivestone"
+#~ msgstr "Olivgrå"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Tillgängligt överallt i fönstret, även när du skriver i ett textfält."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Globala kortkommandon gäller även när du skriver."
+
+# AI Translated
+#~ msgid "Please choose the filament color"
+#~ msgstr "Välj filamentfärg"
 
 # AI Translated
 #~ msgid ""
@@ -37842,10 +39637,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "inget konfigurerat verktyg"
 
-# AI Translated
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "Lägg till slut-G-code när hela utskriften avslutas."
-
 #~ msgid "Maximum X speed"
 #~ msgstr "Max X hastighet"
 
@@ -37863,24 +39654,8 @@ msgstr ""
 #~ msgstr "Python-insticksmoduler som anropas vid varje steg i beredningspipelinen för att läsa och ändra mellanliggande beredningsdata, inklusive ett avslutande efterbearbetningssteg för G-code. Forskning/experimentellt."
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "När detta är aktiverat genererar beredningsprogrammet G-code med den primära zonens innehåll centrerat kring byggplattans origo (0,0). Skrivarens fasta programvara ansvarar för att placera kopior/speglingar på varje fysisk zonposition. Aktivera endast på skrivare vars fasta programvara tillämpar egna zonförskjutningar i läget Kopia/Spegel (t.ex. dupliceringsläget för IDEX i RepRapFirmware). Har ingen effekt i läget Primär."
-
-# AI Translated
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "Åsidosättning per platta som mappar fysiska huvuden till filamentplatser (1-baserade). Tomt innebär att standardvärdena för pem-inversion används."
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "Axeln som meshen roteras kring före beredning. Detta är bandskrivarens lutning: en isometrisk (förvrängningsfri) rotation som även styr renderingen av byggplattan och tyngdkraftslutningen för support, och som G-code-baktransformationen inverterar före skjuvningen/skalningen och ommappningen till maskinkoordinatsystemet. X är den typiska portallutningen (bandet rör sig längs Y)."
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "Expertinställning: ange lutningsvinkeln för maskinkoordinatsystemet (G-code-skjuvning/skalning) oberoende av rotationsvinkeln före beredning. När detta är inaktiverat härleds transformationen till maskinkoordinatsystemet från bandets lutningsvinkel, så att en enda vinkel styr båda stegen. Aktivera endast för att kompensera för en maskin vars fysiska portallutning skiljer sig från beredningsrotationen."
-
-# AI Translated
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "Den största avvikelse som tillåts när upplösningen minskas för inställningen 'Maximal väggupplösning'. Om du ökar den blir utskriften mindre exakt, men G-code:n blir mindre. 'Maximal väggavvikelse' begränsar 'Maximal väggupplösning', så om de två står i konflikt har 'Maximal väggavvikelse' företräde."
 
 #~ msgid " not in range "
 #~ msgstr " inte inom intervallet "
