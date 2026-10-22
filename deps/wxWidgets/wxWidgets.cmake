@@ -36,6 +36,12 @@ if (APPLE)
         COMMAND ${GIT_EXECUTABLE} apply --verbose
                 ${CMAKE_CURRENT_LIST_DIR}/0001-macos-use-srgb-colour-components.patch
     )
+elseif (MSVC)
+    set(_wx_patch_command
+        ${GIT_EXECUTABLE} checkout -f -- src/msw/webview_edge.cpp
+        COMMAND ${GIT_EXECUTABLE} apply --verbose
+                ${CMAKE_CURRENT_LIST_DIR}/0002-msw-webview2-monitor-dpi-rasterization.patch
+    )
 endif ()
 
 orcaslicer_add_cmake_project(
