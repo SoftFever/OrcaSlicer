@@ -1417,6 +1417,7 @@ void GCodeViewer::load_as_gcode(const GCodeProcessorResult& gcode_result, const 
     // ORCA: darken the layers the preview layer slider is not scrubbed to
     m_viewer.set_dim_previous_layers(get_app_config()->get_bool("preview_dim_previous_layers"));
     m_viewer.set_dim_previous_layers_brightness(0.01f * std::stoi(get_app_config()->get("preview_dim_previous_layers_brightness")));
+    m_viewer.set_translucent_filaments(get_app_config()->get_bool("preview_translucent_filaments"));
 
     // avoid processing if called with the same gcode_result.
     // On a belt printer the toolpath geometry fed to libvgcode also depends on the
@@ -3234,6 +3235,13 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         % m_shells.print_id % m_shells.print_modify_count % object_count %m_shells.volumes.volumes.size();
 }
 
+ColorRGBA GCodeViewer::shown_filament_color(ColorRGBA color) const
+{
+    if (!m_viewer.is_translucent_filaments())
+        color.a(1.0f);
+    return color;
+}
+
 void GCodeViewer::render_translucent_toolpaths()
 {
     if (m_viewer.get_extrusion_roles_count() == 0)
@@ -4938,7 +4946,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         for (uint8_t extruder_id : used_extruders_ids) {
             const std::string weight_text = format_compact_weight(model_used_filaments_g[i], imperial_units);
             ::sprintf(buf, imperial_units ? "%.2f in    %s" : "%.2f m    %s", model_used_filaments_m[i], weight_text.c_str());
-            append_item(EItemType::Rect, libvgcode::convert(m_viewer.get_tool_colors()[extruder_id]), { { _u8L("Extruder") + " " + std::to_string(extruder_id + 1), offsets[0]}, {buf, offsets[1]} });
+            append_item(EItemType::Rect, shown_filament_color(libvgcode::convert(m_viewer.get_tool_colors()[extruder_id])), { { _u8L("Extruder") + " " + std::to_string(extruder_id + 1), offsets[0]}, {buf, offsets[1]} });
             // append_item(EItemType::Rect, libvgcode::convert(m_viewer.get_tool_colors()[extruder_id]), _u8L("Extruder") + " " + std::to_string(extruder_id + 1),
             // true, "", 0.0f, 0.0f, offsets, used_filaments_m[extruder_id], used_filaments_g[extruder_id]);
             i++;
@@ -5034,7 +5042,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 }
 
                 float checkbox_pos = std::max(predictable_icon_pos, color_print_offsets[_u8L("Display")]); // ORCA prefer predictable_icon_pos when header not reacing end
-                append_item(EItemType::Rect, libvgcode::convert(tool_colors[extruder_idx]), columns_offsets, false, checkbox_pos/*ORCA*/, true, []() {});
+                append_item(EItemType::Rect, shown_filament_color(libvgcode::convert(tool_colors[extruder_idx])), columns_offsets, false, checkbox_pos/*ORCA*/, true, []() {});
             }
             i++;
         }
@@ -5144,7 +5152,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             const size_t extruders_count = get_extruders_count();
             std::vector<ColorRGBA> last_color(extruders_count);
             for (size_t i = 0; i < extruders_count; ++i) {
-                last_color[i] = libvgcode::convert(m_viewer.get_tool_colors()[i]);
+                last_color[i] = shown_filament_color(libvgcode::convert(m_viewer.get_tool_colors()[i]));
             }
             int last_extruder_id = 1;
             int color_change_idx = 0;
@@ -5166,6 +5174,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                         items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], ColorRGBA::BLACK(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], it->extruder - 1) });
                         ColorRGBA color;
                         decode_color(it->color, color);
+                        color = shown_filament_color(color);
                         items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], color, time_rec.second });
                         last_color[it->extruder - 1] = color;
                         last_extruder_id = it->extruder;

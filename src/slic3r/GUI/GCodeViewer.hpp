@@ -504,6 +504,8 @@ public:
     // ORCA: brightness of those darkened layers, 1.0 = unchanged, 0.0 = black
     void set_dim_previous_layers_brightness(float value) { m_viewer.set_dim_previous_layers_brightness(value); }
     float get_dim_previous_layers_brightness() const { return m_viewer.get_dim_previous_layers_brightness(); }
+    // ORCA: draw the toolpaths of translucent filament colors translucent
+    void set_translucent_filaments(bool value) { m_viewer.set_translucent_filaments(value); }
 
     void set_layers_z_range(const std::array<unsigned int, 2>& layers_z_range);
 
@@ -537,6 +539,8 @@ private:
     int sequential_view_height(int canvas_height) const;
     void render_toolpaths();
     void render_shells(int canvas_width, int canvas_height);
+    // ORCA: a filament color as the toolpaths show it, opaque unless translucent filaments are shown
+    ColorRGBA shown_filament_color(ColorRGBA color) const;
 
     //BBS: GUI refactor: add canvas size
     void render_legend(float &legend_height, int canvas_width, int canvas_height, int right_margin);

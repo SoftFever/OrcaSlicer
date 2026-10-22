@@ -122,6 +122,10 @@ public:
     float get_dim_previous_layers_brightness() const { return m_settings.dim_previous_layers_brightness; }
     void set_dim_previous_layers_brightness(float value);
 
+    // ORCA: whether the filament colors keep their opacity, see get_vertex_alpha()
+    bool is_translucent_filaments() const { return m_settings.translucent_filaments; }
+    void set_translucent_filaments(bool value);
+
     bool is_spiral_vase_mode() const { return m_settings.spiral_vase_mode; }
 
     std::vector<ETimeMode> get_time_modes() const;

@@ -134,6 +134,12 @@ public:
     float get_dim_previous_layers_brightness() const;
     void set_dim_previous_layers_brightness(float value);
     //
+    // Translucent filaments (ORCA)
+    // Whether the filament colors keep their opacity, or are all drawn opaque.
+    //
+    bool is_translucent_filaments() const;
+    void set_translucent_filaments(bool value);
+    //
     // Returns true if the given option is visible.
     //
     bool is_option_visible(EOptionType type) const;

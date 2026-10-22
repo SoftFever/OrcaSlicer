@@ -1565,6 +1565,14 @@ void ViewerImpl::set_dim_previous_layers(bool value)
     m_settings.dim_previous_layers = value;
 }
 
+void ViewerImpl::set_translucent_filaments(bool value)
+{
+    if (m_settings.translucent_filaments == value)
+        return;
+    m_settings.translucent_filaments = value;
+    m_settings.update_colors = true;
+}
+
 // ORCA: set how bright the darkened layers are rendered, 1.0 = unchanged, 0.0 = black
 void ViewerImpl::set_dim_previous_layers_brightness(float value)
 {
@@ -1792,7 +1800,7 @@ Color ViewerImpl::get_vertex_color(const PathVertex& v) const
 // ORCA: only the extrusions colored by filament can be translucent.
 uint8_t ViewerImpl::get_vertex_alpha(const PathVertex& v) const
 {
-    if (!v.is_extrusion())
+    if (!m_settings.translucent_filaments || !v.is_extrusion())
         return 255;
 
     switch (m_settings.view_type)

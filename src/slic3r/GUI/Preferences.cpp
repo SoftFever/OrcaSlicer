@@ -1097,6 +1097,16 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxString too
                 home->SendCloudProvidersInfo();
             }
         }
+        // ORCA: apply the filament translucency change immediately to the currently loaded preview
+        else if (param == "preview_translucent_filaments") {
+            if (Plater* plater = wxGetApp().plater()) {
+                if (GLCanvas3D* canvas = plater->get_preview_canvas3D()) {
+                    canvas->get_gcode_viewer().set_translucent_filaments(app_config->get_bool(param));
+                    canvas->set_as_dirty();
+                    canvas->request_extra_frame();
+                }
+            }
+        }
         // ORCA: apply the preview dimming change immediately to the currently loaded preview
         else if (param == "preview_dim_previous_layers") {
             if (m_dim_previous_layers_brightness_input)
@@ -2154,6 +2164,13 @@ void PreferencesDialog::create_items()
         }
     );
     g_sizer->Add(item_dim_previous_layers_brightness);
+
+    auto item_translucent_filaments = create_item_checkbox(
+        _L("Translucent filaments"),
+        _L("Draw the toolpaths of filaments whose color is partly transparent as see-through, as the 3D view draws their objects. Turn it off to draw every filament opaque."),
+        "preview_translucent_filaments"
+    );
+    g_sizer->Add(item_translucent_filaments);
 
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);

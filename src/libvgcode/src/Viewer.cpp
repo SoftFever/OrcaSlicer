@@ -129,6 +129,16 @@ void Viewer::set_dim_previous_layers_brightness(float value)
     m_impl->set_dim_previous_layers_brightness(value);
 }
 
+bool Viewer::is_translucent_filaments() const
+{
+    return m_impl->is_translucent_filaments();
+}
+
+void Viewer::set_translucent_filaments(bool value)
+{
+    m_impl->set_translucent_filaments(value);
+}
+
 bool Viewer::is_option_visible(EOptionType type) const
 {
     return m_impl->is_option_visible(type);
