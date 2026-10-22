@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cassert>
 #include <cstdint>
+#include <algorithm>
 #include <array>
 #include <unordered_map>
 #include <utility>
@@ -91,12 +92,12 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
 
         struct Mode
         {
-            float time;
+            double time;
             float prepare_time;
             std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> custom_gcode_times;
 
             void reset() {
-                time = 0.0f;
+                time = 0.0;
                 prepare_time = 0.0f;
                 custom_gcode_times.clear();
                 custom_gcode_times.shrink_to_fit();
@@ -601,6 +602,12 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             Print_Time_Minute_Placeholder,
             Print_Time_Sec_Placeholder,
             Used_Filament_Length_Placeholder,
+            Normal_Print_Time_Placeholder,
+            Silent_Print_Time_Placeholder,
+            Total_Weight_Placeholder,
+            Total_Cost_Placeholder,
+            Total_Wipe_Tower_Cost_Placeholder,
+            Total_Wipe_Tower_Filament_Placeholder,
         };
 
         static const std::string& reserved_tag(ETags tag) { return s_IsBBLPrinter ? Reserved_Tags[static_cast<unsigned char>(tag)] : Reserved_Tags_compatible[static_cast<unsigned char>(tag)]; }
@@ -697,6 +704,12 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             float acceleration{ 0.0f }; // mm/s^2
             float max_entry_speed{ 0.0f }; // mm/s
             float safe_feedrate{ 0.0f }; // mm/s
+            float junction_deviation{ 0.0f };
+            float max_mcr_entry_speed_sqr{ 0.0f };
+            float mcr_delta_v2{ 0.0f };
+            // Peak cruise speed squared in effect when this block was planned. Only set on a block
+            // that can accelerate; the delayed blocks after it are seeded from its value.
+            float peak_cruise_v2{ 0.0f };
             Flags flags;
             FeedrateProfile feedrate_profile;
             Trapezoid trapezoid;
@@ -776,6 +789,11 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             // hard limit for the travel acceleration, to which the firmware will clamp.
             float max_travel_acceleration; // mm/s^2
             float extrude_factor_override_percentage;
+            bool klipper{ false };
+            float minimum_cruise_ratio{ 0.5f };
+            float requested_accel_to_decel{ -1.0f };
+            float klipper_junction_flush{ 1.0f };
+            bool klipper_queue_priming{ true };
             // We accumulate total print time in doubles to reduce the loss of precision
             // while adding big floating numbers with small float numbers.
             double time; // s
@@ -811,6 +829,8 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
 
             // Merge adjacent buffer entries that target the same move type.
             static AdditionalBuffer merge_adjacent_additional_time_blocks(const AdditionalBuffer& buffer);
+
+            size_t plan_klipper(bool lazy);
 
             // additional_time is attributed to the first block matching target_move_type
             // (EMoveType::Noop matches any block, i.e. the first processed block).
@@ -1057,18 +1077,34 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
                 m_custom_gcode_per_print_z_id = m_result.custom_gcode_per_print_z.size() - 1;
             }
 
-            void update(float height) {
-                if (!m_move_id.has_value() || !m_custom_gcode_per_print_z_id.has_value())
+            // The time pass inserts actual speed moves in front of the moves of its blocks, and the stored
+            // vertex has no block of its own, so it shifts with every insertion made before it.
+            void on_moves_inserted(const std::vector<std::pair<unsigned int, unsigned int>>& id_map) {
+                if (!m_move_id.has_value())
                     return;
+                auto it = std::lower_bound(id_map.begin(), id_map.end(), *m_move_id,
+                                           [](const std::pair<unsigned int, unsigned int>& entry, size_t id) { return entry.first < id; });
+                if (it != id_map.begin()) {
+                    --it;
+                    *m_move_id += it->second - it->first;
+                }
+            }
 
-                const Vec3f position = m_result.moves.back().position;
+            // Returns the index of the move erased from the list, if any.
+            std::optional<size_t> update(float height) {
+                if (!m_move_id.has_value() || !m_custom_gcode_per_print_z_id.has_value())
+                    return std::nullopt;
 
-                GCodeProcessorResult::MoveVertex& move = m_result.moves.emplace_back(m_result.moves[*m_move_id]);
+                const Vec3f  position = m_result.moves.back().position;
+                const size_t erased   = *m_move_id;
+
+                GCodeProcessorResult::MoveVertex& move = m_result.moves.emplace_back(m_result.moves[erased]);
                 move.position = position;
                 move.height = height;
-                m_result.moves.erase(m_result.moves.begin() + *m_move_id);
+                m_result.moves.erase(m_result.moves.begin() + erased);
                 m_result.custom_gcode_per_print_z[*m_custom_gcode_per_print_z_id].print_z = position.z();
                 reset();
+                return erased;
             }
 
             void reset() {
@@ -1377,7 +1413,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         void process_buffer(const std::string& buffer);
         void finalize(bool post_process);
 
-        float get_time(PrintEstimatedStatistics::ETimeMode mode) const;
+        double get_time(PrintEstimatedStatistics::ETimeMode mode) const;
         float get_prepare_time(PrintEstimatedStatistics::ETimeMode mode) const;
         std::string get_time_dhm(PrintEstimatedStatistics::ETimeMode mode) const;
         std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(PrintEstimatedStatistics::ETimeMode mode, bool include_remaining) const;

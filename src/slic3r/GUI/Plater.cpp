@@ -228,6 +228,7 @@
 #include "Jobs/PlaterWorker.hpp"
 #include "Jobs/BoostThreadWorker.hpp"
 #include "BackgroundSlicingProcess.hpp"
+#include "PostProcessor.hpp"
 #include "SelectMachine.hpp"
 #include "SendMultiMachinePage.hpp"
 #include "SendToPrinter.hpp"
@@ -2864,7 +2865,8 @@ Sidebar::Sidebar(Plater *parent)
 
         // add printer title
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
-        p->m_panel_printer_title->Bind(wxEVT_LEFT_UP, [this] (auto & e) {
+        // ORCA Bind with LEFT_DOWN, since closing a dialog over the title bar can send it a stray LEFT_UP
+        auto toggle_printer_section = ([this] (wxMouseEvent & e) {
             if (!p || !p->combo_printer || !p->m_text_printer_settings || !p->m_panel_printer_content || !m_scrolled_sizer)
                 return;
             // ORCA Show printer name on title when its folded to inform user without expanding it again
@@ -2875,6 +2877,8 @@ Sidebar::Sidebar(Plater *parent)
             p->m_panel_printer_separator->Show(isShown);
             m_scrolled_sizer->Layout();
         });
+        p->m_panel_printer_title->Bind(wxEVT_LEFT_DOWN  , toggle_printer_section);
+        p->m_panel_printer_title->Bind(wxEVT_LEFT_DCLICK, toggle_printer_section);
         // ORCA add bottom border for seperation wile sections folded
         p->m_panel_printer_separator = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(2))); // ORCA staticline class not works without string
         p->m_panel_printer_separator->SetBackgroundColour("#FFFFFF");
@@ -3247,7 +3251,8 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
     p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
-    p->m_panel_filament_title->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
+    // ORCA Bind with LEFT_DOWN, since closing a dialog over the title bar can send it a stray LEFT_UP
+    auto toggle_filament_section = ([this](wxMouseEvent &e) {
         if (!p || !p->m_filament_area_wrapper || !m_scrolled_sizer || !p->m_bpButton_set_filament || !p->m_purge_mode_btn || !p->m_flushing_volume_btn || !p->m_bpButton_add_filament || !ams_btn)
             return;
         // ORCA exclude area of del button from titlebar collapse/expand feature to fix undesired collapse when user spams del filament button
@@ -3266,6 +3271,8 @@ Sidebar::Sidebar(Plater *parent)
 
         CallAfter([this]{update_filaments_counter(true);}); // call after all UI processing done
     });
+    p->m_panel_filament_title->Bind(wxEVT_LEFT_DOWN  , toggle_filament_section);
+    p->m_panel_filament_title->Bind(wxEVT_LEFT_DCLICK, toggle_filament_section);
 
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
@@ -11030,10 +11037,68 @@ void Plater::priv::split_volume()
     wxGetApp().obj_list()->split();
 }
 
+// Boxes within bed that clear every rectangular exclusion zone: the rectangles spanned by bed and
+// exclusion edges that overlap no exclusion. Slivers no wider than the bed padding are dropped.
+static std::vector<BoundingBoxf3> free_print_volumes(const BoundingBoxf3& bed, const std::vector<BoundingBoxf3>& excludes)
+{
+    std::vector<double> xs{ bed.min.x(), bed.max.x() };
+    std::vector<double> ys{ bed.min.y(), bed.max.y() };
+    for (const BoundingBoxf3& ex : excludes) {
+        for (const double x : { ex.min.x(), ex.max.x() })
+            if (x > bed.min.x() && x < bed.max.x())
+                xs.push_back(x);
+        for (const double y : { ex.min.y(), ex.max.y() })
+            if (y > bed.min.y() && y < bed.max.y())
+                ys.push_back(y);
+    }
+    std::sort(xs.begin(), xs.end());
+    std::sort(ys.begin(), ys.end());
+    xs.erase(std::unique(xs.begin(), xs.end()), xs.end());
+    ys.erase(std::unique(ys.begin(), ys.end()), ys.end());
+
+    const double min_size = 2. * Slic3r::BuildVolume::SceneEpsilon;
+    std::vector<BoundingBoxf3> free_volumes;
+    for (size_t i = 0; i < xs.size(); ++i)
+    for (size_t j = i + 1; j < xs.size(); ++j)
+    for (size_t k = 0; k < ys.size(); ++k)
+    for (size_t l = k + 1; l < ys.size(); ++l) {
+        const double min_x = xs[i], max_x = xs[j], min_y = ys[k], max_y = ys[l];
+        if (max_x - min_x <= min_size || max_y - min_y <= min_size)
+            continue;
+
+        const bool blocked = std::any_of(excludes.begin(), excludes.end(), [&](const BoundingBoxf3& ex) {
+            return min_x < ex.max.x() && max_x > ex.min.x() && min_y < ex.max.y() && max_y > ex.min.y();
+        });
+        if (blocked)
+            continue;
+
+        BoundingBoxf3 box = bed;
+        box.min.x() = min_x;
+        box.min.y() = min_y;
+        box.max.x() = max_x;
+        box.max.y() = max_y;
+        free_volumes.push_back(box);
+    }
+    return free_volumes;
+}
+
 void Plater::priv::scale_selection_to_fit_print_volume()
 {
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
-    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(this->bed.build_volume());
+    const BuildVolume volume = this->bed.build_volume();
+    // Every plate shares the bed size, but each sits at its own origin: fit onto the
+    // plate the selection is on instead of always onto the first one.
+    PartPlate*    plate      = this->partplate_list.get_curr_plate();
+    const Vec3d   bed_center = plate != nullptr ? plate->get_center_origin() :
+                                                  Vec3d(volume.bed_center().x(), volume.bed_center().y(), 0.);
+    // On a multi-nozzle printer each nozzle reaches only part of the bed, so a model fitted
+    // to the bed can still exceed a nozzle's printable range. Fit into the volume every
+    // nozzle shares, which is also the area Arrange places items in, minus any exclusion zone.
+    const BoundingBoxf3 bed_box = plate != nullptr ? plate->get_build_volume(true) : volume.bounding_volume();
+    std::vector<BoundingBoxf3> print_volumes{ bed_box };
+    if (plate != nullptr && !plate->get_exclude_areas().empty())
+        print_volumes = free_print_volumes(bed_box, plate->get_exclude_areas());
+    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(volume, Vec2d(bed_center.x(), bed_center.y()), print_volumes);
 #else
     this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(*config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
@@ -17169,8 +17234,10 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
     canvas->do_scale("");
 
     auto cur_flowrate = filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0); // TODO: per-filament param
-    std::vector<double> internal_solid_speeds = generate_max_speed_parameter_value("internal_solid_infill_speed", linear, pass);
-    std::vector<double> top_surface_speeds = generate_max_speed_parameter_value("top_surface_speed", linear, pass);
+    // Cap the speeds for the extrusion the test prints, not the profile's line width and layer height
+    const float infill_line_width = nozzle_diameter * 1.2f;
+    std::vector<double> internal_solid_speeds = generate_max_speed_parameter_value("internal_solid_infill_speed", infill_line_width, layer_height, linear, pass);
+    std::vector<double> top_surface_speeds = generate_max_speed_parameter_value("top_surface_speed", infill_line_width, layer_height, linear, pass);
 
     // adjust parameters
     for (auto _obj : objects) {
@@ -17189,8 +17256,8 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
-        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
+        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloatOrPercent(infill_line_width, false));
+        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(infill_line_width, false));
         // ORCA: use the pattern parameter
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(pattern));
         const auto *top_solid_flow = dynamic_cast<const ConfigOptionFloatsNullable *>(_obj->config.option("top_solid_infill_flow_ratio"));
@@ -17865,6 +17932,9 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     filament_config->set_key_value("slow_down_for_layer_cooling", new ConfigOptionBools{false});
     print_config->set_key_value("layer_height", new ConfigOptionFloat(0.2));
     set_config_values<bool, ConfigOptionBools>(print_config, "enable_overhang_speed", false);
+    // A 100% factor sends Klipper MINIMUM_CRUISE_RATIO=0 with every acceleration change, for the whole test.
+    print_config->set_key_value("accel_to_decel_enable", new ConfigOptionBool(true));
+    print_config->set_key_value("accel_to_decel_factor", new ConfigOptionPercent(100));
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -17929,6 +17999,9 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     filament_config->set_key_value("slow_down_min_speed", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_for_layer_cooling", new ConfigOptionBools{false});
     set_config_values<bool, ConfigOptionBools>(print_config, "enable_overhang_speed", false);
+    // A 100% factor sends Klipper MINIMUM_CRUISE_RATIO=0 with every acceleration change, for the whole test.
+    print_config->set_key_value("accel_to_decel_enable", new ConfigOptionBool(true));
+    print_config->set_key_value("accel_to_decel_factor", new ConfigOptionPercent(100));
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -18670,7 +18743,7 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
 //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|zip|drc)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|zip|drc|glb|gltf|fbx)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> normal_paths;
@@ -19572,7 +19645,11 @@ void Plater::export_gcode_3mf(bool export_all)
         SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode | SaveStrategy::SkipModel; // BBS: silence
         if (wxGetApp().app_config->get_bool("export_statistics"))
             strategy = strategy | SaveStrategy::WithStatistics;
-        export_3mf(output_path, strategy, plate_idx);
+        if (export_3mf(output_path, strategy, plate_idx) < 0) {
+            // No file was written (e.g. a post-processing script failed), don't report a successful export.
+            p->exporting_status = ExportingStatus::NOT_EXPORTING;
+            return;
+        }
 
         RemovableDriveManager& removable_drive_manager = *wxGetApp().removable_drive_manager();
 
@@ -20429,6 +20506,45 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     p->partplate_list.store_to_3mf_structure(plate_data_list, (strategy & SaveStrategy::WithGcode || strategy & SaveStrategy::WithSliceInfo), export_plate_idx,
                                              strategy & SaveStrategy::WithStatistics);
 
+    // Orca: non-BBL G-code isn't post-processed in place, so run the scripts on a copy before packing it.
+    std::vector<std::string> pp_tmp_files;
+    ScopeGuard remove_pp_tmp_files([&pp_tmp_files]() {
+        for (const std::string& f : pp_tmp_files) {
+            boost::system::error_code ec;
+            boost::filesystem::remove(f, ec);
+        }
+    });
+
+    // Backups (SkipStatic) don't pack G-code, so don't run user scripts for them.
+    if ((strategy & SaveStrategy::WithGcode) && !(strategy & SaveStrategy::SkipStatic) &&
+        p->printer_technology == ptFFF && !wxGetApp().preset_bundle->is_bbl_vendor()) {
+        try {
+            for (PlateData* pd : plate_data_list) {
+                if (pd == nullptr || pd->gcode_file.empty())
+                    continue;
+                PartPlate* plate = p->partplate_list.get_plate(pd->plate_index);
+                if (plate == nullptr)
+                    continue;
+                PrintBase* print = nullptr;
+                plate->get_print(&print, nullptr, nullptr);
+                Print* fff_print = dynamic_cast<Print*>(print);
+                if (fff_print == nullptr)
+                    continue;
+
+                std::string src_path    = pd->gcode_file; // in/out: becomes the post-processed copy if a script ran
+                std::string output_name = path_u8;        // scripts see the real target; a rename is ignored for 3mf
+                if (run_post_process_scripts(src_path, true, "File", output_name, fff_print->full_print_config())) {
+                    pp_tmp_files.push_back(src_path);
+                    pd->gcode_file = src_path;
+                }
+            }
+        } catch (const std::exception& ex) {
+            release_PlateData_list(plate_data_list);
+            show_error(this, ex.what(), false);
+            return -1;
+        }
+    }
+
     // BBS: backup
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     std::vector<Preset*> project_presets = preset_bundle.get_current_project_embedded_presets();
@@ -20746,76 +20862,6 @@ void Plater::reslice()
     p->preview->reload_print();
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, started slicing for plate %1%") % p->partplate_list.get_curr_plate_index();
-
-    record_slice_preset("slicing");
-}
-
-void Plater::record_slice_preset(std::string action)
-{
-    // record slice preset
-    try
-    {
-        json j;
-        auto printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset_with_vendor_profile().preset;
-        if (printer_preset.is_system) {
-            j["printer_preset_name"] = printer_preset.name;
-        }
-        else {
-            j["printer_preset_name"] = printer_preset.config.opt_string("inherits");
-        }
-        const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
-        if (keys_map) {
-            for (auto item : *keys_map) {
-                if (item.second == wxGetApp().preset_bundle->project_config.opt_enum<BedType>("curr_bed_type")) {
-                    j["curr_bed_type"] = item.first;
-                    break;
-                }
-            }
-        }
-        auto filament_presets = wxGetApp().preset_bundle->filament_presets;
-        for (int i = 0; i < filament_presets.size(); ++i) {
-            auto filament_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[i]);
-            if (filament_preset->is_system) {
-                j["filament_preset_" + std::to_string(i)] = filament_preset->name;
-            }
-            else {
-                j["filament_preset_" + std::to_string(i)] = filament_preset->config.opt_string("inherits");
-            }
-        }
-
-        Preset& print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
-        if (print_preset.is_system) {
-            j["process_preset"] = print_preset.name;
-        }
-        else {
-            j["process_preset"] = print_preset.config.opt_string("inherits");
-        }
-        j["support_type"] = ConfigOptionEnum<SupportType>::get_enum_names().at(print_preset.config.opt_enum<SupportType>("support_type"));
-        j["sparse_infill_pattern"] = ConfigOptionEnum<InfillPattern>::get_enum_names().at(print_preset.config.opt_enum<InfillPattern>("sparse_infill_pattern"));
-        j["sparse_infill_density"] = print_preset.config.opt<ConfigOptionPercent>("sparse_infill_density")->value;
-
-        j["brim_type"] = ConfigOptionEnum<BrimType>::get_enum_names().at(print_preset.config.opt_enum<BrimType>("brim_type"));
-        j["user_mode"] = wxGetApp().get_mode_str();
-
-        if (p->background_process.fff_print()) {
-            const DynamicPrintConfig& full_config = p->background_process.fff_print()->full_print_config();
-            json values = json::array();
-            if (full_config.has("different_settings_to_system")) {
-                std::vector<std::string> different_values = full_config.option<ConfigOptionStrings>("different_settings_to_system")->values;
-                for (auto& item : different_values) {
-                    values.push_back(item);
-                }
-            }
-            j["different_settings_to_system"] = values;
-        }
-
-        j["record_event"] = action;
-        NetworkAgent* agent = wxGetApp().getAgent();
-    }
-    catch (...)
-    {
-        return;
-    }
 }
 
 //BBS: add project slicing related logic
@@ -21178,7 +21224,12 @@ void Plater::print_job_finished(wxCommandEvent &evt)
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
-    dev->set_selected_machine(evt.GetString().ToStdString());
+    const std::string dev_id = evt.GetString().ToStdString();
+    MachineObject* selected = dev->get_selected_machine();
+    // After a LAN print, the completion event reselects the same printer.
+    // Keep the active session while asynchronous status traffic may still be in flight.
+    if (!selected || selected->get_dev_id() != dev_id || selected->connection_type() != "lan")
+        dev->set_selected_machine(dev_id);
     p->main_frame->request_select_tab(TAB_ID_MONITOR);
     // Selects the status page on a built Device tab; one built by the switch starts there.
     MonitorPanel* curr_monitor = MonitorPanel::if_built();

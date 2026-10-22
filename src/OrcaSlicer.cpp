@@ -1126,6 +1126,19 @@ static void load_downward_settings_list_from_config(std::string config_file, std
     }
 }
 
+#ifdef __WXGTK__
+// Virtual GPUs (VirtualBox, VMware, QEMU) cannot back WebKit's hardware DMABUF renderer.
+static bool is_hypervisor_guest()
+{
+    std::ifstream cpuinfo("/proc/cpuinfo");
+    std::string line;
+    while (std::getline(cpuinfo, line))
+        if (boost::starts_with(line, "flags"))
+            return line.find(" hypervisor") != std::string::npos;
+    return false;
+}
+#endif
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -1175,6 +1188,9 @@ int CLI::run(int argc, char **argv)
             ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /* replace */ false);
             ::setenv("WEBKIT_FORCE_DMABUF_RENDERER", "1", /* replace */ false);
         }
+
+        if (is_hypervisor_guest() && WebView::SupportsForceSharedMemory())
+            ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /* replace */ false);
 
         if (x11_opt_in) {
             // ===== X11 / XWayland (opted in via GDK_BACKEND=x11) =====
@@ -6387,10 +6403,16 @@ int CLI::run(int argc, char **argv)
                             continue;
                         // An empty estimate is a plate that prints no tower (one filament and
                         // neither smooth timelapse, wrapping detection nor a raft).
-                        Vec3d wt_pos, wt_size;
-                        plate->estimate_wipe_tower_polygon(m_print_config, index, wt_pos, wt_size);
+                        Vec3d                            wt_pos, wt_size;
+                        Slic3r::GUI::WipeTowerRelocation relocation;
+                        plate->estimate_wipe_tower_polygon(m_print_config, index, wt_pos, wt_size, 0, false, &relocation);
                         if (wt_size(0) < EPSILON || wt_size(1) < EPSILON)
                             continue;
+                        if (relocation.moved)
+                            BOOST_LOG_TRIVIAL(warning) << boost::format("plate %1%: the wipe tower no longer fits at its saved position {%2%, %3%} and was moved %4%")
+                                % (index + 1) % m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true)->get_at(index)
+                                % m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true)->get_at(index)
+                                % (relocation.overlaps_objects ? "onto an object, as no free space is left" : "to free space");
                         ConfigOptionFloat wt_x_opt((float) wt_pos(0));
                         ConfigOptionFloat wt_y_opt((float) wt_pos(1));
                         m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true)->set_at(&wt_x_opt, index, 0);
