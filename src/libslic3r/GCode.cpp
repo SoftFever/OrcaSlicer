@@ -2649,9 +2649,11 @@ static void set_mass_locator(GCodeProcessor &processor, const Print &print)
                                 model_instances.begin());
         }
         bodies_total += int(count * object->instances().size());
+        // Without bodies only the instance matters, which any island box of an instance no other reaches proves. The
+        // islands of crowded instances are tested strictly anyway.
         for (const Layer *layer : layers) {
             o.print_zs.emplace_back(layer->print_z);
-            o.islands.emplace_back(layer->lslices, scaled<coord_t>(1.));
+            o.islands.emplace_back(layer->lslices, scaled<coord_t>(1.), o.bodies_count > 0);
         }
     }
     if (objects.empty())
@@ -2711,12 +2713,13 @@ static void set_mass_locator(GCodeProcessor &processor, const Print &print)
             return GCodeProcessor::MassLocation{ o.first_instance + int(hit.instance),
                                                  o.bodies_count == 0 ? -1 : o.first_body + int(hit.instance * o.bodies_count + o.bodies[hit.layer][hit.island]) };
         };
-        // A point lies on the first layer at or above it, as spiral vase rises through each layer.
+        // A point lies on the first layer whose print_z is at least its height less the tolerance, as spiral vase rises
+        // through each layer. Both paths below pick it alike, as lower_bound does.
+        const double z = point.z() - z_tolerance;
         // Extrusions mostly follow each other on one island.
         if (last) {
             const Object &o = objects[last->object];
-            if (point.z() <= o.print_zs[last->layer] + z_tolerance &&
-                (last->layer == 0 || point.z() > o.print_zs[last->layer - 1] + z_tolerance) &&
+            if (!(o.print_zs[last->layer] < z) && (last->layer == 0 || o.print_zs[last->layer - 1] < z) &&
                 o.islands[last->layer].holds(last->island, local(last->object, last->instance), o.crowded[last->instance]))
                 return location(*last);
         }
@@ -2725,10 +2728,10 @@ static void set_mass_locator(GCodeProcessor &processor, const Print &print)
         double             distance = std::numeric_limits<double>::max();
         for (size_t object = 0; object < objects.size(); ++object) {
             const Object &o = objects[object];
-            const auto    z = std::lower_bound(o.print_zs.begin(), o.print_zs.end(), point.z() - z_tolerance);
-            if (z == o.print_zs.end())
+            const auto    above = std::lower_bound(o.print_zs.begin(), o.print_zs.end(), z);
+            if (above == o.print_zs.end())
                 continue;
-            const size_t layer = size_t(z - o.print_zs.begin());
+            const size_t layer = size_t(above - o.print_zs.begin());
             for (size_t instance = 0; instance < o.object->instances().size(); ++instance) {
                 const auto [island, d] = o.islands[layer].find(local(object, instance), o.crowded[instance]);
                 if (island < 0)
