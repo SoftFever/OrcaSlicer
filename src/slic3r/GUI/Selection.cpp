@@ -474,17 +474,14 @@ void Selection::add_curr_plate()
     if (!m_valid)
         return;
 
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_plate(wxGetApp().plater()->get_partplate_list().get_curr_plate_index());
+    if (volume_idxs.empty())
+        return;
+
     wxGetApp().plater()->take_snapshot(std::string("Selection-Add Curr Plate All!"));
     m_mode = Instance;
     clear();
-
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-        if (plate && plate->contain_instance_totally(obj_idx, 0)) {
-            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
-            do_add_volumes(volume_idxs);
-        }
-    }
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -511,20 +508,14 @@ void Selection::remove_curr_plate()
     if (!m_valid)
         return;
 
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    if (plate->empty())
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_plate(wxGetApp().plater()->get_partplate_list().get_curr_plate_index());
+    if (volume_idxs.empty())
         return;
 
     wxGetApp().plater()->take_snapshot(std::string("Selection-Delete Curr Plate All"));
     m_mode = Instance;
     clear();
-
-    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-        if (plate && plate->contain_instance(obj_idx, 0)) {
-            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
-            do_add_volumes(volume_idxs);
-        }
-    }
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -558,37 +549,42 @@ void Selection::center()
     return;
 }
 
+double Selection::get_drop_min_z() const
+{
+    if (!m_valid)
+        return 0.;
+    if (m_mode == Volume)
+        return get_bounding_box().min.z();
+
+    double min_z = DBL_MAX;
+    for (const auto& [obj_idx, inst_idxs] : m_cache.content) {
+        if (obj_idx >= (int)m_model->objects.size())
+            continue; // wipe tower
+        for (int inst_idx : inst_idxs)
+            min_z = std::min(min_z, m_model->objects[obj_idx]->get_instance_min_z(inst_idx));
+    }
+    return min_z == DBL_MAX ? 0. : min_z;
+}
+
+bool Selection::can_drop() const
+{
+    return std::abs(get_drop_min_z()) > -SINKING_Z_THRESHOLD;
+}
+
 void Selection::drop()
 {
-    if (std::abs(this->get_bounding_box().min.z()) < -SINKING_Z_THRESHOLD) {
-        return; // shouldnt happen, but better check anyways, already checked in append_menu_item_drop()
-    }
+    const double min_z = get_drop_min_z();
+    if (std::abs(min_z) < -SINKING_Z_THRESHOLD)
+        return; // already checked in can_drop()
 
     wxGetApp().plater()->take_snapshot(L("Move object"));
 
-    this->move_to_center(Vec3d(0, 0, -this->get_bounding_box().min.z()));
-
-    for (unsigned int i : m_list) {
-        GLVolume&    volume = *(*m_volumes)[i];
-        // Skip the wipe tower: its synthetic id (>= 1000) is not an index into m_model->objects.
-        if (volume.object_idx() >= 1000)
-            continue;
-        ModelObject* model_object = m_model->objects[volume.object_idx()];
-
-        if (model_object != nullptr) {
-            if (m_mode == Volume) {
-                ModelVolume* cur_mv = model_object->volumes[volume.volume_idx()];
-                cur_mv->set_transformation(volume.get_volume_transformation());
-            } else if (m_mode == Instance) {
-                model_object->instances[volume.instance_idx()]->set_transformation(volume.get_instance_transformation());
-            }
-
-            model_object->invalidate_bounding_box();
-            this->notify_instance_update(volume.object_idx(), volume.instance_idx());
-        }
-    }
-
-    wxGetApp().plater()->get_view3D_canvas3D()->post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
+    // do_move() writes every volume back to the model and refreshes the view.
+    setup_cache();
+    TransformationType transformation_type;
+    transformation_type.set_relative();
+    translate(Vec3d(0, 0, -min_z), transformation_type);
+    wxGetApp().plater()->get_view3D_canvas3D()->do_move("");
 }
 
 void Selection::center_plate(const int plate_idx) {
@@ -638,26 +634,21 @@ void Selection::set_printable(bool printable)
 }
 
 bool Selection::get_auto_drop() const {
-    // The wipe tower is not a ModelObject and has no per-instance auto_drop;
+    // The wipe tower is not a ModelObject and has no auto_drop state;
     // return the default to avoid indexing m_model->objects with its synthetic id.
     if (!m_valid || is_wipe_tower())
         return true;
 
-    std::set<std::pair<int, int>> instances_idxs;
+    std::set<int> object_idxs;
     for (const auto& [obj_idx, inst_list] : m_cache.content) {
-        for (int inst_idx : inst_list) {
-            instances_idxs.insert({obj_idx, inst_idx});
-        }
+        object_idxs.insert(obj_idx);
     }
 
-    // return false, if one of the instances in the selection has auto_drop disabled, otherwise return true
-    for (const auto& [obj_idx, inst_idx] : instances_idxs) {
+    // Return false if one selected object has auto_drop disabled.
+    for (int obj_idx : object_idxs) {
         ModelObject* object = m_model->objects[obj_idx];
-        for (const auto* inst : object->instances) {
-            if (!inst->auto_drop) {
-                return false;
-            }
-        }
+        if (!object->auto_drop)
+            return false;
     }
 
     return true;
@@ -668,22 +659,18 @@ void Selection::set_auto_drop(bool enabled)
     if (!m_valid)
         return;
 
-    std::set<std::pair<int, int>> instances_idxs;
+    std::set<int> object_idxs;
     for (const auto& [obj_idx, inst_list] : m_cache.content) {
-        for (int inst_idx : inst_list) {
-            instances_idxs.insert({obj_idx, inst_idx});
-        }
+        object_idxs.insert(obj_idx);
     }
 
     std::string snapshot_text = (boost::format("%1%") % (enabled ? "Set Selection Auto-Drop Enabled" : "Set Selection Auto-Drop Disabled")).str();
     wxGetApp().plater()->take_snapshot(snapshot_text);
 
-    // set auto_drop value for all instances in object
-    for (const auto& [obj_idx, inst_idx] : instances_idxs) {
+    // auto_drop is shared by all instances of an object.
+    for (int obj_idx : object_idxs) {
         ModelObject* object = m_model->objects[obj_idx];
-        for (auto* inst : object->instances) {
-            inst->auto_drop = enabled;
-        }
+        object->auto_drop = enabled;
     }
 
     // update scene
@@ -1766,50 +1753,27 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
 
     //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj %1%, instance %2%") % object_idx % instance_idx;
     //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
-    for (unsigned int i : m_list) {
-        GLVolume& v = *(*m_volumes)[i];
-        if (v.object_idx() == (int)object_idx && v.instance_idx() == (int)instance_idx)
-            v.set_instance_offset(v.get_instance_offset() + displacement);
-    }
-
-    std::set<unsigned int> done;  // prevent processing volumes twice
-    done.insert(m_list.begin(), m_list.end());
-
-    for (unsigned int i : m_list) {
-        if (done.size() == m_volumes->size())
-            break;
-
-        int object_idx = (*m_volumes)[i]->object_idx();
-        if (object_idx >= 1000)
-            continue;
-
-        // Process unselected volumes of the object.
-        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j) {
-            if (done.size() == m_volumes->size())
-                break;
-
-            if (done.find(j) != done.end())
-                continue;
-
-            GLVolume& v = *(*m_volumes)[j];
-            if (v.object_idx() != object_idx || v.instance_idx() != (int)instance_idx)
-                continue;
-
-            v.set_instance_offset(v.get_instance_offset() + displacement);
-            done.insert(j);
-        }
+    // Every volume of the instance, selected or not, so that the instance moves as a whole.
+    for (GLVolume* v : *m_volumes) {
+        if (v->object_idx() == (int)object_idx && v->instance_idx() == (int)instance_idx)
+            v->set_instance_offset(v->get_instance_offset() + displacement);
     }
 
     this->set_bounding_boxes_dirty();
 }
 
-void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement) {
+void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement, bool local)
+{
     if (!m_valid) return;
 
     for (unsigned int i : m_list) {
         GLVolume &v = *(*m_volumes)[i];
-        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx)
-            v.set_volume_offset(v.get_volume_offset() + displacement);
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx) {
+            Vec3d local_displacement = displacement;
+            if (!local)
+                local_displacement = v.get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
+            v.set_volume_offset(v.get_volume_offset() + local_displacement);
+        }
     }
 
     this->set_bounding_boxes_dirty();
@@ -2274,6 +2238,27 @@ std::vector<unsigned int> Selection::get_volume_idxs_from_volume(unsigned int ob
         {
             if (((int)instance_idx != -1) && (v->instance_idx() == (int)instance_idx))
                 idxs.push_back(i);
+        }
+    }
+
+    return idxs;
+}
+
+std::vector<unsigned int> Selection::get_volume_idxs_from_plate(const int plate_idx) const
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+    std::vector<unsigned int> idxs;
+    if (!plate)
+        return idxs;
+
+    for (int obj_idx = 0; obj_idx < (int)m_model->objects.size(); obj_idx++) {
+        const ModelObject* obj = m_model->objects[obj_idx];
+        for (int inst_idx = 0; inst_idx < (int)obj->instances.size(); inst_idx++) {
+            // on this plate or overlapping it in some way (fully inside, oversized or partly outside)
+            if (plate->contain_instance(obj_idx, inst_idx) || plate->intersect_instance(obj_idx, inst_idx)) {
+                std::vector<unsigned int> inst_idxs = get_volume_idxs_from_instance(obj_idx, inst_idx);
+                idxs.insert(idxs.end(), inst_idxs.begin(), inst_idxs.end());
+            }
         }
     }
 
@@ -3088,8 +3073,9 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
             else if (sync_rotation_type != SyncRotationType::NONE || mirrored)
                 new_inst_trafo_j.linear() = (old_inst_trafo_j.linear() * old_inst_trafo_i.linear().inverse()) * curr_inst_trafo_i.linear();
 
-            bool should_synchronize_z = m_model->objects[volume_j->object_idx()]->instances[volume_j->instance_idx()]->auto_drop == false;
-            if (should_synchronize_z && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+            // Instances of the same object must remain at the same height. auto_drop
+            // only controls snapping after the move, not the instance transform itself.
+            if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
                 new_inst_trafo_j.translation().z() = curr_inst_trafo_i.translation().z();
 
             assert(is_rotation_xy_synchronized(curr_inst_trafo_i, new_inst_trafo_j));
@@ -3136,9 +3122,7 @@ void Selection::ensure_on_bed()
     for (size_t i = 0; i < m_volumes->size(); ++i) {
         GLVolume* volume    = (*m_volumes)[i];
         ModelObject*   mo   = m_model->objects[volume->object_idx()];
-        ModelInstance* mi   = mo->instances[volume->instance_idx()];
-
-        if (mi->auto_drop == false
+        if (mo->auto_drop == false
             || volume->is_wipe_tower 
             || volume->is_modifier 
             || std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end()) 

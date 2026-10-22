@@ -133,6 +133,28 @@ TEST_CASE("Type1 sizes the tower from each filament's own prime volume", "[WipeT
     CHECK_THAT(rib.depth, WithinAbs(WipeTower::estimate_rib_tower_bbox_side({{30.f, 0}, {45.f, 0}}, 35.f, 0.21f, 0.4f, 1.5f, 8.f, 0.f, 5.f), 1e-4));
 }
 
+TEST_CASE("A mixed slot is purged as its physical components", "[WipeTowerEstimate]") {
+    // Slots 4 and 5 blend 1+2 and 1+3: every layer prints one component per mixed slot, so a
+    // plate using all five slots purges the three physical filaments and nothing more.
+    const WipeTowerType type = GENERATE(WipeTowerType::Type1, WipeTowerType::Type2);
+    DynamicPrintConfig  config = make_config();
+    config.set_key_value("filament_prime_volume", new ConfigOptionFloats({100., 100., 100., 100., 100.}));
+    config.set_key_value("filament_adhesiveness_category", new ConfigOptionInts({0, 0, 0, 0, 0}));
+    config.set_key_value("filament_is_mixed", new ConfigOptionBools(std::vector<unsigned char>{0, 0, 0, 1, 1}));
+    config.set_key_value("filament_mixed_components", new ConfigOptionStrings({"", "", "", "1,2", "1,3"}));
+    const double physical = estimate(config, 3, 0.2, 5., type).depth;
+    REQUIRE(physical > estimate(config, 2, 0.2, 5., type).depth);
+    CHECK_THAT(estimate(config, 5, 0.2, 5., type).depth, WithinAbs(physical, 1e-9));
+    // The same slots with the mixed flags cleared are five filaments, which is what sized the
+    // tower before and refused positions the printed tower fits.
+    DynamicPrintConfig unmixed = config;
+    unmixed.set_key_value("filament_is_mixed", new ConfigOptionBools(std::vector<unsigned char>{0, 0, 0, 0, 0}));
+    CHECK(estimate(unmixed, 5, 0.2, 5., type).depth > physical);
+    // Mixed slots alone still purge their components, and a single one already changes tools.
+    CHECK_THAT(estimate_wipe_tower_footprint(config, type, {3, 4}, 0.2, 5.).depth, WithinAbs(physical, 1e-9));
+    CHECK_THAT(estimate_wipe_tower_footprint(config, type, {3}, 0.2, 5.).depth, WithinAbs(estimate(config, 2, 0.2, 5., type).depth, 1e-9));
+}
+
 TEST_CASE("A second nozzle adds the ramming of one nozzle change per layer", "[WipeTowerEstimate]") {
     // Two filaments on two nozzles: the tool order crosses once per layer, and Type1 rams 10 mm
     // of filament as three 1.0 mm nozzle-change lines (see the WipeTower case).

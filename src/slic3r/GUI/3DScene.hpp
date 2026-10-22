@@ -211,6 +211,8 @@ public:
 	    bool                visible : 1;
 	    // Whether or not this volume is active for rendering
 	    bool                is_active : 1;
+	    // Whether or not is_active was cleared because the other plates are hidden
+	    bool                on_hidden_plate : 1;
 	    // Whether or not to use this volume when applying zoom_to_volumes()
 	    bool                zoom_to_volumes : 1;
 	    // Wheter or not this volume is enabled for outside print volume detection in shader.

@@ -676,7 +676,7 @@ function labelParts(actions) {
 // Accessible label "Title from Pretty Source", disambiguated with the opaque action id when another
 // action shares the same title+source (case/separator-insensitive) - so two rows never read out identically.
 function actionLabel(action, actions) {
-    var label = action.title + " from " + prettySource(action.source || action.group || "");
+    var label = T("sd_action_from", "%s from %s", action.title, prettySource(action.source || action.group || ""));
     if (actions && actions.length) {
         var cache = labelParts(actions);
         var mine  = cache.sig[action.id];

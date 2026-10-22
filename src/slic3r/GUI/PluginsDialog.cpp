@@ -299,7 +299,7 @@ PluginDialogItem build_plugin_dialog_item(const PluginDescriptor& descriptor)
     item.display_name = descriptor.name;
     item.description  = !descriptor.is_metadata_valid() && descriptor.has_error() ?
                             descriptor.normalized_error() :
-                            (descriptor.description.empty() ? "No description." : descriptor.description);
+                            (descriptor.description.empty() ? _u8L("No description.") : descriptor.description);
     item.author       = descriptor.author;
     item.version      = descriptor.version;
     // The cloud merge overwrites `version` with the latest cloud version, so prefer the preserved local
@@ -639,9 +639,9 @@ nlohmann::json PluginsDialog::localized_strings() const
         {"no_plugins", _u8L("No plugins found")},
         {"no_match", _u8L("No plugins match \"%s\"")},
         {"source_mine", _u8L("Mine")},
-        {"source_subscribed", _u8L("Subscribed")},
+        {"source_subscribed", _u8L_CONTEXT("Subscribed", "Plugin")},
         {"source_orphaned", _u8L("Orphaned")},
-        {"source_local", _u8L("Local")},
+        {"source_local", _u8L_CONTEXT("Local", "Plugin")},
         {"mixed_capabilities", _u8L("Some plugin capabilities are enabled")},
         {"collapse_named", _u8L("Collapse %s capabilities")},
         {"expand_named", _u8L("Expand %s capabilities")},
@@ -1094,7 +1094,7 @@ bool PluginsDialog::install_cloud_plugin(const std::string& plugin_key, const st
     } catch (const std::exception& ex) {
         error = ex.what();
     } catch (...) {
-        error = "Unknown error";
+        error = _u8L("Unknown error");
     }
 
     if (!downloaded) {
@@ -1225,7 +1225,7 @@ void PluginsDialog::update_plugin(const std::string& plugin_key)
     } catch (const std::exception& ex) {
         error = ex.what();
     } catch (...) {
-        error = "Unknown error";
+        error = _u8L("Unknown error");
     }
 
     if (!updated) {

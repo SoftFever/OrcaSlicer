@@ -445,6 +445,11 @@ void FanMover::_process_gcode_line(GCodeReader& reader, const GCodeReader::GCode
                 std::string extrusion_string = line.raw().substr(6, line.raw().size() - 6);
                 current_role = ExtrusionEntity::string_to_role(extrusion_string);
             }
+            if (line.raw().rfind(";_FAN_MOVER_SKIP_", 0) == 0) {
+                // Internal markers: read here, then dropped from the output.
+                m_is_custom_gcode = line.raw().rfind(";_FAN_MOVER_SKIP_START", 0) == 0;
+                time = -1;
+            }
             if (line.raw().size() > 16) {
                 if (line.raw().rfind("; custom gcode", 0) != std::string::npos) {
                     if (line.raw().rfind("; custom gcode end", 0) != std::string::npos)

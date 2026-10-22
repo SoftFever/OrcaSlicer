@@ -698,7 +698,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_button_pause_resume = new ScalableButton(progress_lr_panel, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,true);
 
     m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-        if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
+        if (m_button_pause_resume->GetToolTipText() == _L_CONTEXT("Pause", "Verb")) {
             m_button_pause_resume->SetBitmap_("print_control_pause_hover");
         }
 
@@ -709,7 +709,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 
     m_button_pause_resume->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
         auto        buf = m_button_pause_resume->GetClientData();
-        if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
+        if (m_button_pause_resume->GetToolTipText() == _L_CONTEXT("Pause", "Verb")) {
             m_button_pause_resume->SetBitmap_("print_control_pause");
         }
 
@@ -1163,7 +1163,7 @@ void PrintingTaskPanel::enable_pause_resume_button(bool enable, std::string type
         }
         else if (type == "pause") {
         m_button_pause_resume->SetBitmap_("print_control_pause");
-        if (m_button_pause_resume->GetToolTipText() != _L("Pause")) { m_button_pause_resume->SetToolTip(_L("Pause")); }
+        if (m_button_pause_resume->GetToolTipText() != _L_CONTEXT("Pause", "Verb")) { m_button_pause_resume->SetToolTip(_L_CONTEXT("Pause", "Verb")); }
         }
     }
 }
@@ -1518,7 +1518,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     wxBoxSizer *bSizer_monitoring_title;
     bSizer_monitoring_title = new wxBoxSizer(wxHORIZONTAL);
 
-    m_staticText_monitoring = new Label(m_panel_monitoring_title, _L("Camera"));
+    m_staticText_monitoring = new Label(m_panel_monitoring_title, _L_CONTEXT("Camera", "Printer camera"));
     m_staticText_monitoring->Wrap(-1);
     //m_staticText_monitoring->SetFont(PAGE_TITLE_FONT);
     m_staticText_monitoring->SetForegroundColour(PAGE_TITLE_FONT_COL);
@@ -3876,7 +3876,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 if (obj->queue_number <= 0) {
                     prepare_text = wxString::Format(_L("Cloud Slicing..."));
                 } else {
-                    prepare_text = wxString::Format(_L("In Cloud Slicing Queue, there are %s tasks ahead of you."), std::to_string(obj->queue_number));
+                    prepare_text = wxString::Format(_L_PLURAL("In Cloud Slicing Queue, there is %d task ahead of you.",
+                                                              "In Cloud Slicing Queue, there are %d tasks ahead of you.", obj->queue_number),
+                                                    obj->queue_number);
                     show_percent = false;
                 }
             } else
@@ -4954,7 +4956,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     popUp->SetSize(em * 36, em * 8);
     step->SetHint(_L("This only takes effect during printing"));
     step->AppendItem(_L("Silent"), "");
-    step->AppendItem(_L("Standard"), "");
+    step->AppendItem(_L_CONTEXT("Standard", "Mode"), "");
     step->AppendItem(_L("Sport"), "");
     step->AppendItem(_L("Ludicrous"), "");
 
@@ -6063,22 +6065,26 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                                                 << "] http_error [" << http_error << "] config [" << config << "]  image_path [" << need_upload.second << "]";
                         break;
                     case -1:
-                        error_info += need_upload.second + _L(" upload failed").ToUTF8().data() + "\n\thttp code:" + std::to_string(http_code) + "\n\thttp_error:" + http_error + "\n";
+                        // TRN %s is the path of an image file.
+                        error_info += wxString::Format(_L("%s upload failed"), need_upload.second) + "\n\thttp code:" + std::to_string(http_code) + "\n\thttp_error:" + http_error + "\n";
                         m_upload_status_code = StatusCode::UPLOAD_IMG_FAILED;
                         ++it;
                         break;
                     case BAMBU_NETWORK_ERR_PARSE_CONFIG_FAILED:
-                        error_info += need_upload.second + _L(" upload config prase failed\n").ToUTF8().data() + "\n";
+                        // TRN %s is the path of an image file.
+                        error_info += wxString::Format(_L("%s upload config parse failed"), need_upload.second) + "\n\n";
                         m_upload_status_code = StatusCode::UPLOAD_IMG_FAILED;
                         ++it;
                         break;
                     case BAMBU_NETWORK_ERR_NO_CORRESPONDING_BUCKET:
-                        error_info += need_upload.second + _L(" No corresponding storage bucket\n").ToUTF8().data() + "\n";
+                        // TRN %s is the path of an image file.
+                        error_info += wxString::Format(_L("%s: No corresponding storage bucket"), need_upload.second) + "\n\n";
                         m_upload_status_code = StatusCode::UPLOAD_IMG_FAILED;
                         ++it;
                         break;
                     case BAMBU_NETWORK_ERR_OPEN_FILE_FAILED:
-                        error_info += need_upload.second + _L(" cannot be opened\n").ToUTF8().data() + "\n";
+                        // TRN %s is the path of an image file.
+                        error_info += wxString::Format(_L("%s cannot be opened"), need_upload.second) + "\n\n";
                         m_upload_status_code = StatusCode::UPLOAD_IMG_FAILED;
                         ++it;
                         break;
@@ -6118,9 +6124,8 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 if (!error_info.empty()) { BOOST_LOG_TRIVIAL(info) << error_info; }
 
                 dlg_info = new MessageDialog(this,
-                                             _L("Your comment result cannot be uploaded due to the following reasons:\n\n  error code: ") +
-                                             std::to_string(http_code) + "\n  " + _L("error message: ") + http_error +
-                                             _L("\n\nWould you like to redirect to the webpage to give a rating?"),
+                                             wxString::Format(_L("Your comment result cannot be uploaded due to the following reasons:\n\n  error code: %d\n  error message: %s\n\nWould you like to redirect to the webpage to give a rating?"),
+                                                              int(http_code), wxString::FromUTF8(http_error)),
                                              wxString(_L("info")), wxOK | wxNO | wxCENTER);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed and http error" << http_error;
                 if (dlg_info->ShowModal() == wxID_OK) {

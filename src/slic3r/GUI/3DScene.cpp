@@ -297,6 +297,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , printable(true)
     , visible(true)
     , is_active(true)
+    , on_hidden_plate(false)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
     , is_outside(false)
@@ -824,6 +825,8 @@ bool GLVolume::is_below_printbed() const
 
 void GLVolume::render_sinking_contours()
 {
+    if (!is_active)
+        return;
     m_sinking_contours.render();
 }
 
