@@ -45,6 +45,7 @@
 #include "Jobs/Worker.hpp"
 #include "Search.hpp"
 #include "PartPlate.hpp"
+#include "ModelImport.hpp"
 #include "GUI_App.hpp"
 #include "Jobs/PrintJob.hpp"
 #include "Jobs/SendJob.hpp"
@@ -388,6 +389,10 @@ public:
     void add_file();
     // Returns false when no object was added (e.g. the user cancelled the load dialog).
     bool add_model(bool imperial_units = false, std::string fname = "");
+    // Append geometry using native import prompts, as one undoable operation.
+    // Arrangement is queued separately and may reposition existing objects on the target plate.
+    ModelImportResult import_models(const std::vector<boost::filesystem::path>& paths,
+                                    bool new_plate = false, bool arrange = true);
     void import_zip_archive();
     void import_sl1_archive();
     void extract_config_from_project();

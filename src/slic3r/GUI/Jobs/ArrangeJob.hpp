@@ -11,6 +11,7 @@
 #include "Job.hpp"
 #include "libslic3r/Arrange.hpp"
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/ObjectID.hpp"
 #include "libslic3r/IMEXArrange.hpp"
 
 namespace Slic3r {
@@ -57,6 +58,9 @@ class ArrangeJob : public Job
 
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
+    std::optional<int> m_target_plate;
+    // Plate indices may be reused while the queued job waits or runs.
+    ObjectID m_target_plate_id;
     Polygon bed_poly;
     Plater *m_plater;
 
@@ -77,6 +81,7 @@ class ArrangeJob : public Job
     void prepare_wipe_tower();
     void prepare_belt_regions(int num_plates);
     void prepare_imex_zones();
+    bool target_plate_is_valid() const;
 
     ArrangePolygon prepare_arrange_polygon(void *instance, const PartPlate *mapping_plate = nullptr);
 
@@ -90,7 +95,7 @@ public:
 
     void process(Ctl &ctl) override;
 
-    ArrangeJob();
+    explicit ArrangeJob(std::optional<int> target_plate = std::nullopt);
 
     int status_range() const
     {
@@ -112,7 +117,7 @@ static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
 double bed_stride_x(const Plater* plater);
 double bed_stride_y(const Plater* plater);
 
-arrangement::ArrangeParams init_arrange_params(Plater *p);
+arrangement::ArrangeParams init_arrange_params(Plater *p, std::optional<int> target_plate = std::nullopt);
 
 }} // namespace Slic3r::GUI
 

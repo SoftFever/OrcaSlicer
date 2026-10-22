@@ -11,6 +11,7 @@
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
@@ -44,6 +45,7 @@
 #include "libslic3r/Config.hpp"
 #include <cmath>
 #include <string>
+#include <stdexcept>
 
 #define SAVE_ARRANGE_POLY 0
 
@@ -533,8 +535,8 @@ void ArrangeJob::prepare_partplate() {
     clear_input();
 
     PartPlateList& plate_list = m_plater->get_partplate_list();
-    PartPlate* plate = plate_list.get_curr_plate();
-    current_plate_index = plate_list.get_curr_plate_index();
+    current_plate_index = m_target_plate.value_or(plate_list.get_curr_plate_index());
+    PartPlate* plate = plate_list.get_plate(current_plate_index);
     assert(plate != nullptr);
 
     if (plate->empty())
@@ -608,7 +610,7 @@ void ArrangeJob::prepare_imex_zones()
     PartPlateList& plate_list = m_plater->get_partplate_list();
     std::vector<PartPlate*> plates;
     if (only_on_partplate)
-        plates.push_back(plate_list.get_curr_plate());
+        plates.push_back(plate_list.get_plate(current_plate_index));
     else
         for (int i = 0; i < plate_list.get_plate_count(); ++i)
             if (!plate_list.get_plate(i)->is_locked())
@@ -629,17 +631,28 @@ void ArrangeJob::prepare_imex_zones()
 }
 
 //BBS: add partplate logic
+bool ArrangeJob::target_plate_is_valid() const
+{
+    if (!m_target_plate)
+        return true;
+    const PartPlate* plate = m_plater->get_partplate_list().get_plate(*m_target_plate);
+    return plate != nullptr && m_target_plate_id.valid() && plate->id() == m_target_plate_id;
+}
+
 void ArrangeJob::prepare()
 {
+    if (!target_plate_is_valid())
+        throw std::runtime_error(_u8L("The arrangement target plate changed. Please arrange the plate again."));
     m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
         NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging..."));
     m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
 
-    params = init_arrange_params(m_plater);
+    params = init_arrange_params(m_plater, m_target_plate);
 
     //BBS update extruder params and speed table before arranging
     const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-    auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    auto& plate_list = m_plater->get_partplate_list();
+    auto& print = m_target_plate ? *plate_list.get_plate(*m_target_plate)->fff_print() : plate_list.get_current_fff_print();
     auto print_config = print.config();
     int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
 
@@ -647,7 +660,11 @@ void ArrangeJob::prepare()
     Model::setPrintSpeedTable(config, print_config);
 
     int state = m_plater->get_prepare_state();
-    if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
+    if (m_target_plate) {
+        only_on_partplate = true;
+        prepare_partplate();
+    }
+    else if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         only_on_partplate = false;
         prepare_all();
     }
@@ -723,7 +740,16 @@ void ArrangeJob::process(Ctl &ctl)
 {
     static const auto arrangestr = _u8L("Arranging");
     ctl.update_status(0, arrangestr);
-    ctl.call_on_main_thread([this]{ prepare(); }).wait();;
+    std::exception_ptr prepare_error;
+    ctl.call_on_main_thread([this, &prepare_error] {
+        try {
+            prepare();
+        } catch (...) {
+            prepare_error = std::current_exception();
+        }
+    }).wait();
+    if (prepare_error)
+        std::rethrow_exception(prepare_error);
 
     auto & partplate_list = m_plater->get_partplate_list();
 
@@ -804,7 +830,13 @@ void ArrangeJob::process(Ctl &ctl)
         we_have_unpackable_items ? _u8L("Arranging complete, but some items were not able to be arranged. Reduce spacing and try again.") : _u8L("Arranging done."));
 }
 
-ArrangeJob::ArrangeJob() : m_plater{wxGetApp().plater()} { }
+ArrangeJob::ArrangeJob(std::optional<int> target_plate)
+    : m_target_plate(target_plate), m_plater{wxGetApp().plater()}
+{
+    if (m_target_plate)
+        if (const PartPlate* plate = m_plater->get_partplate_list().get_plate(*m_target_plate))
+            m_target_plate_id = plate->id();
+}
 
 static std::string concat_strings(const std::set<std::string> &strings,
                                   const std::string &delim = "\n")
@@ -830,6 +862,13 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
 
     if (canceled || eptr)
         return;
+    if (!target_plate_is_valid()) {
+        m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
+        m_plater->m_arrange_running.store(false);
+        eptr = std::make_exception_ptr(std::runtime_error(
+            _u8L("The arrangement target plate changed. Please arrange the plate again.")));
+        return;
+    }
 
     // Nothing could be placed: leave the plates and the instances exactly as they were.
     // Rebuilding the plates would only re-home the instances by their bounds, which moves
@@ -858,7 +897,7 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
         //if (ap.bed_idx < 0) continue;  // bed_idx<0 means unarrangable
         //BBS: partplate postprocess
         if (only_on_partplate)
-            plate_list.postprocess_bed_index_for_current_plate(ap);
+            plate_list.postprocess_bed_index_for_current_plate(ap, current_plate_index);
         else
             plate_list.postprocess_bed_index_for_selected(ap);
 
@@ -986,11 +1025,12 @@ double bed_stride_y(const Plater* plater) {
 }
 
 // call before get selected and unselected
-arrangement::ArrangeParams init_arrange_params(Plater *p)
+arrangement::ArrangeParams init_arrange_params(Plater *p, std::optional<int> target_plate)
 {
     arrangement::ArrangeParams         params;
     GLCanvas3D::ArrangeSettings       &settings     = p->canvas3D()->get_arrange_settings();
-    auto                              &print        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    PartPlateList                     &plate_list   = p->get_partplate_list();
+    auto                              &print        = target_plate ? *plate_list.get_plate(*target_plate)->fff_print() : plate_list.get_current_fff_print();
     const PrintConfig                 &print_config = print.config();
 
     auto [object_skirt_offset, object_skirt_witdh] = print.object_skirt_offset();
@@ -1023,9 +1063,8 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     }
 
     int state = p->get_prepare_state();
-    if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
-        PartPlateList &plate_list = p->get_partplate_list();
-        PartPlate *    plate      = plate_list.get_curr_plate();
+    if (target_plate || state == Job::JobPrepareState::PREPARE_STATE_MENU) {
+        PartPlate* plate = target_plate ? plate_list.get_plate(*target_plate) : plate_list.get_curr_plate();
         bool plate_same_as_global = true;
         params.is_seq_print       = plate->get_real_print_seq(&plate_same_as_global) == PrintSequence::ByObject;
         // if plate's print sequence is not the same as global, the settings.distance is no longer valid, we set it to auto

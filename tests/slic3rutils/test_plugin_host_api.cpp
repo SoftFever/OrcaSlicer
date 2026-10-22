@@ -6,10 +6,12 @@
 #include <libslic3r/TriangleMesh.hpp>
 #include <slic3r/GUI/DockPanel.hpp>
 #include <slic3r/GUI/AuiPaneLayout.hpp>
+#include <slic3r/GUI/ModelImport.hpp>
 #include <slic3r/GUI/Widgets/WebHosting.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_message.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include "plugin_test_utils.hpp"
@@ -19,8 +21,11 @@
 
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
+#include <limits>
 #include <string>
+#include <vector>
 
 #include <wx/string.h>
 #include <wx/uri.h>
@@ -179,6 +184,165 @@ TEST_CASE("Plugin host API reports no GL details before the 3D view exists", "[P
     py::object plater_type = host.attr("Plater");
     CHECK(has_attr(plater_type, "project_path"));
     CHECK(has_attr(plater_type, "export_3mf_copy"));
+}
+
+TEST_CASE("Plugin model import exposes its options and native result types", "[PluginHost][Python][ModelImport]")
+{
+    py::object host = import_orca_module().attr("host");
+    py::object plater_type = host.attr("Plater");
+    REQUIRE(has_attr(plater_type, "import_models"));
+    CHECK(has_attr(host, "ModelImportResult"));
+
+    py::object status_type = host.attr("ModelImportStatus");
+    CHECK(status_type.attr("Success").cast<Slic3r::GUI::ModelImportStatus>() == Slic3r::GUI::ModelImportStatus::Success);
+    CHECK(status_type.attr("Partial").cast<Slic3r::GUI::ModelImportStatus>() == Slic3r::GUI::ModelImportStatus::Partial);
+    CHECK(status_type.attr("Cancelled").cast<Slic3r::GUI::ModelImportStatus>() == Slic3r::GUI::ModelImportStatus::Cancelled);
+    CHECK(status_type.attr("Failed").cast<Slic3r::GUI::ModelImportStatus>() == Slic3r::GUI::ModelImportStatus::Failed);
+
+    // Plater is app-owned, so inspect the generated signature without constructing
+    // a fake GUI object just to exercise the Python argument defaults.
+    const std::string signature = plater_type.attr("import_models").attr("__doc__").cast<std::string>();
+    CHECK(signature.find("*, plate: str = 'current', arrange: bool = True") != std::string::npos);
+}
+
+TEST_CASE("Model import recognises native geometry extensions without case sensitivity", "[PluginHost][ModelImport]")
+{
+    const char* extension = GENERATE(".sTl", ".3MF", ".FbX");
+    CAPTURE(extension);
+    CHECK(Slic3r::GUI::is_supported_model_import_extension(extension));
+}
+
+TEST_CASE("Model import rejects archives and toolpaths that use different opening workflows", "[PluginHost][ModelImport]")
+{
+    const char* extension = GENERATE(".ZIP", ".gcode", ".g", "");
+    CAPTURE(extension);
+    CHECK_FALSE(Slic3r::GUI::is_supported_model_import_extension(extension));
+}
+
+TEST_CASE("Model import offers ModelIO extensions only on macOS", "[PluginHost][ModelImport]")
+{
+    const char* extension = GENERATE(".USDZ", ".ply");
+    CAPTURE(extension);
+#ifdef __APPLE__
+    CHECK(Slic3r::GUI::is_supported_model_import_extension(extension));
+#else
+    CHECK_FALSE(Slic3r::GUI::is_supported_model_import_extension(extension));
+#endif
+}
+
+TEST_CASE("Model import rejects G-code 3MF filenames before opening their contents", "[PluginHost][ModelImport]")
+{
+    CHECK(Slic3r::GUI::is_supported_model_import_filename("bracket.3MF"));
+    CHECK_FALSE(Slic3r::GUI::is_supported_model_import_filename("plate.gcode.3mf"));
+    CHECK_FALSE(Slic3r::GUI::is_supported_model_import_filename("PLATE.GCODE.3MF"));
+    CHECK_FALSE(Slic3r::GUI::is_supported_model_import_filename("archive.zip"));
+    CHECK_FALSE(Slic3r::GUI::is_supported_model_import_filename("without-extension"));
+}
+
+TEST_CASE("Model import anchors an existing layout to the requested plate without changing its transforms", "[PluginHost][ModelImport]")
+{
+    using Catch::Matchers::WithinAbs;
+    Slic3r::Model model;
+    Slic3r::ModelObject* object = model.add_object();
+    object->add_volume(Slic3r::make_cube(10.0, 20.0, 30.0));
+    Slic3r::ModelInstance* first = object->add_instance();
+    Slic3r::ModelInstance* second = object->add_instance();
+    first->set_offset(Slic3r::Vec3d(-300.0, -140.0, 2.0));
+    second->set_offset(Slic3r::Vec3d(-250.0, -110.0, 7.0));
+    first->set_rotation(Slic3r::Vec3d(0.0, 0.0, 0.4));
+    first->set_scaling_factor(Slic3r::Vec3d(1.2, 0.8, 1.0));
+    const Slic3r::Vec3d relative_offset = second->get_offset() - first->get_offset();
+    const Slic3r::Vec3d rotation = first->get_rotation();
+    const Slic3r::Vec3d scaling = first->get_scaling_factor();
+    const Slic3r::Vec2d target(1800.0, 950.0);
+
+    REQUIRE(Slic3r::GUI::center_prepositioned_model_for_import(model, target));
+
+    const Slic3r::Vec3d center = object->bounding_box_exact().center();
+    CHECK_THAT(center.x(), WithinAbs(target.x(), 1e-6));
+    CHECK_THAT(center.y(), WithinAbs(target.y(), 1e-6));
+    const Slic3r::Vec3d actual_relative_offset = second->get_offset() - first->get_offset();
+    for (int axis = 0; axis < 3; ++axis) {
+        CAPTURE(axis);
+        CHECK_THAT(actual_relative_offset(axis), WithinAbs(relative_offset(axis), 1e-6));
+        CHECK_THAT(first->get_rotation()(axis), WithinAbs(rotation(axis), 1e-6));
+        CHECK_THAT(first->get_scaling_factor()(axis), WithinAbs(scaling(axis), 1e-6));
+    }
+    CHECK_THAT(first->get_offset().z(), WithinAbs(2.0, 1e-6));
+    CHECK_THAT(second->get_offset().z(), WithinAbs(7.0, 1e-6));
+    CHECK(object->volumes.front()->mesh().facets_count() == 12);
+}
+
+TEST_CASE("Model import leaves uninstanced meshes available for native empty-cell placement", "[PluginHost][ModelImport]")
+{
+    Slic3r::Model model;
+    Slic3r::ModelObject* object = model.add_object();
+    object->add_volume(Slic3r::make_cube(10.0, 20.0, 30.0));
+
+    CHECK_FALSE(Slic3r::GUI::center_prepositioned_model_for_import(model, Slic3r::Vec2d(1800.0, 950.0)));
+
+    REQUIRE(model.objects.size() == 1);
+    CHECK(object->instances.empty());
+    CHECK(object->volumes.front()->mesh().facets_count() == 12);
+}
+
+TEST_CASE("A default model import result cannot report success or an active plate", "[PluginHost][Python][ModelImport]")
+{
+    py::object host = import_orca_module().attr("host");
+    const Slic3r::GUI::ModelImportResult result;
+    py::object py_result = py::cast(result, py::return_value_policy::copy);
+
+    CHECK(py::isinstance(py_result, host.attr("ModelImportResult")));
+    CHECK(py_result.attr("status").cast<Slic3r::GUI::ModelImportStatus>() == Slic3r::GUI::ModelImportStatus::Failed);
+    CHECK(py::len(py_result.attr("object_ids")) == 0);
+    CHECK(py::len(py_result.attr("object_ids_by_file")) == 0);
+    CHECK(py::len(py_result.attr("instance_ids")) == 0);
+    CHECK(py_result.attr("plate_index").cast<int>() == -1);
+    CHECK_FALSE(py_result.attr("arrange_started").cast<bool>());
+    CHECK(py::len(py_result.attr("errors")) == 0);
+}
+
+TEST_CASE("Model import results preserve native outcomes and IDs as read-only Python values", "[PluginHost][Python][ModelImport]")
+{
+    using Slic3r::GUI::ModelImportStatus;
+    const ModelImportStatus status = GENERATE(ModelImportStatus::Success, ModelImportStatus::Partial,
+                                             ModelImportStatus::Cancelled, ModelImportStatus::Failed);
+    import_orca_module();
+
+    // This catches 32-bit narrowing on the 64-bit desktop hosts.
+    const size_t wide_id = std::numeric_limits<size_t>::max() - 2;
+    Slic3r::GUI::ModelImportResult result;
+    result.status = status;
+    result.object_ids = {wide_id, 17};
+    result.object_ids_by_file = {{wide_id}, {17}, {}};
+    result.instance_ids = {wide_id + 1, 19, 23};
+    result.plate_index = 2;
+    result.arrange_started = true;
+    result.errors = {"Could not load broken.stl", "Import cancelled for second.3mf"};
+    py::object py_result = py::cast(result, py::return_value_policy::copy);
+
+    CHECK(py_result.attr("status").cast<ModelImportStatus>() == status);
+    CHECK(py_result.attr("object_ids").cast<std::vector<size_t>>() == result.object_ids);
+    CHECK(py_result.attr("object_ids_by_file").cast<std::vector<std::vector<size_t>>>() == result.object_ids_by_file);
+    CHECK(py_result.attr("instance_ids").cast<std::vector<size_t>>() == result.instance_ids);
+    CHECK(py_result.attr("plate_index").cast<int>() == 2);
+    CHECK(py_result.attr("arrange_started").cast<bool>());
+    CHECK(py_result.attr("errors").cast<std::vector<std::string>>() == result.errors);
+
+    for (const char* field : {"status", "object_ids", "object_ids_by_file", "instance_ids", "plate_index", "arrange_started", "errors"}) {
+        CAPTURE(field);
+        try {
+            py::setattr(py_result, field, py::none());
+            FAIL("Model import result field unexpectedly accepted assignment");
+        } catch (const py::error_already_set& error) {
+            CHECK(error.matches(PyExc_AttributeError));
+        }
+    }
+
+    py::list object_ids = py_result.attr("object_ids");
+    object_ids.append(0);
+    result.object_ids.clear();
+    CHECK(py_result.attr("object_ids").cast<std::vector<size_t>>() == std::vector<size_t>{wide_id, 17});
 }
 
 TEST_CASE("Plugin host API exposes the UI module and guards it before Orca app initialization", "[PluginHost][Python]")
