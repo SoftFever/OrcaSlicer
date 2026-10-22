@@ -1489,8 +1489,6 @@ void ViewerImpl::render(const Mat4x4& view_matrix, const Mat4x4& projection_matr
     const Vec3 camera_position = { inv_view_matrix[12], inv_view_matrix[13], inv_view_matrix[14] };
     render_segments(view_matrix, projection_matrix, camera_position);
     render_options(view_matrix, projection_matrix);
-    // ORCA: last, as the translucent segments write no depth
-    render_translucent(view_matrix, projection_matrix, camera_position);
 
 #if VGCODE_ENABLE_COG_AND_TOOL_MARKERS
     if (m_settings.options_visibility[size_t(EOptionType::ToolMarker)])
@@ -2530,11 +2528,18 @@ size_t ViewerImpl::TranslucentTargets::size_in_bytes() const
 }
 #endif // ENABLE_OPENGL_ES
 
-void ViewerImpl::render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position)
+void ViewerImpl::render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix)
 {
+    apply_pending_updates();
     if (m_enabled_translucent_segments_count == 0)
         return;
 
+    const Mat4x4 inv_view_matrix = inverse(view_matrix);
+    render_translucent_segments(view_matrix, projection_matrix, { inv_view_matrix[12], inv_view_matrix[13], inv_view_matrix[14] });
+}
+
+void ViewerImpl::render_translucent_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position)
+{
 #ifndef ENABLE_OPENGL_ES
     // ORCA: a single translucent color blends alike in any order, so only more colors take the order
     // independent path, weighted blended order independent transparency (McGuire and Bavoil, 2013),

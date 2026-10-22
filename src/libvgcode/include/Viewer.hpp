@@ -65,6 +65,11 @@ public:
     //
     void render(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
     //
+    // ORCA: render() leaves out the toolpaths of translucent filaments, which this draws over
+    // the scene afterwards, so that the caller can shade the opaque scene in between.
+    //
+    void render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
+    //
     // ORCA: realistic view. Render the toolpaths as seen from the light, to fill the caller's
     // shadow map. Depth only - the caller masks colour writes and owns the framebuffer.
     //

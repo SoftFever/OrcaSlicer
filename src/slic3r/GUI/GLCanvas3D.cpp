@@ -2902,6 +2902,11 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         m_frame_profiler.mark("ssao");
     }
 
+    if (m_canvas_type == ECanvasType::CanvasPreview && m_render_preview) {
+        _render_gcode_translucent();
+        m_frame_profiler.mark("gcode translucent");
+    }
+
     // After the occlusion pass, which would shade it as the surface behind it.
     m_center_of_mass.render(*this);
 
@@ -9872,13 +9877,8 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
     // Realistic view: the toolpaths receive the same depth map they were rendered into by
     // _render_shadows, which is what gives them object-on-object and self shadows. Intensity 0
     // short-circuits the lookup in the shader, so this is inert whenever the map is missing.
-    const bool receive_shadows = m_shadow_map_valid && m_shadow_map_texture_id != 0 && m_shadow_map_size != 0;
-    if (receive_shadows) {
-        glsafe(::glActiveTexture(GL_TEXTURE4));
-        glsafe(::glBindTexture(GL_TEXTURE_2D, m_shadow_map_texture_id));
-        glsafe(::glActiveTexture(GL_TEXTURE0));
+    if (_bind_gcode_shadow_map(true))
         m_gcode_viewer.set_shadow_map(4, m_shadow_light_vp, 0.35f, 1.0f / static_cast<float>(m_shadow_map_size));
-    }
     else
         m_gcode_viewer.set_shadow_map(4, Transform3d::Identity(), 0.0f, 0.0f);
 
@@ -9892,12 +9892,24 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
     m_gcode_viewer.set_light_top_dir(_static_light_dir_eye().value_or(Vec3d(-0.4574957, 0.4574957, 0.7624929)));
 
     m_gcode_viewer.render_scene(canvas_width, canvas_height);
+    _bind_gcode_shadow_map(false);
+}
 
-    if (receive_shadows) {
-        glsafe(::glActiveTexture(GL_TEXTURE4));
-        glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-        glsafe(::glActiveTexture(GL_TEXTURE0));
-    }
+void GLCanvas3D::_render_gcode_translucent()
+{
+    _bind_gcode_shadow_map(true);
+    m_gcode_viewer.render_translucent_toolpaths();
+    _bind_gcode_shadow_map(false);
+}
+
+bool GLCanvas3D::_bind_gcode_shadow_map(bool bind) const
+{
+    if (!m_shadow_map_valid || m_shadow_map_texture_id == 0 || m_shadow_map_size == 0)
+        return false;
+    glsafe(::glActiveTexture(GL_TEXTURE4));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, bind ? m_shadow_map_texture_id : 0));
+    glsafe(::glActiveTexture(GL_TEXTURE0));
+    return true;
 }
 
 void GLCanvas3D::_render_gcode_overlay(int canvas_width, int canvas_height)

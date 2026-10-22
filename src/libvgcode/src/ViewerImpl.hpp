@@ -77,6 +77,7 @@ public:
     // Render the toolpaths
     //
     void render(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
+    void render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
     //
     // ORCA: realistic view. Render the toolpaths as seen from the light, to fill the caller's
     // shadow map. Only depth matters here, so the caller masks colour writes; light_position
@@ -625,7 +626,7 @@ private:
     // ORCA: translucent draws the segments whose color is translucent, otherwise the opaque ones, or all of them for the shadow casters.
     void render_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position, bool translucent = false);
     void render_options(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
-    void render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position);
+    void render_translucent_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position);
     // ORCA: the program using uni must be current.
     void set_layer_colors(const LayerColorsUniforms& uni) const;
 #if VGCODE_ENABLE_COG_AND_TOOL_MARKERS

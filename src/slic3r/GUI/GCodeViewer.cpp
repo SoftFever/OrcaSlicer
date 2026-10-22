@@ -3234,6 +3234,16 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         % m_shells.print_id % m_shells.print_modify_count % object_count %m_shells.volumes.volumes.size();
 }
 
+void GCodeViewer::render_translucent_toolpaths()
+{
+    if (m_viewer.get_extrusion_roles_count() == 0)
+        return;
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    m_viewer.render_translucent(libvgcode::convert(static_cast<Matrix4f>(camera.get_view_matrix().matrix().cast<float>())),
+                                libvgcode::convert(static_cast<Matrix4f>(camera.get_projection_matrix().matrix().cast<float>())));
+}
+
 void GCodeViewer::render_toolpaths()
 {
     const Camera& camera = wxGetApp().plater()->get_camera();

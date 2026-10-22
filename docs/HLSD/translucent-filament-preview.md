@@ -43,6 +43,12 @@ is not sorted and the second pass is skipped, so the first draws exactly what it
    behind them, and a translucent segment hides nothing. Drawing the markers first keeps those
    inside a translucent part behind its surface, instead of on top of it.
 
+`Viewer::render()` draws the first two; `Viewer::render_translucent()` draws the third, which
+`GLCanvas3D::_render_gcode_translucent()` calls after the SSAO pass. The occlusion that pass reads
+from depth would otherwise shade a translucent surface as the surface behind it, as it would the
+centre of mass marker. FXAA still comes after, and so do the sequential view markers drawn by
+`GCodeViewer::render_scene()`, which hide the translucent toolpaths behind them.
+
 A translucent segment takes its diffuse light in its own color, scaled by its opacity, and a
 highlight computed per fragment, untinted and not scaled, so a clear filament keeps its gloss
 instead of fading into the background. There is no Fresnel term: an extrusion seen end-on would
@@ -82,9 +88,9 @@ a texture.
 Without depth writes, every translucent surface on screen is shaded, so the cost of the second
 pass grows with the number of translucent surfaces stacked on screen. Order independent blending
 writes 10 bytes of float data per sample instead of 4, and roughly doubles that pass again.
+
 In realistic view, a translucent segment casts into a share of the shadow map texels as large as
 its opacity, in an ordered 4x4 pattern that the 5x5 filter of the receivers reads as a lighter
 shadow. The pattern shifts with the segment, so layers stacked along the light add up: a 1 mm
 translucent box at 35% casts a shadow about 60% as dark as an opaque one, a 10 mm box nearly a full
 one.
-The SSAO pass reads depth, so a translucent surface takes the occlusion of what lies behind it.

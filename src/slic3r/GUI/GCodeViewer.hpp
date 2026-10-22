@@ -402,6 +402,8 @@ public:
     //BBS: GUI refactor: add canvas width and height
     // Shells, toolpaths, the sequential markers and the IDEX/IQEX toolhead boxes, drawn in 3D.
     void render_scene(int canvas_width, int canvas_height);
+    // ORCA: the toolpaths of translucent filaments, which render_scene() leaves out, blended over the scene.
+    void render_translucent_toolpaths();
     // Legend, sliders, the marker's position window and the G-code window, all ImGui.
     void render_overlay(int canvas_width, int canvas_height, int right_margin);
     // ORCA: realistic view. Depth-only pass drawing the toolpaths as the light sees them, into

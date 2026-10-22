@@ -49,6 +49,11 @@ void Viewer::render(const Mat4x4& view_matrix, const Mat4x4& projection_matrix)
     m_impl->render(view_matrix, projection_matrix);
 }
 
+void Viewer::render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix)
+{
+    m_impl->render_translucent(view_matrix, projection_matrix);
+}
+
 void Viewer::render_shadow_casters(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& light_position)
 {
     m_impl->render_shadow_casters(view_matrix, projection_matrix, light_position);
