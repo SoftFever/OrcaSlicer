@@ -450,6 +450,8 @@ public:
         return ret;
     }
     std::vector<float> get_layers_times() const { return m_viewer.get_layers_estimated_times(); }
+    // "Filament: 12.34 g (1.23 m)": all the filament used up to the end of every layer, empty without per-layer data
+    std::vector<std::string> get_layers_filament_labels() const;
 
     const std::array<size_t,2> &get_layers_z_range() const { return m_viewer.get_layers_view_range(); }
     const GCodeProcessorResult::ObjectMass&              get_plate_mass() const { return m_plate_mass; }

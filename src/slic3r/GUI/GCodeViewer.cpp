@@ -2483,6 +2483,36 @@ std::optional<float> GCodeViewer::visible_layers_time() const
     return std::accumulate(times.begin() + layers[0], times.begin() + layers[1] + 1, 0.0f);
 }
 
+std::vector<std::string> GCodeViewer::get_layers_filament_labels() const
+{
+    std::vector<std::string> labels;
+    if (m_layer_gcode_ids.empty())
+        return labels;
+    const bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+    // model, support and wipe tower, each as cumulative volume per filament
+    const std::map<size_t, std::vector<double>>* all_series[] = { &m_print_statistics.layer_volumes_per_extruder,
+                                                                  &m_print_statistics.layer_support_volumes_per_extruder,
+                                                                  &m_print_statistics.layer_wipe_tower_volumes_per_extruder };
+    labels.reserve(m_layer_gcode_ids.size());
+    for (const unsigned int gcode_id : m_layer_gcode_ids) {
+        double length = 0.0; // mm
+        double weight = 0.0; // g
+        for (const auto* series : all_series)
+            for (const auto& [filament_id, cumulative] : *series) {
+                if (cumulative.empty() || filament_id >= m_filament_diameters.size() || filament_id >= m_filament_densities.size())
+                    continue;
+                // the entry after the layer's own: entry 0 is what was extruded before the first layer
+                const double volume = cumulative[std::min<size_t>(size_t(gcode_id) + 1, cumulative.size() - 1)];
+                length += volume / (PI * sqr(0.5 * m_filament_diameters[filament_id]));
+                weight += volume * m_filament_densities[filament_id] * 0.001;
+            }
+        char length_text[32];
+        ::sprintf(length_text, imperial_units ? "%.2f in" : "%.2f m", imperial_units ? length / GizmoObjectManipulation::in_to_mm : length * 0.001);
+        labels.emplace_back(_u8L("Filament") + ": " + format_compact_weight(weight, imperial_units) + " (" + length_text + ")");
+    }
+    return labels;
+}
+
 size_t GCodeViewer::shadow_casters_signature() const
 {
     size_t hash = m_viewer.get_vertices_count();
