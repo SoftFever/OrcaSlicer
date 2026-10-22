@@ -10,6 +10,7 @@
 #include "libslic3r/Print.hpp"
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
@@ -498,3 +499,40 @@ TEST_CASE("A tower printed without a tool change is still validated against the 
     CHECK_THAT(print.validate().string, Catch::Matchers::ContainsSubstring("printable area"));
 }
 
+TEST_CASE("Only a cone wall gives the tower a stabilization cone", "[WipeTower]")
+{
+    // The cone angle stays in the config for every wall type, but only a cone wall prints the
+    // cone. A 120 mm object makes the tower tall enough that a 30 degree cone would reach the
+    // thin plate in front of the tower, which the real rectangle or rib tower stays clear of.
+    const std::string wall_type = GENERATE("rectangle", "rib", "cone");
+    DynamicPrintConfig config = tower_estimate_config(wall_type.c_str());
+    config.set_deserialize_strict({ { "wipe_tower_type",       "type2" },
+                                    { "wipe_tower_cone_angle", "30" },
+                                    { "wipe_tower_x",          "30" },
+                                    { "wipe_tower_y",          "80" },
+                                    { "layer_height",          "0.3" } });
+
+    TriangleMesh tall = make_cube(20., 20., 120.);
+    tall.translate(150.f, 150.f, 0.f);
+    TriangleMesh plate = make_cube(30., 32., 2.);
+    plate.translate(40.f, 30.f, 0.f);
+    const double plate_max_y = 30. + 32.;
+
+    Print print;
+    Model model;
+    init_print({ std::move(tall), std::move(plate) }, print, model, config, nullptr, false);
+    print.apply(model, config);
+    print.process();
+    REQUIRE(print.has_wipe_tower());
+
+    const BoundingBox footprint(print.first_layer_wipe_tower_corners());
+    INFO("wall type " << wall_type << ", tower depth " << print.wipe_tower_data().depth << ", footprint min y "
+                      << unscaled(footprint.min.y()));
+    if (wall_type == "cone") {
+        CHECK(unscaled(footprint.min.y()) < plate_max_y);
+        CHECK(print.get_conflict_result().has_value());
+    } else {
+        CHECK(unscaled(footprint.min.y()) > plate_max_y);
+        CHECK_FALSE(print.get_conflict_result().has_value());
+    }
+}
