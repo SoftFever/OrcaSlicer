@@ -13,6 +13,8 @@
 #include <memory>
 #include <wx/log.h>
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include <wx/event.h>
 #include <boost/log/trivial.hpp>
 #include <wx/sizer.h>
@@ -203,16 +205,32 @@ void PrinterWebView::reset_browser()
 
     // OnLoaded may have cleared m_url_deferred already, so requeue the last url for Show().
     m_apikey_sent  = false;
+    m_url_loaded   = false;
     m_url_deferred = m_url;
+}
+
+// Same lookup as create_printer_webview_handler().
+static PrintHostType active_host_type()
+{
+    if (wxGetApp().preset_bundle == nullptr)
+        return htOctoPrint;
+    return wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
 }
 
 void PrinterWebView::load_url(wxString& url, wxString apikey)
 {
 //    this->Show();
 //    this->Raise();
+    const PrintHostType host_type = active_host_type();
+    // Selecting the tab requests the same page again; navigating would reload it and drop its state.
+    if (m_url_loaded && url == m_url && apikey == m_apikey && host_type == m_host_type)
+        return;
+
     m_url = url;
     m_apikey = apikey;
+    m_host_type = host_type;
     m_apikey_sent = false;
+    m_url_loaded = false;
     m_handler = create_printer_webview_handler(*this);
 
     if (this->IsShown()) {
@@ -337,6 +355,7 @@ void PrinterWebView::OnLoaded(wxWebViewEvent& evt)
         return;
     //ORCA: url loaded successfully, safe to clear
     m_url_deferred.clear();
+    m_url_loaded = true;
     SendAPIKey();
   
     if (m_handler != nullptr) {
