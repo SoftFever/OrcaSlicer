@@ -12029,7 +12029,7 @@ void GLCanvas3D::_render_plate_drag_target(const Transform3d& view_matrix, const
         data.add_triangle(0, 1, 2);
         data.add_triangle(0, 2, 3);
         m_plate_drag.target.init_from(std::move(data));
-        // Green where the plate can go, red where it would overlap a plate or objects.
+        // Green where the plate can go, red where it or a plate making room for it would land on loose objects.
         m_plate_drag.target.set_color(m_plate_drag.valid ? ColorRGBA(0.0f, 0.588f, 0.533f, 0.4f) : ColorRGBA(0.9f, 0.2f, 0.2f, 0.4f));
     }
 
