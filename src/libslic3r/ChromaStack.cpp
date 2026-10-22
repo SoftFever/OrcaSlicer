@@ -1,5 +1,9 @@
 #include "ChromaStack.hpp"
 
+#include "Polygon.hpp"
+#include "Triangulation.hpp"
+#include "libslic3r.h"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -686,6 +690,303 @@ void append_box(indexed_triangle_set &its, const Vec3f &min, const Vec3f &max)
         its.indices.emplace_back(base + f[0], base + f[1], base + f[2]);
 }
 } // namespace
+
+std::vector<Vec2f> chroma_frame_profile(const ChromaFrame &frame, float base_mm)
+{
+    const float width = frame.width_mm;
+    if (width <= 0.f)
+        return {}; // no frame: the picture runs to the edge of the plate
+    const float rise = std::max(0.f, frame.rise_mm);
+    // A profile with nothing to rise by is a flat border whatever its shape was set to, and saying so
+    // here keeps every caller below from having to.
+    if (rise <= 0.f || frame.profile == ChromaFrame::Profile::Flat)
+        return { Vec2f(0.f, base_mm), Vec2f(width, base_mm) };
+
+    const float top = base_mm + rise;
+    std::vector<Vec2f> out;
+    switch (frame.profile) {
+    case ChromaFrame::Profile::Bevel:
+        // A straight ramp down into the picture, so the frame is read as something to look through.
+        out = { Vec2f(0.f, top), Vec2f(width, base_mm) };
+        break;
+    case ChromaFrame::Profile::Step:
+        // A mount board: a flat lip, then a square drop to the picture.
+        out = { Vec2f(0.f, top), Vec2f(0.5f * width, top), Vec2f(0.5f * width, base_mm), Vec2f(width, base_mm) };
+        break;
+    case ChromaFrame::Profile::Round: {
+        // A quarter ellipse, high at the edge and flat where it meets the picture: a moulding.
+        constexpr int steps = 12;
+        out.reserve(steps + 1);
+        for (int i = 0; i <= steps; ++i) {
+            const float t = float(i) / float(steps);
+            out.emplace_back(width * t, base_mm + rise * std::sqrt(std::max(0.f, 1.f - t * t)));
+        }
+        break;
+    }
+    case ChromaFrame::Profile::Ogee: {
+        // Cyma recta: convex out of the edge, concave into the picture. Two quarter ellipses of half
+        // the rise each, meeting halfway - the shape a picture frame actually is.
+        constexpr int steps = 16;
+        const float   r     = 0.5f * rise;
+        out.reserve(steps + 1);
+        for (int i = 0; i <= steps; ++i) {
+            const float t = float(i) / float(steps);
+            float       z = base_mm;
+            if (t <= 0.5f) {
+                const float u = t / 0.5f;
+                z = top - r * (1.f - std::sqrt(std::max(0.f, 1.f - u * u)));
+            } else {
+                const float u = (t - 0.5f) / 0.5f;
+                z = base_mm + r * std::sqrt(std::max(0.f, 1.f - u * u));
+            }
+            out.emplace_back(width * t, z);
+        }
+        break;
+    }
+    case ChromaFrame::Profile::Flat:
+    default: out = { Vec2f(0.f, base_mm), Vec2f(width, base_mm) }; break;
+    }
+    // Whatever the curve did, it has to arrive exactly where the picture's surface is, or the frame
+    // and the picture meet in a step of rounding error.
+    out.front().x() = 0.f;
+    out.back()      = Vec2f(width, base_mm);
+    return out;
+}
+
+std::vector<Vec2f> chroma_frame_outline(const ChromaPlate &plate, float grow_mm)
+{
+    const float hw = 0.5f * std::max(0.1f, plate.width_mm);
+    const float hh = 0.5f * std::max(0.1f, plate.height_mm);
+    const float g  = std::max(0.f, grow_mm);
+
+    // Every loop here is the picture's own boundary when grow is 0 and the plate's edge when grow is
+    // the frame's width; the sweep walks between the two. That is what makes the shape and the frame
+    // one setting rather than two that have to agree.
+    const auto rectangle = [&]() {
+        return std::vector<Vec2f>{ Vec2f(-hw - g, -hh - g), Vec2f(hw + g, -hh - g), Vec2f(hw + g, hh + g),
+                                   Vec2f(-hw - g, hh + g) };
+    };
+
+    switch (plate.frame.shape) {
+    case ChromaFrame::Shape::Rectangle: return rectangle();
+    case ChromaFrame::Shape::Rounded: {
+        // The corner is turned on the plate's edge and every ring inside it keeps the same centre, so
+        // the radius shrinks with the ring: a constant radius would make the inner rings bulge.
+        const float r = std::min({ std::max(0.f, plate.frame.corner_mm) - (plate.frame.width_mm - g), hw + g, hh + g });
+        if (r <= 0.01f)
+            return rectangle();
+        constexpr int     per_corner = 8;
+        std::vector<Vec2f> out;
+        out.reserve(4 * (per_corner + 1));
+        const Vec2f centre[4] = { Vec2f(hw + g - r, hh + g - r), Vec2f(-hw - g + r, hh + g - r),
+                                  Vec2f(-hw - g + r, -hh - g + r), Vec2f(hw + g - r, -hh - g + r) };
+        for (int c = 0; c < 4; ++c) {
+            const float a0 = float(c) * 0.5f * float(M_PI);
+            for (int i = 0; i <= per_corner; ++i) {
+                const float a = a0 + 0.5f * float(M_PI) * float(i) / float(per_corner);
+                out.emplace_back(centre[c].x() + r * std::cos(a), centre[c].y() + r * std::sin(a));
+            }
+        }
+        return out;
+    }
+    case ChromaFrame::Shape::Ellipse: {
+        // Inscribed in the picture rather than around it, so at grow 0 this loop *is* the picture's
+        // boundary: an oval frame holds an oval picture, which is what one is for.
+        constexpr int steps = 72;
+        std::vector<Vec2f> out;
+        out.reserve(steps);
+        for (int i = 0; i < steps; ++i) {
+            const float a = 2.f * float(M_PI) * float(i) / float(steps);
+            out.emplace_back((hw + g) * std::cos(a), (hh + g) * std::sin(a));
+        }
+        return out;
+    }
+    case ChromaFrame::Shape::Outline: {
+        if (plate.frame.outline.size() < 3)
+            return rectangle();
+        // An SVG is a shape, not a size: scale it about its own centre until it sits grow_mm outside
+        // the picture, rather than trusting whatever millimetres the file was drawn in.
+        Vec2f lo = plate.frame.outline.front(), hi = plate.frame.outline.front();
+        for (const Vec2f &p : plate.frame.outline) {
+            lo = lo.cwiseMin(p);
+            hi = hi.cwiseMax(p);
+        }
+        const Vec2f centre = 0.5f * (lo + hi);
+        const Vec2f half   = 0.5f * (hi - lo);
+        if (half.x() <= 1e-4f || half.y() <= 1e-4f)
+            return rectangle();
+        // Fitted inside the picture at grow 0, so the SVG's shape is the picture's boundary, and
+        // grown from there with the rest of the sweep.
+        const float k = std::min(hw / half.x(), hh / half.y()) * (1.f + g / std::max(hw, hh));
+        std::vector<Vec2f> out;
+        out.reserve(plate.frame.outline.size());
+        for (const Vec2f &p : plate.frame.outline)
+            out.emplace_back((p - centre) * k);
+        return out;
+    }
+    default: return rectangle();
+    }
+}
+
+namespace {
+// Counter-clockwise seen from above, whatever the loop arrived as. An SVG is drawn by somebody else
+// and its winding is their business; every face below is wound from these, so they have to agree.
+void make_ccw(std::vector<Vec2f> &loop)
+{
+    double twice_area = 0.;
+    for (size_t i = 0; i < loop.size(); ++i) {
+        const Vec2f &a = loop[i];
+        const Vec2f &b = loop[(i + 1) % loop.size()];
+        twice_area += double(a.x()) * double(b.y()) - double(b.x()) * double(a.y());
+    }
+    if (twice_area < 0.)
+        std::reverse(loop.begin(), loop.end());
+}
+
+// A ring of the sweep, appended to the mesh at one height. Every ring has the same points in the same
+// order - they are the same loop at different distances out - so a band between two of them is a quad
+// strip and needs no stitching logic beyond this.
+uint32_t append_ring(indexed_triangle_set &its, const std::vector<Vec2f> &loop, float z)
+{
+    const uint32_t first = uint32_t(its.vertices.size());
+    for (const Vec2f &p : loop)
+        its.vertices.emplace_back(p.x(), p.y(), z);
+    return first;
+}
+
+// Outward-facing quads between two rings of the same loop, lower first.
+void append_band(indexed_triangle_set &its, uint32_t lower, uint32_t upper, size_t count)
+{
+    for (size_t i = 0; i < count; ++i) {
+        const uint32_t a = lower + uint32_t(i), b = lower + uint32_t((i + 1) % count);
+        const uint32_t c = upper + uint32_t(i), d = upper + uint32_t((i + 1) % count);
+        its.indices.emplace_back(a, b, d);
+        its.indices.emplace_back(a, d, c);
+    }
+}
+
+// The inside of a closed loop, triangulated, with `fill` scattered through it. The fill is what makes
+// a picture possible: the relief is carried by vertices, so a face of two triangles shows nothing
+// however good the height map is.
+std::vector<Vec3i32> triangulate_face(const std::vector<Vec2f> &loop, const std::vector<Vec2f> &fill,
+                                      std::vector<Vec2f> &points_out)
+{
+    points_out = loop;
+    points_out.insert(points_out.end(), fill.begin(), fill.end());
+
+    Points pts;
+    pts.reserve(points_out.size());
+    for (const Vec2f &p : points_out)
+        pts.emplace_back(scaled<coord_t>(p.x()), scaled<coord_t>(p.y()));
+
+    Triangulation::HalfEdges edges;
+    edges.reserve(loop.size());
+    for (uint32_t i = 0; i < uint32_t(loop.size()); ++i)
+        edges.emplace_back(i, (i + 1) % uint32_t(loop.size()));
+    std::sort(edges.begin(), edges.end());
+    return Triangulation::triangulate(pts, edges);
+}
+} // namespace
+
+ChromaPlateMesh chroma_plate_mesh(const ChromaPlate &plate)
+{
+    ChromaPlateMesh out;
+    const float     base = std::max(0.2f, plate.base_mm);
+
+    // The picture's own boundary, and the sweep from it out to the plate's edge. An empty profile is
+    // a plate with no frame at all, where the picture runs to the edge and the only ring is its own.
+    std::vector<Vec2f>              picture = chroma_frame_outline(plate, 0.f);
+    const std::vector<Vec2f>        profile = chroma_frame_profile(plate.frame, base);
+    if (picture.size() < 3)
+        return out;
+    make_ccw(picture);
+
+    // ---- The picture's face, first, because that is what gets painted ----
+    //
+    // A grid at the plate's own cell size, kept clear of the boundary so the triangulation is not
+    // handed two points in nearly the same place. The cap is on the triangulation, which is a CGAL
+    // constrained Delaunay and does not want a million points for a face nobody will look at that
+    // closely; the bake subdivides where the picture actually needs it.
+    Vec2f lo = picture.front(), hi = picture.front();
+    for (const Vec2f &p : picture) {
+        lo = lo.cwiseMin(p);
+        hi = hi.cwiseMax(p);
+    }
+    const Vec2f span = hi - lo;
+    float       cell = std::max(0.2f, plate.cell_mm);
+    constexpr size_t MAX_FILL = 120000;
+    while (size_t(span.x() / cell + 1.f) * size_t(span.y() / cell + 1.f) > MAX_FILL)
+        cell *= 1.5f;
+
+    Polygon boundary;
+    boundary.points.reserve(picture.size());
+    for (const Vec2f &p : picture)
+        boundary.points.emplace_back(scaled<coord_t>(p.x()), scaled<coord_t>(p.y()));
+    const double margin = double(scaled<coord_t>(0.35f * cell));
+
+    std::vector<Vec2f> fill;
+    for (float y = lo.y() + cell; y < hi.y() - 0.5f * cell; y += cell)
+        for (float x = lo.x() + cell; x < hi.x() - 0.5f * cell; x += cell) {
+            const Point q(scaled<coord_t>(x), scaled<coord_t>(y));
+            if (!boundary.contains(q))
+                continue;
+            // Clear of the boundary, so the triangulation never has to resolve two points a micron
+            // apart - which it answers with slivers the displacement then tears open.
+            bool too_close = false;
+            for (size_t i = 0; i < boundary.points.size() && !too_close; ++i)
+                too_close = (boundary.points[i] - q).cast<double>().norm() < margin;
+            if (!too_close)
+                fill.emplace_back(x, y);
+        }
+
+    std::vector<Vec2f>   face_points;
+    std::vector<Vec3i32> face = triangulate_face(picture, fill, face_points);
+    const uint32_t       face_first = append_ring(out.its, face_points, base);
+    for (const Vec3i32 &t : face)
+        out.its.indices.emplace_back(face_first + uint32_t(t.x()), face_first + uint32_t(t.y()),
+                                     face_first + uint32_t(t.z()));
+    out.picture_triangles = out.its.indices.size();
+
+    // ---- The frame: one ring per profile sample, swept out to the plate's edge ----
+    std::vector<Vec2f> edge       = picture; // the plate's outer loop, the picture's own when there is no frame
+    uint32_t           edge_first = face_first; // and its vertices, which the outer wall hangs from
+    if (profile.size() >= 2) {
+        uint32_t     previous = 0;
+        const size_t count    = picture.size();
+        for (size_t i = profile.size(); i-- > 0;) {
+            // Walked from the picture outwards, so the band between two rings is wound the same way
+            // as the picture's own face.
+            std::vector<Vec2f> ring = chroma_frame_outline(plate, plate.frame.width_mm - profile[i].x());
+            make_ccw(ring);
+            if (ring.size() != count)
+                break; // the shape changed topology on the way out; better a plain plate than a torn one
+            const uint32_t here = append_ring(out.its, ring, profile[i].y());
+            if (i + 1 < profile.size())
+                append_band(out.its, previous, here, count);
+            else
+                append_band(out.its, face_first, here, count); // the picture's own edge to the first ring
+            previous   = here;
+            edge       = ring;
+            edge_first = here;
+        }
+    }
+
+    // ---- The outer wall and the bottom ----
+    //
+    // Both hang off the loop that is already there - the outermost ring of the sweep, or the picture's
+    // own boundary when there is no frame - rather than a second copy of it at the same coordinates.
+    // Two rings in the same place look identical and slice identically, but every edge between them is
+    // an edge belonging to one triangle, which is the definition of a mesh with a hole in it.
+    const uint32_t bottom = append_ring(out.its, edge, 0.f);
+    append_band(out.its, bottom, edge_first, edge.size());
+
+    std::vector<Vec2f> unused;
+    for (const Vec3i32 &t : triangulate_face(edge, {}, unused))
+        // Wound the other way round: this face is seen from below.
+        out.its.indices.emplace_back(bottom + uint32_t(t.x()), bottom + uint32_t(t.z()),
+                                     bottom + uint32_t(t.y()));
+    return out;
+}
 
 indexed_triangle_set chroma_wedge_mesh(const ChromaWedge &wedge)
 {

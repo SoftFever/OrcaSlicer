@@ -485,11 +485,32 @@ private:
     // panel wants the number. The paint's own timestamp and the transform the patch was measured in are
     // between them everything the answer depends on.
     mutable std::array<ChromaPatch, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_chroma_patch_cache{};
+    // Set when a generated plate's own dimensions change, so the mesh is rebuilt once the controls
+    // settle rather than once per keystroke - a rebuild triangulates the whole face again.
+    std::array<bool, TEXTURE_DISPLACEMENT_MAX_LAYERS>                  m_chroma_plate_dirty{};
     mutable std::array<uint64_t, TEXTURE_DISPLACEMENT_MAX_LAYERS>      m_chroma_patch_stamp{};
     mutable std::array<Transform3d, TEXTURE_DISPLACEMENT_MAX_LAYERS>   m_chroma_patch_trafo{};
     // The patch is measured in two frames at once - the instance's, for the print height, and the
     // bake's, for the placement - so both are part of what the cached answer depends on.
     mutable std::array<Transform3d, TEXTURE_DISPLACEMENT_MAX_LAYERS>   m_chroma_patch_bake{};
+
+    // Makes a plate for a picture that has no model of its own: asks for the picture, builds a slab
+    // proportioned by it with a frame around it, puts it on the build plate, paints the picture's face
+    // and opens this gizmo on it with the stack already solved.
+    //
+    // Public because the menu calls it with nothing selected, the way the text and SVG gizmos are
+    // called (see add_volume_with_gizmo()): there is no object to open a gizmo on yet, so the gizmo
+    // has to be the thing that makes one.
+public:
+    void create_picture_plate();
+
+private:
+    // Rebuilds a generated plate's mesh from its current plate settings, keeping the picture, the
+    // stack and the paint. Does nothing for a picture painted onto a model.
+    bool chroma_rebuild_plate(TextureDisplacementLayer &layer);
+    // Marks the first `count` triangles of the volume's mesh as painted for `slot`, which is the
+    // picture's own face - chroma_plate_mesh() puts it first for exactly this.
+    static void chroma_paint_face(ModelVolume &mv, int slot, size_t count);
 
     // Picks a colour picture for the layer, turns ChromaStack on, and seeds a stack from the loaded
     // filaments and the patch if the layer has none yet. Solves straight away, so the relief appears

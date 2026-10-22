@@ -111,6 +111,107 @@ struct ChromaBand
 
 // The whole recipe: which filaments, in which order, how thick a layer is, and how much of the
 // bottom is solid backing rather than picture.
+// How big a plate a picture gets when it makes its own, measured on its longer side. A hundred
+// millimetres is a postcard: large enough that the layers are a picture rather than a swatch, small
+// enough to fit any printer that exists and to print in an evening.
+static constexpr float CHROMA_PLATE_DEFAULT_MM = 100.f;
+
+// A plate made for a picture that has no model of its own.
+//
+// Most of what ChromaStack is good at - a photograph, a poster, a piece of line art - has no model
+// behind it and does not want one. The slab it has to be printed on is a function of the picture and
+// a few numbers, so the slab is made here rather than asked for: the picture's own proportions, a
+// solid backing to print the colours against, and a frame around it.
+//
+// The frame is a sweep, not a set of shapes. Its outline says what the plate's edge is, its profile
+// says what the band between that edge and the picture does in cross-section, and every combination
+// of the two is a frame - which is what lets "thicker", "rounded" and "stepped" be numbers on a card
+// instead of a gallery of models to choose between.
+struct ChromaFrame
+{
+    // The plate's outline. The picture is always a rectangle inside it; this is what is around it.
+    enum class Shape : int
+    {
+        Rectangle = 0, // the picture's own rectangle, grown by the frame's width
+        Rounded   = 1, // the same, with the corners turned by `corner_mm`
+        Ellipse   = 2, // an oval through the corners of that rectangle
+        Outline   = 3, // `outline` below: whatever shape was handed in, usually from an SVG
+    };
+
+    // What the band between the outline and the picture does on its way in. Each is a polyline in
+    // (how far in, how high), swept around the outline - see chroma_frame_profile().
+    enum class Profile : int
+    {
+        Flat   = 0, // level with the picture's base: a border of one colour and nothing more
+        Bevel  = 1, // a straight ramp from the outer edge up to the lip
+        Step   = 2, // one square step, the shape of a mount board
+        Round  = 3, // a quarter round, the shape of a moulding
+        Ogee   = 4, // round out then round in, the shape a picture frame usually is
+    };
+
+    Shape   shape     = Shape::Rectangle;
+    Profile profile   = Profile::Flat;
+    // How wide the band is, measured in from the plate's edge. 0 means no frame at all: the picture
+    // runs to the edge of the plate.
+    float   width_mm  = 6.f;
+    // How far the frame stands above the picture's base. 0 with any profile is the same as Flat.
+    float   rise_mm   = 2.f;
+    // The corner radius for Rounded, and ignored by every other shape.
+    float   corner_mm = 4.f;
+    // The outline for Shape::Outline: a closed loop in millimetres, centred on the picture. Held as
+    // the loop rather than as a path to the SVG it was read from, so a plate can be rebuilt from a
+    // saved project whether or not that file is still on the machine.
+    std::vector<Vec2f> outline;
+
+    bool operator==(const ChromaFrame &o) const
+    {
+        return shape == o.shape && profile == o.profile && width_mm == o.width_mm && rise_mm == o.rise_mm &&
+               corner_mm == o.corner_mm && outline == o.outline;
+    }
+    bool operator!=(const ChromaFrame &o) const { return !(*this == o); }
+
+    template<class Archive> void serialize(Archive &ar)
+    {
+        ar(shape, profile, width_mm, rise_mm, corner_mm, outline);
+    }
+};
+
+// The plate a picture made for itself: the picture's own area, what is under it, and what is around
+// it. Everything else about the print - which filaments, how many layers, what colour each height
+// shows - is the stack this hangs off.
+struct ChromaPlate
+{
+    // Whether this picture made its own plate. False for a picture painted onto a model, which is
+    // the other half of what ChromaStack does and is not touched by any of this.
+    bool  generated = false;
+
+    // The picture's area on the plate. The longer side is what the user sets; the other follows the
+    // picture's proportions, because a photograph squeezed to fit a square is not the picture.
+    float width_mm  = 100.f;
+    float height_mm = 100.f;
+    // The solid backing under the picture. Written in millimetres rather than layers because it is a
+    // dimension of the plate; the stack's own base_layers is measured from it.
+    float base_mm   = 1.f;
+    // How finely the picture's face is divided, in millimetres. The relief is carried by vertices, so
+    // a face of two triangles has no picture on it however good the height map is. The bake subdivides
+    // further where the picture needs it; this is only enough to start from.
+    float cell_mm   = 1.f;
+
+    ChromaFrame frame;
+
+    bool operator==(const ChromaPlate &o) const
+    {
+        return generated == o.generated && width_mm == o.width_mm && height_mm == o.height_mm &&
+               base_mm == o.base_mm && cell_mm == o.cell_mm && frame == o.frame;
+    }
+    bool operator!=(const ChromaPlate &o) const { return !(*this == o); }
+
+    template<class Archive> void serialize(Archive &ar)
+    {
+        ar(generated, width_mm, height_mm, base_mm, cell_mm, frame);
+    }
+};
+
 struct ChromaStack
 {
     std::vector<ChromaBand> bands; // bottom-up; bands.front() is the one the base is printed in
@@ -169,7 +270,14 @@ struct ChromaStack
     float depth_mm() const;
     bool  empty() const { return bands.empty(); }
 
-    template<class Archive> void serialize(Archive &ar) { ar(bands, layer_height_mm, base_layers, dither, base_auto, applied_ranges); }
+    // The plate this picture made for itself, if it made one. A picture painted onto a model leaves
+    // it at its defaults and nothing reads it.
+    ChromaPlate plate;
+
+    template<class Archive> void serialize(Archive &ar)
+    {
+        ar(bands, layer_height_mm, base_layers, dither, base_auto, applied_ranges, plate);
+    }
 };
 
 // The optical depth of one layer of a filament: how much of what is behind it that layer takes out,
@@ -397,6 +505,42 @@ struct ChromaWedge
 
     float base_height_mm() const { return float(base_layers) * layer_height_mm; }
 };
+
+// The frame's cross-section, swept around the outline to make the band between the plate's edge and
+// the picture.
+//
+// A polyline in (how far in from the edge, how high above z = 0), outer edge first, ending where the
+// picture starts: the last sample is always (width_mm, base_mm), because that is where the frame
+// meets the picture's own surface. Two samples at the same inset are a vertical face, which is what
+// makes a step a step.
+//
+// Everything a frame can be is this polyline, which is why the profiles are an enum of shapes rather
+// than a library of models: a thicker frame is a longer sweep of the same curve, and an SVG outline
+// is the same curve swept around a different loop.
+std::vector<Vec2f> chroma_frame_profile(const ChromaFrame &frame, float base_mm);
+
+// The plate's outline, in millimetres, centred on the picture: the loop the frame's profile is swept
+// around. `grow_mm` is how far outside the picture's own rectangle it runs, which is the frame's
+// width for the plate's edge and less than that for a ring further into the sweep.
+//
+// Shape::Outline returns the frame's own loop, scaled about its centre so that it sits `grow_mm`
+// outside the picture - an SVG is a shape, not a size, and the picture is what has the size.
+std::vector<Vec2f> chroma_frame_outline(const ChromaPlate &plate, float grow_mm);
+
+// The plate as a mesh, sitting on z = 0 and centred on the origin.
+//
+// The picture's own face comes first in `indices`, which is what lets the caller paint it without
+// knowing anything about how the rest of the plate is built: the first `picture_triangles` triangles
+// are the surface the picture is printed on, and everything after them is the frame and the backing.
+struct ChromaPlateMesh
+{
+    indexed_triangle_set its;
+    size_t               picture_triangles = 0;
+
+    bool empty() const { return its.indices.empty(); }
+};
+
+ChromaPlateMesh chroma_plate_mesh(const ChromaPlate &plate);
 
 // The wedge as a mesh, sitting on z = 0. The base is one slab; step i (1-based) stands i layers proud
 // of it, so the filament under test is i layers thick there.

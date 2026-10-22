@@ -13,6 +13,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/MeshBoolean.hpp"
+#include "libslic3r/NSVGUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/format.hpp"
@@ -4733,6 +4734,188 @@ void GLGizmoTextureDisplacement::chroma_convert_layer(TextureDisplacementLayer &
     m_parent.set_as_dirty();
 }
 
+void GLGizmoTextureDisplacement::chroma_paint_face(ModelVolume &mv, int slot, size_t count)
+{
+    if (slot < 0 || count == 0)
+        return;
+    const indexed_triangle_set &its = mv.mesh().its;
+    TriangleSelector            selector(mv.mesh());
+    const size_t                n = std::min(count, its.indices.size());
+    for (size_t i = 0; i < n; ++i)
+        selector.set_facet(int(i), EnforcerBlockerType::ENFORCER);
+    // set() serializes the selector and stamps the volume, which is what every cache keyed on the
+    // paint - the patch measurement, the overlays, undo/redo - watches.
+    mv.texture_displacement_facet(slot).set(selector);
+}
+
+// Reads a closed outline out of an SVG, for a frame that is not one of the shapes a number can
+// describe. The biggest contour in the file wins: an SVG of a frame is usually its silhouette plus
+// whatever decoration was drawn inside it, and the silhouette is what the plate's edge is.
+static bool chroma_outline_from_svg(const std::string &path, std::vector<Vec2f> &out)
+{
+    NSVGimage_ptr image = nsvgParseFromFile(path, "mm", 96.f);
+    if (!image)
+        return false;
+    // The tolerance is in the parser's own squared units; 0.1 mm is what the SVG gizmo asks for and is
+    // finer than anything a frame's edge needs.
+    const ExPolygonsWithIds shapes = create_shape_with_ids(*image, NSVGLineParams(0.3));
+    const ExPolygon        *best   = nullptr;
+    double                  area   = 0.;
+    for (const ExPolygonsWithId &with_id : shapes)
+        for (const ExPolygon &expoly : with_id.expoly) {
+            const double a = std::abs(expoly.contour.area());
+            if (a > area) {
+                area = a;
+                best = &expoly;
+            }
+        }
+    if (best == nullptr || best->contour.points.size() < 3)
+        return false;
+
+    out.clear();
+    out.reserve(best->contour.points.size());
+    for (const Point &p : best->contour.points)
+        out.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()));
+    return true;
+}
+
+bool GLGizmoTextureDisplacement::chroma_rebuild_plate(TextureDisplacementLayer &layer)
+{
+    if (!layer.chroma.plate.generated || layer.slot < 0)
+        return false;
+    ModelVolume *mv     = texture_volume();
+    ModelObject *mo     = m_c->selection_info()->model_object();
+    Plater      *plater = wxGetApp().plater();
+    if (mv == nullptr || mo == nullptr || plater == nullptr)
+        return false;
+    if (m_bake_in_progress || m_prepare_in_progress)
+        return false;
+
+    const ChromaPlateMesh mesh = chroma_plate_mesh(layer.chroma.plate);
+    if (mesh.empty())
+        return false;
+
+    Plater::TakeSnapshot snapshot(plater, _u8L("Change the picture's plate"), UndoRedo::SnapshotType::GizmoAction);
+    // Nothing to save and restore: the triangle list is a different one. That is exactly why the
+    // picture's face is built first - it can be found again by index whatever the frame turned into.
+    mv->set_mesh(TriangleMesh(mesh.its));
+    mv->set_new_unique_id();
+    mv->calculate_convex_hull();
+    chroma_paint_face(*mv, layer.slot, mesh.picture_triangles);
+    mo->invalidate_bounding_box();
+
+    if (ObjectList *obj_list = wxGetApp().obj_list()) {
+        const ModelObjectPtrs &objs = plater->model().objects;
+        auto                   it   = std::find(objs.begin(), objs.end(), mo);
+        if (it != objs.end())
+            obj_list->update_info_items(size_t(it - objs.begin()));
+    }
+    plater->changed_object(*mo);
+    update_from_model_object(false);
+
+    chroma_fit_picture(layer);
+    if (chroma_solve_layer(layer, true))
+        chroma_apply_swaps(layer, true);
+    m_parent.set_as_dirty();
+    return true;
+}
+
+void GLGizmoTextureDisplacement::create_picture_plate()
+{
+    Plater *plater = wxGetApp().plater();
+    if (plater == nullptr)
+        return;
+
+    const wxString wildcard = _L("Images (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp");
+    wxFileDialog   dialog(nullptr, _L("Choose the picture to print in color"), wxEmptyString, wxEmptyString, wildcard,
+                          wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    const std::string path = into_u8(dialog.GetPath());
+    std::string       error;
+    std::shared_ptr<std::vector<unsigned char>> bytes = load_texture_image_data(path, error);
+    if (!bytes) {
+        show_error(nullptr, error);
+        return;
+    }
+
+    // The plate takes its proportions from the picture: a photograph squeezed into a square is not
+    // the photograph. The longer side is what the default size means, so a panorama and a portrait
+    // both come out the same size on the plate rather than one of them being tiny.
+    TextureDisplacementLayer probe;
+    probe.image_data   = bytes;
+    const float aspect = layer_texture_aspect(probe);
+    ChromaPlate plate;
+    plate.generated = true;
+    if (aspect >= 1.f) {
+        plate.width_mm  = CHROMA_PLATE_DEFAULT_MM;
+        plate.height_mm = CHROMA_PLATE_DEFAULT_MM / std::max(0.05f, aspect);
+    } else {
+        plate.height_mm = CHROMA_PLATE_DEFAULT_MM;
+        plate.width_mm  = CHROMA_PLATE_DEFAULT_MM * std::max(0.05f, aspect);
+    }
+
+    const ChromaPlateMesh mesh = chroma_plate_mesh(plate);
+    if (mesh.empty()) {
+        show_error(nullptr, _u8L("Could not build a plate for this picture."));
+        return;
+    }
+
+    const std::string name = boost::filesystem::path(path).stem().string();
+    Plater::TakeSnapshot snapshot(plater, _u8L("Add ChromaStack picture"));
+    // The object, the instance, the placement on an empty cell and the selection, all of it.
+    wxGetApp().obj_list()->load_mesh_object(TriangleMesh(mesh.its), from_u8(name));
+    wxGetApp().mainframe->update_title();
+    if (plater->model().objects.empty())
+        return;
+    ModelObject *mo = plater->model().objects.back();
+    if (mo->volumes.empty())
+        return;
+    ModelVolume *mv = mo->volumes.front();
+
+    // Painted after the mesh is final: the mask is indexed by triangle, so anything that replaces the
+    // mesh afterwards drops it.
+    chroma_paint_face(*mv, 0, mesh.picture_triangles);
+
+    TextureDisplacementLayer layer;
+    layer.slot           = 0;
+    layer.chroma_enabled = true;
+    layer.chroma_source  = bytes;
+    layer.name           = name;
+    layer.path           = path;
+    layer.color_enabled  = false;
+    layer.tile_enabled   = false;
+    layer.invert         = false;
+    layer.midlevel       = 0.f;
+    layer.smoothing      = 0.f;
+    layer.blend_mode     = TextureBlendMode::Add;
+
+    const float layer_h = print_layer_height() > 0.f ? print_layer_height() : 0.08f;
+    layer.chroma = chroma_default_stack(chroma_filaments(), layer_h,
+                                        std::max(1, int(std::lround(double(plate.base_mm) / double(layer_h)))),
+                                        CHROMA_DEFAULT_RELIEF_LAYERS);
+    // After the stack, because seeding one replaces it wholesale.
+    layer.chroma.plate      = plate;
+    layer.chroma.base_auto  = true;
+    mv->texture_displacement_layers.push_back(std::move(layer));
+    mv->texture_displacement_options.active_slot = 0;
+
+    // Open on what was just made. The gizmo reloads the volume as it opens, so the layer has to be
+    // in place first, and the solve has to come after - it reads the paint through the selectors the
+    // gizmo builds while opening.
+    GLGizmosManager &manager = m_parent.get_gizmos_manager();
+    if (manager.get_current_type() != GLGizmosManager::EType::TextureDisplacement)
+        manager.open_gizmo(GLGizmosManager::EType::TextureDisplacement);
+    plater->changed_object(*mo);
+
+    if (TextureDisplacementLayer *opened = active_layer()) {
+        chroma_fit_picture(*opened);
+        chroma_solve_layer(*opened, true);
+    }
+    m_parent.set_as_dirty();
+}
+
 void GLGizmoTextureDisplacement::chroma_pick_picture(TextureDisplacementLayer &layer)
 {
     const wxString wildcard = _L("Images (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp");
@@ -4969,6 +5152,12 @@ void GLGizmoTextureDisplacement::chroma_settle(TextureDisplacementLayer &layer)
         return;
 
     m_chroma_settle_at[slot] = 0;
+    // The plate first: the solve reads the painted patch, and a rebuilt plate is a different patch.
+    if (m_chroma_plate_dirty[slot]) {
+        m_chroma_plate_dirty[slot] = false;
+        if (chroma_rebuild_plate(layer))
+            return; // which solves and applies on its way out
+    }
     if (chroma_solve_layer(layer, true))
         chroma_apply_swaps(layer, true);
 }
@@ -5601,6 +5790,138 @@ void GLGizmoTextureDisplacement::render_chroma_details(TextureDisplacementLayer 
             panel_tooltip(layer.chroma.base_auto ?
                                  _u8L("The base follows the painted face. Click to set it by hand.") :
                                  _u8L("The base is set by hand. Click to make it follow the painted face again."));
+    }
+
+    // ---- The plate, for a picture that made one for itself ----
+    //
+    // Only here: a picture painted onto a model has a plate already, and it is the model.
+    if (layer.chroma.plate.generated) {
+        ChromaPlate &plate = layer.chroma.plate;
+        const size_t slot  = size_t(layer.slot);
+        const auto   redraw = [&]() {
+            m_chroma_plate_dirty[slot] = true;
+            chroma_touch(layer.slot);
+        };
+
+        ImGui::Separator();
+
+        // One number for the size, because the other one is the picture's to decide: a photograph
+        // stretched to a shape that is not its own is not the photograph any more.
+        const bool  wide    = plate.width_mm >= plate.height_mm;
+        const float aspect  = wide ? plate.width_mm / std::max(0.1f, plate.height_mm) :
+                                     plate.height_mm / std::max(0.1f, plate.width_mm);
+        float       longest = std::max(plate.width_mm, plate.height_mm);
+        row_label(_L("Size"));
+        ImGui::SetNextItemWidth(m_imgui->scaled(3.4f));
+        if (ImGui::InputFloat("##hf_plate_size", &longest, 0.f, 0.f, "%.0f")) {
+            longest = std::clamp(longest, 10.f, 1000.f);
+            plate.width_mm  = wide ? longest : longest / aspect;
+            plate.height_mm = wide ? longest / aspect : longest;
+            redraw();
+        }
+        ImGui::SameLine(0.f, gap_s);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextDisabled("%s", Slic3r::format(_u8L("mm, so %1$.0f x %2$.0f"), plate.width_mm, plate.height_mm).c_str());
+        tip(_u8L("The longer side of the picture on the plate. The other side follows the picture's own "
+                 "proportions, and the frame is added outside both."));
+
+        row_label(_L("Backing"));
+        ImGui::SetNextItemWidth(m_imgui->scaled(3.4f));
+        if (ImGui::InputFloat("##hf_plate_base", &plate.base_mm, 0.f, 0.f, "%.1f")) {
+            plate.base_mm = std::clamp(plate.base_mm, 0.2f, 20.f);
+            redraw();
+        }
+        tip(_u8L("How solid the plate is under the picture. The colors are computed assuming no light gets "
+                 "through it, so this has to be thick enough to be opaque in the first filament - about a "
+                 "tenth of its transmission distance."),
+            { { "chroma_td.gif" } });
+
+        // ---- The frame ----
+        ChromaFrame &frame = plate.frame;
+        row_label(_L("Frame"));
+        ImGui::SetNextItemWidth(m_imgui->scaled(3.4f));
+        if (ImGui::InputFloat("##hf_frame_w", &frame.width_mm, 0.f, 0.f, "%.1f")) {
+            frame.width_mm = std::clamp(frame.width_mm, 0.f, 100.f);
+            redraw();
+        }
+        tip(_u8L("How wide a border runs around the picture, in millimeters. Zero is no frame at all: the "
+                 "picture runs to the edge of the plate."));
+
+        ImGui::SameLine(0.f, gap_s);
+        ImGui::SetNextItemWidth(m_imgui->scaled(6.f));
+        int shape = int(frame.shape);
+        const char *const shapes[] = { "Rectangle", "Rounded", "Oval", "From SVG" };
+        push_panel_combo_style(m_parent.get_scale());
+        if (ImGui::Combo("##hf_frame_shape", &shape, shapes, IM_ARRAYSIZE(shapes))) {
+            frame.shape = ChromaFrame::Shape(shape);
+            redraw();
+        }
+        pop_panel_combo_style();
+        tip(_u8L("The shape of the plate's edge - and of the picture inside it, which is the same loop. An "
+                 "oval frame holds an oval picture; a shape read from an SVG holds that shape."));
+
+        if (frame.width_mm > 0.f) {
+            row_label(_L("Profile"));
+            ImGui::SetNextItemWidth(m_imgui->scaled(6.f));
+            int profile = int(frame.profile);
+            const char *const profiles[] = { "Flat", "Bevel", "Step", "Round", "Ogee" };
+            push_panel_combo_style(m_parent.get_scale());
+            if (ImGui::Combo("##hf_frame_profile", &profile, profiles, IM_ARRAYSIZE(profiles))) {
+                frame.profile = ChromaFrame::Profile(profile);
+                redraw();
+            }
+            pop_panel_combo_style();
+            tip(_u8L("What the frame does between the plate's edge and the picture, in cross-section. Flat is "
+                     "a border of one color; the rest are mouldings, and all of them print in whichever "
+                     "filament is loaded at that height."));
+
+            if (frame.profile != ChromaFrame::Profile::Flat) {
+                ImGui::SameLine(0.f, gap_s);
+                ImGui::SetNextItemWidth(m_imgui->scaled(3.4f));
+                if (ImGui::InputFloat("##hf_frame_rise", &frame.rise_mm, 0.f, 0.f, "%.1f")) {
+                    frame.rise_mm = std::clamp(frame.rise_mm, 0.f, 50.f);
+                    redraw();
+                }
+                tip(_u8L("How far the frame stands above the picture. It is printed in whatever filament the "
+                         "stack is swapping to at that height, so a tall frame is a striped one."));
+            }
+
+            if (frame.shape == ChromaFrame::Shape::Rounded) {
+                row_label(_L("Corner"));
+                ImGui::SetNextItemWidth(m_imgui->scaled(3.4f));
+                if (ImGui::InputFloat("##hf_frame_corner", &frame.corner_mm, 0.f, 0.f, "%.1f")) {
+                    frame.corner_mm = std::clamp(frame.corner_mm, 0.f, 200.f);
+                    redraw();
+                }
+                tip(_u8L("How far the plate's corners are turned."));
+            }
+        }
+
+        if (frame.shape == ChromaFrame::Shape::Outline) {
+            row_label(frame.outline.empty() ? _L("Outline") : _L("Outline"));
+            if (m_imgui->button(frame.outline.empty() ? _L("Choose an SVG") : _L("Choose another"))) {
+                wxFileDialog svg(nullptr, _L("Choose the outline to cut the plate to"), wxEmptyString, wxEmptyString,
+                                 _L("SVG files (*.svg)|*.svg"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+                if (svg.ShowModal() == wxID_OK) {
+                    std::vector<Vec2f> loop;
+                    if (chroma_outline_from_svg(into_u8(svg.GetPath()), loop)) {
+                        frame.outline = std::move(loop);
+                        redraw();
+                    } else {
+                        show_error(nullptr, _u8L("Could not read a closed outline from that SVG."));
+                    }
+                }
+            }
+            tip(_u8L("The biggest closed shape in the file becomes the plate's edge, scaled to the picture. "
+                     "What is drawn inside it is ignored - this is a silhouette, not a drawing."));
+            if (frame.outline.empty()) {
+                ImGui::SameLine(0.f, gap_s);
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextDisabled("%s", _u8L("none yet, so the plate stays rectangular").c_str());
+            }
+        }
+
+        ImGui::Separator();
     }
 
     if (m_imgui->bbl_checkbox(_L("Dither"), layer.chroma.dither))

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <map>
 #include <vector>
 
 #include "libslic3r/BoundingBox.hpp"
@@ -707,5 +708,138 @@ TEST_CASE("A tilted surface's relief is deepened so its steps still land on the 
         steep.facing = { 1.f, float(std::cos(89. * M_PI / 180.)) };
         const float capped = chroma_tilt_relief(solve, stack, steep);
         REQUIRE_THAT(capped, WithinAbs(depth / std::cos(CHROMA_MAX_TILT_DEG * float(M_PI) / 180.f), 1e-3f));
+    }
+}
+
+// Every edge of a closed solid is shared by exactly two triangles. A plate that fails this has a hole
+// in it, which slices into a part with a missing wall.
+static bool is_closed(const indexed_triangle_set &its)
+{
+    std::map<std::pair<int, int>, int> edges;
+    for (const stl_triangle_vertex_indices &t : its.indices)
+        for (int i = 0; i < 3; ++i) {
+            const int a = t[i], b = t[(i + 1) % 3];
+            ++edges[{ std::min(a, b), std::max(a, b) }];
+        }
+    for (const auto &[edge, count] : edges)
+        if (count != 2)
+            return false;
+    return true;
+}
+
+TEST_CASE("A picture that has no model gets a plate made for it", "[ChromaStack]")
+{
+    ChromaPlate plate;
+    plate.generated = true;
+    plate.width_mm  = 80.f;
+    plate.height_mm = 60.f;
+    plate.base_mm   = 1.2f;
+    plate.cell_mm   = 4.f; // coarse, so the test is about the shape rather than about CGAL's patience
+
+    SECTION("with no frame it is a slab the size of the picture")
+    {
+        plate.frame.width_mm = 0.f;
+        const ChromaPlateMesh mesh = chroma_plate_mesh(plate);
+        REQUIRE_FALSE(mesh.empty());
+        REQUIRE(mesh.picture_triangles > 0);
+        REQUIRE(is_closed(mesh.its));
+
+        const BoundingBoxf3 box = bounding_box(mesh.its);
+        REQUIRE_THAT(box.size().x(), WithinAbs(80., 1e-3));
+        REQUIRE_THAT(box.size().y(), WithinAbs(60., 1e-3));
+        REQUIRE_THAT(box.min.z(), WithinAbs(0., 1e-5));
+        REQUIRE_THAT(box.max.z(), WithinAbs(1.2, 1e-5));
+    }
+
+    SECTION("the picture's own face comes first, and all of it is the surface the picture prints on")
+    {
+        const ChromaPlateMesh mesh = chroma_plate_mesh(plate);
+        REQUIRE(mesh.picture_triangles > 0);
+        REQUIRE(mesh.picture_triangles < mesh.its.indices.size()); // there is a frame and a backing too
+        for (size_t i = 0; i < mesh.picture_triangles; ++i)
+            for (int k = 0; k < 3; ++k)
+                REQUIRE_THAT(mesh.its.vertices[size_t(mesh.its.indices[i][k])].z(), WithinAbs(1.2f, 1e-4f));
+    }
+
+    SECTION("a frame grows the plate by its width on every side and stands as proud as its rise")
+    {
+        plate.frame.width_mm = 6.f;
+        plate.frame.rise_mm  = 2.f;
+        plate.frame.profile  = ChromaFrame::Profile::Round;
+        const ChromaPlateMesh mesh = chroma_plate_mesh(plate);
+        REQUIRE(is_closed(mesh.its));
+
+        const BoundingBoxf3 box = bounding_box(mesh.its);
+        REQUIRE_THAT(box.size().x(), WithinAbs(80. + 12., 1e-3));
+        REQUIRE_THAT(box.size().y(), WithinAbs(60. + 12., 1e-3));
+        REQUIRE_THAT(box.max.z(), WithinAbs(1.2 + 2., 1e-4));
+    }
+
+    SECTION("a flat frame is level with the picture however much rise it was given")
+    {
+        plate.frame.width_mm = 5.f;
+        plate.frame.rise_mm  = 3.f;
+        plate.frame.profile  = ChromaFrame::Profile::Flat;
+        const ChromaPlateMesh mesh = chroma_plate_mesh(plate);
+        REQUIRE_THAT(bounding_box(mesh.its).max.z(), WithinAbs(1.2, 1e-4));
+    }
+
+    SECTION("an oval frame holds an oval picture")
+    {
+        plate.frame.shape    = ChromaFrame::Shape::Ellipse;
+        plate.frame.width_mm = 5.f;
+        const ChromaPlateMesh mesh = chroma_plate_mesh(plate);
+        REQUIRE(is_closed(mesh.its));
+        // The picture's boundary is inscribed in its rectangle, so the face reaches the rectangle's
+        // edges at the middle of each side and nothing of it is in the corners.
+        float worst = 0.f;
+        for (size_t i = 0; i < mesh.picture_triangles; ++i)
+            for (int k = 0; k < 3; ++k) {
+                const Vec3f &v = mesh.its.vertices[size_t(mesh.its.indices[i][k])];
+                worst = std::max(worst, std::hypot(v.x() / 40.f, v.y() / 30.f));
+            }
+        REQUIRE(worst < 1.001f); // every point of the picture is inside the ellipse
+    }
+}
+
+TEST_CASE("A frame's profile is a cross-section, not a shape of its own", "[ChromaStack]")
+{
+    ChromaFrame frame;
+    frame.width_mm = 8.f;
+    frame.rise_mm  = 2.f;
+
+    SECTION("it always arrives exactly where the picture's surface is")
+    {
+        for (ChromaFrame::Profile p : { ChromaFrame::Profile::Bevel, ChromaFrame::Profile::Step,
+                                        ChromaFrame::Profile::Round, ChromaFrame::Profile::Ogee }) {
+            frame.profile = p;
+            const std::vector<Vec2f> profile = chroma_frame_profile(frame, 1.f);
+            REQUIRE(profile.size() >= 2);
+            REQUIRE_THAT(profile.front().x(), WithinAbs(0.f, 1e-6f));
+            REQUIRE_THAT(profile.back().x(), WithinAbs(8.f, 1e-6f));
+            REQUIRE_THAT(profile.back().y(), WithinAbs(1.f, 1e-6f)); // the picture's own surface
+            // It never dips below the picture, and never rises past what it was given.
+            for (const Vec2f &s : profile) {
+                REQUIRE(s.y() >= 1.f - 1e-5f);
+                REQUIRE(s.y() <= 3.f + 1e-5f);
+                REQUIRE(s.x() >= -1e-5f);
+                REQUIRE(s.x() <= 8.f + 1e-5f);
+            }
+        }
+    }
+
+    SECTION("no width is no frame at all")
+    {
+        frame.width_mm = 0.f;
+        REQUIRE(chroma_frame_profile(frame, 1.f).empty());
+    }
+
+    SECTION("nothing to rise by is a flat border whatever the profile says")
+    {
+        frame.profile = ChromaFrame::Profile::Ogee;
+        frame.rise_mm = 0.f;
+        const std::vector<Vec2f> profile = chroma_frame_profile(frame, 1.f);
+        REQUIRE(profile.size() == 2);
+        REQUIRE_THAT(profile.front().y(), WithinAbs(1.f, 1e-6f));
     }
 }
