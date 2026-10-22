@@ -6,6 +6,8 @@
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include <slic3r/GUI/Widgets/WebView.hpp>
+#include <slic3r/GUI/Widgets/WebViewHostDialog.hpp>
 
 #include "libslic3r_version.h"
 #include <libslic3r/PrintConfig.hpp>
@@ -16,8 +18,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem/path.hpp>
 
-#include <slic3r/GUI/Widgets/WebView.hpp>
-#include <slic3r/GUI/Widgets/WebViewHostDialog.hpp>
 #include <nlohmann/json.hpp>
 
 #include <wx/event.h>
