@@ -21,6 +21,14 @@ else ()
     set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
 endif ()
 
+# With a precompiled header, clang-cl can omit an exception type's copy constructor from its throw info,
+# so copies of the exception share and double-free their data: https://github.com/llvm/llvm-project/issues/53486
+if (MSVC AND CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set(_wx_precomp OFF)
+else ()
+    set(_wx_precomp ON)
+endif ()
+
 set(_wx_patch_command "")
 if (APPLE)
     set(_wx_patch_command
@@ -39,7 +47,7 @@ orcaslicer_add_cmake_project(
     PATCH_COMMAND ${_wx_patch_command}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${JPEG_PKG}
     CMAKE_ARGS
-        -DwxBUILD_PRECOMP=ON
+        -DwxBUILD_PRECOMP=${_wx_precomp}
         ${_wx_toolkit}
         "-DCMAKE_DEBUG_POSTFIX:STRING=${_wx_debug_postfix}"
         -DwxBUILD_DEBUG_LEVEL=0

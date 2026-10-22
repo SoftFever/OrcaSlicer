@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 10:04-0300\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -711,6 +711,9 @@ msgstr "mm"
 msgid "Part selection"
 msgstr "Selezione parte"
 
+msgid "Select multiple objects"
+msgstr "Seleziona più oggetti"
+
 msgid "Fixed step drag"
 msgstr "Trascinamento a passo fisso"
 
@@ -775,9 +778,83 @@ msgstr "Parte"
 msgid "Relative"
 msgstr "Relativo"
 
+msgid "Selection"
+msgstr "Selezione"
+
+msgid "Plate"
+msgstr "Piatto"
+
+# AI Translated
+# Needs human review: Distribute has no glossary rendering yet; check the term.
+msgid "Distribute"
+msgstr "Distribuisci"
+
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "Sistema di coordinate utilizzato per le azioni di trasformazione."
+
+# AI Translated
+msgid "Reference for alignment"
+msgstr "Riferimento per l'allineamento"
+
+# AI Translated
+msgid "Select at least 3 parts or objects"
+msgstr "Seleziona almeno 3 parti o oggetti"
+
+# AI Translated
+msgid "Align left"
+msgstr "Allinea a sinistra"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Allinea al centro sinistra-destra"
+
+# AI Translated
+msgid "Align right"
+msgstr "Allinea a destra"
+
+# AI Translated
+msgid "Align front"
+msgstr "Allinea davanti"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Allinea al centro davanti-dietro"
+
+# AI Translated
+msgid "Align back"
+msgstr "Allinea dietro"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Allinea in basso"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Allinea al centro alto-basso"
+
+# AI Translated
+msgid "Align top"
+msgstr "Allinea in alto"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Distribuisci sinistra-destra"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Distribuisci davanti-dietro"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Distribuisci alto-basso"
+
+msgid "Drop"
+msgstr "Lascia"
+
+# AI Translated
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr "Sposta la selezione lungo Z in modo che il suo punto più basso tocchi il piatto."
 
 # AI Translated
 msgid "Absolute"
@@ -1677,7 +1754,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Il tratto della forma (%1%) contiene un'immagine non supportata: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Stato non valido, segnala su GitHub i passaggi per riprodurlo"
 
 # AI Translated
@@ -1685,11 +1762,11 @@ msgid "No embossed file"
 msgstr "Nessun file in rilievo"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "File SVG mancante nella forma in rilievo"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Dati del file SVG mancanti"
 
 msgid "Face the camera"
@@ -2017,6 +2094,22 @@ msgstr "Attivazione strumento Assemblaggio"
 # AI Translated
 msgid "Leaving Assembly gizmo"
 msgstr "Uscita dallo strumento Assemblaggio"
+
+# AI Translated
+msgid "Parts of a cut object cannot be moved"
+msgstr "Le parti di un oggetto tagliato non possono essere spostate"
+
+# AI Translated
+msgid "Aligning to the plate is available in X and Y only"
+msgstr "L'allineamento al piatto è disponibile solo in X e Y"
+
+# AI Translated
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr "Disattiva il Rilascio automatico per gli oggetti selezionati per spostarli in Z"
+
+# AI Translated
+msgid "All selected objects must be on the same plate"
+msgstr "Tutti gli oggetti selezionati devono trovarsi sullo stesso piatto"
 
 msgid "Shift+"
 msgstr "Maiusc+"
@@ -3222,63 +3315,12 @@ msgid "Center"
 msgstr "Centro"
 
 # AI Translated
-msgid "Distribute left-right"
-msgstr "Distribuisci sinistra-destra"
-
-# AI Translated
-msgid "Distribute front-back"
-msgstr "Distribuisci davanti-dietro"
-
-# AI Translated
-msgid "Distribute top-bottom"
-msgstr "Distribuisci alto-basso"
-
-# AI Translated
-msgid "Align left"
-msgstr "Allinea a sinistra"
-
-# AI Translated
-msgid "Align left-right center"
-msgstr "Allinea al centro sinistra-destra"
-
-# AI Translated
-msgid "Align right"
-msgstr "Allinea a destra"
-
-# AI Translated
-msgid "Align front"
-msgstr "Allinea davanti"
-
-# AI Translated
-msgid "Align front-back center"
-msgstr "Allinea al centro davanti-dietro"
-
-# AI Translated
-msgid "Align back"
-msgstr "Allinea dietro"
-
-# AI Translated
-msgid "Align bottom"
-msgstr "Allinea in basso"
-
-# AI Translated
-msgid "Align top-bottom center"
-msgstr "Allinea al centro alto-basso"
-
-# AI Translated
-msgid "Align top"
-msgstr "Allinea in alto"
-
-# AI Translated
 msgid "Align/Distribute"
 msgstr "Allinea/Distribuisci"
 
 # AI Translated
 msgid "Align and distribute objects"
 msgstr "Allinea e distribuisci gli oggetti"
-
-msgid "Drop"
-msgstr "Lascia"
 
 msgid "Edit Process Settings"
 msgstr "Modifica impostazioni di processo"
@@ -3653,9 +3695,6 @@ msgstr "Senza tesa"
 
 msgid "Outer wall speed"
 msgstr "Velocità parete esterna"
-
-msgid "Plate"
-msgstr "Piatto"
 
 msgid "Brim"
 msgstr "Tesa"
@@ -4945,7 +4984,7 @@ msgstr "Salva il progetto e riavvia l'applicazione."
 msgid "Unknown C++ exception."
 msgstr "Eccezione C++ sconosciuta."
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "Elaborazione G-Code dal file precedente..."
 
 msgid "Slicing complete"
@@ -6476,6 +6515,11 @@ msgstr "Assi"
 
 msgid "Gridlines"
 msgstr "Linee griglia"
+
+# AI Translated
+# Needs human review: Name of a view mode hiding the surrounding UI; glossary cell is empty, check the term.
+msgid "Focus mode"
+msgstr "Modalità focus"
 
 msgid "Labels"
 msgstr "Etichette"
@@ -10886,6 +10930,14 @@ msgid "Show incompatible/unsupported presets in the printer and filament dropdow
 msgstr "Mostra i profili incompatibili/non supportati negli elenchi a discesa di stampante e filamento. Questi profili non possono essere selezionati."
 
 # AI Translated
+msgid "Export statistics with G-code"
+msgstr "Esporta statistiche con il G-code"
+
+# AI Translated
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Se attivato, l'esportazione di un file G-code scrive anche le sue statistiche come JSON accanto ad esso, come <name>.statistics.json, e un file 3MF elaborato esportato le contiene al suo interno: tempo di stampa, totali di filamento e per tipo linea, e gli stessi dati per strato e per oggetto."
+
+# AI Translated
 msgid "Experimental Features"
 msgstr "Funzionalità sperimentali"
 
@@ -11745,6 +11797,10 @@ msgstr "Caricamento del file nella memoria della stampante non riuscito. Riprova
 # AI Translated
 msgid "Send Failed"
 msgstr "Invio non riuscito"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Nessuna stampante disponibile"
 
 msgid "The name length exceeds the limit."
 msgstr "La lunghezza del nome supera il limite."
@@ -13385,9 +13441,6 @@ msgstr "Volumi di spurgo per cambio filamento"
 msgid "from/to"
 msgstr "da/a"
 
-msgid "Please choose the filament color"
-msgstr "Scegliere il colore del filamento"
-
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Il fornitore di servizi cloud non è disponibile. Riavviare OrcaSlicer e riprovare."
 
@@ -13580,8 +13633,8 @@ msgid "Left mouse"
 msgstr "Tasto sinistro mouse"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Disponibile ovunque nella finestra, anche durante la digitazione in un campo di testo."
+msgid "Available anywhere in the window."
+msgstr "Disponibile in qualsiasi punto della finestra."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13606,9 +13659,6 @@ msgstr "Disponibile quando la vista 3D della scheda Prepara è attiva."
 
 msgid "Select a part"
 msgstr "Seleziona parte"
-
-msgid "Select multiple objects"
-msgstr "Seleziona più oggetti"
 
 msgid "Select objects by rectangle"
 msgstr "Seleziona oggetti per rettangolo"
@@ -13695,10 +13745,6 @@ msgstr "%s è assegnato a %s. Riassegnarlo a %s?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "Il tasto predefinito %s è assegnato a %s. Riassegnarlo a %s?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Le scorciatoie globali valgono anche durante la digitazione."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14147,6 +14193,11 @@ msgstr "il modificatore \"%1%\" di \"%2%\" (%3% in totale) non ha avuto effetto 
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "Il posizionamento della cucitura potrebbe differire da quanto previsto."
+
+# AI Translated
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr "Impossibile scrivere le statistiche del G-code in %1%."
 
 msgid "Internal Bridge"
 msgstr "Ponte interno"
@@ -17538,6 +17589,14 @@ msgstr "Escludi oggetti"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Abilita questa opzione per aggiungere il comando EXCLUDE OBJECT nel G-code."
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Tolleranza del contorno"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Deviazione massima del contorno dell'oggetto scritto in EXCLUDE_OBJECT_DEFINE rispetto al contorno originale. Valori più alti producono meno punti, il che aiuta il firmware che si blocca durante l'analisi di G-code con molti oggetti. 0 mantiene tutti i punti."
+
 msgid "Verbose G-code"
 msgstr "G-code verboso"
 
@@ -20747,6 +20806,14 @@ msgstr "Cartella di destinazione"
 msgid "This is the output directory for exported files."
 msgstr "Questa è la cartella di destinazione per i file esportati."
 
+# AI Translated
+msgid "Export statistics"
+msgstr "Esporta statistiche"
+
+# AI Translated
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Scrive le statistiche di ogni piatto elaborato come JSON, come plate_N.statistics.json accanto al suo G-code nella directory di output e all'interno del 3MF di --export-3mf: tempo di stampa, totali di filamento e per tipo linea, e gli stessi dati per strato e per oggetto."
+
 msgid "Debug level"
 msgstr "Livello di debug"
 
@@ -23162,7 +23229,7 @@ msgstr "avvio test %s..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "test %s IP risolto = %s"
 
 # AI Translated
@@ -29750,9 +29817,6 @@ msgstr "Apri Speed Dial"
 msgid "Slicing and printing"
 msgstr "Elaborazione e stampa"
 
-msgid "Selection"
-msgstr "Selezione"
-
 # AI Translated
 msgid "Editing"
 msgstr "Modifica"
@@ -30657,6 +30721,1649 @@ msgstr[0] "L'elenco filamenti attuale non contiene %s. Dopo la scomposizione ver
 msgstr[1] "L'elenco filamenti attuale non contiene %s. Dopo la scomposizione verranno creati automaticamente i filamenti del progetto richiesti dal filamento misto."
 
 # AI Translated
+msgid "Color Picker"
+msgstr "Selettore colore"
+
+# AI Translated
+msgid "Basic Colors"
+msgstr "Colori di base"
+
+# AI Translated
+# Needs human review: Palette has no glossary rendering yet; check the term.
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "Orca Palette"
+msgstr "Tavolozza Orca"
+
+# AI Translated
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL Classic"
+
+# AI Translated
+# Needs human review: Gradient has no glossary rendering in this language; used the catalog's color-gradient term.
+msgid "Gradients"
+msgstr "Gradienti"
+
+# AI Translated
+msgctxt "Color picker"
+msgid "Solid"
+msgstr "Tinta unita"
+
+# AI Translated
+msgid "Gradient"
+msgstr "Gradiente"
+
+# AI Translated
+msgid "Gradient start"
+msgstr "Inizio del gradiente"
+
+# AI Translated
+msgid "Gradient end"
+msgstr "Fine del gradiente"
+
+# AI Translated
+msgid "Gradient color"
+msgstr "Colore del gradiente"
+
+# AI Translated
+msgid "Add color"
+msgstr "Aggiungi colore"
+
+# AI Translated
+msgid "Remove color"
+msgstr "Rimuovi colore"
+
+# AI Translated
+msgid "Saturation"
+msgstr "Saturazione"
+
+# AI Translated
+msgid "Original color"
+msgstr "Colore originale"
+
+# AI Translated
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr "Salva colore attuale"
+
+# AI Translated
+# Needs human review: Palette has no glossary rendering yet; check the term.
+msgid "Palettes"
+msgstr "Tavolozze"
+
+# AI Translated
+msgid "Search colors"
+msgstr "Cerca colori"
+
+# AI Translated
+msgid "Filter colors"
+msgstr "Filtra colori"
+
+# AI Translated
+msgid "No matching colors"
+msgstr "Nessun colore corrispondente"
+
+# AI Translated
+msgid "Hex color"
+msgstr "Colore esadecimale"
+
+# AI Translated
+msgid "Opacity"
+msgstr "Opacità"
+
+# AI Translated
+msgid "Opacity percent"
+msgstr "Percentuale di opacità"
+
+# AI Translated
+msgid "Save color"
+msgstr "Salva colore"
+
+# AI Translated
+msgid "Enter a complete hexadecimal color"
+msgstr "Inserisci un colore esadecimale completo"
+
+# AI Translated
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr "La selezione multicolore attuale viene mantenuta finché non scegli un altro colore."
+
+# AI Translated
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr "Sono supportati fino a %d colori."
+
+# AI Translated
+msgid "Crimson"
+msgstr "Cremisi"
+
+# AI Translated
+msgid "Orange red"
+msgstr "Rosso arancione"
+
+# AI Translated
+msgid "Tomato"
+msgstr "Pomodoro"
+
+# AI Translated
+msgid "Orange"
+msgstr "Arancione"
+
+# AI Translated
+msgid "Dark orange"
+msgstr "Arancione scuro"
+
+# AI Translated
+msgid "Gold"
+msgstr "Oro"
+
+# AI Translated
+msgid "Burly wood"
+msgstr "Legno chiaro"
+
+# AI Translated
+msgid "Bisque"
+msgstr "Biscotto"
+
+# AI Translated
+msgid "Misty rose"
+msgstr "Rosa nebbia"
+
+# AI Translated
+msgid "Light yellow"
+msgstr "Giallo chiaro"
+
+# AI Translated
+msgid "Lemon chiffon"
+msgstr "Chiffon limone"
+
+# AI Translated
+msgid "Beige"
+msgstr "Beige"
+
+# AI Translated
+msgid "Light golden rod yellow"
+msgstr "Giallo verga d'oro chiaro"
+
+# AI Translated
+msgid "Pale golden rod"
+msgstr "Verga d'oro pallido"
+
+# AI Translated
+msgid "Khaki"
+msgstr "Cachi"
+
+# AI Translated
+msgid "Dark khaki"
+msgstr "Cachi scuro"
+
+# AI Translated
+msgid "Peach puff"
+msgstr "Pesca tenue"
+
+# AI Translated
+msgid "Moccasin"
+msgstr "Mocassino"
+
+# AI Translated
+msgid "Papaya whip"
+msgstr "Crema di papaya"
+
+# AI Translated
+msgid "Blanched almond"
+msgstr "Mandorla sbollentata"
+
+# AI Translated
+msgid "Antique white"
+msgstr "Bianco antico"
+
+# AI Translated
+msgid "Navajo white"
+msgstr "Bianco navajo"
+
+# AI Translated
+msgid "Wheat"
+msgstr "Grano"
+
+# AI Translated
+msgid "Golden rod"
+msgstr "Verga d'oro"
+
+# AI Translated
+msgid "Chocolate"
+msgstr "Cioccolato"
+
+# AI Translated
+msgid "Peru"
+msgstr "Perù"
+
+# AI Translated
+msgid "Fire brick"
+msgstr "Mattone refrattario"
+
+# AI Translated
+msgid "Sienna"
+msgstr "Terra di Siena"
+
+# AI Translated
+msgid "Saddle brown"
+msgstr "Marrone cuoio"
+
+# AI Translated
+msgid "Brown"
+msgstr "Marrone"
+
+# AI Translated
+msgid "Rosy brown"
+msgstr "Marrone rosato"
+
+# AI Translated
+msgid "Salmon"
+msgstr "Salmone"
+
+# AI Translated
+msgid "Light salmon"
+msgstr "Salmone chiaro"
+
+# AI Translated
+msgid "Dark salmon"
+msgstr "Salmone scuro"
+
+# AI Translated
+msgid "Sandy brown"
+msgstr "Marrone sabbia"
+
+# AI Translated
+msgid "Coral"
+msgstr "Corallo"
+
+# AI Translated
+msgid "Light coral"
+msgstr "Corallo chiaro"
+
+# AI Translated
+msgid "Indian red"
+msgstr "Rosso indiano"
+
+# AI Translated
+msgid "Dark red"
+msgstr "Rosso scuro"
+
+# AI Translated
+msgid "Maroon"
+msgstr "Bordeaux"
+
+# AI Translated
+msgid "Green yellow"
+msgstr "Verde giallastro"
+
+# AI Translated
+msgid "Yellow green"
+msgstr "Giallo verdastro"
+
+# AI Translated
+msgid "Chartreuse"
+msgstr "Chartreuse"
+
+# AI Translated
+msgid "Lawn green"
+msgstr "Verde prato"
+
+# AI Translated
+msgid "Lime green"
+msgstr "Verde lime"
+
+# AI Translated
+msgid "Spring green"
+msgstr "Verde primavera"
+
+# AI Translated
+msgid "Medium spring green"
+msgstr "Verde primavera medio"
+
+# AI Translated
+msgid "Lime"
+msgstr "Lime"
+
+# AI Translated
+msgid "Forest green"
+msgstr "Verde foresta"
+
+# AI Translated
+msgid "Dark green"
+msgstr "Verde scuro"
+
+# AI Translated
+msgid "Olive drab"
+msgstr "Verde oliva opaco"
+
+# AI Translated
+msgid "Olive"
+msgstr "Oliva"
+
+# AI Translated
+msgid "Dark olive green"
+msgstr "Verde oliva scuro"
+
+# AI Translated
+msgid "Pale green"
+msgstr "Verde pallido"
+
+# AI Translated
+msgid "Light green"
+msgstr "Verde chiaro"
+
+# AI Translated
+msgid "Medium sea green"
+msgstr "Verde mare medio"
+
+# AI Translated
+msgid "Sea green"
+msgstr "Verde mare"
+
+# AI Translated
+msgid "Dark sea green"
+msgstr "Verde mare scuro"
+
+# AI Translated
+msgid "Cadet blue"
+msgstr "Blu cadetto"
+
+# AI Translated
+msgid "Medium aqua marine"
+msgstr "Acquamarina medio"
+
+# AI Translated
+msgid "Turquoise"
+msgstr "Turchese"
+
+# AI Translated
+msgid "Medium turquoise"
+msgstr "Turchese medio"
+
+# AI Translated
+msgid "Dark turquoise"
+msgstr "Turchese scuro"
+
+# AI Translated
+msgid "Pale turquoise"
+msgstr "Turchese pallido"
+
+# AI Translated
+msgid "Aqua"
+msgstr "Acqua"
+
+# AI Translated
+msgid "Light cyan"
+msgstr "Ciano chiaro"
+
+# AI Translated
+msgid "Mint cream"
+msgstr "Crema di menta"
+
+# AI Translated
+msgid "Honey dew"
+msgstr "Rugiada di miele"
+
+# AI Translated
+msgid "Aquamarine"
+msgstr "Acquamarina"
+
+# AI Translated
+msgid "Light sea green"
+msgstr "Verde mare chiaro"
+
+# AI Translated
+msgid "Dark cyan"
+msgstr "Ciano scuro"
+
+# AI Translated
+msgid "Teal"
+msgstr "Verde petrolio"
+
+# AI Translated
+msgid "Dark slate gray"
+msgstr "Grigio ardesia scuro"
+
+# AI Translated
+msgid "Light slate gray"
+msgstr "Grigio ardesia chiaro"
+
+# AI Translated
+msgid "Slate gray"
+msgstr "Grigio ardesia"
+
+# AI Translated
+msgid "Deep sky blue"
+msgstr "Celeste intenso"
+
+# AI Translated
+msgid "Dodger Blue"
+msgstr "Blu Dodger"
+
+# AI Translated
+msgid "Sky blue"
+msgstr "Celeste"
+
+# AI Translated
+msgid "Light sky blue"
+msgstr "Celeste chiaro"
+
+# AI Translated
+msgid "Light blue"
+msgstr "Blu chiaro"
+
+# AI Translated
+msgid "Powder blue"
+msgstr "Blu polvere"
+
+# AI Translated
+msgid "Light steel blue"
+msgstr "Blu acciaio chiaro"
+
+# AI Translated
+msgid "Steel blue"
+msgstr "Blu acciaio"
+
+# AI Translated
+msgid "Cornflower blue"
+msgstr "Blu fiordaliso"
+
+# AI Translated
+msgid "Royal blue"
+msgstr "Blu reale"
+
+# AI Translated
+msgid "Medium blue"
+msgstr "Blu medio"
+
+# AI Translated
+msgid "Midnight blue"
+msgstr "Blu mezzanotte"
+
+# AI Translated
+msgid "Dark blue"
+msgstr "Blu scuro"
+
+# AI Translated
+msgid "Navy"
+msgstr "Blu navy"
+
+# AI Translated
+msgid "Slate blue"
+msgstr "Blu ardesia"
+
+# AI Translated
+msgid "Dark slate blue"
+msgstr "Blu ardesia scuro"
+
+# AI Translated
+msgid "Medium slate blue"
+msgstr "Blu ardesia medio"
+
+# AI Translated
+msgid "Blue violet"
+msgstr "Blu violaceo"
+
+# AI Translated
+msgid "Indigo"
+msgstr "Indaco"
+
+# AI Translated
+msgid "Dark violet"
+msgstr "Violetto scuro"
+
+# AI Translated
+msgid "Dark orchid"
+msgstr "Orchidea scura"
+
+# AI Translated
+msgid "Medium orchid"
+msgstr "Orchidea media"
+
+# AI Translated
+msgid "Orchid"
+msgstr "Orchidea"
+
+# AI Translated
+msgid "Violet"
+msgstr "Violetto"
+
+# AI Translated
+msgid "Medium purple"
+msgstr "Porpora medio"
+
+# AI Translated
+msgid "Purple"
+msgstr "Porpora"
+
+# AI Translated
+msgid "Rebecca purple"
+msgstr "Porpora Rebecca"
+
+# AI Translated
+msgid "Medium violet red"
+msgstr "Rosso violetto medio"
+
+# AI Translated
+msgid "Pale violet red"
+msgstr "Rosso violetto pallido"
+
+# AI Translated
+msgid "Deep pink"
+msgstr "Rosa intenso"
+
+# AI Translated
+msgid "Hot pink"
+msgstr "Rosa acceso"
+
+# AI Translated
+msgid "Light pink"
+msgstr "Rosa chiaro"
+
+# AI Translated
+msgid "Pink"
+msgstr "Rosa"
+
+# AI Translated
+msgid "Plum"
+msgstr "Prugna"
+
+# AI Translated
+msgid "Thistle"
+msgstr "Cardo"
+
+# AI Translated
+msgid "Fuchsia"
+msgstr "Fucsia"
+
+# AI Translated
+msgid "Dark magenta"
+msgstr "Magenta scuro"
+
+# AI Translated
+msgid "Linen"
+msgstr "Lino"
+
+# AI Translated
+msgid "Old lace"
+msgstr "Pizzo antico"
+
+# AI Translated
+# Needs human review: CSS color Seashell (a sea shell); glossary Shell warning is a false match.
+msgid "Sea shell"
+msgstr "Conchiglia"
+
+# AI Translated
+msgid "Ivory"
+msgstr "Avorio"
+
+# AI Translated
+msgid "Floral white"
+msgstr "Bianco floreale"
+
+# AI Translated
+msgid "Lavender blush"
+msgstr "Lavanda rosata"
+
+# AI Translated
+msgid "Ghost white"
+msgstr "Bianco fantasma"
+
+# AI Translated
+msgid "Alice blue"
+msgstr "Blu Alice"
+
+# AI Translated
+msgid "Lavender"
+msgstr "Lavanda"
+
+# AI Translated
+msgid "White smoke"
+msgstr "Fumo bianco"
+
+# AI Translated
+msgid "Gainsboro"
+msgstr "Gainsboro"
+
+# AI Translated
+msgid "Black"
+msgstr "Nero"
+
+# AI Translated
+msgid "Coral fire"
+msgstr "Fuoco di corallo"
+
+# AI Translated
+msgid "Sea anemone"
+msgstr "Anemone di mare"
+
+# AI Translated
+msgid "Deep abyss"
+msgstr "Abisso profondo"
+
+# AI Translated
+msgid "Lobster red"
+msgstr "Rosso aragosta"
+
+# AI Translated
+msgid "Sandy clay"
+msgstr "Argilla sabbiosa"
+
+# AI Translated
+msgid "Driftwood"
+msgstr "Legno di mare"
+
+# AI Translated
+# Needs human review: Ocean-themed color name; check the plant name.
+msgid "Sea buckthorn"
+msgstr "Olivello spinoso"
+
+# AI Translated
+msgid "Sunset reef"
+msgstr "Barriera al tramonto"
+
+# AI Translated
+msgid "Tiger coral"
+msgstr "Corallo tigre"
+
+# AI Translated
+msgid "Pink coral"
+msgstr "Corallo rosa"
+
+# AI Translated
+msgid "Seashell glow"
+msgstr "Bagliore di conchiglia"
+
+# AI Translated
+msgid "Sand"
+msgstr "Sabbia"
+
+# AI Translated
+msgid "Golden kelp"
+msgstr "Kelp dorato"
+
+# AI Translated
+msgid "Sunlit dune"
+msgstr "Duna al sole"
+
+# AI Translated
+msgid "Amber nautilus"
+msgstr "Nautilus ambra"
+
+# AI Translated
+msgid "Sea lemon"
+msgstr "Limone di mare"
+
+# AI Translated
+msgid "Pale starfish"
+msgstr "Stella marina pallida"
+
+# AI Translated
+# Needs human review: Ocean-themed color name; check the sense (tide vs spring season).
+msgid "Spring tide"
+msgstr "Marea di primavera"
+
+# AI Translated
+msgid "Lime algae"
+msgstr "Alga lime"
+
+# AI Translated
+msgid "Sea grass"
+msgstr "Erba marina"
+
+# AI Translated
+msgid "Neon plankton"
+msgstr "Plancton neon"
+
+# AI Translated
+msgid "Kelp forest"
+msgstr "Foresta di kelp"
+
+# AI Translated
+msgid "Emerald wave"
+msgstr "Onda smeraldo"
+
+# AI Translated
+msgid "Whale shadow"
+msgstr "Ombra di balena"
+
+# AI Translated
+msgid "Sea turtle"
+msgstr "Tartaruga marina"
+
+# AI Translated
+msgid "Lagoon"
+msgstr "Laguna"
+
+# AI Translated
+msgid "Tropical current"
+msgstr "Corrente tropicale"
+
+# AI Translated
+msgid "Midnight trench"
+msgstr "Fossa di mezzanotte"
+
+# AI Translated
+msgid "Dark kelp"
+msgstr "Kelp scuro"
+
+# AI Translated
+msgid "Crystal surf"
+msgstr "Risacca cristallina"
+
+# AI Translated
+msgid "Turquoise bay"
+msgstr "Baia turchese"
+
+# AI Translated
+msgid "Sky over reef"
+msgstr "Cielo sopra la barriera"
+
+# AI Translated
+# Needs human review: Ocean-themed color name; check it reads as a pale sky blue.
+msgid "Shallow sky"
+msgstr "Cielo di acque basse"
+
+# AI Translated
+msgid "Electric blue"
+msgstr "Blu elettrico"
+
+# AI Translated
+msgid "Dolphin"
+msgstr "Delfino"
+
+# AI Translated
+msgid "Ocean depths"
+msgstr "Profondità oceaniche"
+
+# AI Translated
+msgid "Whale"
+msgstr "Balena"
+
+# AI Translated
+msgid "Indigo abyss"
+msgstr "Abisso indaco"
+
+# AI Translated
+msgid "Sea urchin"
+msgstr "Riccio di mare"
+
+# AI Translated
+msgid "Lavender coral"
+msgstr "Corallo lavanda"
+
+# AI Translated
+msgid "Violet tide"
+msgstr "Marea violetta"
+
+# AI Translated
+msgid "Deep sea orchid"
+msgstr "Orchidea di mare profondo"
+
+# AI Translated
+msgid "Neon jelly"
+msgstr "Medusa neon"
+
+# AI Translated
+msgid "Fuchsia coral"
+msgstr "Corallo fucsia"
+
+# AI Translated
+msgid "Pink jellyfish"
+msgstr "Medusa rosa"
+
+# AI Translated
+msgid "Foam"
+msgstr "Schiuma"
+
+# AI Translated
+msgid "Seashell white"
+msgstr "Bianco conchiglia"
+
+# AI Translated
+msgid "Pebble gray"
+msgstr "Grigio ciottolo"
+
+# AI Translated
+msgid "Storm cloud"
+msgstr "Nuvola temporalesca"
+
+# AI Translated
+msgid "Ink black"
+msgstr "Nero inchiostro"
+
+# AI Translated
+msgid "Green beige"
+msgstr "Beige verdastro"
+
+# AI Translated
+msgid "Sand yellow"
+msgstr "Giallo sabbia"
+
+# AI Translated
+msgid "Signal yellow"
+msgstr "Giallo segnale"
+
+# AI Translated
+msgid "Golden yellow"
+msgstr "Giallo oro"
+
+# AI Translated
+msgid "Honey yellow"
+msgstr "Giallo miele"
+
+# AI Translated
+msgid "Maize yellow"
+msgstr "Giallo mais"
+
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Giallo narciso"
+
+# AI Translated
+msgid "Brown beige"
+msgstr "Beige brunastro"
+
+# AI Translated
+msgid "Lemon yellow"
+msgstr "Giallo limone"
+
+# AI Translated
+msgid "Oyster white"
+msgstr "Bianco ostrica"
+
+# AI Translated
+msgid "Light ivory"
+msgstr "Avorio chiaro"
+
+# AI Translated
+msgid "Zinc yellow"
+msgstr "Giallo zinco"
+
+# AI Translated
+msgid "Grey beige"
+msgstr "Beige grigiastro"
+
+# AI Translated
+msgid "Olive yellow"
+msgstr "Giallo oliva"
+
+# AI Translated
+msgid "Rape yellow"
+msgstr "Giallo colza"
+
+# AI Translated
+msgid "Traffic yellow"
+msgstr "Giallo traffico"
+
+# AI Translated
+msgid "Ochre yellow"
+msgstr "Giallo ocra"
+
+# AI Translated
+# Needs human review: RAL name; unusual source name, translated by its parts.
+msgid "Traffic orange yellow"
+msgstr "Giallo arancione traffico"
+
+# AI Translated
+msgid "Curry"
+msgstr "Curry"
+
+# AI Translated
+msgid "Melon yellow"
+msgstr "Giallo melone"
+
+# AI Translated
+msgid "Broom yellow"
+msgstr "Giallo ginestra"
+
+# AI Translated
+msgid "Dahlia yellow"
+msgstr "Giallo dalia"
+
+# AI Translated
+msgid "Pastel yellow"
+msgstr "Giallo pastello"
+
+# AI Translated
+msgid "Pearl beige"
+msgstr "Beige perlato"
+
+# AI Translated
+msgid "Pearl gold"
+msgstr "Oro perlato"
+
+# AI Translated
+msgid "Sun yellow"
+msgstr "Giallo sole"
+
+# AI Translated
+msgid "Yellow orange"
+msgstr "Arancione giallastro"
+
+# AI Translated
+msgid "Deep orange"
+msgstr "Arancione intenso"
+
+# AI Translated
+msgid "Vermilion"
+msgstr "Vermiglio"
+
+# AI Translated
+msgid "Pearl orange"
+msgstr "Arancione perlato"
+
+# AI Translated
+msgid "Pure orange"
+msgstr "Arancione puro"
+
+# AI Translated
+msgid "Luminous orange"
+msgstr "Arancione luminoso"
+
+# AI Translated
+msgid "Luminous bright orange"
+msgstr "Arancione chiaro luminoso"
+
+# AI Translated
+msgid "Bright red orange"
+msgstr "Rosso arancione chiaro"
+
+# AI Translated
+msgid "Traffic orange"
+msgstr "Arancione traffico"
+
+# AI Translated
+msgid "Signal orange"
+msgstr "Arancione segnale"
+
+# AI Translated
+msgid "Salmon orange"
+msgstr "Arancione salmone"
+
+# AI Translated
+msgid "Pearl pink"
+msgstr "Rosa perlato"
+
+# AI Translated
+msgid "Copper orange"
+msgstr "Arancione rame"
+
+# AI Translated
+msgid "Signal brown"
+msgstr "Marrone segnale"
+
+# AI Translated
+# Needs human review: RAL name; 'Fir orange' looks odd in the source, translated literally.
+msgid "Fir orange"
+msgstr "Arancione abete"
+
+# AI Translated
+msgid "Signal red"
+msgstr "Rosso segnale"
+
+# AI Translated
+msgid "Luminous red"
+msgstr "Rosso luminoso"
+
+# AI Translated
+msgid "Carmine red"
+msgstr "Rosso carminio"
+
+# AI Translated
+msgid "Pearl carmine red"
+msgstr "Rosso carminio perlato"
+
+# AI Translated
+msgid "Pure red"
+msgstr "Rosso puro"
+
+# AI Translated
+msgid "Luminous deep red"
+msgstr "Rosso intenso luminoso"
+
+# AI Translated
+msgid "Currant red"
+msgstr "Rosso ribes"
+
+# AI Translated
+msgid "Pearl ruby red"
+msgstr "Rosso rubino perlato"
+
+# AI Translated
+msgid "Fire red"
+msgstr "Rosso fuoco"
+
+# AI Translated
+msgid "Ruby red"
+msgstr "Rosso rubino"
+
+# AI Translated
+msgid "Purple red"
+msgstr "Rosso porpora"
+
+# AI Translated
+msgid "Wine red"
+msgstr "Rosso vino"
+
+# AI Translated
+msgid "Black red"
+msgstr "Rosso nerastro"
+
+# AI Translated
+msgid "Oxide red"
+msgstr "Rosso ossido"
+
+# AI Translated
+msgid "Brown red"
+msgstr "Rosso brunastro"
+
+# AI Translated
+msgid "Pine red"
+msgstr "Rosso pino"
+
+# AI Translated
+msgid "Tomato red"
+msgstr "Rosso pomodoro"
+
+# AI Translated
+msgid "Antique pink"
+msgstr "Rosa antico"
+
+# AI Translated
+msgid "Coral red"
+msgstr "Rosso corallo"
+
+# AI Translated
+msgid "Rose"
+msgstr "Rosa"
+
+# AI Translated
+msgid "Strawberry red"
+msgstr "Rosso fragola"
+
+# AI Translated
+msgid "Traffic red"
+msgstr "Rosso traffico"
+
+# AI Translated
+msgid "Salmon pink"
+msgstr "Rosa salmone"
+
+# AI Translated
+msgid "Luminous rose"
+msgstr "Rosa luminoso"
+
+# AI Translated
+msgid "Luminous bright red"
+msgstr "Rosso chiaro luminoso"
+
+# AI Translated
+msgid "Raspberry red"
+msgstr "Rosso lampone"
+
+# AI Translated
+msgid "Orient red"
+msgstr "Rosso orientale"
+
+# AI Translated
+msgid "Pearl ruby"
+msgstr "Rubino perlato"
+
+# AI Translated
+msgid "Red purple"
+msgstr "Porpora rossastro"
+
+# AI Translated
+msgid "Red violet"
+msgstr "Violetto rossastro"
+
+# AI Translated
+msgid "Heather violet"
+msgstr "Violetto erica"
+
+# AI Translated
+msgid "Bordeaux violet"
+msgstr "Violetto bordeaux"
+
+# AI Translated
+msgid "Mahogany"
+msgstr "Mogano"
+
+# AI Translated
+msgid "Grey purple"
+msgstr "Porpora grigiastro"
+
+# AI Translated
+msgid "Signal violet"
+msgstr "Violetto segnale"
+
+# AI Translated
+msgid "Fir green"
+msgstr "Verde abete"
+
+# AI Translated
+msgid "Sabine grey"
+msgstr "Grigio sabino"
+
+# AI Translated
+msgid "Pearl violet"
+msgstr "Violetto perlato"
+
+# AI Translated
+msgid "Pearl blackberry"
+msgstr "Mora perlata"
+
+# AI Translated
+msgid "Green blue"
+msgstr "Blu verdastro"
+
+# AI Translated
+msgid "Ultramarine blue"
+msgstr "Blu oltremare"
+
+# AI Translated
+msgid "Sapphire blue"
+msgstr "Blu zaffiro"
+
+# AI Translated
+msgid "Black blue"
+msgstr "Blu nerastro"
+
+# AI Translated
+msgid "Signal blue"
+msgstr "Blu segnale"
+
+# AI Translated
+msgid "Brilliant blue"
+msgstr "Blu brillante"
+
+# AI Translated
+msgid "Grey blue"
+msgstr "Blu grigiastro"
+
+# AI Translated
+msgid "Azure blue"
+msgstr "Blu azzurro"
+
+# AI Translated
+msgid "Gentian blue"
+msgstr "Blu genziana"
+
+# AI Translated
+msgid "Cobalt blue"
+msgstr "Blu cobalto"
+
+# AI Translated
+msgid "Pigeon blue"
+msgstr "Blu colombo"
+
+# AI Translated
+msgid "Traffic blue"
+msgstr "Blu traffico"
+
+# AI Translated
+msgid "Turquoise blue"
+msgstr "Blu turchese"
+
+# AI Translated
+msgid "Capri blue"
+msgstr "Blu Capri"
+
+# AI Translated
+msgid "Ocean blue"
+msgstr "Blu oceano"
+
+# AI Translated
+msgid "Water blue"
+msgstr "Blu acqua"
+
+# AI Translated
+msgid "Night blue"
+msgstr "Blu notte"
+
+# AI Translated
+msgid "Distant blue"
+msgstr "Blu lontano"
+
+# AI Translated
+msgid "Pastel blue"
+msgstr "Blu pastello"
+
+# AI Translated
+msgid "Pearl gentian blue"
+msgstr "Blu genziana perlato"
+
+# AI Translated
+msgid "Pearl midnight blue"
+msgstr "Blu mezzanotte perlato"
+
+# AI Translated
+msgid "Patina green"
+msgstr "Verde patina"
+
+# AI Translated
+msgid "Emerald green"
+msgstr "Verde smeraldo"
+
+# AI Translated
+msgid "Leaf green"
+msgstr "Verde foglia"
+
+# AI Translated
+msgid "Olive green"
+msgstr "Verde oliva"
+
+# AI Translated
+msgid "Blue green"
+msgstr "Verde bluastro"
+
+# AI Translated
+msgid "Moss green"
+msgstr "Verde muschio"
+
+# AI Translated
+msgid "Grey olive"
+msgstr "Oliva grigiastro"
+
+# AI Translated
+msgid "Pine green"
+msgstr "Verde pino"
+
+# AI Translated
+msgid "Pine brown"
+msgstr "Marrone pino"
+
+# AI Translated
+msgid "Grass green"
+msgstr "Verde erba"
+
+# AI Translated
+msgid "Reseda green"
+msgstr "Verde reseda"
+
+# AI Translated
+msgid "Brown green"
+msgstr "Verde brunastro"
+
+# AI Translated
+msgid "Reed green"
+msgstr "Verde canna"
+
+# AI Translated
+msgid "Black green"
+msgstr "Verde nerastro"
+
+# AI Translated
+msgid "Turquoise green"
+msgstr "Verde turchese"
+
+# AI Translated
+msgid "May green"
+msgstr "Verde maggio"
+
+# AI Translated
+msgid "Chrome oxide green"
+msgstr "Verde ossido di cromo"
+
+# AI Translated
+msgid "Traffic green"
+msgstr "Verde traffico"
+
+# AI Translated
+msgid "Fern green"
+msgstr "Verde felce"
+
+# AI Translated
+msgid "Opal green"
+msgstr "Verde opale"
+
+# AI Translated
+msgid "Mint green"
+msgstr "Verde menta"
+
+# AI Translated
+msgid "Bronze green"
+msgstr "Verde bronzo"
+
+# AI Translated
+msgid "Pearl green"
+msgstr "Verde perlato"
+
+# AI Translated
+# Needs human review: RAL name (Saxe blue-like turquoise); check the rendering.
+msgid "Sax turquoise"
+msgstr "Turchese sassone"
+
+# AI Translated
+msgid "Pearl turquoise"
+msgstr "Turchese perlato"
+
+# AI Translated
+msgid "Pearl jade"
+msgstr "Giada perlata"
+
+# AI Translated
+msgid "Pure green"
+msgstr "Verde puro"
+
+# AI Translated
+msgid "Luminous green"
+msgstr "Verde luminoso"
+
+# AI Translated
+msgid "Squirrel grey"
+msgstr "Grigio scoiattolo"
+
+# AI Translated
+msgid "Silver grey"
+msgstr "Grigio argento"
+
+# AI Translated
+msgid "Olive grey"
+msgstr "Grigio oliva"
+
+# AI Translated
+msgid "Moss grey"
+msgstr "Grigio muschio"
+
+# AI Translated
+msgid "Signal grey"
+msgstr "Grigio segnale"
+
+# AI Translated
+msgid "Mouse grey"
+msgstr "Grigio topo"
+
+# AI Translated
+msgid "Beige grey"
+msgstr "Grigio beige"
+
+# AI Translated
+msgid "Khaki grey"
+msgstr "Grigio cachi"
+
+# AI Translated
+msgid "Green grey"
+msgstr "Grigio verdastro"
+
+# AI Translated
+msgid "Tarpaulin grey"
+msgstr "Grigio telone"
+
+# AI Translated
+msgid "Iron grey"
+msgstr "Grigio ferro"
+
+# AI Translated
+msgid "Basalt grey"
+msgstr "Grigio basalto"
+
+# AI Translated
+msgid "Brown grey"
+msgstr "Grigio brunastro"
+
+# AI Translated
+msgid "Slate grey"
+msgstr "Grigio ardesia"
+
+# AI Translated
+msgid "Anthracite grey"
+msgstr "Grigio antracite"
+
+# AI Translated
+msgid "Light grey"
+msgstr "Grigio chiaro"
+
+# AI Translated
+msgid "Umber grey"
+msgstr "Grigio terra d'ombra"
+
+# AI Translated
+msgid "Concrete grey"
+msgstr "Grigio calcestruzzo"
+
+# AI Translated
+msgid "Graphite grey"
+msgstr "Grigio grafite"
+
+# AI Translated
+msgid "Granite grey"
+msgstr "Grigio granito"
+
+# AI Translated
+msgid "Stone grey"
+msgstr "Grigio pietra"
+
+# AI Translated
+msgid "Pebble grey"
+msgstr "Grigio ciottolo"
+
+# AI Translated
+msgid "Cement grey"
+msgstr "Grigio cemento"
+
+# AI Translated
+msgid "Yellow grey"
+msgstr "Grigio giallastro"
+
+# AI Translated
+msgid "Platinum grey"
+msgstr "Grigio platino"
+
+# AI Translated
+msgid "Dusty grey"
+msgstr "Grigio polvere"
+
+# AI Translated
+msgid "Agate grey"
+msgstr "Grigio agata"
+
+# AI Translated
+msgid "Quartz grey"
+msgstr "Grigio quarzo"
+
+# AI Translated
+msgid "Window grey"
+msgstr "Grigio finestra"
+
+# AI Translated
+msgid "Traffic grey A"
+msgstr "Grigio traffico A"
+
+# AI Translated
+msgid "Traffic grey B"
+msgstr "Grigio traffico B"
+
+# AI Translated
+msgid "Silk grey"
+msgstr "Grigio seta"
+
+# AI Translated
+msgid "Telegrey 1"
+msgstr "Telegrigio 1"
+
+# AI Translated
+msgid "Telegrey 2"
+msgstr "Telegrigio 2"
+
+# AI Translated
+msgid "Telegrey 4"
+msgstr "Telegrigio 4"
+
+# AI Translated
+msgid "Pearl mouse grey"
+msgstr "Grigio topo perlato"
+
+# AI Translated
+msgid "Green brown"
+msgstr "Marrone verdastro"
+
+# AI Translated
+msgid "Ochre brown"
+msgstr "Marrone ocra"
+
+# AI Translated
+msgid "Clay brown"
+msgstr "Marrone argilla"
+
+# AI Translated
+msgid "Copper brown"
+msgstr "Marrone rame"
+
+# AI Translated
+msgid "Chocolate brown"
+msgstr "Marrone cioccolato"
+
+# AI Translated
+msgid "Olive brown"
+msgstr "Marrone oliva"
+
+# AI Translated
+msgid "Nut brown"
+msgstr "Marrone noce"
+
+# AI Translated
+msgid "Red brown"
+msgstr "Marrone rossastro"
+
+# AI Translated
+msgid "Sepia brown"
+msgstr "Marrone seppia"
+
+# AI Translated
+msgid "Chestnut brown"
+msgstr "Marrone castagna"
+
+# AI Translated
+msgid "Mahogany brown"
+msgstr "Marrone mogano"
+
+# AI Translated
+msgid "Grey brown"
+msgstr "Marrone grigiastro"
+
+# AI Translated
+msgid "Pearl copper"
+msgstr "Rame perlato"
+
+# AI Translated
+msgid "Beige brown"
+msgstr "Marrone beige"
+
+# AI Translated
+msgid "Pearl mocha brown"
+msgstr "Marrone moka perlato"
+
+# AI Translated
+msgid "Earth brown"
+msgstr "Marrone terra"
+
+# AI Translated
+msgid "Pearl brown"
+msgstr "Marrone perlato"
+
+# AI Translated
+msgid "Cream"
+msgstr "Crema"
+
+# AI Translated
+msgid "Grey white"
+msgstr "Bianco grigiastro"
+
+# AI Translated
+msgid "Signal white"
+msgstr "Bianco segnale"
+
+# AI Translated
+msgid "Signal black"
+msgstr "Nero segnale"
+
+# AI Translated
+msgid "Jet black"
+msgstr "Nero corvino"
+
+# AI Translated
+msgid "White aluminium"
+msgstr "Alluminio bianco"
+
+# AI Translated
+msgid "Grey aluminium"
+msgstr "Alluminio grigio"
+
+# AI Translated
+msgid "Pure white"
+msgstr "Bianco puro"
+
+# AI Translated
+msgid "Graphite black"
+msgstr "Nero grafite"
+
+# AI Translated
+msgid "Traffic white"
+msgstr "Bianco traffico"
+
+# AI Translated
+msgid "Traffic black"
+msgstr "Nero traffico"
+
+# AI Translated
+msgid "Papyrus white"
+msgstr "Bianco papiro"
+
+# AI Translated
+msgid "Pearl light grey"
+msgstr "Grigio chiaro perlato"
+
+# AI Translated
+msgid "Metal: Silver"
+msgstr "Metallo: Argento"
+
+# AI Translated
+msgid "Metal: Brass"
+msgstr "Metallo: Ottone"
+
+# AI Translated
+msgid "Metal: Gold"
+msgstr "Metallo: Oro"
+
+# AI Translated
+msgid "Metal: Copper"
+msgstr "Metallo: Rame"
+
+# AI Translated
+msgid "Metal: Bronze"
+msgstr "Metallo: Bronzo"
+
+# AI Translated
+msgid "Nature: Pearl"
+msgstr "Natura: Perla"
+
+# AI Translated
+msgid "Nature: Rainbow"
+msgstr "Natura: Arcobaleno"
+
+# AI Translated
+msgid "Nature: Clear Sky"
+msgstr "Natura: Cielo sereno"
+
+# AI Translated
+msgid "Nature: Sunset"
+msgstr "Natura: Tramonto"
+
+# AI Translated
+msgid "Wood: Dark"
+msgstr "Legno: Scuro"
+
+# AI Translated
+msgid "Wood: Medium"
+msgstr "Legno: Medio"
+
+# AI Translated
+msgid "Wood: Light"
+msgstr "Legno: Chiaro"
+
+# AI Translated
 msgid "Alternate nozzles:"
 msgstr "Ugelli alternativi:"
 
@@ -31131,12 +32838,24 @@ msgid "Built-in"
 msgstr "Predefinite"
 
 # AI Translated
+msgid "My textures"
+msgstr "Le mie trame"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Nessuna trama trovata."
 
 # AI Translated
-msgid "My textures"
-msgstr "Le mie trame"
+msgid "Texture libraries"
+msgstr "Librerie di trame"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Esplora altre librerie di trame"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Apre OrcaCloud nella pagina iniziale per esplorare i plugin."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -31540,6 +33259,16 @@ msgid "How wide one copy of the texture is on the model. Smaller repeats the pat
 msgstr "Larghezza di una copia della trama sul modello. Valori più piccoli ripetono il motivo più spesso e ne rendono i dettagli più fini; con Tassellatura disattivata, è la dimensione della singola copia."
 
 # AI Translated
+# Needs human review: Short label, role only visible in the app; check it reads right on its control.
+msgid "Larger"
+msgstr "Più grande"
+
+# AI Translated
+# Needs human review: Short label, role only visible in the app; check it reads right on its control.
+msgid "Smaller"
+msgstr "Più piccolo"
+
+# AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Ruota la trama sulla superficie, in gradi - per allineare un motivo a uno spigolo del modello."
 
@@ -31612,6 +33341,16 @@ msgstr "Colori misti"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Numero massimo di filamenti misti che l'integrazione può aggiungere. Vengono scelti tra i colori della trama, e vengono creati solo quelli effettivamente usati dall'integrazione."
+
+# AI Translated
+# Needs human review: Short label, role only visible in the app; check it reads right on its control.
+msgid "Few"
+msgstr "Pochi"
+
+# AI Translated
+# Needs human review: Short label, role only visible in the app; check it reads right on its control.
+msgid "Many"
+msgstr "Molti"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -31736,10 +33475,6 @@ msgstr "Cornice di proiezione"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Apre una finestra da trascinare sopra il modello. Ciò che vedi attraverso di essa riceve la trama, e il suo bordo diventa il bordo della proiezione."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Opacità"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -31970,6 +33705,16 @@ msgstr "Ricostruzione della mesh"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Dimensione dei triangoli con cui viene ricostruito l'intero modello, in millimetri. Il rilievo funziona meglio su una mesh uniforme; questo valore permette di ottenerla da un modello importato irregolare."
+
+# AI Translated
+# Needs human review: Short label, role only visible in the app; check it reads right on its control.
+msgid "Before"
+msgstr "Prima"
+
+# AI Translated
+# Needs human review: Short label, role only visible in the app; check it reads right on its control.
+msgid "After"
+msgstr "Dopo"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -33821,6 +35566,10 @@ msgid "Slicing Pipeline"
 msgstr "Pipeline di slicing"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Trama di risorsa"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "L'interfaccia di configurazione del plugin era vuota. Viene mostrato l'editor predefinito."
 
@@ -33966,6 +35715,30 @@ msgstr "La cartella del plugin contiene sia file di ingresso .py che .whl"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "La cartella del plugin non contiene un file di ingresso .py o .whl"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "La cartella della trama di risorsa non è impostata"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Impossibile risolvere la cartella della trama di risorsa"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Il percorso della trama di risorsa non è una cartella"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Impossibile risolvere la cartella del plugin"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "La cartella della trama di risorsa si trova fuori dalla cartella del plugin"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Impossibile leggere la cartella della trama di risorsa"
 
 # AI Translated
 #, boost-format
@@ -34427,7 +36200,7 @@ msgstr "Caricamento del file di configurazione \"%1%\" non riuscito: %2%"
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "Non è un file G-code generato da %1%."
 
 # AI Translated
@@ -34547,7 +36320,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "Impossibile creare una copia temporanea del file G-code %1% prima di eseguire uno script di post-elaborazione: %2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "Il post-processore non trova il file G-code esportato"
 
 # AI Translated
@@ -34915,6 +36688,30 @@ msgid ""
 msgstr ""
 "Evita le deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni come l'ABS, aumentare in modo appropriato la temperatura del piano riscaldato può ridurre la probabilità di deformazione?"
+
+# AI Translated
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Giallo dalmata"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "Violetto capsantina"
+
+# AI Translated
+# Needs human review: RAL grey name, single coined word; translated literally.
+#~ msgid "Olivestone"
+#~ msgstr "Pietra oliva"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Disponibile ovunque nella finestra, anche durante la digitazione in un campo di testo."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Le scorciatoie globali valgono anche durante la digitazione."
+
+#~ msgid "Please choose the filament color"
+#~ msgstr "Scegliere il colore del filamento"
 
 # AI Translated
 #~ msgid ""
@@ -35385,9 +37182,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "nessuna testina configurata"
 
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "G-code finale quando si termina la stampa."
-
 #~ msgid "Maximum X speed"
 #~ msgstr "Velocità massima X"
 
@@ -35405,23 +37199,8 @@ msgstr ""
 #~ msgstr "Plugin Python richiamati a ogni fase della pipeline di slicing per leggere e modificare i dati di slicing intermedi, incluso un passaggio finale di post-elaborazione del G-code. Ricerca/sperimentale."
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "Se abilitata, lo slicer genera G-code con il contenuto della zona principale centrato sull'origine del piatto (0,0). Il firmware della stampante si occupa di posizionare le copie e le immagini speculari nella posizione fisica di ciascuna zona. Abilita solo su stampanti il cui firmware applica i propri offset di zona in modalità Copia/Specchio (ad es. la modalità di duplicazione IDEX di RepRapFirmware). Non ha effetto in modalità Principale (Primary)."
-
-# AI Translated
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "Associazione per piatto, che sostituisce quella predefinita, tra testine fisiche e slot filamento (numerati da 1). Vuota significa usare i valori predefiniti dell'inversione pem."
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "Asse attorno al quale la mesh viene ruotata prima dell'elaborazione. È l'inclinazione della stampante a nastro: una rotazione isometrica (senza distorsione) che determina anche la visualizzazione del piatto e l'inclinazione della gravità per i supporti, e che la trasformazione inversa del G-code annulla prima di taglio/scala e rimappatura nel sistema di riferimento macchina. X è l'inclinazione tipica del portale (il nastro scorre lungo Y)."
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "Opzione per esperti: imposta l'angolo di inclinazione del sistema di riferimento macchina (taglio/scala del G-code) indipendentemente dall'angolo di rotazione pre-elaborazione. Se disabilitata, la trasformazione del sistema di riferimento macchina deriva dall'angolo di inclinazione del nastro, quindi un unico angolo governa entrambe le fasi. Abilita solo per compensare una macchina la cui inclinazione fisica del portale differisce dalla rotazione di elaborazione."
-
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "Deviazione massima consentita quando si riduce la risoluzione tramite l'impostazione \"Risoluzione massima parete\". Se si aumenta questo valore, la stampa sarà meno precisa, ma il G-Code sarà più contenuto. \"Deviazione massima parete\" limita \"Risoluzione massima parete\", quindi in caso di conflitto tra i due valori, \"Deviazione massima parete\" ha la precedenza."
 
 #~ msgid " not in range "
 #~ msgstr " fuori portata "

@@ -16,9 +16,12 @@
 
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Point.hpp"
+#include "libslic3r/libslic3r.h"
 #include <cstddef>
 #include <fstream>
 #include <ios>
+#include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -49,6 +52,44 @@ TEST_CASE("Klipper object labels name each copy without the characters Klipper c
         CHECK(gcode.find("EXCLUDE_OBJECT_DEFINE NAME=" + instance_label + " ") != std::string::npos);
         CHECK(gcode.find("EXCLUDE_OBJECT_START NAME=" + instance_label + "\n") != std::string::npos);
     }
+}
+
+// The outline written to EXCLUDE_OBJECT_DEFINE is simplified with exclude_object_tolerance. A larger value must
+// leave fewer points, which keeps the exclude-object array small on printers that stall while parsing it.
+TEST_CASE("A larger exclude object tolerance writes fewer outline points", "[GCode]")
+{
+    const auto slice_with_tolerance = [](const std::string &tolerance) {
+        DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+        config.set_deserialize_strict({{"gcode_flavor", "klipper"}, {"exclude_object", "1"},
+                                       {"exclude_object_tolerance", tolerance}});
+        // Default facet angle (2 degrees): 180 hull points, well inside either tolerance.
+        return Test::slice({make_cylinder(20., 5.)}, config);
+    };
+    // Points of the POLYGON=[[x,y],...] on the first EXCLUDE_OBJECT_DEFINE line.
+    const auto polygon_points = [](const std::string &gcode) {
+        const size_t define = gcode.find("EXCLUDE_OBJECT_DEFINE");
+        REQUIRE(define != std::string::npos);
+        const size_t begin = gcode.find("POLYGON=", define);
+        REQUIRE(begin != std::string::npos);
+        const std::string polygon = gcode.substr(begin, gcode.find('\n', begin) - begin);
+        size_t points = 1;
+        for (size_t pos = polygon.find("],["); pos != std::string::npos; pos = polygon.find("],[", pos + 1))
+            ++points;
+        return points;
+    };
+
+    const size_t fine   = polygon_points(slice_with_tolerance("0.1"));
+    const size_t coarse = polygon_points(slice_with_tolerance("0.4"));
+    INFO("points at 0.1 mm: " << fine << ", at 0.4 mm: " << coarse);
+    CHECK(coarse >= 4);
+    CHECK(coarse < fine);
+}
+
+// Existing profiles must keep writing the outlines they wrote when the tolerance was a constant 0.1 mm.
+TEST_CASE("The exclude object tolerance defaults to the former fixed 0.1 mm", "[GCode]")
+{
+    CHECK_THAT(DynamicPrintConfig::full_print_config().opt_float("exclude_object_tolerance"),
+               Catch::Matchers::WithinAbs(0.1, 1e-9));
 }
 
 // Firmwares read the compatibility header lines (Anycubic's GoKlipper heats the bed with
@@ -173,6 +214,40 @@ TEST_CASE("Object label comments number each object and copy with or without exc
                 CHECK(gcode.find("; start printing object, unique label id: " + label_id + "\nM624 ") != std::string::npos);
                 CHECK(gcode.find("; stop printing object, unique label id: " + label_id + "\nM625\n") != std::string::npos);
             }
+}
+
+TEST_CASE("Sparse infill only arc fitting emits arcs in the sparse infill alone", "[GCode]")
+{
+    const auto arcs_per_type = [](const char *arc_fitting) {
+        // 360 facets keep the walls and the concentric infill within the resolution of a circle, so both fit arcs.
+        const std::string gcode = Test::slice({ make_cylinder(25.0, 10.0, 2.0 * PI / 360.0) }, {
+            { "enable_arc_fitting",    arc_fitting },
+            { "sparse_infill_pattern", "concentric" },
+            { "sparse_infill_density", "20%" },
+            { "z_hop",                 "0" },
+        });
+        std::map<std::string, size_t> arcs;
+        std::istringstream input(gcode);
+        std::string line, type;
+        while (std::getline(input, line)) {
+            if (line.rfind(";TYPE:", 0) == 0)
+                type = line.substr(6);
+            else if (line.rfind("G2 ", 0) == 0 || line.rfind("G3 ", 0) == 0)
+                ++arcs[type];
+        }
+        return arcs;
+    };
+
+    CHECK(arcs_per_type("enabled").count("Outer wall") == 1);
+
+    const std::map<std::string, size_t> sparse_only = arcs_per_type("sparse_infill");
+    CHECK(sparse_only.count("Sparse infill") == 1);
+    for (const auto &[type, count] : sparse_only) {
+        INFO(type << ": " << count << " arcs");
+        CHECK(type == "Sparse infill");
+    }
+
+    CHECK(arcs_per_type("disabled").empty());
 }
 
 TEST_CASE("An exported G-code's settings load back as the settings it was sliced with", "[GCode]")

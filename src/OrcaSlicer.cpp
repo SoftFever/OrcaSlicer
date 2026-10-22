@@ -104,6 +104,7 @@
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Platform.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Format/AMF.hpp"
@@ -163,6 +164,7 @@ using json = nlohmann::json;
 #include <X11/Xlib.h>
 #endif
 #include <unistd.h>
+#include "slic3r/GUI/Widgets/WebView.hpp"
 #endif
 
 #ifdef SLIC3R_GUI
@@ -181,6 +183,12 @@ using namespace Slic3r;
 }error_message;*/
 
 #define MAX_CLONEABLE_SIZE 512
+
+static Pointfs legacy_bed_exclude_area_points(const DynamicPrintConfig &config)
+{
+    const ConfigOptionPoints *option = config.option<ConfigOptionPoints>("bed_exclude_area");
+    return option != nullptr ? option->values : Pointfs{};
+}
 
 std::map<int, std::string> cli_errors = {
     {CLI_SUCCESS, "Success."},
@@ -1125,6 +1133,19 @@ static void load_downward_settings_list_from_config(std::string config_file, std
     }
 }
 
+#ifdef __WXGTK__
+// Virtual GPUs (VirtualBox, VMware, QEMU) cannot back WebKit's hardware DMABUF renderer.
+static bool is_hypervisor_guest()
+{
+    std::ifstream cpuinfo("/proc/cpuinfo");
+    std::string line;
+    while (std::getline(cpuinfo, line))
+        if (boost::starts_with(line, "flags"))
+            return line.find(" hypervisor") != std::string::npos;
+    return false;
+}
+#endif
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -1156,14 +1177,27 @@ int CLI::run(int argc, char **argv)
     // opt-in path. The ~2020-era WebKit2GTK XWayland compositor bug it
     // worked around appears fixed in WebKit2GTK >= 2.42; leaving it
     // unset preserves WebKit hardware acceleration on Device / Setup
-    // Wizard / login / store. The default path still applies it on
-    // XWayland sessions as a conservative fallback for older WebKit.
+    // Wizard / login / store. The default path applies it only where it
+    // forces GDK_BACKEND=x11 below (a build without EGL, so the app really
+    // runs through XWayland), and only when the linked WebKitGTK predates
+    // the fix (< 2.42), as a conservative fallback for older WebKit.
     // ------------------------------------------------------------------
     {
         const char* gdk_backend = ::getenv("GDK_BACKEND");
         // Match "x11" and comma-prefixed forms like "x11,wayland" (GTK
         // honours the first backend in the comma-separated list).
         const bool x11_opt_in = gdk_backend && boost::starts_with(gdk_backend, "x11");
+
+        // NVIDIA's proprietary driver cannot back WebKitGTK's DMABUF renderer.
+        // Force the shared-memory transport, which keeps compositing and threaded
+        // scrolling; the second variable clears Debian/Ubuntu/openSUSE's isNVIDIA().
+        if (::access("/proc/driver/nvidia/version", F_OK) == 0 && WebView::SupportsForceSharedMemory()) {
+            ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /* replace */ false);
+            ::setenv("WEBKIT_FORCE_DMABUF_RENDERER", "1", /* replace */ false);
+        }
+
+        if (is_hypervisor_guest() && WebView::SupportsForceSharedMemory())
+            ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /* replace */ false);
 
         if (x11_opt_in) {
             // ===== X11 / XWayland (opted in via GDK_BACKEND=x11) =====
@@ -1204,22 +1238,17 @@ int CLI::run(int argc, char **argv)
                 if (wayland_env && *wayland_env) {
                     BOOST_LOG_TRIVIAL(warning) << "Wayland detected but wxWidgets has no EGL support (wxHAS_EGL is OFF). Forcing X11 backend.";
                     ::setenv("GDK_BACKEND", "x11", true);
+
+                    // GTK will use X11 in a Wayland session here, which is the
+                    // one default-path case that really runs through XWayland.
+                    // WebKit2GTK accelerated compositing could fail silently
+                    // there on releases before 2.42, so force it off. Disabling
+                    // it also turns off threaded scrolling, hence the gate.
+                    if (WebView::NeedsCompositingWorkaround())
+                        ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
                 }
             }
             #endif
-
-            // WebKit2GTK compositing can fail under XWayland on older
-            // WebKit releases. Disable it only when both DISPLAY and
-            // WAYLAND_DISPLAY are set (i.e. an XWayland session is in
-            // use). On pure X11 or native Wayland, compositing is left
-            // enabled so WebKit retains HW acceleration.
-            {
-                const char* display_env_wk = ::getenv("DISPLAY");
-                const char* wayland_env_wk = ::getenv("WAYLAND_DISPLAY");
-                if (display_env_wk && *display_env_wk && wayland_env_wk && *wayland_env_wk) {
-                    ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
-                }
-            }
 
             // XInitThreads is needed before GStreamer may use Xlib. On
             // native Wayland without DISPLAY, GStreamer uses waylandsink
@@ -1820,7 +1849,7 @@ int CLI::run(int argc, char **argv)
 
                     //use Pointfs insteadof Points
                     old_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
-                    old_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
+                    old_exclude_area = legacy_bed_exclude_area_points(config);
                     if (old_printable_area.size() >= 4) {
                         BoundingBoxf old_printable_bbox(old_printable_area);
                         old_printable_width = static_cast<int>(old_printable_bbox.size().x());
@@ -4240,7 +4269,7 @@ int CLI::run(int argc, char **argv)
     Slic3r::GUI::PartPlateList partplate_list(NULL, m_models.data(), printer_technology);
     //use Pointfs insteadof Points
     Pointfs current_printable_area = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
-    Pointfs current_exclude_area = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
+    Pointfs current_exclude_area = legacy_bed_exclude_area_points(m_print_config);
     std::vector<Pointfs> current_extruder_areas;
     //update part plate's size
     double print_height = m_print_config.opt_float("printable_height");
@@ -4650,7 +4679,7 @@ int CLI::run(int argc, char **argv)
             printer_plate.printer_name = config_name;
 
             temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
-            temp_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
+            temp_exclude_area = legacy_bed_exclude_area_points(config);
             temp_wrapping_area = config.option<ConfigOptionPoints>("wrapping_exclude_area", true)->values;
             temp_extruder_areas = config.option<ConfigOptionPointsGroups>("extruder_printable_area", true)->values;
             temp_extruder_print_heights = config.option<ConfigOptionFloatsNullable>("extruder_printable_height", true)->values;
@@ -5373,7 +5402,7 @@ int CLI::run(int argc, char **argv)
                 }
 
                 // add the virtual object into unselect list if has
-                partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect, i + 1);
+                partplate_list.preprocess_exclude_areas(unselected, m_print_config, enable_wrapping_detect, i + 1);
                 if (avoid_extrusion_cali_region)
                     partplate_list.preprocess_nonprefered_areas(unselected, i + 1);
 
@@ -5405,7 +5434,8 @@ int CLI::run(int argc, char **argv)
 
                 beds = get_shrink_bedpts(&m_print_config, arrange_cfg);
 
-                partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, enable_wrapping_detect, 1, scale_(1));
+                partplate_list.preprocess_exclude_areas(
+                    arrange_cfg.excluded_regions, m_print_config, enable_wrapping_detect, 1, scale_(1));
 
                 {
                     BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", " << beds[3].transpose();
@@ -5615,7 +5645,7 @@ int CLI::run(int argc, char **argv)
                     }
 
                     //add the virtual object into unselect list if has
-                    partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect);
+                    partplate_list.preprocess_exclude_areas(unselected, m_print_config, enable_wrapping_detect);
 
                     // Filament ids given on the command line size the tower for STL input. A project
                     // records its filament use per plate, so count there and keep its tower positions.
@@ -5846,7 +5876,8 @@ int CLI::run(int argc, char **argv)
                     }
 
                     // add the virtual object into unselect list if has
-                    partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect, plate_to_slice);
+                    partplate_list.preprocess_exclude_areas(
+                        unselected, m_print_config, enable_wrapping_detect, plate_to_slice);
                 }
 
 
@@ -5878,7 +5909,8 @@ int CLI::run(int argc, char **argv)
 
                 beds=get_shrink_bedpts(&m_print_config, arrange_cfg);
 
-                partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, enable_wrapping_detect, 1, scale_(1));
+                partplate_list.preprocess_exclude_areas(
+                    arrange_cfg.excluded_regions, m_print_config, enable_wrapping_detect, 1, scale_(1));
 
                 {
                     BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", " << beds[3].transpose();
@@ -6381,10 +6413,16 @@ int CLI::run(int argc, char **argv)
                             continue;
                         // An empty estimate is a plate that prints no tower (one filament and
                         // neither smooth timelapse, wrapping detection nor a raft).
-                        Vec3d wt_pos, wt_size;
-                        plate->estimate_wipe_tower_polygon(m_print_config, index, wt_pos, wt_size);
+                        Vec3d                            wt_pos, wt_size;
+                        Slic3r::GUI::WipeTowerRelocation relocation;
+                        plate->estimate_wipe_tower_polygon(m_print_config, index, wt_pos, wt_size, 0, false, &relocation);
                         if (wt_size(0) < EPSILON || wt_size(1) < EPSILON)
                             continue;
+                        if (relocation.moved)
+                            BOOST_LOG_TRIVIAL(warning) << boost::format("plate %1%: the wipe tower no longer fits at its saved position {%2%, %3%} and was moved %4%")
+                                % (index + 1) % m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true)->get_at(index)
+                                % m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true)->get_at(index)
+                                % (relocation.overlaps_objects ? "onto an object, as no free space is left" : "to free space");
                         ConfigOptionFloat wt_x_opt((float) wt_pos(0));
                         ConfigOptionFloat wt_y_opt((float) wt_pos(1));
                         m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true)->set_at(&wt_x_opt, index, 0);

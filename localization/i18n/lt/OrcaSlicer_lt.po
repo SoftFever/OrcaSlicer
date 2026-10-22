@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 10:04-0300\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2026-07-02 14:13+0300\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -729,6 +729,9 @@ msgstr "mm."
 msgid "Part selection"
 msgstr "Detalių pasirinkimas"
 
+msgid "Select multiple objects"
+msgstr "Pasirinkite kelis objektus"
+
 msgid "Fixed step drag"
 msgstr "Vilkimas fiksuotu žingsniu"
 
@@ -789,8 +792,83 @@ msgstr "Dalis"
 msgid "Relative"
 msgstr "Santykinis"
 
+msgid "Selection"
+msgstr "Pasirinkimas"
+
+msgid "Plate"
+msgstr "Spausdinimo plokštė"
+
+# AI Translated
+# Needs human review: Glossary cell empty for lt; reused the catalog's 'Paskirstyti' (Distribute left-right etc.)
+msgid "Distribute"
+msgstr "Paskirstyti"
+
 msgid "Coordinate system used for transform actions."
 msgstr "Transformavimo veiksmams naudojama koordinačių sistema."
+
+# AI Translated
+# Needs human review: Tooltip in the object manipulation panel; check it reads right next to the align buttons
+msgid "Reference for alignment"
+msgstr "Sulygiavimo atskaita"
+
+# AI Translated
+msgid "Select at least 3 parts or objects"
+msgstr "Pasirinkite bent 3 dalis arba objektus"
+
+# AI Translated
+msgid "Align left"
+msgstr "Sulygiuoti pagal kairįjį kraštą"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Sulygiuoti centrus kairės-dešinės kryptimi"
+
+# AI Translated
+msgid "Align right"
+msgstr "Sulygiuoti pagal dešinįjį kraštą"
+
+# AI Translated
+msgid "Align front"
+msgstr "Sulygiuoti pagal priekinį kraštą"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Sulygiuoti centrus priekio-galo kryptimi"
+
+# AI Translated
+msgid "Align back"
+msgstr "Sulygiuoti pagal galinį kraštą"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Sulygiuoti pagal apatinį kraštą"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Sulygiuoti centrus viršaus-apačios kryptimi"
+
+# AI Translated
+msgid "Align top"
+msgstr "Sulygiuoti pagal viršutinį kraštą"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Paskirstyti kairės-dešinės kryptimi"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Paskirstyti priekio-galo kryptimi"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Paskirstyti viršaus-apačios kryptimi"
+
+msgid "Drop"
+msgstr "Nuleisti"
+
+# AI Translated
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr "Perkelti pasirinkimą išilgai Z ašies taip, kad žemiausias jo taškas liestų pagrindą."
 
 msgid "Absolute"
 msgstr "Absoliutus"
@@ -1686,7 +1764,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Formos (%1%) kontūre yra nepalaikomų elementų: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Netinkama būsena. Praneškite atkūrimo veiksmus „GitHub“ svetainėje"
 
 # AI Translated
@@ -1694,11 +1772,11 @@ msgid "No embossed file"
 msgstr "Nėra reljefinio failo"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "Reljefinėje formoje trūksta SVG failo"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Trūksta SVG failo duomenų"
 
 msgid "Face the camera"
@@ -2019,6 +2097,22 @@ msgstr "Įjungiamas surinkimo manipuliatorius"
 
 msgid "Leaving Assembly gizmo"
 msgstr "Išjungiamas surinkimo manipuliatorius"
+
+# AI Translated
+msgid "Parts of a cut object cannot be moved"
+msgstr "Perpjauto objekto dalių perkelti negalima"
+
+# AI Translated
+msgid "Aligning to the plate is available in X and Y only"
+msgstr "Sulygiuoti pagal plokštę galima tik X ir Y kryptimis"
+
+# AI Translated
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr "Išjunkite pasirinktų objektų automatinį nuleidimą, kad galėtumėte juos perkelti Z kryptimi"
+
+# AI Translated
+msgid "All selected objects must be on the same plate"
+msgstr "Visi pasirinkti objektai turi būti ant tos pačios plokštės"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -3209,63 +3303,12 @@ msgid "Center"
 msgstr "Centras"
 
 # AI Translated
-msgid "Distribute left-right"
-msgstr "Paskirstyti kairės-dešinės kryptimi"
-
-# AI Translated
-msgid "Distribute front-back"
-msgstr "Paskirstyti priekio-galo kryptimi"
-
-# AI Translated
-msgid "Distribute top-bottom"
-msgstr "Paskirstyti viršaus-apačios kryptimi"
-
-# AI Translated
-msgid "Align left"
-msgstr "Sulygiuoti pagal kairįjį kraštą"
-
-# AI Translated
-msgid "Align left-right center"
-msgstr "Sulygiuoti centrus kairės-dešinės kryptimi"
-
-# AI Translated
-msgid "Align right"
-msgstr "Sulygiuoti pagal dešinįjį kraštą"
-
-# AI Translated
-msgid "Align front"
-msgstr "Sulygiuoti pagal priekinį kraštą"
-
-# AI Translated
-msgid "Align front-back center"
-msgstr "Sulygiuoti centrus priekio-galo kryptimi"
-
-# AI Translated
-msgid "Align back"
-msgstr "Sulygiuoti pagal galinį kraštą"
-
-# AI Translated
-msgid "Align bottom"
-msgstr "Sulygiuoti pagal apatinį kraštą"
-
-# AI Translated
-msgid "Align top-bottom center"
-msgstr "Sulygiuoti centrus viršaus-apačios kryptimi"
-
-# AI Translated
-msgid "Align top"
-msgstr "Sulygiuoti pagal viršutinį kraštą"
-
-# AI Translated
 msgid "Align/Distribute"
 msgstr "Sulygiuoti/Paskirstyti"
 
 # AI Translated
 msgid "Align and distribute objects"
 msgstr "Sulygiuoti ir paskirstyti objektus"
-
-msgid "Drop"
-msgstr "Nuleisti"
 
 msgid "Edit Process Settings"
 msgstr "Taisyti proceso nustatymus"
@@ -3646,9 +3689,6 @@ msgstr "Nėra krašto"
 
 msgid "Outer wall speed"
 msgstr "Išorinių sienų greitis"
-
-msgid "Plate"
-msgstr "Spausdinimo plokštė"
 
 msgid "Brim"
 msgstr "Kraštas"
@@ -4946,7 +4986,7 @@ msgid "Unknown C++ exception."
 msgstr "Nežinoma C++ išimtis."
 
 # AI Translated
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "Apdorojamas G-code iš ankstesnio failo…"
 
 msgid "Slicing complete"
@@ -6505,6 +6545,11 @@ msgstr "Ašys"
 
 msgid "Gridlines"
 msgstr "Tinklelio linijos"
+
+# AI Translated
+# Needs human review: Glossary cell empty for lt; check the term for this view mode
+msgid "Focus mode"
+msgstr "Fokuso režimas"
 
 msgid "Labels"
 msgstr "Etiketės (Užrašai)"
@@ -10903,6 +10948,15 @@ msgstr "Rodyti nepalaikomus profilius"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Rodyti nesuderinamus / nepalaikomus profilius spausdintuvų ir gijų išskleidžiamuosiuose sąrašuose. Šių profilių pasirinkti negalima."
 
+# AI Translated
+msgid "Export statistics with G-code"
+msgstr "Eksportuoti statistiką kartu su G-code"
+
+# AI Translated
+# Needs human review: 'feature' here is a print feature type (outer wall, infill...), not the Design-tab feature; check the wording
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Jei įjungta, eksportuojant G-code failą šalia jo kaip <name>.statistics.json įrašoma ir jo statistika JSON formatu, o eksportuotas susluoksniuotas 3MF failas ją turi savyje: spausdinimo laiką, gijos ir linijos tipo sumas bei tuos pačius duomenis pagal sluoksnį ir pagal objektą."
+
 msgid "Experimental Features"
 msgstr "Eksperimentinis"
 
@@ -11757,6 +11811,10 @@ msgstr "Nepavyko įkelti failo į spausdintuvo atmintį. Bandykite dar kartą."
 # AI Translated
 msgid "Send Failed"
 msgstr "Siuntimas nepavyko"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Nėra galimų spausdintuvų"
 
 msgid "The name length exceeds the limit."
 msgstr "Pavadinimas viršijo leistiną dydį."
@@ -13413,9 +13471,6 @@ msgstr "Išmetimo tūris keičiant gijas"
 msgid "from/to"
 msgstr "iš/į"
 
-msgid "Please choose the filament color"
-msgstr "Pasirinkite gijos spalvą"
-
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Debesies agentas nepasiekiamas. Iš naujo paleiskite „OrcaSlicer“ ir bandykite vėl."
 
@@ -13607,8 +13662,8 @@ msgid "Left mouse"
 msgstr "Kairysis pelės mygtukas"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Veikia bet kurioje lango vietoje, net rašant teksto lauke."
+msgid "Available anywhere in the window."
+msgstr "Veikia bet kurioje lango vietoje."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13633,9 +13688,6 @@ msgstr "Veikia, kai aktyvus skirtuko „Paruošimas“ 3D vaizdas."
 
 msgid "Select a part"
 msgstr "Pasirinkti dalį"
-
-msgid "Select multiple objects"
-msgstr "Pasirinkite kelis objektus"
 
 msgid "Select objects by rectangle"
 msgstr "Pasirinkti objektus stačiakampio rėmeliu"
@@ -13722,10 +13774,6 @@ msgstr "%s jau priskirtas: %s. Priskirti jį veiksmui „%s“?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "Numatytasis %s jau priskirtas: %s. Priskirti jį veiksmui „%s“?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Visuotiniai spartieji klavišai veikia ir rašant tekstą."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14178,6 +14226,11 @@ msgstr "objekto „%2%“ modifikatorius „%1%“ (iš viso %3%) neturėjo įta
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "Siūlės vieta gali skirtis nuo numatytos."
+
+# AI Translated
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr "Nepavyko įrašyti G-code statistikos į %1%."
 
 msgid "Internal Bridge"
 msgstr "Vidinis tiltas"
@@ -17569,6 +17622,14 @@ msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Įjunkite šią parinktį, kad į G-code būtų pridėta komanda EXCLUDE OBJECT."
 
 # AI Translated
+msgid "Outline tolerance"
+msgstr "Kontūro tolerancija"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Didžiausias į EXCLUDE_OBJECT_DEFINE įrašomo objekto kontūro nuokrypis nuo pradinio kontūro. Didesnės reikšmės sukuria mažiau taškų, o tai padeda programinei aparatinei įrangai, kuri strigsta apdorodama G-code su daug objektų. 0 išsaugo visus taškus."
+
+# AI Translated
 msgid "Verbose G-code"
 msgstr "Išsamus G-code (Verbose)"
 
@@ -20789,6 +20850,15 @@ msgstr "Išvesties katalogas"
 msgid "This is the output directory for exported files."
 msgstr "Tai yra eksportuotų failų išvesties aplankas."
 
+# AI Translated
+msgid "Export statistics"
+msgstr "Eksportuoti statistiką"
+
+# AI Translated
+# Needs human review: 'feature' here is a print feature type (outer wall, infill...), not the Design-tab feature; check the wording
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr "Kiekvienos susluoksniuotos plokštės statistiką įrašo JSON formatu: kaip plate_N.statistics.json šalia jos G-code išvesties kataloge ir į 3MF, sukurtą su --export-3mf: spausdinimo laikas, gijos ir linijos tipo sumos bei tie patys duomenys pagal sluoksnį ir pagal objektą."
+
 msgid "Debug level"
 msgstr "Derinimo lygis"
 
@@ -23196,7 +23266,7 @@ msgstr "pradedamas %s testas..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "%s testas: nustatytas IP = %s"
 
 # AI Translated
@@ -29688,9 +29758,6 @@ msgstr "Atidaryti greituosius veiksmus"
 msgid "Slicing and printing"
 msgstr "Sluoksniavimas ir spausdinimas"
 
-msgid "Selection"
-msgstr "Pasirinkimas"
-
 # AI Translated
 msgid "Editing"
 msgstr "Redagavimas"
@@ -30600,6 +30667,1647 @@ msgstr[1] "Dabartiniame gijų sąraše nėra %s. Po išskaidymo automatiškai bu
 msgstr[2] "Dabartiniame gijų sąraše nėra %s. Po išskaidymo automatiškai bus sukurtos mišriai gijai reikalingos projekto gijos."
 
 # AI Translated
+msgid "Color Picker"
+msgstr "Spalvų parinkiklis"
+
+# AI Translated
+msgid "Basic Colors"
+msgstr "Pagrindinės spalvos"
+
+# AI Translated
+# Needs human review: Glossary cell for Palette empty for lt; 'paletė' used
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "Orca Palette"
+msgstr "„Orca“ paletė"
+
+# AI Translated
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL klasikinė"
+
+# AI Translated
+msgid "Gradients"
+msgstr "Gradientai"
+
+# AI Translated
+msgctxt "Color picker"
+msgid "Solid"
+msgstr "Vienspalvė"
+
+# AI Translated
+msgid "Gradient"
+msgstr "Gradientas"
+
+# AI Translated
+msgid "Gradient start"
+msgstr "Gradiento pradžia"
+
+# AI Translated
+msgid "Gradient end"
+msgstr "Gradiento pabaiga"
+
+# AI Translated
+msgid "Gradient color"
+msgstr "Gradiento spalva"
+
+# AI Translated
+msgid "Add color"
+msgstr "Pridėti spalvą"
+
+# AI Translated
+msgid "Remove color"
+msgstr "Pašalinti spalvą"
+
+# AI Translated
+msgid "Saturation"
+msgstr "Sodrumas"
+
+# AI Translated
+msgid "Original color"
+msgstr "Pradinė spalva"
+
+# AI Translated
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr "Išsaugoti dabartinę spalvą"
+
+# AI Translated
+# Needs human review: Glossary cell for Palette empty for lt; 'paletė' used
+msgid "Palettes"
+msgstr "Paletės"
+
+# AI Translated
+msgid "Search colors"
+msgstr "Ieškoti spalvų"
+
+# AI Translated
+msgid "Filter colors"
+msgstr "Filtruoti spalvas"
+
+# AI Translated
+msgid "No matching colors"
+msgstr "Nėra atitinkančių spalvų"
+
+# AI Translated
+msgid "Hex color"
+msgstr "Šešioliktainė spalva"
+
+# AI Translated
+msgid "Opacity"
+msgstr "Nepermatomumas"
+
+# AI Translated
+msgid "Opacity percent"
+msgstr "Nepermatomumas (%)"
+
+# AI Translated
+msgid "Save color"
+msgstr "Išsaugoti spalvą"
+
+# AI Translated
+msgid "Enter a complete hexadecimal color"
+msgstr "Įveskite pilną šešioliktainį spalvos kodą"
+
+# AI Translated
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr "Dabartinis kelių spalvų pasirinkimas išsaugomas, kol pasirinksite kitą spalvą."
+
+# AI Translated
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr "Palaikoma iki %d spalvų."
+
+# AI Translated
+msgid "Crimson"
+msgstr "Karmazinas"
+
+# AI Translated
+msgid "Orange red"
+msgstr "Oranžiškai raudona"
+
+# AI Translated
+msgid "Tomato"
+msgstr "Pomidoras"
+
+# AI Translated
+msgid "Orange"
+msgstr "Oranžinė"
+
+# AI Translated
+msgid "Dark orange"
+msgstr "Tamsiai oranžinė"
+
+# AI Translated
+msgid "Gold"
+msgstr "Auksinė"
+
+# AI Translated
+msgid "Burly wood"
+msgstr "Medžio ruda"
+
+# AI Translated
+msgid "Bisque"
+msgstr "Biskvitas"
+
+# AI Translated
+msgid "Misty rose"
+msgstr "Rūkuota rožinė"
+
+# AI Translated
+msgid "Light yellow"
+msgstr "Šviesiai geltona"
+
+# AI Translated
+msgid "Lemon chiffon"
+msgstr "Citrininis šifonas"
+
+# AI Translated
+msgid "Beige"
+msgstr "Bėžinė"
+
+# AI Translated
+msgid "Light golden rod yellow"
+msgstr "Šviesiai rykštenio geltona"
+
+# AI Translated
+msgid "Pale golden rod"
+msgstr "Blyški rykštenio geltona"
+
+# AI Translated
+msgid "Khaki"
+msgstr "Chaki"
+
+# AI Translated
+msgid "Dark khaki"
+msgstr "Tamsiai chaki"
+
+# AI Translated
+msgid "Peach puff"
+msgstr "Švelniai persikinė"
+
+# AI Translated
+msgid "Moccasin"
+msgstr "Mokasinas"
+
+# AI Translated
+msgid "Papaya whip"
+msgstr "Papajų kremas"
+
+# AI Translated
+msgid "Blanched almond"
+msgstr "Balintas migdolas"
+
+# AI Translated
+msgid "Antique white"
+msgstr "Antikinė balta"
+
+# AI Translated
+msgid "Navajo white"
+msgstr "Navaho balta"
+
+# AI Translated
+msgid "Wheat"
+msgstr "Kviečių"
+
+# AI Translated
+msgid "Golden rod"
+msgstr "Rykštenio geltona"
+
+# AI Translated
+msgid "Chocolate"
+msgstr "Šokoladinė"
+
+# AI Translated
+msgid "Peru"
+msgstr "Peru"
+
+# AI Translated
+msgid "Fire brick"
+msgstr "Plytų raudona"
+
+# AI Translated
+msgid "Sienna"
+msgstr "Siena"
+
+# AI Translated
+msgid "Saddle brown"
+msgstr "Balno ruda"
+
+# AI Translated
+msgid "Brown"
+msgstr "Ruda"
+
+# AI Translated
+msgid "Rosy brown"
+msgstr "Rausvai ruda"
+
+# AI Translated
+msgid "Salmon"
+msgstr "Lašišinė"
+
+# AI Translated
+msgid "Light salmon"
+msgstr "Šviesiai lašišinė"
+
+# AI Translated
+msgid "Dark salmon"
+msgstr "Tamsiai lašišinė"
+
+# AI Translated
+msgid "Sandy brown"
+msgstr "Smėlio ruda"
+
+# AI Translated
+msgid "Coral"
+msgstr "Koralinė"
+
+# AI Translated
+msgid "Light coral"
+msgstr "Šviesiai koralinė"
+
+# AI Translated
+msgid "Indian red"
+msgstr "Indiškai raudona"
+
+# AI Translated
+msgid "Dark red"
+msgstr "Tamsiai raudona"
+
+# AI Translated
+msgid "Maroon"
+msgstr "Kaštoninė"
+
+# AI Translated
+msgid "Green yellow"
+msgstr "Žalsvai geltona"
+
+# AI Translated
+msgid "Yellow green"
+msgstr "Gelsvai žalia"
+
+# AI Translated
+msgid "Chartreuse"
+msgstr "Šartrezas"
+
+# AI Translated
+msgid "Lawn green"
+msgstr "Vejos žalia"
+
+# AI Translated
+msgid "Lime green"
+msgstr "Laimo žalia"
+
+# AI Translated
+msgid "Spring green"
+msgstr "Pavasario žalia"
+
+# AI Translated
+msgid "Medium spring green"
+msgstr "Vidutinė pavasario žalia"
+
+# AI Translated
+msgid "Lime"
+msgstr "Laimo"
+
+# AI Translated
+msgid "Forest green"
+msgstr "Miško žalia"
+
+# AI Translated
+msgid "Dark green"
+msgstr "Tamsiai žalia"
+
+# AI Translated
+msgid "Olive drab"
+msgstr "Prislopinta alyvuogių"
+
+# AI Translated
+msgid "Olive"
+msgstr "Alyvuogių"
+
+# AI Translated
+msgid "Dark olive green"
+msgstr "Tamsiai alyvuogių žalia"
+
+# AI Translated
+msgid "Pale green"
+msgstr "Blyškiai žalia"
+
+# AI Translated
+msgid "Light green"
+msgstr "Šviesiai žalia"
+
+# AI Translated
+msgid "Medium sea green"
+msgstr "Vidutinė jūros žalia"
+
+# AI Translated
+msgid "Sea green"
+msgstr "Jūros žalia"
+
+# AI Translated
+msgid "Dark sea green"
+msgstr "Tamsiai jūros žalia"
+
+# AI Translated
+msgid "Cadet blue"
+msgstr "Kadeto mėlyna"
+
+# AI Translated
+msgid "Medium aqua marine"
+msgstr "Vidutinė akvamarino"
+
+# AI Translated
+msgid "Turquoise"
+msgstr "Turkio"
+
+# AI Translated
+msgid "Medium turquoise"
+msgstr "Vidutinė turkio"
+
+# AI Translated
+msgid "Dark turquoise"
+msgstr "Tamsiai turkio"
+
+# AI Translated
+msgid "Pale turquoise"
+msgstr "Blyškiai turkio"
+
+# AI Translated
+msgid "Aqua"
+msgstr "Akva"
+
+# AI Translated
+msgid "Light cyan"
+msgstr "Šviesiai ciano"
+
+# AI Translated
+msgid "Mint cream"
+msgstr "Mėtinis kremas"
+
+# AI Translated
+msgid "Honey dew"
+msgstr "Medaus melionas"
+
+# AI Translated
+msgid "Aquamarine"
+msgstr "Akvamarinas"
+
+# AI Translated
+msgid "Light sea green"
+msgstr "Šviesiai jūros žalia"
+
+# AI Translated
+msgid "Dark cyan"
+msgstr "Tamsiai ciano"
+
+# AI Translated
+msgid "Teal"
+msgstr "Žalsvai žydra"
+
+# AI Translated
+msgid "Dark slate gray"
+msgstr "Tamsiai skalūno pilka"
+
+# AI Translated
+msgid "Light slate gray"
+msgstr "Šviesiai skalūno pilka"
+
+# AI Translated
+msgid "Slate gray"
+msgstr "Skalūno pilka"
+
+# AI Translated
+msgid "Deep sky blue"
+msgstr "Sodri dangaus mėlyna"
+
+# AI Translated
+msgid "Dodger Blue"
+msgstr "Dodžerių mėlyna"
+
+# AI Translated
+msgid "Sky blue"
+msgstr "Dangaus mėlyna"
+
+# AI Translated
+msgid "Light sky blue"
+msgstr "Šviesiai dangaus mėlyna"
+
+# AI Translated
+msgid "Light blue"
+msgstr "Šviesiai mėlyna"
+
+# AI Translated
+msgid "Powder blue"
+msgstr "Pudros mėlyna"
+
+# AI Translated
+msgid "Light steel blue"
+msgstr "Šviesiai plieno mėlyna"
+
+# AI Translated
+msgid "Steel blue"
+msgstr "Plieno mėlyna"
+
+# AI Translated
+msgid "Cornflower blue"
+msgstr "Rugiagėlių mėlyna"
+
+# AI Translated
+msgid "Royal blue"
+msgstr "Karališka mėlyna"
+
+# AI Translated
+msgid "Medium blue"
+msgstr "Vidutinė mėlyna"
+
+# AI Translated
+msgid "Midnight blue"
+msgstr "Vidurnakčio mėlyna"
+
+# AI Translated
+msgid "Dark blue"
+msgstr "Tamsiai mėlyna"
+
+# AI Translated
+msgid "Navy"
+msgstr "Jūrų laivyno mėlyna"
+
+# AI Translated
+msgid "Slate blue"
+msgstr "Skalūno mėlyna"
+
+# AI Translated
+msgid "Dark slate blue"
+msgstr "Tamsiai skalūno mėlyna"
+
+# AI Translated
+msgid "Medium slate blue"
+msgstr "Vidutinė skalūno mėlyna"
+
+# AI Translated
+msgid "Blue violet"
+msgstr "Mėlynai violetinė"
+
+# AI Translated
+msgid "Indigo"
+msgstr "Indigo"
+
+# AI Translated
+msgid "Dark violet"
+msgstr "Tamsiai violetinė"
+
+# AI Translated
+msgid "Dark orchid"
+msgstr "Tamsi orchidėja"
+
+# AI Translated
+msgid "Medium orchid"
+msgstr "Vidutinė orchidėja"
+
+# AI Translated
+msgid "Orchid"
+msgstr "Orchidėja"
+
+# AI Translated
+msgid "Violet"
+msgstr "Violetinė"
+
+# AI Translated
+msgid "Medium purple"
+msgstr "Vidutinė purpurinė"
+
+# AI Translated
+msgid "Purple"
+msgstr "Purpurinė"
+
+# AI Translated
+msgid "Rebecca purple"
+msgstr "Rebekos purpurinė"
+
+# AI Translated
+msgid "Medium violet red"
+msgstr "Vidutinė violetinė raudona"
+
+# AI Translated
+msgid "Pale violet red"
+msgstr "Blyškiai violetinė raudona"
+
+# AI Translated
+msgid "Deep pink"
+msgstr "Sodri rožinė"
+
+# AI Translated
+msgid "Hot pink"
+msgstr "Ryškiai rožinė"
+
+# AI Translated
+msgid "Light pink"
+msgstr "Šviesiai rožinė"
+
+# AI Translated
+msgid "Pink"
+msgstr "Rožinė"
+
+# AI Translated
+msgid "Plum"
+msgstr "Slyvų"
+
+# AI Translated
+msgid "Thistle"
+msgstr "Usnių"
+
+# AI Translated
+msgid "Fuchsia"
+msgstr "Fuksija"
+
+# AI Translated
+msgid "Dark magenta"
+msgstr "Tamsiai magenta"
+
+# AI Translated
+msgid "Linen"
+msgstr "Lino"
+
+# AI Translated
+msgid "Old lace"
+msgstr "Seni nėriniai"
+
+# AI Translated
+# Needs human review: CSS color 'seashell'; Shell glossary warning is a false match (not the print shell)
+msgid "Sea shell"
+msgstr "Kriauklė"
+
+# AI Translated
+msgid "Ivory"
+msgstr "Dramblio kaulo"
+
+# AI Translated
+msgid "Floral white"
+msgstr "Gėlių balta"
+
+# AI Translated
+msgid "Lavender blush"
+msgstr "Levandų rausva"
+
+# AI Translated
+msgid "Ghost white"
+msgstr "Šmėklos balta"
+
+# AI Translated
+msgid "Alice blue"
+msgstr "Alisos mėlyna"
+
+# AI Translated
+msgid "Lavender"
+msgstr "Levandų"
+
+# AI Translated
+msgid "White smoke"
+msgstr "Dūmų balta"
+
+# AI Translated
+msgid "Gainsboro"
+msgstr "Gainsboro"
+
+# AI Translated
+msgid "Black"
+msgstr "Juoda"
+
+# AI Translated
+msgid "Coral fire"
+msgstr "Koralų ugnis"
+
+# AI Translated
+msgid "Sea anemone"
+msgstr "Jūros anemonė"
+
+# AI Translated
+msgid "Deep abyss"
+msgstr "Gili bedugnė"
+
+# AI Translated
+msgid "Lobster red"
+msgstr "Omaro raudona"
+
+# AI Translated
+msgid "Sandy clay"
+msgstr "Smėlingas molis"
+
+# AI Translated
+msgid "Driftwood"
+msgstr "Jūros išplauta mediena"
+
+# AI Translated
+msgid "Sea buckthorn"
+msgstr "Šaltalankis"
+
+# AI Translated
+msgid "Sunset reef"
+msgstr "Saulėlydžio rifas"
+
+# AI Translated
+msgid "Tiger coral"
+msgstr "Tigrinis koralas"
+
+# AI Translated
+msgid "Pink coral"
+msgstr "Rožinis koralas"
+
+# AI Translated
+msgid "Seashell glow"
+msgstr "Kriauklės žara"
+
+# AI Translated
+msgid "Sand"
+msgstr "Smėlis"
+
+# AI Translated
+msgid "Golden kelp"
+msgstr "Auksinis rudadumblis"
+
+# AI Translated
+msgid "Sunlit dune"
+msgstr "Saulės nutviesta kopa"
+
+# AI Translated
+msgid "Amber nautilus"
+msgstr "Gintaro nautilas"
+
+# AI Translated
+msgid "Sea lemon"
+msgstr "Jūros citrina"
+
+# AI Translated
+msgid "Pale starfish"
+msgstr "Blyški jūrų žvaigždė"
+
+# AI Translated
+msgid "Spring tide"
+msgstr "Pavasario potvynis"
+
+# AI Translated
+msgid "Lime algae"
+msgstr "Laimo dumbliai"
+
+# AI Translated
+msgid "Sea grass"
+msgstr "Jūros žolė"
+
+# AI Translated
+msgid "Neon plankton"
+msgstr "Neoninis planktonas"
+
+# AI Translated
+msgid "Kelp forest"
+msgstr "Rudadumblių miškas"
+
+# AI Translated
+msgid "Emerald wave"
+msgstr "Smaragdo banga"
+
+# AI Translated
+msgid "Whale shadow"
+msgstr "Banginio šešėlis"
+
+# AI Translated
+msgid "Sea turtle"
+msgstr "Jūros vėžlys"
+
+# AI Translated
+msgid "Lagoon"
+msgstr "Lagūna"
+
+# AI Translated
+msgid "Tropical current"
+msgstr "Tropinė srovė"
+
+# AI Translated
+msgid "Midnight trench"
+msgstr "Vidurnakčio įduba"
+
+# AI Translated
+msgid "Dark kelp"
+msgstr "Tamsus rudadumblis"
+
+# AI Translated
+msgid "Crystal surf"
+msgstr "Krištolinė banga"
+
+# AI Translated
+msgid "Turquoise bay"
+msgstr "Turkio įlanka"
+
+# AI Translated
+msgid "Sky over reef"
+msgstr "Dangus virš rifo"
+
+# AI Translated
+msgid "Shallow sky"
+msgstr "Seklumos dangus"
+
+# AI Translated
+msgid "Electric blue"
+msgstr "Elektrinė mėlyna"
+
+# AI Translated
+msgid "Dolphin"
+msgstr "Delfinas"
+
+# AI Translated
+msgid "Ocean depths"
+msgstr "Vandenyno gelmės"
+
+# AI Translated
+msgid "Whale"
+msgstr "Banginis"
+
+# AI Translated
+msgid "Indigo abyss"
+msgstr "Indigo bedugnė"
+
+# AI Translated
+msgid "Sea urchin"
+msgstr "Jūros ežys"
+
+# AI Translated
+msgid "Lavender coral"
+msgstr "Levandų koralas"
+
+# AI Translated
+msgid "Violet tide"
+msgstr "Violetinis potvynis"
+
+# AI Translated
+msgid "Deep sea orchid"
+msgstr "Giliavandenė orchidėja"
+
+# AI Translated
+msgid "Neon jelly"
+msgstr "Neoninė medūza"
+
+# AI Translated
+msgid "Fuchsia coral"
+msgstr "Fuksijos koralas"
+
+# AI Translated
+msgid "Pink jellyfish"
+msgstr "Rožinė medūza"
+
+# AI Translated
+msgid "Foam"
+msgstr "Putos"
+
+# AI Translated
+msgid "Seashell white"
+msgstr "Kriauklės balta"
+
+# AI Translated
+msgid "Pebble gray"
+msgstr "Akmenukų pilka"
+
+# AI Translated
+msgid "Storm cloud"
+msgstr "Audros debesis"
+
+# AI Translated
+msgid "Ink black"
+msgstr "Rašalo juoda"
+
+# AI Translated
+msgid "Green beige"
+msgstr "Žalsvai bėžinė"
+
+# AI Translated
+msgid "Sand yellow"
+msgstr "Smėlio geltona"
+
+# AI Translated
+msgid "Signal yellow"
+msgstr "Signalinė geltona"
+
+# AI Translated
+msgid "Golden yellow"
+msgstr "Auksinė geltona"
+
+# AI Translated
+msgid "Honey yellow"
+msgstr "Medaus geltona"
+
+# AI Translated
+msgid "Maize yellow"
+msgstr "Kukurūzų geltona"
+
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Narcizų geltona"
+
+# AI Translated
+msgid "Brown beige"
+msgstr "Rusvai bėžinė"
+
+# AI Translated
+msgid "Lemon yellow"
+msgstr "Citrinų geltona"
+
+# AI Translated
+msgid "Oyster white"
+msgstr "Austrės balta"
+
+# AI Translated
+msgid "Light ivory"
+msgstr "Šviesi dramblio kaulo"
+
+# AI Translated
+msgid "Zinc yellow"
+msgstr "Cinko geltona"
+
+# AI Translated
+msgid "Grey beige"
+msgstr "Pilkšvai bėžinė"
+
+# AI Translated
+msgid "Olive yellow"
+msgstr "Alyvuogių geltona"
+
+# AI Translated
+msgid "Rape yellow"
+msgstr "Rapsų geltona"
+
+# AI Translated
+msgid "Traffic yellow"
+msgstr "Eismo geltona"
+
+# AI Translated
+msgid "Ochre yellow"
+msgstr "Ochros geltona"
+
+# AI Translated
+msgid "Traffic orange yellow"
+msgstr "Eismo oranžiškai geltona"
+
+# AI Translated
+msgid "Curry"
+msgstr "Kario"
+
+# AI Translated
+msgid "Melon yellow"
+msgstr "Melionų geltona"
+
+# AI Translated
+# Needs human review: RAL 1032 'broom' (genista/Cytisus); check the Lithuanian plant name
+msgid "Broom yellow"
+msgstr "Šluotos geltona"
+
+# AI Translated
+msgid "Dahlia yellow"
+msgstr "Jurginų geltona"
+
+# AI Translated
+msgid "Pastel yellow"
+msgstr "Pastelinė geltona"
+
+# AI Translated
+msgid "Pearl beige"
+msgstr "Perlinė bėžinė"
+
+# AI Translated
+msgid "Pearl gold"
+msgstr "Perlinė auksinė"
+
+# AI Translated
+msgid "Sun yellow"
+msgstr "Saulės geltona"
+
+# AI Translated
+msgid "Yellow orange"
+msgstr "Gelsvai oranžinė"
+
+# AI Translated
+msgid "Deep orange"
+msgstr "Sodri oranžinė"
+
+# AI Translated
+msgid "Vermilion"
+msgstr "Cinobro"
+
+# AI Translated
+msgid "Pearl orange"
+msgstr "Perlinė oranžinė"
+
+# AI Translated
+msgid "Pure orange"
+msgstr "Gryna oranžinė"
+
+# AI Translated
+msgid "Luminous orange"
+msgstr "Švytinti oranžinė"
+
+# AI Translated
+msgid "Luminous bright orange"
+msgstr "Švytinti ryškiai oranžinė"
+
+# AI Translated
+msgid "Bright red orange"
+msgstr "Ryški raudonai oranžinė"
+
+# AI Translated
+msgid "Traffic orange"
+msgstr "Eismo oranžinė"
+
+# AI Translated
+msgid "Signal orange"
+msgstr "Signalinė oranžinė"
+
+# AI Translated
+msgid "Salmon orange"
+msgstr "Lašišos oranžinė"
+
+# AI Translated
+msgid "Pearl pink"
+msgstr "Perlinė rožinė"
+
+# AI Translated
+msgid "Copper orange"
+msgstr "Vario oranžinė"
+
+# AI Translated
+msgid "Signal brown"
+msgstr "Signalinė ruda"
+
+# AI Translated
+# Needs human review: RAL 2018 name; 'Fir' rendered as kėnis; check against the Lithuanian RAL chart
+msgid "Fir orange"
+msgstr "Kėnio oranžinė"
+
+# AI Translated
+msgid "Signal red"
+msgstr "Signalinė raudona"
+
+# AI Translated
+msgid "Luminous red"
+msgstr "Švytinti raudona"
+
+# AI Translated
+msgid "Carmine red"
+msgstr "Karmino raudona"
+
+# AI Translated
+msgid "Pearl carmine red"
+msgstr "Perlinė karmino raudona"
+
+# AI Translated
+msgid "Pure red"
+msgstr "Gryna raudona"
+
+# AI Translated
+msgid "Luminous deep red"
+msgstr "Švytinti sodriai raudona"
+
+# AI Translated
+msgid "Currant red"
+msgstr "Serbentų raudona"
+
+# AI Translated
+msgid "Pearl ruby red"
+msgstr "Perlinė rubino raudona"
+
+# AI Translated
+msgid "Fire red"
+msgstr "Ugnies raudona"
+
+# AI Translated
+msgid "Ruby red"
+msgstr "Rubino raudona"
+
+# AI Translated
+msgid "Purple red"
+msgstr "Purpurinė raudona"
+
+# AI Translated
+msgid "Wine red"
+msgstr "Vyno raudona"
+
+# AI Translated
+msgid "Black red"
+msgstr "Juodai raudona"
+
+# AI Translated
+msgid "Oxide red"
+msgstr "Oksido raudona"
+
+# AI Translated
+msgid "Brown red"
+msgstr "Rusvai raudona"
+
+# AI Translated
+# Needs human review: RAL 3012 name; check against the Lithuanian RAL chart
+msgid "Pine red"
+msgstr "Pušies raudona"
+
+# AI Translated
+msgid "Tomato red"
+msgstr "Pomidorinė raudona"
+
+# AI Translated
+msgid "Antique pink"
+msgstr "Antikinė rožinė"
+
+# AI Translated
+msgid "Coral red"
+msgstr "Koralų raudona"
+
+# AI Translated
+msgid "Rose"
+msgstr "Rožė"
+
+# AI Translated
+msgid "Strawberry red"
+msgstr "Braškių raudona"
+
+# AI Translated
+msgid "Traffic red"
+msgstr "Eismo raudona"
+
+# AI Translated
+msgid "Salmon pink"
+msgstr "Lašišos rožinė"
+
+# AI Translated
+msgid "Luminous rose"
+msgstr "Švytinti rožinė"
+
+# AI Translated
+msgid "Luminous bright red"
+msgstr "Švytinti ryškiai raudona"
+
+# AI Translated
+msgid "Raspberry red"
+msgstr "Aviečių raudona"
+
+# AI Translated
+msgid "Orient red"
+msgstr "Rytų raudona"
+
+# AI Translated
+msgid "Pearl ruby"
+msgstr "Perlinis rubinas"
+
+# AI Translated
+msgid "Red purple"
+msgstr "Raudonai purpurinė"
+
+# AI Translated
+msgid "Red violet"
+msgstr "Raudonai violetinė"
+
+# AI Translated
+msgid "Heather violet"
+msgstr "Viržių violetinė"
+
+# AI Translated
+msgid "Bordeaux violet"
+msgstr "Bordo violetinė"
+
+# AI Translated
+msgid "Mahogany"
+msgstr "Raudonmedis"
+
+# AI Translated
+msgid "Grey purple"
+msgstr "Pilkšvai purpurinė"
+
+# AI Translated
+msgid "Signal violet"
+msgstr "Signalinė violetinė"
+
+# AI Translated
+# Needs human review: Used for both RAL 4009 and 6009 (source reuses one msgid); check against the Lithuanian RAL chart
+msgid "Fir green"
+msgstr "Kėnio žalia"
+
+# AI Translated
+# Needs human review: RAL 4010 name (a violet-grey); unclear source term, check against the Lithuanian RAL chart
+msgid "Sabine grey"
+msgstr "Sabinų pilka"
+
+# AI Translated
+msgid "Pearl violet"
+msgstr "Perlinė violetinė"
+
+# AI Translated
+msgid "Pearl blackberry"
+msgstr "Perlinė gervuogių"
+
+# AI Translated
+msgid "Green blue"
+msgstr "Žalsvai mėlyna"
+
+# AI Translated
+msgid "Ultramarine blue"
+msgstr "Ultramarino mėlyna"
+
+# AI Translated
+msgid "Sapphire blue"
+msgstr "Safyro mėlyna"
+
+# AI Translated
+msgid "Black blue"
+msgstr "Juodai mėlyna"
+
+# AI Translated
+msgid "Signal blue"
+msgstr "Signalinė mėlyna"
+
+# AI Translated
+msgid "Brilliant blue"
+msgstr "Žėrinti mėlyna"
+
+# AI Translated
+msgid "Grey blue"
+msgstr "Pilkšvai mėlyna"
+
+# AI Translated
+msgid "Azure blue"
+msgstr "Žydra"
+
+# AI Translated
+msgid "Gentian blue"
+msgstr "Gencijonų mėlyna"
+
+# AI Translated
+msgid "Cobalt blue"
+msgstr "Kobalto mėlyna"
+
+# AI Translated
+msgid "Pigeon blue"
+msgstr "Karvelių mėlyna"
+
+# AI Translated
+msgid "Traffic blue"
+msgstr "Eismo mėlyna"
+
+# AI Translated
+msgid "Turquoise blue"
+msgstr "Turkio mėlyna"
+
+# AI Translated
+msgid "Capri blue"
+msgstr "Kaprio mėlyna"
+
+# AI Translated
+msgid "Ocean blue"
+msgstr "Vandenyno mėlyna"
+
+# AI Translated
+msgid "Water blue"
+msgstr "Vandens mėlyna"
+
+# AI Translated
+msgid "Night blue"
+msgstr "Nakties mėlyna"
+
+# AI Translated
+msgid "Distant blue"
+msgstr "Tolimoji mėlyna"
+
+# AI Translated
+msgid "Pastel blue"
+msgstr "Pastelinė mėlyna"
+
+# AI Translated
+msgid "Pearl gentian blue"
+msgstr "Perlinė gencijonų mėlyna"
+
+# AI Translated
+msgid "Pearl midnight blue"
+msgstr "Perlinė vidurnakčio mėlyna"
+
+# AI Translated
+msgid "Patina green"
+msgstr "Patinos žalia"
+
+# AI Translated
+msgid "Emerald green"
+msgstr "Smaragdo žalia"
+
+# AI Translated
+msgid "Leaf green"
+msgstr "Lapų žalia"
+
+# AI Translated
+msgid "Olive green"
+msgstr "Alyvuogių žalia"
+
+# AI Translated
+msgid "Blue green"
+msgstr "Melsvai žalia"
+
+# AI Translated
+msgid "Moss green"
+msgstr "Samanų žalia"
+
+# AI Translated
+msgid "Grey olive"
+msgstr "Pilkšvai alyvuogių"
+
+# AI Translated
+msgid "Pine green"
+msgstr "Pušies žalia"
+
+# AI Translated
+msgid "Pine brown"
+msgstr "Pušies ruda"
+
+# AI Translated
+msgid "Grass green"
+msgstr "Žolės žalia"
+
+# AI Translated
+msgid "Reseda green"
+msgstr "Rezedos žalia"
+
+# AI Translated
+msgid "Brown green"
+msgstr "Rusvai žalia"
+
+# AI Translated
+msgid "Reed green"
+msgstr "Nendrių žalia"
+
+# AI Translated
+msgid "Black green"
+msgstr "Juodai žalia"
+
+# AI Translated
+msgid "Turquoise green"
+msgstr "Turkio žalia"
+
+# AI Translated
+msgid "May green"
+msgstr "Gegužės žalia"
+
+# AI Translated
+msgid "Chrome oxide green"
+msgstr "Chromo oksido žalia"
+
+# AI Translated
+msgid "Traffic green"
+msgstr "Eismo žalia"
+
+# AI Translated
+msgid "Fern green"
+msgstr "Paparčių žalia"
+
+# AI Translated
+msgid "Opal green"
+msgstr "Opalo žalia"
+
+# AI Translated
+msgid "Mint green"
+msgstr "Mėtų žalia"
+
+# AI Translated
+msgid "Bronze green"
+msgstr "Bronzos žalia"
+
+# AI Translated
+msgid "Pearl green"
+msgstr "Perlinė žalia"
+
+# AI Translated
+msgid "Sax turquoise"
+msgstr "Saksų turkio"
+
+# AI Translated
+msgid "Pearl turquoise"
+msgstr "Perlinė turkio"
+
+# AI Translated
+msgid "Pearl jade"
+msgstr "Perlinis nefritas"
+
+# AI Translated
+msgid "Pure green"
+msgstr "Gryna žalia"
+
+# AI Translated
+msgid "Luminous green"
+msgstr "Švytinti žalia"
+
+# AI Translated
+msgid "Squirrel grey"
+msgstr "Voverės pilka"
+
+# AI Translated
+msgid "Silver grey"
+msgstr "Sidabrinė pilka"
+
+# AI Translated
+msgid "Olive grey"
+msgstr "Alyvuogių pilka"
+
+# AI Translated
+msgid "Moss grey"
+msgstr "Samanų pilka"
+
+# AI Translated
+msgid "Signal grey"
+msgstr "Signalinė pilka"
+
+# AI Translated
+msgid "Mouse grey"
+msgstr "Pelės pilka"
+
+# AI Translated
+msgid "Beige grey"
+msgstr "Bėžinė pilka"
+
+# AI Translated
+msgid "Khaki grey"
+msgstr "Chaki pilka"
+
+# AI Translated
+msgid "Green grey"
+msgstr "Žalsvai pilka"
+
+# AI Translated
+msgid "Tarpaulin grey"
+msgstr "Brezento pilka"
+
+# AI Translated
+msgid "Iron grey"
+msgstr "Geležies pilka"
+
+# AI Translated
+msgid "Basalt grey"
+msgstr "Bazalto pilka"
+
+# AI Translated
+msgid "Brown grey"
+msgstr "Rusvai pilka"
+
+# AI Translated
+msgid "Slate grey"
+msgstr "Skalūno pilka"
+
+# AI Translated
+msgid "Anthracite grey"
+msgstr "Antracito pilka"
+
+# AI Translated
+msgid "Light grey"
+msgstr "Šviesiai pilka"
+
+# AI Translated
+msgid "Umber grey"
+msgstr "Umbros pilka"
+
+# AI Translated
+msgid "Concrete grey"
+msgstr "Betono pilka"
+
+# AI Translated
+msgid "Graphite grey"
+msgstr "Grafito pilka"
+
+# AI Translated
+msgid "Granite grey"
+msgstr "Granito pilka"
+
+# AI Translated
+msgid "Stone grey"
+msgstr "Akmens pilka"
+
+# AI Translated
+msgid "Pebble grey"
+msgstr "Akmenukų pilka"
+
+# AI Translated
+msgid "Cement grey"
+msgstr "Cemento pilka"
+
+# AI Translated
+msgid "Yellow grey"
+msgstr "Gelsvai pilka"
+
+# AI Translated
+msgid "Platinum grey"
+msgstr "Platinos pilka"
+
+# AI Translated
+msgid "Dusty grey"
+msgstr "Dulkėta pilka"
+
+# AI Translated
+msgid "Agate grey"
+msgstr "Agato pilka"
+
+# AI Translated
+msgid "Quartz grey"
+msgstr "Kvarco pilka"
+
+# AI Translated
+msgid "Window grey"
+msgstr "Lango pilka"
+
+# AI Translated
+msgid "Traffic grey A"
+msgstr "Eismo pilka A"
+
+# AI Translated
+msgid "Traffic grey B"
+msgstr "Eismo pilka B"
+
+# AI Translated
+msgid "Silk grey"
+msgstr "Šilko pilka"
+
+# AI Translated
+msgid "Telegrey 1"
+msgstr "Telepilka 1"
+
+# AI Translated
+msgid "Telegrey 2"
+msgstr "Telepilka 2"
+
+# AI Translated
+msgid "Telegrey 4"
+msgstr "Telepilka 4"
+
+# AI Translated
+msgid "Pearl mouse grey"
+msgstr "Perlinė pelės pilka"
+
+# AI Translated
+msgid "Green brown"
+msgstr "Žalsvai ruda"
+
+# AI Translated
+msgid "Ochre brown"
+msgstr "Ochros ruda"
+
+# AI Translated
+msgid "Clay brown"
+msgstr "Molio ruda"
+
+# AI Translated
+msgid "Copper brown"
+msgstr "Vario ruda"
+
+# AI Translated
+msgid "Chocolate brown"
+msgstr "Šokolado ruda"
+
+# AI Translated
+msgid "Olive brown"
+msgstr "Alyvuogių ruda"
+
+# AI Translated
+msgid "Nut brown"
+msgstr "Riešutų ruda"
+
+# AI Translated
+msgid "Red brown"
+msgstr "Raudonai ruda"
+
+# AI Translated
+msgid "Sepia brown"
+msgstr "Sepijos ruda"
+
+# AI Translated
+msgid "Chestnut brown"
+msgstr "Kaštonų ruda"
+
+# AI Translated
+msgid "Mahogany brown"
+msgstr "Raudonmedžio ruda"
+
+# AI Translated
+msgid "Grey brown"
+msgstr "Pilkšvai ruda"
+
+# AI Translated
+msgid "Pearl copper"
+msgstr "Perlinis varis"
+
+# AI Translated
+msgid "Beige brown"
+msgstr "Bėžinė ruda"
+
+# AI Translated
+msgid "Pearl mocha brown"
+msgstr "Perlinė mokos ruda"
+
+# AI Translated
+msgid "Earth brown"
+msgstr "Žemės ruda"
+
+# AI Translated
+msgid "Pearl brown"
+msgstr "Perlinė ruda"
+
+# AI Translated
+msgid "Cream"
+msgstr "Kreminė"
+
+# AI Translated
+msgid "Grey white"
+msgstr "Pilkšvai balta"
+
+# AI Translated
+msgid "Signal white"
+msgstr "Signalinė balta"
+
+# AI Translated
+msgid "Signal black"
+msgstr "Signalinė juoda"
+
+# AI Translated
+msgid "Jet black"
+msgstr "Gagato juoda"
+
+# AI Translated
+msgid "White aluminium"
+msgstr "Balta aliuminio"
+
+# AI Translated
+msgid "Grey aluminium"
+msgstr "Pilka aliuminio"
+
+# AI Translated
+msgid "Pure white"
+msgstr "Gryna balta"
+
+# AI Translated
+msgid "Graphite black"
+msgstr "Grafito juoda"
+
+# AI Translated
+msgid "Traffic white"
+msgstr "Eismo balta"
+
+# AI Translated
+msgid "Traffic black"
+msgstr "Eismo juoda"
+
+# AI Translated
+msgid "Papyrus white"
+msgstr "Papiruso balta"
+
+# AI Translated
+msgid "Pearl light grey"
+msgstr "Perlinė šviesiai pilka"
+
+# AI Translated
+msgid "Metal: Silver"
+msgstr "Metalas: Sidabras"
+
+# AI Translated
+msgid "Metal: Brass"
+msgstr "Metalas: Žalvaris"
+
+# AI Translated
+msgid "Metal: Gold"
+msgstr "Metalas: Auksas"
+
+# AI Translated
+msgid "Metal: Copper"
+msgstr "Metalas: Varis"
+
+# AI Translated
+msgid "Metal: Bronze"
+msgstr "Metalas: Bronza"
+
+# AI Translated
+msgid "Nature: Pearl"
+msgstr "Gamta: Perlas"
+
+# AI Translated
+msgid "Nature: Rainbow"
+msgstr "Gamta: Vaivorykštė"
+
+# AI Translated
+msgid "Nature: Clear Sky"
+msgstr "Gamta: Giedras dangus"
+
+# AI Translated
+msgid "Nature: Sunset"
+msgstr "Gamta: Saulėlydis"
+
+# AI Translated
+msgid "Wood: Dark"
+msgstr "Mediena: Tamsi"
+
+# AI Translated
+msgid "Wood: Medium"
+msgstr "Mediena: Vidutinė"
+
+# AI Translated
+msgid "Wood: Light"
+msgstr "Mediena: Šviesi"
+
+# AI Translated
 msgid "Alternate nozzles:"
 msgstr "Alternatyvūs purkštukai:"
 
@@ -31076,12 +32784,24 @@ msgid "Built-in"
 msgstr "Integruotos"
 
 # AI Translated
+msgid "My textures"
+msgstr "Mano tekstūros"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Tekstūrų nerasta."
 
 # AI Translated
-msgid "My textures"
-msgstr "Mano tekstūros"
+msgid "Texture libraries"
+msgstr "Tekstūrų bibliotekos"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Naršyti daugiau tekstūrų bibliotekų"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Atidaro „OrcaCloud“ pradžios puslapyje, kad galėtumėte naršyti papildinius."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -31485,6 +33205,16 @@ msgid "How wide one copy of the texture is on the model. Smaller repeats the pat
 msgstr "Kokio pločio yra viena tekstūros kopija ant modelio. Mažesnė reikšmė dažniau kartoja raštą ir smulkina jo detales; išjungus „Plytelės“, tai vienintelės kopijos dydis."
 
 # AI Translated
+# Needs human review: Caption under a tile-size picture in the Texture displacement gizmo; check gender/fit
+msgid "Larger"
+msgstr "Didesnis"
+
+# AI Translated
+# Needs human review: Caption under a tile-size picture in the Texture displacement gizmo; check gender/fit
+msgid "Smaller"
+msgstr "Mažesnis"
+
+# AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Pasuka tekstūrą paviršiuje, laipsniais - kad raštą būtų galima sulygiuoti su modelio briauna."
 
@@ -31557,6 +33287,16 @@ msgstr "Mišrios spalvos"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Didžiausias mišrių gijų skaičius, kurį gali pridėti įkepimas. Jos parenkamos iš tekstūros spalvų, ir sukuriamos tik tos, kurias įkepimas iš tikrųjų naudoja."
+
+# AI Translated
+# Needs human review: Caption under a mixed-colors picture in the Texture displacement gizmo; check it fits
+msgid "Few"
+msgstr "Mažai"
+
+# AI Translated
+# Needs human review: Caption under a mixed-colors picture in the Texture displacement gizmo; check it fits
+msgid "Many"
+msgstr "Daug"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -31684,10 +33424,6 @@ msgstr "Projekcijos rėmelis"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Atveria langą, kurį vilkite virš modelio. Tai, kas matoma pro jį, gauna tekstūrą, o jo kraštas tampa projekcijos riba."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Nepermatomumas"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -31920,6 +33656,16 @@ msgstr "Pertinklinimas"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Trikampių dydis, kuriuo perkuriamas visas modelis, milimetrais. Reljefas geriausiai formuojamas ant tolygaus tinklelio; būtent ši parinktis iš netolygaus importuoto modelio padaro tolygų."
+
+# AI Translated
+# Needs human review: Caption under the remesh before/after picture; check it fits
+msgid "Before"
+msgstr "Prieš"
+
+# AI Translated
+# Needs human review: Caption under the remesh before/after picture; check it fits
+msgid "After"
+msgstr "Po"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -33808,6 +35554,10 @@ msgid "Slicing Pipeline"
 msgstr "Sluoksniavimo grandinė"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Išteklių tekstūra"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "Papildinio konfigūracijos sąsaja tuščia. Rodomas numatytasis redaktorius."
 
@@ -33953,6 +35703,30 @@ msgstr "Papildinio kataloge yra ir .py, ir .whl įėjimo failai"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Papildinio kataloge nėra .py ar .whl įėjimo failo"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Išteklių tekstūros katalogas nenustatytas"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Nepavyko nustatyti išteklių tekstūros katalogo"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Išteklių tekstūros kelias nėra katalogas"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Nepavyko nustatyti papildinio aplanko"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Išteklių tekstūros katalogas yra už papildinio aplanko ribų"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Nepavyko nuskaityti išteklių tekstūros katalogo"
 
 # AI Translated
 #, boost-format
@@ -34414,7 +36188,7 @@ msgstr "Nepavyko įkelti konfigūracijos failo „%1%“: %2%"
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "Tai ne %1% sugeneruotas G-code failas."
 
 # AI Translated
@@ -34534,7 +36308,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "Nepavyko sukurti laikinos G-code failo %1% kopijos prieš paleidžiant papildomo apdorojimo scenarijų: %2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "Papildomo apdorojimo programa neranda eksportuoto G-code failo"
 
 # AI Translated
@@ -34903,6 +36677,31 @@ msgid ""
 msgstr ""
 "Venkite deformacijų (warping)\n"
 "Ar žinojote, kad spausdinant medžiagas, kurios yra linkusios trauktis ir riestis (pvz., ABS), tinkamas kaitinamojo pagrindo temperatūros padidinimas gali sumažinti deformacijų (warping) tikimybę?"
+
+# AI Translated
+# Needs human review: Source likely a typo for RAL 1007 Daffodil yellow; translated as daffodil
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Narcizų geltona"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "Kapsantino violetinė"
+
+# AI Translated
+# Needs human review: RAL 7002 name (olive grey); unclear source term, check against the Lithuanian RAL chart
+#~ msgid "Olivestone"
+#~ msgstr "Alyvuogių akmuo"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Veikia bet kurioje lango vietoje, net rašant teksto lauke."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Visuotiniai spartieji klavišai veikia ir rašant tekstą."
+
+#~ msgid "Please choose the filament color"
+#~ msgstr "Pasirinkite gijos spalvą"
 
 #~ msgid ""
 #~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
@@ -35381,10 +37180,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "nėra sukonfigūruoto įrankio"
 
-# AI Translated
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "Pabaigos G-code, vykdomas baigus visą spausdinimą."
-
 #~ msgid "Maximum X speed"
 #~ msgstr "Didžiausias X greitis"
 
@@ -35402,24 +37197,9 @@ msgstr ""
 #~ msgstr "Python papildinys (-iai), iškviečiamas kiekviename pjaustymo konvejerio žingsnyje, kad nuskaitytų ir keistų tarpinius pjaustymo duomenis, įskaitant galutinį G-code po apdorojimo žingsnį. Tyrimų/eksperimentinis."
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "Kai įjungta, pjaustyklė generuoja G-code, kuriame pagrindinės zonos turinys centruotas pagrindo koordinačių pradžioje (0,0). Kopijas ir veidrodinius atvaizdus kiekvienos fizinės zonos padėtyje išdėsto spausdintuvo programinė aparatinė įranga. Įjunkite tik tuose spausdintuvuose, kurių programinė aparatinė įranga kopijos (Copy) / veidrodžio (Mirror) režimu pati taiko zonų poslinkius (pvz., RepRapFirmware IDEX dubliavimo režimas). Režimu „Pagrindinis“ neturi jokio poveikio."
-
-# AI Translated
 # Needs human review: 'pem-inversion' is an undefined internal term kept verbatim; check what it refers to and whether it should be explained or translated.
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "Plokštės lygmens perrašymas, susiejantis fizines galvutes su gijų lizdais (numeruojama nuo 1). Tuščia reiškia, kad naudojami numatytieji pem-inversion nustatymai."
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "Ašis, apie kurią poligoninis tinklas pasukamas prieš sluoksniavimą. Tai juostinio spausdintuvo pokrypis: izometrinis (be iškraipymų) pasukimas, kuris taip pat lemia pagrindo atvaizdavimą ir atramų sunkio jėgos pokrypį ir kurį atvirkštinė G-code transformacija panaikina prieš mašinos koordinačių sistemos šlytį / mastelį ir ašių perskirstymą. X – įprastas portalo pokrypis (juosta juda išilgai Y)."
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "Eksperto parinktis: nustatyti mašinos koordinačių sistemos (G-code šlyties / mastelio) pokrypio kampą nepriklausomai nuo pasukimo prieš sluoksniavimą kampo. Kai išjungta, mašinos koordinačių sistemos transformacija išvedama iš juostos pokrypio kampo, todėl vienas kampas valdo abu etapus. Įjunkite tik tada, kai reikia kompensuoti įrenginį, kurio fizinis portalo pokrypis skiriasi nuo sluoksniavimo pasukimo."
-
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "Didžiausias leidžiamas nuokrypis, mažinant „Didžiausios sienelės raiškos“ nustatymo skiriamąją gebą. Jei jį padidinsite, spaudinys bus mažiau tikslus, tačiau G-kodas (G-Code) bus mažesnės apimties. „Didžiausias sienelės nuokrypis“ riboja „Didžiausią sienelės raišką“, todėl jei šie du nustatymai konfliktuoja, viršenybė teikiama „Didžiausiam sienelės nuokrypiui“."
 
 #~ msgid " not in range "
 #~ msgstr " nepatenka į intervalą "
