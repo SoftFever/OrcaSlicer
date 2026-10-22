@@ -145,6 +145,17 @@ public:
     // Targets already persisted for the plugin are not shown or asked for again. Returns true
     // only when every missing target was granted and persisted; denial aborts the plugin load
     // without adding a permission.
+    //
+    // A filesystem target may name a directory tree: a trailing "/*" (e.g. "/path/to/folder/*")
+    // grants the folder itself and every path beneath it, at any depth. "*" is the only wildcard
+    // and is only recognized as the final path component; elsewhere it is an ordinary character.
+    // The wildcard applies to fs_read and fs_readwrite only, never to event grants or the other
+    // buckets, and a read grant still never authorizes a write (or the reverse). Denied paths
+    // stay denied regardless of a covering wildcard.
+    //
+    // Tree grants are matched on canonical paths: a symlink below the granted folder does not
+    // extend the grant outside it, and a grant whose root is a symlink applies to its target.
+    // Exact (non-tree) grants keep their verbatim string comparison.
     bool request_permissions(const std::string& plugin_key, const PluginPermissions& requested);
 
     void report_violation(const AuditViolation& violation);

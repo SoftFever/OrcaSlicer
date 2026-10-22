@@ -1239,3 +1239,180 @@ site_packages_outcome = attempt(lambda: open(SITE_PACKAGE_FILE).close())
     const std::string site_packages_prompt = "open: " + python.str("SITE_PACKAGE_FILE") + "\n";
     CHECK(describe(harness.prompts) == write_prompt + site_packages_prompt);
 }
+
+TEST_CASE("A filesystem wildcard grant covers the folder and its descendants at any depth", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    python.exec(R"PY(
+DEEP_FILE = os.path.join(TREE, "one", "deep", "deeper", "f.txt")
+os.makedirs(os.path.dirname(DEEP_FILE))
+with open(DEEP_FILE, "w") as f:
+    f.write("x")
+NESTED_FILE = os.path.join(TREE, "one", "f.txt")
+SIBLING = TREE + "-sibling"
+SIBLING_FILE = os.path.join(SIBLING, "f.txt")
+os.makedirs(SIBLING)
+with open(SIBLING_FILE, "w") as f:
+    f.write("x")
+# Lexically under TREE, but ".." resolves outside the granted folder.
+ESCAPE_FILE = os.path.join(TREE, "..", "private.txt")
+)PY");
+
+    const std::string tree = python.str("TREE");
+    PluginPermissions permissions;
+    permissions.fs_read = {tree + "/*"};
+    harness.save_permissions(PLUGIN, permissions);
+
+    python.run_as(PLUGIN, R"PY(
+deep_outcome = attempt(lambda: open(DEEP_FILE).read())
+root_outcome = attempt(lambda: os.listdir(TREE))
+sibling_outcome = attempt(lambda: open(SIBLING_FILE).read())
+escape_outcome = attempt(lambda: open(ESCAPE_FILE).read())
+)PY");
+
+    // The tree grant covers the folder itself (listing it) and a file two directories below it.
+    CHECK(python.str("deep_outcome") == "ok");
+    CHECK(python.str("root_outcome") == "ok");
+    // A path sharing the folder's prefix is not a descendant, and ".." is resolved before the
+    // comparison, so neither escapes the grant; both are asked about.
+    CHECK(python.str("sibling_outcome") == "denied");
+    CHECK(python.str("escape_outcome") == "denied");
+    const std::string sibling_prompt = "open: " + python.str("SIBLING_FILE") + "\n";
+    const std::string escape_prompt  = "open: " + python.str("ESCAPE_FILE") + "\n";
+    CHECK(describe(harness.prompts) == sibling_prompt + escape_prompt);
+
+    // Only the final component may be a wildcard: a "*" inside it is an ordinary character.
+    permissions.fs_read = {tree + "/*.txt"};
+    harness.save_permissions(PLUGIN, permissions);
+    harness.prompts.clear();
+    python.run_as(PLUGIN, "literal_outcome = attempt(lambda: open(NESTED_FILE).read())");
+    CHECK(python.str("literal_outcome") == "denied");
+    const std::string literal_prompt = "open: " + python.str("NESTED_FILE") + "\n";
+    CHECK(describe(harness.prompts) == literal_prompt);
+}
+
+TEST_CASE("A tree grant compares canonical paths on both sides", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    // A folder outside TREE, reached through a symlink planted inside it.
+    const fs::path tree        = python.str("TREE");
+    const fs::path outside_dir = harness.outside.path() / "symlink-target";
+    const fs::path link        = tree / "escape";
+    fs::create_directories(outside_dir);
+    std::ofstream((outside_dir / "outside.txt").string(), std::ios::binary) << "x";
+
+    boost::system::error_code ec;
+    fs::create_directory_symlink(outside_dir, link, ec);
+    if (ec)
+        SKIP("Cannot create a directory symlink here: " + ec.message());
+
+    PluginPermissions permissions;
+    permissions.fs_read = {tree.string() + "/*"};
+    harness.save_permissions(PLUGIN, permissions);
+
+    const std::string escaped_file = (link / "outside.txt").string();
+    python.globals["ESCAPED_FILE"] = escaped_file;
+    python.run_as(PLUGIN, "escaped_outcome = attempt(lambda: open(ESCAPED_FILE).read())");
+
+    // The target canonicalizes outside the canonical grant root, so the link does not inherit
+    // the tree grant. The read/write wildcard test covers a non-existing write tail.
+    CHECK(python.str("escaped_outcome") == "denied");
+    CHECK(describe(harness.prompts) == "open: " + escaped_file + "\n");
+
+    // A grant rooted at the link applies to what the link points at, not just to its path.
+    permissions.fs_read = {link.string() + "/*"};
+    harness.save_permissions(PLUGIN, permissions);
+    harness.prompts.clear();
+    python.globals["TARGET_FILE"] = (outside_dir / "outside.txt").string();
+    python.run_as(PLUGIN, "via_target_outcome = attempt(lambda: open(TARGET_FILE).read())");
+
+    CHECK(python.str("via_target_outcome") == "ok");
+    CHECK(describe(harness.prompts).empty());
+}
+
+TEST_CASE("A filesystem wildcard keeps read and write grants separate", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    python.exec(R"PY(
+NESTED_FILE = os.path.join(TREE, "one", "f.txt")
+NEW_FILE = os.path.join(TREE, "one", "new.txt")
+)PY");
+    const std::string tree = python.str("TREE");
+    PluginPermissions permissions;
+    permissions.fs_read = {tree + "/*"};
+    harness.save_permissions(PLUGIN, permissions);
+
+    python.run_as(PLUGIN, R"PY(
+read_outcome = attempt(lambda: open(NESTED_FILE).read())
+write_outcome = attempt(lambda: open(NEW_FILE, "w").close())
+)PY");
+    CHECK(python.str("read_outcome") == "ok");
+    CHECK(python.str("write_outcome") == "denied");
+    // A read grant does not cover the write-shaped open, so that one is asked about.
+    const std::string write_prompt = "open: " + python.str("NEW_FILE") + "\n";
+    CHECK(describe(harness.prompts) == write_prompt);
+
+    // The reverse direction is separate too: a read/write wildcard leaves plain reads in the
+    // read bucket, which is now empty.
+    permissions.fs_read.clear();
+    permissions.fs_readwrite = {tree + "/*"};
+    harness.save_permissions(PLUGIN, permissions);
+    harness.prompts.clear();
+    python.run_as(PLUGIN, R"PY(
+write_outcome = attempt(lambda: open(NEW_FILE, "w").close())
+reread_outcome = attempt(lambda: open(NESTED_FILE).read())
+)PY");
+    CHECK(python.str("write_outcome") == "ok");
+    CHECK(python.str("reread_outcome") == "denied");
+    const std::string reread_prompt = "open: " + python.str("NESTED_FILE") + "\n";
+    CHECK(describe(harness.prompts) == reread_prompt);
+}
+
+TEST_CASE("A filesystem wildcard does not override a denied path", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    PluginAuditManager& mgr = PluginAuditManager::instance();
+
+    python.exec(R"PY(
+DENIED_DIR = os.path.join(OUTSIDE, "secrets")
+os.makedirs(DENIED_DIR)
+with open(os.path.join(DENIED_DIR, "token.txt"), "w") as f:
+    f.write("x")
+)PY");
+
+    // A grant wide enough to cover the deny registry's target still loses to the deny.
+    PluginPermissions permissions;
+    permissions.fs_read = {python.str("OUTSIDE") + "/*"};
+    harness.save_permissions(PLUGIN, permissions);
+
+    python.run_as(PLUGIN, "denied_outcome = attempt(lambda: open(os.path.join(DENIED_DIR, 'token.txt')).read())");
+
+    CHECK(python.str("denied_outcome") == "denied");
+    CHECK(describe(harness.prompts).empty());
+    AuditViolation violation;
+    REQUIRE(mgr.last_violation(violation));
+    CHECK(violation.reason == "denied path");
+}
