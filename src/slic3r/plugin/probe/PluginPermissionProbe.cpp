@@ -48,6 +48,7 @@
 #include <exception>
 #include <iostream>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -65,11 +66,12 @@ struct Options
 {
     fs::path plugin_path;
     bool json = false;
+    bool gen_permissions = false;
 };
 
 void print_usage(std::ostream& out)
 {
-    out << "Usage: orca-plugin-probe [--json] <plugin.py|plugin.whl>\n"
+    out << "Usage: orca-plugin-probe [--json] [--gen-permissions] <plugin.py|plugin.whl>\n"
            "\n"
            "Runs a plugin in a temporary data/working directory and reports the CPython audit\n"
            "events observed while its import, registration, on_load and discoverable callbacks\n"
@@ -77,8 +79,15 @@ void print_usage(std::ostream& out)
            "or start the OrcaSlicer GUI. The report summarizes package validation, runtime\n"
            "compatibility, callback results and audit activity, plus an advisory readiness status.\n"
            "\n"
-           "  --json   Emit the report as JSON (default: human-readable text)\n"
-           "  --help   Show this message\n"
+           "  --json             Emit the report as JSON (default: human-readable text)\n"
+           "  --gen-permissions  Add a copy-pastable Python orca.request_permissions(...) call that maps\n"
+           "                     the observed activity to the API's fs_read, fs_readwrite,\n"
+           "                     network_http, network_socket, process and threading parameters. Events\n"
+           "                     the API cannot express (FsCreate/FsDelete and targetless events) are\n"
+           "                     reported separately. Filesystem events already allowed in production\n"
+           "                     are excluded, and an event with a categorically denied target is not\n"
+           "                     suggested. Without this flag the report is unchanged.\n"
+           "  --help             Show this message\n"
            "\n"
            "WARNING: this is not a sandbox. Plugin Python code runs with this process's privileges.\n"
            "Results are observational and non-exhaustive. Use OS-level restrictions for untrusted\n"
@@ -97,6 +106,10 @@ bool parse_options(int argc, char** argv, Options& options, std::string& error)
         }
         if (argument == "--json") {
             options.json = true;
+            continue;
+        }
+        if (argument == "--gen-permissions") {
+            options.gen_permissions = true;
             continue;
         }
         if (!argument.empty() && argument.front() == '-') {
@@ -338,6 +351,182 @@ nlohmann::json observation_json(const AuditObservation& observation)
     };
 }
 
+struct GeneratedPermissionRequest
+{
+    std::vector<std::string>    fs_read;
+    std::vector<std::string>    fs_readwrite;
+    std::vector<std::string>    network_http;
+    std::vector<std::string>    network_socket;
+    std::vector<std::string>    process;
+    bool                        threading = false;
+    std::vector<nlohmann::json> unexpressible;
+    std::vector<nlohmann::json> excluded_denied;
+    std::vector<nlohmann::json> excluded_already_allowed;
+    std::string                 call;
+
+    bool has_targets() const
+    {
+        return !fs_read.empty() || !fs_readwrite.empty() || !network_http.empty() || !network_socket.empty() ||
+               !process.empty() || threading;
+    }
+};
+
+// Build the request from the operations this run observed, in the API's own buckets. The synthetic
+// orca.request_permissions observation records only the plugin's own declaration, not an access it
+// performed, so it is not a source for the generated call. Every target is kept exactly as the
+// audit hook reported it; each bucket is deduplicated and sorted.
+GeneratedPermissionRequest generate_permission_request(const std::vector<AuditObservation>& observations,
+                                                        const std::string&                  plugin_key)
+{
+    GeneratedPermissionRequest generated;
+    std::set<std::string>      fs_read;
+    std::set<std::string>      fs_readwrite;
+    std::set<std::string>      network_http;
+    std::set<std::string>      network_socket;
+    std::set<std::string>      process;
+
+    const auto non_empty_targets = [](const AuditObservation& observation) {
+        std::vector<std::string> targets;
+        for (const std::string& target : observation.targets) {
+            if (!target.empty())
+                targets.push_back(target);
+        }
+        return targets;
+    };
+    const auto describe_observation = [](const AuditObservation& observation, const std::vector<std::string>& targets) {
+        return nlohmann::json{
+            {"category", observation.category},
+            {"event", observation.event_name},
+            {"targets", targets},
+        };
+    };
+
+    // check_path_access() is context-sensitive: with no plugin key it treats every path as
+    // allowed. Re-enter a context for the probed key so stdlib and configured allowed roots, as
+    // well as the deny registries, answer for this plugin.
+    PluginAuditManager&      manager = PluginAuditManager::instance();
+    ScopedPluginAuditContext context(plugin_key);
+
+    for (const AuditObservation& observation : observations) {
+        if (observation.event_name == "orca.request_permissions")
+            continue;
+        if (observation.category.empty() || observation.category == "None")
+            continue;
+
+        const std::vector<std::string> targets = non_empty_targets(observation);
+
+        // Thread creation has no API target list; the declaration is a single bool.
+        if (observation.category == "Threading") {
+            generated.threading = true;
+            continue;
+        }
+
+        if (observation.category == "FsCreate" || observation.category == "FsDelete") {
+            nlohmann::json item = describe_observation(observation, targets);
+            item["reason"] = "request_permissions() has no bucket for this category, so no API-level declaration can "
+                             "pre-grant it; production decides each event at runtime.";
+            generated.unexpressible.push_back(std::move(item));
+            continue;
+        }
+
+        if (targets.empty()) {
+            nlohmann::json item = describe_observation(observation, targets);
+            item["reason"] = "Targetless audit events are persisted as an events=<category>:<event> grant, but "
+                             "request_permissions() exposes no events= parameter.";
+            generated.unexpressible.push_back(std::move(item));
+            continue;
+        }
+
+        if (observation.category == "FsRead" || observation.category == "FsReadWrite") {
+            // Production decides a filesystem event as a whole: a categorically denied target blocks
+            // it before any prompt, an event whose targets are all inside allowed roots never
+            // prompts, and otherwise the prompt covers every target of the event.
+            const bool is_write = observation.category == "FsReadWrite";
+            bool       denied   = false;
+            bool       allowed  = true;
+            for (const std::string& target : targets) {
+                if (manager.is_denied_path(fs::path(target))) {
+                    denied = true;
+                    break;
+                }
+                if (!manager.check_path_access(fs::path(target), is_write).allowed)
+                    allowed = false;
+            }
+
+            if (denied) {
+                nlohmann::json item = describe_observation(observation, targets);
+                item["reason"] = "At least one target is categorically denied in production, which blocks the event "
+                                 "before any prompt, so a request would not help.";
+                generated.excluded_denied.push_back(std::move(item));
+                continue;
+            }
+            if (allowed) {
+                nlohmann::json item = describe_observation(observation, targets);
+                item["reason"] = "Every target is already allowed in production for this plugin, so production does "
+                                 "not prompt for this event.";
+                generated.excluded_already_allowed.push_back(std::move(item));
+                continue;
+            }
+
+            std::set<std::string>& bucket = is_write ? fs_readwrite : fs_read;
+            bucket.insert(targets.begin(), targets.end());
+            continue;
+        }
+
+        if (observation.category == "Http") {
+            network_http.insert(targets.begin(), targets.end());
+            continue;
+        }
+        if (observation.category == "Socket") {
+            network_socket.insert(targets.begin(), targets.end());
+            continue;
+        }
+        if (observation.category == "ProcessCreate" || observation.category == "ProcessReplace") {
+            process.insert(targets.begin(), targets.end());
+            continue;
+        }
+
+        nlohmann::json item = describe_observation(observation, targets);
+        item["reason"] = "No request_permissions() parameter corresponds to this category.";
+        generated.unexpressible.push_back(std::move(item));
+    }
+
+    generated.fs_read.assign(fs_read.begin(), fs_read.end());
+    generated.fs_readwrite.assign(fs_readwrite.begin(), fs_readwrite.end());
+    generated.network_http.assign(network_http.begin(), network_http.end());
+    generated.network_socket.assign(network_socket.begin(), network_socket.end());
+    generated.process.assign(process.begin(), process.end());
+
+    if (!generated.has_targets())
+        return generated;
+
+    std::string call = "# Add inside register_capabilities(); based only on this probe run.\n"
+                       "orca.request_permissions(\n";
+    const auto append_list = [&call](const char* name, const std::vector<std::string>& values) {
+        if (values.empty())
+            return;
+        call += "    ";
+        call += name;
+        call += "=[\n";
+        for (const std::string& value : values) {
+            // JSON string escaping is also valid Python string syntax. Keep non-ASCII characters
+            // as-is so the target stays exactly what the audit hook reported.
+            call += "        " + nlohmann::json(value).dump(-1, ' ', /*ensure_ascii=*/false) + ",\n";
+        }
+        call += "    ],\n";
+    };
+    append_list("fs_read", generated.fs_read);
+    append_list("fs_readwrite", generated.fs_readwrite);
+    append_list("network_http", generated.network_http);
+    append_list("network_socket", generated.network_socket);
+    append_list("process", generated.process);
+    if (generated.threading)
+        call += "    threading=True,\n";
+    call += ")";
+    generated.call = std::move(call);
+    return generated;
+}
+
 nlohmann::json callback_json(const ProbeCallbackRecord& callback)
 {
     return {
@@ -425,7 +614,7 @@ nlohmann::json build_report(const Options& options,
                                    failed_callbacks > 0                               ? "degraded" :
                                                                                         "ready";
 
-    return {
+    nlohmann::json report = {
         {"tool", "orca-plugin-permission-probe"},
         {"mode", "record-only"},
         {"observed_by_this_run_only", true},
@@ -578,6 +767,50 @@ nlohmann::json build_report(const Options& options,
               }},
          }},
     };
+
+    if (options.gen_permissions) {
+        GeneratedPermissionRequest generated = generate_permission_request(observed_events, observed_plugin);
+        nlohmann::json             generated_report = {
+            {"buckets",
+             {
+                 {"fs_read", generated.fs_read},
+                 {"fs_readwrite", generated.fs_readwrite},
+                 {"network_http", generated.network_http},
+                 {"network_socket", generated.network_socket},
+                 {"process", generated.process},
+                 {"threading", generated.threading},
+             }},
+            {"unexpressible", generated.unexpressible},
+            {"excluded_denied", generated.excluded_denied},
+            {"excluded_already_allowed", generated.excluded_already_allowed},
+            {"limitations",
+             nlohmann::json::array({
+                 "Targets are the exact strings the audit hook reported, deduplicated and sorted per bucket; they are "
+                 "not normalized, resolved or expanded.",
+                 "FsCreate and FsDelete observations, and targetless events, have no request_permissions() parameter "
+                 "and are listed as unexpressible instead of being folded into another bucket.",
+                 "threading is a single bool for the Threading category; the API takes no thread target list.",
+                 "ProcessCreate and ProcessReplace both map to process.",
+                 "The call covers only operations this run observed; it is not a complete permission set.",
+                 "Filesystem exclusions apply production's global allowed roots and deny registries under this "
+                 "plugin's audit context. Per-call scoped roots are no longer active when the report is built, so a "
+                 "target those roots allowed can remain in the request; changing the rules or installed state changes "
+                 "the result.",
+             })},
+        };
+        if (generated.call.empty()) {
+            generated_report["note"] =
+                "No request call was generated: this run observed no target expressible through request_permissions(). "
+                "Targets that were empty, already allowed in production, categorically denied, from FsCreate/FsDelete, "
+                "or from targetless events are excluded or listed as unexpressible; synthetic "
+                "orca.request_permissions declarations are not sources.";
+        } else {
+            generated_report["request"] = std::move(generated.call);
+        }
+        report["generated_permissions"] = std::move(generated_report);
+    }
+
+    return report;
 }
 
 void print_text_report(const nlohmann::json& report)
@@ -695,6 +928,60 @@ void print_text_report(const nlohmann::json& report)
     }
     if (report["summary"]["categories"].empty())
         std::cout << "  (none observed)\n";
+
+    if (report.contains("generated_permissions")) {
+        const auto& generated = report["generated_permissions"];
+        const auto  print_targets = [](const nlohmann::json& targets) {
+            if (targets.empty()) {
+                std::cout << "(none)";
+                return;
+            }
+            bool first = true;
+            for (const auto& target : targets) {
+                if (!first)
+                    std::cout << ", ";
+                std::cout << nlohmann::json(target.get<std::string>()).dump();
+                first = false;
+            }
+        };
+
+        std::cout << "\n--- BEGIN generated permission request (--gen-permissions) ---\n";
+        if (generated.contains("request"))
+            std::cout << generated["request"].get<std::string>() << "\n";
+        else
+            std::cout << generated["note"].get<std::string>() << "\n";
+
+        std::cout << "\nAPI buckets:\n";
+        for (const char* bucket : {"fs_read", "fs_readwrite", "network_http", "network_socket", "process"}) {
+            std::cout << "  " << bucket << ": ";
+            print_targets(generated["buckets"][bucket]);
+            std::cout << "\n";
+        }
+        std::cout << "  threading: " << (generated["buckets"]["threading"].get<bool>() ? "True" : "False") << "\n";
+
+        const auto print_records = [&print_targets](const char* label, const nlohmann::json& records) {
+            std::cout << "\n" << label << ":";
+            if (records.empty()) {
+                std::cout << " (none)\n";
+                return;
+            }
+            std::cout << "\n";
+            for (const auto& record : records) {
+                std::cout << "  " << record["category"].get<std::string>() << " " << record["event"].get<std::string>()
+                          << " targets=";
+                print_targets(record["targets"]);
+                std::cout << " - " << record["reason"].get<std::string>() << "\n";
+            }
+        };
+        print_records("Unexpressible observations", generated["unexpressible"]);
+        print_records("Excluded, categorically denied in production", generated["excluded_denied"]);
+        print_records("Excluded, already allowed in production", generated["excluded_already_allowed"]);
+
+        std::cout << "\nLimitations:\n";
+        for (const auto& limitation : generated["limitations"])
+            std::cout << "  - " << limitation.get<std::string>() << "\n";
+        std::cout << "--- END generated permission request ---\n";
+    }
 
     std::cout << "\nObserved side effects: plugin code executed; package and dependencies not installed; no grants persisted; "
                  "filesystem, network and process access not contained\n";
