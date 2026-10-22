@@ -2075,9 +2075,6 @@ void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
     m_btn_color_auto->SetId(ID_COLOR_AUTO);
     m_btn_color_auto->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
-    for (auto* btn : {m_btn_color_4, m_btn_color_8, m_btn_color_16})
-        btn->SetStyle(ButtonStyle::Regular, ButtonType::Window);
-
     update_color_count_preset_buttons();
 
     color_header_sizer->AddStretchSpacer();
@@ -3698,7 +3695,7 @@ void TextureImportDialog::rebuild_mapping_rows()
 
             // Color circle 20px
             int cd = p->FromDIP(20); // ORCA match size of swatches
-            int cx = p->FromDIP(10);
+            int cx = p->FromDIP(6); // ORCA match margins
             int cy = (sz.y - cd) / 2;
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(wxBrush(src_wx_color));
@@ -3938,9 +3935,12 @@ std::vector<Slic3r::FilamentMatch> TextureImportDialog::build_matches_from_rows(
 
 void TextureImportDialog::update_color_count_preset_buttons()
 {
-    if (m_btn_color_4)  m_btn_color_4->SetValue(m_param_color_count == 4);
-    if (m_btn_color_8)  m_btn_color_8->SetValue(m_param_color_count == 8);
-    if (m_btn_color_16) m_btn_color_16->SetValue(m_param_color_count == 16);
+    auto update = [this](auto* btn, int count) {
+        if (btn) btn->SetStyle(m_param_color_count == count ? ButtonStyle::Confirm : ButtonStyle::Regular, ButtonType::Window);
+    };
+    update(m_btn_color_4 , 4);
+    update(m_btn_color_8 , 8);
+    update(m_btn_color_16, 16);
 }
 
 void TextureImportDialog::set_color_count_value(int value, bool update_spin)
@@ -4199,9 +4199,7 @@ void TextureImportDialog::on_dpi_changed(const wxRect&)
         if (btn) btn->Rescale(); // ORCA Rescale applies all style automatically when combined with SetStyle
     }
 
-    for (Button* btn : {m_btn_color_4, m_btn_color_8, m_btn_color_16}) {
-        if (btn) btn->Rescale(); // ORCA Rescale applies all style automatically when combined with SetStyle
-    }
+    update_color_count_preset_buttons(); // ORCA Rescale applies all style automatically when combined with SetStyle
 
     if (m_color_spin)
         m_color_spin->SetMinSize(wxSize(FromDIP(60), FromDIP(28)));
