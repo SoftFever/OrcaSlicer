@@ -4289,9 +4289,11 @@ Points Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) co
                                    Vec2d(pt0.x(),pt0.y()+depth)
                                  };
 
-        // Now the stabilization cone.
+        // Now the stabilization cone, which only a Type2 tower with a cone wall prints.
         Vec2d center = (pts[0] + pts[2])/2.;
-        const auto [cone_R, cone_x_scale] = WipeTower2::get_wipe_tower_cone_base(m_config.prime_tower_width, m_wipe_tower_data.height, m_wipe_tower_data.depth, m_config.wipe_tower_cone_angle);
+        const bool   has_cone   = wipe_tower_type() == WipeTowerType::Type2 && m_config.wipe_tower_wall_type.value == WipeTowerWallType::wtwCone;
+        const double cone_angle = has_cone ? m_config.wipe_tower_cone_angle.value : 0.;
+        const auto [cone_R, cone_x_scale] = WipeTower2::get_wipe_tower_cone_base(m_config.prime_tower_width, m_wipe_tower_data.height, m_wipe_tower_data.depth, cone_angle);
         double r = cone_R + m_wipe_tower_data.brim_width;
         for (double alpha = 0.; alpha<2*M_PI; alpha += M_PI/20.)
             pts.emplace_back(center + r*Vec2d(std::cos(alpha)/cone_x_scale, std::sin(alpha)));
@@ -5406,13 +5408,14 @@ void Print::_make_wipe_tower()
 
         m_wipe_tower_data.used_filament         = wipe_tower.get_used_filament();
         m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
+        // Only a cone wall prints the stabilization cone, whatever cone angle the config holds.
+        const float cone_angle = config().wipe_tower_wall_type.value == WipeTowerWallType::wtwCone ?
+                                     static_cast<float>(config().wipe_tower_cone_angle.value) : 0.f;
         m_wipe_tower_data.construct_mesh(wipe_tower.width(), wipe_tower.get_depth(),
                                          wipe_tower.get_wipe_tower_height(), wipe_tower.get_brim_width(),
                                          config().wipe_tower_wall_type.value == WipeTowerWallType::wtwRib,
                                          wipe_tower.get_rib_width(), wipe_tower.get_rib_length(),
-                                         config().wipe_tower_fillet_wall.value,
-                                         config().wipe_tower_wall_type.value == WipeTowerWallType::wtwCone ?
-                                             (float) config().wipe_tower_cone_angle.value : 0.f);
+                                         config().wipe_tower_fillet_wall.value, cone_angle);
         const Vec3d origin                      = Vec3d::Zero();
         // FakeWipeTower::pos is a bed-frame translation applied after rotation
         // (getFakeExtrusionPathsFromWipeTower2 rotates about the local origin), so the
@@ -5422,7 +5425,7 @@ void Print::_make_wipe_tower()
         m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position() + m_fake_wipe_tower.rib_offset, wipe_tower.width(), wipe_tower.get_wipe_tower_height(),
                                                   config().initial_layer_print_height, m_wipe_tower_data.depth,
                                                   m_wipe_tower_data.z_and_depth_pairs, m_wipe_tower_data.brim_width,
-                                                  config().wipe_tower_rotation_angle, config().wipe_tower_cone_angle,
+                                                  config().wipe_tower_rotation_angle, cone_angle,
                                                   {scale_(origin.x()), scale_(origin.y())});
     }
 

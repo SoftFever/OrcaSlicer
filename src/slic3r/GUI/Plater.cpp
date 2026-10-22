@@ -2865,7 +2865,8 @@ Sidebar::Sidebar(Plater *parent)
 
         // add printer title
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
-        p->m_panel_printer_title->Bind(wxEVT_LEFT_UP, [this] (auto & e) {
+        // ORCA Bind with LEFT_DOWN, since closing a dialog over the title bar can send it a stray LEFT_UP
+        auto toggle_printer_section = ([this] (wxMouseEvent & e) {
             if (!p || !p->combo_printer || !p->m_text_printer_settings || !p->m_panel_printer_content || !m_scrolled_sizer)
                 return;
             // ORCA Show printer name on title when its folded to inform user without expanding it again
@@ -2876,6 +2877,8 @@ Sidebar::Sidebar(Plater *parent)
             p->m_panel_printer_separator->Show(isShown);
             m_scrolled_sizer->Layout();
         });
+        p->m_panel_printer_title->Bind(wxEVT_LEFT_DOWN  , toggle_printer_section);
+        p->m_panel_printer_title->Bind(wxEVT_LEFT_DCLICK, toggle_printer_section);
         // ORCA add bottom border for seperation wile sections folded
         p->m_panel_printer_separator = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(2))); // ORCA staticline class not works without string
         p->m_panel_printer_separator->SetBackgroundColour("#FFFFFF");
@@ -3248,7 +3251,8 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
     p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
-    p->m_panel_filament_title->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
+    // ORCA Bind with LEFT_DOWN, since closing a dialog over the title bar can send it a stray LEFT_UP
+    auto toggle_filament_section = ([this](wxMouseEvent &e) {
         if (!p || !p->m_filament_area_wrapper || !m_scrolled_sizer || !p->m_bpButton_set_filament || !p->m_purge_mode_btn || !p->m_flushing_volume_btn || !p->m_bpButton_add_filament || !ams_btn)
             return;
         // ORCA exclude area of del button from titlebar collapse/expand feature to fix undesired collapse when user spams del filament button
@@ -3267,6 +3271,8 @@ Sidebar::Sidebar(Plater *parent)
 
         CallAfter([this]{update_filaments_counter(true);}); // call after all UI processing done
     });
+    p->m_panel_filament_title->Bind(wxEVT_LEFT_DOWN  , toggle_filament_section);
+    p->m_panel_filament_title->Bind(wxEVT_LEFT_DCLICK, toggle_filament_section);
 
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
@@ -17170,8 +17176,10 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
     canvas->do_scale("");
 
     auto cur_flowrate = filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0); // TODO: per-filament param
-    std::vector<double> internal_solid_speeds = generate_max_speed_parameter_value("internal_solid_infill_speed", linear, pass);
-    std::vector<double> top_surface_speeds = generate_max_speed_parameter_value("top_surface_speed", linear, pass);
+    // Cap the speeds for the extrusion the test prints, not the profile's line width and layer height
+    const float infill_line_width = nozzle_diameter * 1.2f;
+    std::vector<double> internal_solid_speeds = generate_max_speed_parameter_value("internal_solid_infill_speed", infill_line_width, layer_height, linear, pass);
+    std::vector<double> top_surface_speeds = generate_max_speed_parameter_value("top_surface_speed", infill_line_width, layer_height, linear, pass);
 
     // adjust parameters
     for (auto _obj : objects) {
@@ -17190,8 +17198,8 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
-        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
+        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloatOrPercent(infill_line_width, false));
+        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(infill_line_width, false));
         // ORCA: use the pattern parameter
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(pattern));
         const auto *top_solid_flow = dynamic_cast<const ConfigOptionFloatsNullable *>(_obj->config.option("top_solid_infill_flow_ratio"));
