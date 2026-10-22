@@ -2144,7 +2144,7 @@ void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
     wxBoxSizer* apply_sizer = new wxBoxSizer(wxHORIZONTAL);
     apply_sizer->Add(m_btn_color_auto, 0, wxRIGHT, FromDIP(4));
     apply_sizer->Add(m_btn_apply, 0);
-    sizer->Add(apply_sizer, 0, wxALIGN_RIGHT | wxBOTTOM, FromDIP(8));
+    sizer->Add(apply_sizer, 0, wxALIGN_RIGHT | wxBOTTOM | wxTOP, FromDIP(8));
 
     m_hint_label = new wxStaticText(parent, wxID_ANY,
         _L("Reminder: parameters changed, click Apply to take effect"));
