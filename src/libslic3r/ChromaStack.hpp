@@ -10,6 +10,7 @@
 #include <cereal/types/vector.hpp>
 
 #include "Color.hpp"
+#include "TransmissionDistance.hpp"
 #include "TriangleMesh.hpp"
 
 namespace Slic3r {
@@ -76,6 +77,11 @@ static constexpr size_t CHROMA_MAX_BANDS = 16;
 // One filament as the colour model sees it: what colour it is, and how far light gets into it.
 struct ChromaFilament
 {
+    // Where the transmission distance came from, when it came from the shipped table rather than
+    // from the preset: the table's own name for the spool it matched. Empty otherwise, which is what
+    // the card shows as "no source but the preset".
+    std::string td_source;
+
     // 0-based index into the project's filaments, which is what a height range's `extruder` option
     // (1-based) is written from. -1 for a filament that is not loaded, which the GUI refuses to
     // solve with rather than silently printing in the wrong colour.

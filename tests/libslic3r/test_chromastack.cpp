@@ -11,6 +11,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Color.hpp"
 #include "libslic3r/ChromaStack.hpp"
+#include "libslic3r/TransmissionDistance.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
 

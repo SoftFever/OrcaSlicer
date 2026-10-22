@@ -1,6 +1,13 @@
 #include "ChromaStack.hpp"
 
+#include <cctype>
+#include <set>
+
+#include <boost/nowide/fstream.hpp>
+#include <nlohmann/json.hpp>
+
 #include "Polygon.hpp"
+#include "Utils.hpp"
 #include "Triangulation.hpp"
 #include "libslic3r.h"
 

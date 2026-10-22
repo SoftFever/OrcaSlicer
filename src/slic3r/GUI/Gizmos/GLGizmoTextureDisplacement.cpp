@@ -10,6 +10,7 @@
 #include "libslic3r/Color.hpp"
 #include "libslic3r/FilamentMixer.hpp"
 #include "libslic3r/ChromaStack.hpp"
+#include "libslic3r/TransmissionDistance.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/MeshBoolean.hpp"
@@ -4441,6 +4442,25 @@ std::vector<ChromaFilament> GLGizmoTextureDisplacement::chroma_filaments()
                 f.name = preset->label(false);
                 if (preset->config.has("filament_transmission_distance"))
                     f.td_mm = float(preset->config.opt_float("filament_transmission_distance", 0));
+
+                // Nobody has said what this filament's transmission distance is, so ask the table.
+                //
+                // It is keyed by colour, because that is what a transmission distance is a property
+                // of - one line of matte PLA runs from 0.1 to 4.1 across its colours - and a preset
+                // is a whole line. So the preset cannot carry the number, but the preset and the
+                // colour together are enough to find it.
+                //
+                // Only when the preset is still at the option's default: a number somebody typed, or
+                // measured with the wedge, outranks a table every time.
+                if (std::abs(f.td_mm - FILAMENT_TD_DEFAULT_MM) < 1e-4f) {
+                    const std::string vendor = preset->config.has("filament_vendor") ?
+                                                   preset->config.opt_string("filament_vendor", 0u) :
+                                                   std::string();
+                    if (const FilamentTd *found = filament_td_lookup(vendor, preset->name, f.color)) {
+                        f.td_mm      = found->td_mm;
+                        f.td_source  = found->name;
+                    }
+                }
             }
         }
         out.push_back(f);
@@ -5483,9 +5503,25 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                         b.filament.td_mm = v;
                 chroma_touch(layer.slot);
             }
-            tip(_u8L("This filament's transmission distance: how deep light gets into it. It starts from the "
-                     "filament's preset and can be tried out here without changing it."),
+            tip(band.filament.td_source.empty() ?
+                    _u8L("This filament's transmission distance: how deep light gets into it. It starts from the "
+                         "filament's preset and can be tried out here without changing it.") :
+                    Slic3r::format(_u8L("This filament's transmission distance: how deep light gets into it.\n\n"
+                                        "Nobody has set one on the preset, so it was read from the table that ships "
+                                        "with OrcaSlicer, which matched this filament's vendor and color to %1%. "
+                                        "Measuring your own spool beats any table - the ruler beside this does "
+                                        "that."),
+                                   band.filament.td_source),
                 { { "chroma_td.gif" } });
+            // Marked, because a number read from a table is not a number somebody measured, and the
+            // card would otherwise present the two as the same thing.
+            if (!band.filament.td_source.empty()) {
+                const ImVec2 mn = ImGui::GetItemRectMin(), mx = ImGui::GetItemRectMax();
+                const float  r  = std::max(2.f, std::round(frame_h * 0.1f));
+                ImVec4 mark = ImGuiWrapper::COL_ORCA;
+                mark.w       = 0.75f;
+                dl->AddCircleFilled(ImVec2(mx.x - r - 2.f, mn.y + r + 2.f), r, ImGui::GetColorU32(mark));
+            }
 
             // Measure this filament rather than guess it. The number beside it is the one every colour
             // on the card is computed from, and no filament preset ships one.
@@ -9537,22 +9573,25 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                 m_preview_params_dirty = true;
                         }
                 }
+            }
 
-                if (chroma_card) {
-                    render_chroma_details(layer, card_pad, label_w);
-                    m_preview_params_dirty |= float_row("##tile_size", _L("Picture size"), &layer.tiling_scale, 0.2f,
-                                                        500.f, "%.2f mm", true, card_pad,
-                                                        _L("How wide the picture is on the model. It is set to cover the "
-                                                           "painted face when the picture is chosen; change it to crop in "
-                                                           "or to leave a margin."),
-                                                        { { "tile_size_large.png", _L("Larger") },
-                                                          { "tile_size_small.png", _L("Smaller") } });
-                    m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f,
-                                                        "%.0f°", false, card_pad,
-                                                        _L("Turns the picture on the surface, in degrees."),
-                                                        { { "rotation.gif" } });
-                }
-                }
+            // A ChromaStack picture's own advanced settings. A sibling of the block above, not part of
+            // it: nested inside its `!chroma_card` these were unreachable, so the base, the dither and
+            // the picture's placement were never drawn at all.
+            if (chroma_card) {
+                render_chroma_details(layer, card_pad, label_w);
+                m_preview_params_dirty |= float_row("##tile_size", _L("Picture size"), &layer.tiling_scale, 0.2f,
+                                                    500.f, "%.2f mm", true, card_pad,
+                                                    _L("How wide the picture is on the model. It is set to cover the "
+                                                       "painted face when the picture is chosen; change it to crop in "
+                                                       "or to leave a margin."),
+                                                    { { "tile_size_large.png", _L("Larger") },
+                                                      { "tile_size_small.png", _L("Smaller") } });
+                m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f,
+                                                    "%.0f°", false, card_pad,
+                                                    _L("Turns the picture on the surface, in degrees."),
+                                                    { { "rotation.gif" } });
+            }
 
                 // Mapping, as one icon per TextureProjectionMethod, in the enum's own order.
                 {
