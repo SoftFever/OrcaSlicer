@@ -1991,6 +1991,10 @@ void MenuFactory::create_plate_menu()
         []() { return plater()->can_delete_plate(); }, m_parent);
 #endif
 
+    // Orca: plates dragged out of the automatic grid go back to it
+    append_menu_item(menu, wxID_ANY, _L("Reset Plate Layout"), _L("Place all plates in the default grid again"),
+        [](wxCommandEvent&) { plater()->reset_plate_layout(); }, "", nullptr,
+        []() { return plater()->get_partplate_list().has_custom_layout(); }, m_parent);
 
     // add shapes
     menu->AppendSeparator();

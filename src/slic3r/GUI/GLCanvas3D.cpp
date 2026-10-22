@@ -2808,6 +2808,7 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         // so there the plate list is the only bed reference in the scene.
         if (show_bed || _is_below_plate_view_active()) //BBS: add outline logic
             _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
+        _render_plate_drag_target(camera.get_view_matrix(), camera.get_projection_matrix());
         if (m_design_canvas && show_bed)
             // Design tab: replace the plate's corner-origin grid with the origin-centred CAD grid.
             _render_cad_grid(camera.get_view_matrix(), camera.get_projection_matrix());
@@ -4978,7 +4979,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else {
             // BBS: define Alt key to enable volume selection mode
             m_selection.set_volume_selection_mode(evt.AltDown() ? Selection::Volume : Selection::Instance);
-            if (evt.LeftDown() && evt.ShiftDown() && m_picking_enabled && m_layers_editing.state != LayersEditing::Editing) {
+            if (evt.LeftDown() && _start_plate_drag(pos)) {
+                // Orca: the plate follows the mouse until the button goes up.
+            }
+            else if (evt.LeftDown() && evt.ShiftDown() && m_picking_enabled && m_layers_editing.state != LayersEditing::Editing) {
                 if (/*m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
                     &&*/ m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
                     && m_gizmos.get_current_type() != GLGizmosManager::Seam
@@ -5076,6 +5080,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
                 }
             }
+        }
+    }
+    else if (evt.Dragging() && evt.LeftIsDown() && m_plate_drag.plate_idx != -1) {
+        // A click that jitters a few pixels still selects the plate.
+        if (m_mouse.dragging || (pos - m_plate_drag.start).cwiseAbs().maxCoeff() > Mouse::Drag::MoveThresholdPx) {
+            m_mouse.dragging = true;
+            _update_plate_drag(pos);
         }
     }
     else if (evt.Dragging() && evt.LeftIsDown() && m_mouse.drag.move_volume_idx != -1 && m_layers_editing.state == LayersEditing::Unknown) {
@@ -5282,6 +5293,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_layers_editing.state = LayersEditing::Unknown;
             _stop_timer();
             m_layers_editing.accept_changes(*this);
+        }
+        else if (m_plate_drag.plate_idx != -1 && m_mouse.dragging) {
+            if (evt.LeftUp() && m_plate_drag.valid)
+                wxGetApp().plater()->move_plate_to_cell(m_plate_drag.plate_idx, m_plate_drag.cell);
         }
         else if (m_mouse.drag.move_volume_idx != -1 && m_mouse.dragging) {
             do_move(L("Move object"));
@@ -6195,6 +6210,8 @@ void GLCanvas3D::mouse_up_cleanup()
     m_moving = false;
     m_camera_movement = false;
     m_mouse.drag.move_volume_idx = -1;
+    m_plate_drag.plate_idx = -1;
+    m_plate_drag.target.reset();
     m_mouse.set_start_position_3D_as_invalid();
     m_mouse.set_start_position_2D_as_invalid();
     m_mouse.dragging = false;
@@ -11939,6 +11956,97 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
 Vec3d GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)
 {
     return mouse_ray(mouse_pos).intersect_plane(0.0);
+}
+
+bool GLCanvas3D::_start_plate_drag(const Point& mouse_pos)
+{
+    m_plate_drag.plate_idx = -1;
+    if (m_canvas_type != CanvasView3D || !m_picking_enabled || !m_hover_volume_idxs.empty() || m_hover_plate_idxs.empty() ||
+        m_gizmos.get_current_type() != GLGizmosManager::Undefined || is_layers_editing_enabled())
+        return false;
+    const int hover_id = m_hover_plate_idxs.front();
+    if (hover_id % PartPlate::GRABBER_COUNT != (int)PartPlate::PLATE_MOVE_ID)
+        return false;
+
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    const int      plate_idx  = hover_id / PartPlate::GRABBER_COUNT;
+    PartPlate*     plate      = plate_list.get_plate(plate_idx);
+    const Vec3d    grab       = _mouse_to_bed_3d(mouse_pos);
+    if (plate == nullptr || !grab.allFinite())
+        return false;
+
+    m_plate_drag.plate_idx   = plate_idx;
+    m_plate_drag.start       = mouse_pos;
+    m_plate_drag.grab_offset = plate->get_origin().head<2>() - grab.head<2>();
+    m_plate_drag.cell        = plate_list.get_plate_cell(plate_idx);
+    m_plate_drag.valid       = false;
+    m_plate_drag.target.reset();
+    if (!has_mouse_capture())
+        m_canvas->CaptureMouse();
+    return true;
+}
+
+void GLCanvas3D::_update_plate_drag(const Point& mouse_pos)
+{
+    const Vec3d pos = _mouse_to_bed_3d(mouse_pos);
+    if (!pos.allFinite())
+        return;
+
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    const Vec2i32  cell       = plate_list.get_cell_at(pos.head<2>() + m_plate_drag.grab_offset);
+    if (cell != m_plate_drag.cell) {
+        m_plate_drag.cell  = cell;
+        m_plate_drag.valid = plate_list.can_move_plate_to_cell(m_plate_drag.plate_idx, cell);
+        m_plate_drag.target.reset();
+    }
+    m_dirty = true;
+}
+
+void GLCanvas3D::_render_plate_drag_target(const Transform3d& view_matrix, const Transform3d& projection_matrix)
+{
+    if (m_plate_drag.plate_idx == -1 || !m_mouse.dragging)
+        return;
+
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    // Dropping on the plate's own cell does nothing, so there is nothing to show.
+    if (m_plate_drag.cell == plate_list.get_plate_cell(m_plate_drag.plate_idx))
+        return;
+
+    if (!m_plate_drag.target.is_initialized()) {
+        const BoundingBoxf box = plate_list.compute_cell_box(m_plate_drag.cell);
+        const Vec2d&       min = box.min;
+        const Vec2d&       max = box.max;
+        const float        z   = 0.05f;
+
+        GLModel::Geometry data;
+        data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
+        data.reserve_vertices(4);
+        data.reserve_indices(6);
+        data.add_vertex(Vec3f(float(min.x()), float(min.y()), z));
+        data.add_vertex(Vec3f(float(max.x()), float(min.y()), z));
+        data.add_vertex(Vec3f(float(max.x()), float(max.y()), z));
+        data.add_vertex(Vec3f(float(min.x()), float(max.y()), z));
+        data.add_triangle(0, 1, 2);
+        data.add_triangle(0, 2, 3);
+        m_plate_drag.target.init_from(std::move(data));
+        // Green where the plate can go, red where it or a plate making room for it would land on loose objects.
+        m_plate_drag.target.set_color(m_plate_drag.valid ? ColorRGBA(0.0f, 0.588f, 0.533f, 0.4f) : ColorRGBA(0.9f, 0.2f, 0.2f, 0.4f));
+    }
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
+
+    shader->start_using();
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glsafe(::glDepthMask(GL_FALSE));
+    shader->set_uniform("view_model_matrix", view_matrix);
+    shader->set_uniform("projection_matrix", projection_matrix);
+    m_plate_drag.target.render();
+    glsafe(::glDepthMask(GL_TRUE));
+    glsafe(::glDisable(GL_BLEND));
+    shader->stop_using();
 }
 
 ClippingPlane GLCanvas3D::_get_section_view_plane() const
