@@ -212,6 +212,10 @@ private:
     // The G-code layer id (GCodeProcessorResult::MoveVertex::layer_id) of each viewer layer, in the
     // viewer's layer numbering; empty when the two numberings could not be matched.
     std::vector<unsigned int> m_layer_gcode_ids;
+    // Running sums of the viewer layers' estimated times for the time mode in m_layers_time_sums_mode,
+    // rebuilt when the mode changes; filled by visible_layers_time().
+    mutable std::vector<float> m_layers_time_sums;
+    mutable int                m_layers_time_sums_mode{ -1 };
     // Volume of an extruder (model, support or wipe tower) within the layers shown on the vertical
     // slider, from the cumulative per-layer series; nullopt when there is none.
     std::optional<double> visible_layers_volume(size_t extruder_id, PrintEstimatedStatistics::LayerVolumeKind kind) const;

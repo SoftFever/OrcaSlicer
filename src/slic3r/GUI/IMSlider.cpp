@@ -910,8 +910,10 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     // draw layer time
     std::string label = get_label(tick, ltEstimatedTime);
     // and the filament used up to it, when the G-code has it
-    if (const std::string filament = get_label(tick, ltFilament); !filament.empty())
-        label += (label.empty() ? "" : "\n") + filament;
+    if (m_draw_mode != dmSequentialGCodeView) {
+        if (const std::string filament = get_label(tick, ltFilament); !filament.empty())
+            label += (label.empty() ? "" : "\n") + filament;
+    }
     show_tooltip(label);
 }
 

@@ -1668,6 +1668,7 @@ void GCodeViewer::load_as_gcode(const GCodeProcessorResult& gcode_result, const 
     // layers: consecutively over the moves that exist.
     m_belt_layer_zs.clear();
     m_layer_gcode_ids.clear();
+    m_layers_time_sums.clear();
     {
         unsigned int src_layer_id = std::numeric_limits<unsigned int>::max();
         for (size_t i = 1; i < gcode_result.moves.size(); ++ i) {
@@ -1964,6 +1965,7 @@ void GCodeViewer::reset()
     m_last_result_id = -1;
     m_belt_layer_zs.clear();
     m_layer_gcode_ids.clear();
+    m_layers_time_sums.clear();
     //BBS: add only gcode mode
     m_only_gcode_in_preview = false;
 
@@ -2476,11 +2478,18 @@ std::optional<double> GCodeViewer::visible_layers_volume(size_t extruder_id, Pri
 
 std::optional<float> GCodeViewer::visible_layers_time() const
 {
+    // get_layers_estimated_times() builds a new vector from every layer, so keep the running sums per time mode
+    const int mode = int(m_viewer.get_time_mode());
+    if (m_layers_time_sums_mode != mode || m_layers_time_sums.empty()) {
+        const std::vector<float> times = m_viewer.get_layers_estimated_times();
+        m_layers_time_sums.assign(times.size(), 0.0f);
+        std::partial_sum(times.begin(), times.end(), m_layers_time_sums.begin());
+        m_layers_time_sums_mode = mode;
+    }
     const libvgcode::Interval& layers = m_viewer.get_layers_view_range();
-    const std::vector<float> times = m_viewer.get_layers_estimated_times();
-    if (layers[0] > layers[1] || layers[1] >= times.size())
+    if (layers[0] > layers[1] || layers[1] >= m_layers_time_sums.size())
         return std::nullopt;
-    return std::accumulate(times.begin() + layers[0], times.begin() + layers[1] + 1, 0.0f);
+    return m_layers_time_sums[layers[1]] - (layers[0] > 0 ? m_layers_time_sums[layers[0] - 1] : 0.0f);
 }
 
 std::vector<std::string> GCodeViewer::get_layers_filament_labels() const
