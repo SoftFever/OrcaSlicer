@@ -11037,10 +11037,68 @@ void Plater::priv::split_volume()
     wxGetApp().obj_list()->split();
 }
 
+// Boxes within bed that clear every rectangular exclusion zone: the rectangles spanned by bed and
+// exclusion edges that overlap no exclusion. Slivers no wider than the bed padding are dropped.
+static std::vector<BoundingBoxf3> free_print_volumes(const BoundingBoxf3& bed, const std::vector<BoundingBoxf3>& excludes)
+{
+    std::vector<double> xs{ bed.min.x(), bed.max.x() };
+    std::vector<double> ys{ bed.min.y(), bed.max.y() };
+    for (const BoundingBoxf3& ex : excludes) {
+        for (const double x : { ex.min.x(), ex.max.x() })
+            if (x > bed.min.x() && x < bed.max.x())
+                xs.push_back(x);
+        for (const double y : { ex.min.y(), ex.max.y() })
+            if (y > bed.min.y() && y < bed.max.y())
+                ys.push_back(y);
+    }
+    std::sort(xs.begin(), xs.end());
+    std::sort(ys.begin(), ys.end());
+    xs.erase(std::unique(xs.begin(), xs.end()), xs.end());
+    ys.erase(std::unique(ys.begin(), ys.end()), ys.end());
+
+    const double min_size = 2. * Slic3r::BuildVolume::SceneEpsilon;
+    std::vector<BoundingBoxf3> free_volumes;
+    for (size_t i = 0; i < xs.size(); ++i)
+    for (size_t j = i + 1; j < xs.size(); ++j)
+    for (size_t k = 0; k < ys.size(); ++k)
+    for (size_t l = k + 1; l < ys.size(); ++l) {
+        const double min_x = xs[i], max_x = xs[j], min_y = ys[k], max_y = ys[l];
+        if (max_x - min_x <= min_size || max_y - min_y <= min_size)
+            continue;
+
+        const bool blocked = std::any_of(excludes.begin(), excludes.end(), [&](const BoundingBoxf3& ex) {
+            return min_x < ex.max.x() && max_x > ex.min.x() && min_y < ex.max.y() && max_y > ex.min.y();
+        });
+        if (blocked)
+            continue;
+
+        BoundingBoxf3 box = bed;
+        box.min.x() = min_x;
+        box.min.y() = min_y;
+        box.max.x() = max_x;
+        box.max.y() = max_y;
+        free_volumes.push_back(box);
+    }
+    return free_volumes;
+}
+
 void Plater::priv::scale_selection_to_fit_print_volume()
 {
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
-    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(this->bed.build_volume());
+    const BuildVolume volume = this->bed.build_volume();
+    // Every plate shares the bed size, but each sits at its own origin: fit onto the
+    // plate the selection is on instead of always onto the first one.
+    PartPlate*    plate      = this->partplate_list.get_curr_plate();
+    const Vec3d   bed_center = plate != nullptr ? plate->get_center_origin() :
+                                                  Vec3d(volume.bed_center().x(), volume.bed_center().y(), 0.);
+    // On a multi-nozzle printer each nozzle reaches only part of the bed, so a model fitted
+    // to the bed can still exceed a nozzle's printable range. Fit into the volume every
+    // nozzle shares, which is also the area Arrange places items in, minus any exclusion zone.
+    const BoundingBoxf3 bed_box = plate != nullptr ? plate->get_build_volume(true) : volume.bounding_volume();
+    std::vector<BoundingBoxf3> print_volumes{ bed_box };
+    if (plate != nullptr && !plate->get_exclude_areas().empty())
+        print_volumes = free_print_volumes(bed_box, plate->get_exclude_areas());
+    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(volume, Vec2d(bed_center.x(), bed_center.y()), print_volumes);
 #else
     this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(*config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
