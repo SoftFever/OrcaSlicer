@@ -75,32 +75,41 @@ color stays in this direct pass.
 ## More than one translucent color
 
 Between two translucent colors the blending order shows, so on desktop OpenGL the translucent
-segments then blend order independently, with weighted blended order independent transparency
-(McGuire and Bavoil, 2013), in `ViewerImpl::render_translucent()`.
+segments then blend order independently, in `ViewerImpl::render_translucent_segments()`. The nearest
+translucent surface of each pixel is drawn over a weighted blended order independent transparency
+(McGuire and Bavoil, 2013) of the others. The mean alone would not do: the walls of a painted object
+lie a fraction of a millimetre apart, so its depth weights barely differ, and the more opaque and more
+numerous surfaces of one filament would hide the other filament's outer wall in front of them.
 
 1. The depth of the scene drawn so far is copied into a texture. The fragment shader discards a
    translucent fragment behind it, as there is no depth buffer to test against.
-2. Each translucent fragment adds its premultiplied color, times a weight, to an `RGBA16F` target,
-   and `-log(1 - alpha)` to an `R16F` target, with `GL_ONE, GL_ONE`. The weight is the opacity
-   times `max((1 - z)^3, 0.01)`, z being the depth across the extrusions' bounding box, so nearer
-   surfaces count more. Its ceiling keeps thousands of stacked surfaces within half float range,
-   and its floor keeps far ones out of the subnormals.
-3. When the canvas is multisampled, the targets are too, then resolved, so that translucent lines
-   keep their antialiasing.
-4. A full screen pass draws the weighted mean color over the scene, with the coverage
-   `1 - exp(-sum)`.
+2. The translucent segments are drawn once into an `R32F` target cleared to 1, keeping with `GL_MIN`
+   the `gl_FragCoord.z` of the nearest. The same program draws the next pass, so the nearest
+   fragment finds its own depth there exactly.
+3. They are drawn again. The nearest fragment of a pixel goes, premultiplied, to an `RGBA16F` target
+   of its own. Every other one adds its premultiplied color, times a weight, to an `RGBA16F` target,
+   and `-log(1 - alpha)` to an `R16F` target, with `GL_ONE, GL_ONE`. The weight is the opacity times
+   `max((1 - z)^3, 0.01)`, z being the depth across the extrusions' bounding box, so nearer surfaces
+   count more. Its ceiling keeps thousands of stacked surfaces within half float range, and its floor
+   keeps far ones out of the subnormals. A translucent segment's opacity stays below 1, else the
+   shader would take it for an opaque one and add it unweighted.
+4. When the canvas is multisampled, the color targets are too, then resolved, so that translucent
+   lines keep their antialiasing.
+5. A full screen pass draws the nearest surface over the weighted mean color of the others, with
+   their coverage `1 - exp(-sum)`, over the scene.
 
 Swapping the drawing order changes the result by at most 2 levels out of 255, against up to 246 in
-the direct pass. The targets take about 50 bytes per pixel with 4x multisampling, which is why a
-single translucent color keeps the direct pass. OpenGL ES, whose float targets are optional, always
-takes the direct pass, as does a multisampled framebuffer object, whose depth cannot be copied into
-a texture.
+the direct pass. The targets take about 26 bytes per pixel, and 18 more per sample with
+multisampling, which is why a single translucent color keeps the direct pass. OpenGL ES, whose float
+targets are optional, always takes the direct pass, as does a multisampled framebuffer object, whose
+depth cannot be copied into a texture.
 
 ## Cost and side effects
 
 Without depth writes, every translucent surface on screen is shaded, so the cost of the second
 pass grows with the number of translucent surfaces stacked on screen. Order independent blending
-writes 10 bytes of float data per sample instead of 4, and roughly doubles that pass again.
+draws the translucent segments twice and writes 18 bytes of float data per sample instead of 4, about
+three times the cost of the direct pass.
 
 In realistic view, a translucent segment casts into a share of the shadow map texels as large as
 its opacity, in an ordered 4x4 pattern that the 5x5 filter of the receivers reads as a lighter

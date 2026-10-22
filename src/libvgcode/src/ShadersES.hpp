@@ -174,7 +174,8 @@ static const char* Segments_Vertex_Shader_ES =
 "  if (alpha < 1.0) {\n"
 "    vec2 hw = texelFetch(height_width_angle_tex, tex_coord(height_width_angle_tex, id_a), 0).xy;\n"
 "    float path = 1.0 / max(abs(dot(camera_view_dir, line_up_dir)) / hw.x + abs(dot(camera_view_dir, line_right_dir)) / hw.y, 1e-3);\n"
-"    alpha = 1.0 - pow(1.0 - alpha, min(path / REFERENCE_THICKNESS, 16.0));\n"
+// ORCA: below 1, which would take a translucent segment for an opaque one
+"    alpha = min(1.0 - pow(1.0 - alpha, min(path / REFERENCE_THICKNESS, 16.0)), 0.999);\n"
 "  }\n"
 "  bool is_vertical_view = abs(dot(camera_view_dir, line_up_dir)) / abs(dot(diagonal_dir_border, line_up_dir)) >\n"
 "    abs(dot(camera_view_dir, line_right_dir)) / abs(dot(diagonal_dir_border, line_right_dir));\n"

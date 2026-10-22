@@ -167,7 +167,8 @@ static const char* Segments_Vertex_Shader =
 "  if (alpha < 1.0) {\n"
 "    vec2 hw = texelFetch(height_width_angle_tex, id_a).xy;\n"
 "    float path = 1.0 / max(abs(dot(camera_view_dir, line_up_dir)) / hw.x + abs(dot(camera_view_dir, line_right_dir)) / hw.y, 1e-3);\n"
-"    alpha = 1.0 - pow(1.0 - alpha, min(path / REFERENCE_THICKNESS, 16.0));\n"
+// ORCA: below 1, which would take a translucent segment for an opaque one
+"    alpha = min(1.0 - pow(1.0 - alpha, min(path / REFERENCE_THICKNESS, 16.0)), 0.999);\n"
 "  }\n"
 "  bool is_vertical_view = abs(dot(camera_view_dir, line_up_dir)) / abs(dot(diagonal_dir_border, line_up_dir)) >\n"
 "    abs(dot(camera_view_dir, line_right_dir)) / abs(dot(diagonal_dir_border, line_right_dir));\n"
@@ -313,10 +314,13 @@ static const char* Segments_Fragment_Shader =
 "flat in vec4 joint_a;\n"
 "flat in vec4 joint_b;\n"
 "out vec4 fragment_color;\n"
-// ORCA: weighted blended order independent transparency, see ViewerImpl::render_translucent()
+// ORCA: order independent transparency, see ViewerImpl::render_translucent_segments(). Pass 1 finds the depth of
+// the nearest translucent surface, pass 2 sets that surface apart and adds up the weighted others.
 "out float oit_reveal;\n"
-"uniform bool oit;\n"
+"out vec4 oit_front;\n"
+"uniform int oit_pass;\n"
 "uniform sampler2D opaque_depth;\n"
+"uniform sampler2D front_depth;\n"
 "uniform vec2 oit_depth_range;\n"
 "float shadow_shade(vec3 position, vec3 normal) {\n"
 "  if (shadow_intensity <= 0.0)\n"
@@ -364,9 +368,16 @@ static const char* Segments_Fragment_Shader =
 "void main() {\n"
 "  if (dot(vec4(world_position, 1.0), joint_a) < 0.0 || dot(vec4(world_position, 1.0), joint_b) < 0.0)\n"
 "    discard;\n"
-// ORCA: when accumulating, the opaque scene hides what lies behind it
-"  if (oit && gl_FragCoord.z > texelFetch(opaque_depth, ivec2(gl_FragCoord.xy), 0).r)\n"
+// ORCA: in the transparency passes, the opaque scene hides what lies behind it
+"  if (oit_pass != 0 && gl_FragCoord.z > texelFetch(opaque_depth, ivec2(gl_FragCoord.xy), 0).r)\n"
 "    discard;\n"
+"  if (oit_pass == 1) {\n"
+"    vec3 cut;\n"
+"    if (dot(vec4(world_position, 1.0), clipping_plane) < 0.0 && !find_cut(cut))\n"
+"      discard;\n"
+"    fragment_color = vec4(gl_FragCoord.z);\n"
+"    return;\n"
+"  }\n"
 "  vec3 c;\n"
 "  vec3 position = world_position;\n"
 "  vec3 normal = shadow_normal;\n"
@@ -395,11 +406,18 @@ static const char* Segments_Fragment_Shader =
 "  vec3 v = projection_matrix[3][3] == 1.0 ? vec3(0.0, 0.0, 1.0) : -normalize((view_matrix * vec4(position, 1.0)).xyz);\n"
 "  float gloss = dot(n, n) > 1e-8 ? gloss_strength * pow(max(dot(v, reflect(-light_top_dir, normalize(n))), 0.0), GLOSS_SHININESS) * shade : 0.0;\n"
 "  fragment_color = vec4(clamp(c, 0.0, 1.0) * alpha + gloss, alpha);\n"
-"  if (!oit)\n"
+"  if (oit_pass != 2)\n"
 "    return;\n"
+"  if (gl_FragCoord.z <= texelFetch(front_depth, ivec2(gl_FragCoord.xy), 0).r) {\n"
+"    oit_front = fragment_color;\n"
+"    fragment_color = vec4(0.0);\n"
+"    oit_reveal = 0.0;\n"
+"    return;\n"
+"  }\n"
 "  float z = clamp((-(view_matrix * vec4(position, 1.0)).z - oit_depth_range.x) / (oit_depth_range.y - oit_depth_range.x), 0.0, 1.0);\n"
 "  fragment_color *= alpha * max(pow(1.0 - z, 3.0), 1e-2);\n"
-"  oit_reveal = -log(1.0 - min(alpha, 0.999));\n"
+"  oit_reveal = -log(1.0 - alpha);\n"
+"  oit_front = vec4(0.0);\n"
 "}\n";
 
 // ORCA: weighted blended order independent transparency, see ViewerImpl::render_translucent()
@@ -414,15 +432,20 @@ static const char* Translucent_Composite_Fragment_Shader =
 "#version 150\n"
 "uniform sampler2D accum_tex;\n"
 "uniform sampler2D reveal_tex;\n"
+"uniform sampler2D front_tex;\n"
 "uniform ivec2 origin;\n"
 "out vec4 fragment_color;\n"
 "void main() {\n"
 "  ivec2 coord = ivec2(gl_FragCoord.xy) - origin;\n"
+"  vec4 front = texelFetch(front_tex, coord, 0);\n"
 "  vec4 accum = texelFetch(accum_tex, coord, 0);\n"
-"  if (accum.a <= 0.0)\n"
+"  if (front.a <= 0.0 && accum.a <= 0.0)\n"
 "    discard;\n"
-"  float coverage = 1.0 - exp(-texelFetch(reveal_tex, coord, 0).r);\n"
-"  fragment_color = vec4(accum.rgb / accum.a * coverage, coverage);\n"
+"  float coverage = accum.a > 0.0 ? 1.0 - exp(-texelFetch(reveal_tex, coord, 0).r) : 0.0;\n"
+"  vec3 behind = accum.a > 0.0 ? accum.rgb / accum.a * coverage : vec3(0.0);\n"
+// the nearest surface over the weighted mean of the others
+"  float front_alpha = min(front.a, 1.0);\n"
+"  fragment_color = vec4(front.rgb + (1.0 - front_alpha) * behind, 1.0 - (1.0 - front_alpha) * (1.0 - coverage));\n"
 "}\n";
 
 static const char* Options_Vertex_Shader =
