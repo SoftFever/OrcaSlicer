@@ -1238,6 +1238,9 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
     // The outline passes below are driven by is_outline, which only the object shaders have; with an
     // overlay one (wireframe, x-ray) bound they would just draw the volume again.
     const bool shader_can_outline = shader->get_uniform_location("is_outline") >= 0;
+    // ORCA: the object shaders that know how draw a part of a translucent filament as its print would
+    // show, in premultiplied color, see translucent_filament_color() in gouraud.fs
+    const bool shade_translucent_filaments = type == ERenderType::Transparent && shader->get_uniform_location("translucent_filament") >= 0;
 
     // Prime depth_tex on every frame so non-outline draws do not keep the
     // default sampler unit 0, which can conflict with other sampler types.
@@ -1343,6 +1346,11 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
         shader->set_uniform("projection_matrix", projection_matrix);
         const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
         shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        if (shade_translucent_filaments) {
+            const bool translucent_filament = volume.first->visible && !volume.first->is_modifier && volume.first->color.is_transparent();
+            shader->set_uniform("translucent_filament", translucent_filament);
+            glsafe(::glBlendFunc(translucent_filament ? GL_ONE : GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        }
         if (volume.first->depth_bias) {
             glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
             glsafe(::glPolygonOffset(1.0f, 1.0f));
@@ -1385,6 +1393,11 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
     if (disable_cullface)
         glsafe(::glEnable(GL_CULL_FACE));
 
+    if (shade_translucent_filaments) {
+        // the program is shared, so leave it as the other users expect
+        shader->set_uniform("translucent_filament", false);
+        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    }
     if (type == ERenderType::Transparent)
         glsafe(::glDisable(GL_BLEND));
 }

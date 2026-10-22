@@ -9595,6 +9595,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         // Set on every use: the program is shared, so a canvas that leaves it unset would inherit
         // the last canvas's choice.
         shader->set_uniform("lighting_model", studio ? 1 : 0);
+        shader->set_uniform("translucent_gloss", realistic_mode);
         if (studio) {
             const Transform3d& view = wxGetApp().plater()->get_camera().get_view_matrix();
             shader->set_uniform("world_up_eye", Vec3f((view.matrix().block<3, 3>(0, 0) * Vec3d::UnitZ()).cast<float>()));

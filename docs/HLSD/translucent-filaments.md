@@ -1,10 +1,11 @@
-# Translucent filaments in Preview
+# Translucent filaments
 
 ## Purpose
 
 A filament color can carry an opacity (`#RRGGBBAA`, see [color-picker.md](color-picker.md)). Prepare
-draws the objects of such a filament in its transparent pass. Preview does the same for their
-toolpaths, so the inside of a translucent part and whatever lies behind it show through.
+draws the parts of such a filament see-through, and Preview their toolpaths, so the inside of a
+translucent part and whatever lies behind it show through. Both tabs aim at the same look: the
+opacity of the plastic the view ray crosses, matte without realistic view and glossy with it.
 
 ## Where the opacity applies
 
@@ -106,3 +107,24 @@ its opacity, in an ordered 4x4 pattern that the 5x5 filter of the receivers read
 shadow. The pattern shifts with the segment, so layers stacked along the light add up: a 1 mm
 translucent box at 35% casts a shadow about 60% as dark as an opaque one, a 10 mm box nearly a full
 one.
+
+## Prepare
+
+Prepare draws a part as a closed mesh, which would show a single surface at the filament's opacity,
+far fainter and darker than the print of that part in Preview. The object shaders therefore shade a
+visible model part whose filament color is translucent as the view ray crossing two shells of the
+part, the front and the back one, of two 0.45 mm walls each, with the opacity rule of Preview:
+`1 - (1 - a)^(1.8 / 0.4 / cos)`, cos being that of the angle between the view and the normal,
+floored at 0.25. A filament at 35% is then about 86% opaque face on, and nearly opaque at the
+silhouette, where the ray grazes the walls. See `translucent_filament_color()` in `gouraud.fs` and
+`phong.fs`.
+
+Such a part is drawn in premultiplied color, blended with `GL_ONE, GL_ONE_MINUS_SRC_ALPHA`, so that
+in realistic view its highlight is not dimmed by its opacity; without realistic view it takes no
+highlight. `GLVolumeCollection::render()` switches this per volume, and only with a shader that has
+the `translucent_filament` uniform, the GLSL 1.40 ones: with the GLSL 1.10 and ES shaders, such a
+part blends as a plain transparent volume. Modifiers, negative volumes and opaque parts are drawn as
+they were.
+
+The wireframe overlay draws translucent filament parts too, with blending off, so their lines stay
+solid.
