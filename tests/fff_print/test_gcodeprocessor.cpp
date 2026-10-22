@@ -27,6 +27,8 @@
 #include <optional>
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Point.hpp"
+#include <cstdlib>
+#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -682,4 +684,62 @@ TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusion
     };
     check(Kind::Support, stats.layer_support_volumes_per_extruder, stats.support_volumes_per_extruder);
     check(Kind::WipeTower, stats.layer_wipe_tower_volumes_per_extruder, stats.wipe_tower_volumes_per_extruder);
+}
+
+// TEMPORARY diagnostic: reports how the moves of a result relate to the G-code text. Always fails so CI prints it.
+TEST_CASE("Diagnose the extruded volume of the moves of a result", "[GCodeProcessor][Diagnostic]")
+{
+    DynamicPrintConfig config = Test::multifilament_config(2, { { "skirt_loops", 0 }, { "brim_type", "no_brim" }, { "wipe_tower_x", "150" }, { "wipe_tower_y", "150" } });
+    const std::vector<std::vector<ConfigBase::SetDeserializeItem>> overrides{ { { "extruder", 1 } }, { { "extruder", 2 } } };
+    Print print;
+    Model model;
+    Test::init_print({ Test::cube(20), Test::cube(20) }, print, model, config, &overrides);
+    GCodeProcessorResult result;
+    const std::string gcode = Test::gcode(print, &result);
+
+    std::ostringstream out;
+    out << "relative_e=" << config.opt_bool("use_relative_e_distances") << " filament_diameter=" << config.option<ConfigOptionFloats>("filament_diameter")->get_at(0) << "\n";
+    out << "moves=" << result.moves.size() << "\n";
+    std::map<unsigned char, double> e_sum;
+    std::map<unsigned char, size_t> extrude_count;
+    std::set<unsigned int> ids;
+    size_t extrude_total = 0;
+    for (const GCodeProcessorResult::MoveVertex &move : result.moves) {
+        if (move.type != EMoveType::Extrude)
+            continue;
+        ++extrude_total;
+        ++extrude_count[move.extruder_id];
+        e_sum[move.extruder_id] += double(move.delta_extruder);
+        ids.insert(move.gcode_id);
+    }
+    out << "extrude_moves=" << extrude_total << " distinct_gcode_ids=" << ids.size() << "\n";
+    for (const auto &[id, sum] : e_sum)
+        out << "extruder " << int(id) << ": extrude_moves=" << extrude_count[id] << " sum_delta_e=" << sum << "\n";
+    for (const auto &[id, volume] : result.print_statistics.model_volumes_per_extruder)
+        out << "filament " << id << ": model_volume=" << volume << " total_volume=" << result.print_statistics.total_volumes_per_extruder[id] << "\n";
+
+    // The E of the G-code text, summed over its G1 lines that move in X or Y with a positive E
+    std::map<int, double> text_e;
+    std::istringstream lines(gcode);
+    std::string line;
+    int tool = 0;
+    size_t layer_changes = 0, g1_extrude = 0;
+    while (std::getline(lines, line)) {
+        if (line.rfind("T0", 0) == 0 || line.rfind("T1", 0) == 0)
+            tool = line[1] - '0';
+        if (line.find("; CHANGE_LAYER") != std::string::npos || line.find(";LAYER_CHANGE") != std::string::npos)
+            ++layer_changes;
+        if (line.rfind("G1 ", 0) == 0 && line.find(" E") != std::string::npos && (line.find(" X") != std::string::npos || line.find(" Y") != std::string::npos)) {
+            const size_t e = line.find(" E");
+            const double value = std::atof(line.c_str() + e + 2);
+            if (value > 0.) {
+                text_e[tool] += value;
+                ++g1_extrude;
+            }
+        }
+    }
+    out << "gcode_text: layer_changes=" << layer_changes << " g1_extrude_lines=" << g1_extrude << "\n";
+    for (const auto &[id, sum] : text_e)
+        out << "gcode_text tool " << id << ": sum_e=" << sum << "\n";
+    FAIL(out.str());
 }
