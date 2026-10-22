@@ -52,9 +52,11 @@ from depth would otherwise shade a translucent surface as the surface behind it,
 centre of mass marker. FXAA still comes after, and so do the sequential view markers drawn by
 `GCodeViewer::render_scene()`, which hide the translucent toolpaths behind them.
 
-A translucent segment takes its diffuse light in its own color, scaled by its opacity, and a
-highlight computed per fragment, untinted and not scaled, so a clear filament keeps its gloss
-instead of fading into the background. The highlight takes the normal across the extrusion: the
+A translucent segment takes its diffuse light in its own color, scaled by its opacity. In
+realistic view, whatever its options, it also takes a highlight computed per fragment, untinted
+and not scaled, so a clear filament keeps its gloss instead of fading into the background;
+`GLCanvas3D::_render_gcode()` switches it with `Viewer::set_translucent_gloss()`, and without
+realistic view a translucent filament is matte. The highlight takes the normal across the extrusion: the
 rounded ends would otherwise catch it as a bright spot at the start and end of every line. There
 is no Fresnel term: an extrusion seen end-on would turn into a bright opaque stripe.
 

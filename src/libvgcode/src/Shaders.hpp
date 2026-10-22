@@ -300,8 +300,8 @@ static const char* Segments_Fragment_Shader =
 "uniform samplerBuffer height_width_angle_tex;\n"
 "const vec3 UP = vec3(0, 0, 1);\n"
 "const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);\n"
-// ORCA: translucent filaments are glossy, with an untinted highlight their opacity does not dim
-"const float GLOSS = 0.6;\n"
+// ORCA: translucent filaments are glossy in realistic view, with an untinted highlight their opacity does not dim
+"uniform float gloss_strength;\n"
 "const float GLOSS_SHININESS = 80.0;\n"
 "in vec3 color;\n"
 "in vec3 color_direct;\n"
@@ -393,7 +393,7 @@ static const char* Segments_Fragment_Shader =
 "  vec3 along = mat3(view_matrix) * (texelFetch(position_tex, segment_id + 1).xyz - texelFetch(position_tex, segment_id).xyz);\n"
 "  vec3 n = dot(along, along) > 1e-8 ? normal - dot(normal, along) / dot(along, along) * along : normal;\n"
 "  vec3 v = projection_matrix[3][3] == 1.0 ? vec3(0.0, 0.0, 1.0) : -normalize((view_matrix * vec4(position, 1.0)).xyz);\n"
-"  float gloss = dot(n, n) > 1e-8 ? GLOSS * pow(max(dot(v, reflect(-light_top_dir, normalize(n))), 0.0), GLOSS_SHININESS) * shade : 0.0;\n"
+"  float gloss = dot(n, n) > 1e-8 ? gloss_strength * pow(max(dot(v, reflect(-light_top_dir, normalize(n))), 0.0), GLOSS_SHININESS) * shade : 0.0;\n"
 "  fragment_color = vec4(clamp(c, 0.0, 1.0) * alpha + gloss, alpha);\n"
 "  if (!oit)\n"
 "    return;\n"

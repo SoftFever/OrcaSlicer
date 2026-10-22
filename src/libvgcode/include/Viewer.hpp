@@ -93,6 +93,10 @@ public:
     // ORCA: direction to the top light in eye space, shading the toolpaths and biasing their shadow lookup.
     //
     void set_light_top_dir(const Vec3& direction);
+    //
+    // ORCA: whether translucent filaments catch a highlight, on by default; the caller ties it to the realistic view.
+    //
+    void set_translucent_gloss(bool gloss);
 
     //
     // ************************************************************************

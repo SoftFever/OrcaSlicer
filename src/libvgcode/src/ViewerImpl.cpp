@@ -819,6 +819,7 @@ void ViewerImpl::init(const std::string& opengl_context_version)
     m_uni_segments_exposure_id               = glGetUniformLocation(m_segments_shader_id, "exposure");
     m_uni_segments_saturation_id             = glGetUniformLocation(m_segments_shader_id, "saturation");
     m_uni_segments_light_top_dir_id          = glGetUniformLocation(m_segments_shader_id, "light_top_dir");
+    m_uni_segments_gloss_id                  = glGetUniformLocation(m_segments_shader_id, "gloss_strength");
     m_uni_segments_layer_colors.init(m_segments_shader_id);
     glcheck();
     assert(m_uni_segments.view_matrix != -1 &&
@@ -2235,6 +2236,7 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
         glsafe(glUniform1f(m_uni_segments_exposure_id, m_exposure));
         glsafe(glUniform1f(m_uni_segments_saturation_id, m_saturation));
         glsafe(glUniform3fv(m_uni_segments_light_top_dir_id, 1, m_light_top_dir.data()));
+        glsafe(glUniform1f(m_uni_segments_gloss_id, m_translucent_gloss ? 0.6f : 0.0f));
         set_layer_colors(m_uni_segments_layer_colors);
 #ifndef ENABLE_OPENGL_ES
         glsafe(glUniform1i(m_uni_segments_oit_id, m_accumulating_translucent ? 1 : 0));
