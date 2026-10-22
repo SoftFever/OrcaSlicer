@@ -1437,18 +1437,14 @@ wxMenu* MenuFactory::append_menu_item_more(wxMenu* menu, bool multi_selection, b
     return sub_menu;
 }
 
-void MenuFactory::append_menu_item_precise_seam_submenu(wxMenu* menu, size_t pos)
+void MenuFactory::append_menu_item_precise_seam_submenu(wxMenu* menu)
 {
     wxString submenu_name = _L("Precise Seam Type");
 
-    // Remove existing submenu (and the separator placed right after it) if present (menu is rebuilt on every right-click)
+    // Remove existing submenu if present (menu is rebuilt on every right-click)
     const int menu_item_id = menu->FindItem(submenu_name);
-    if (menu_item_id != wxNOT_FOUND) {
-        const size_t item_pos = FindPositionById(menu, menu_item_id);
-        if (item_pos != size_t(wxNOT_FOUND) && item_pos + 1 < menu->GetMenuItemCount() && menu->FindItemByPosition(item_pos + 1)->IsSeparator())
-            menu->Destroy(menu->FindItemByPosition(item_pos + 1));
+    if (menu_item_id != wxNOT_FOUND)
         menu->Destroy(menu_item_id);
-    }
 
     // --- Precondition: ALL selected volumes must be Precise Seam ---
     // Mixed selections (PS + non-PS) are ambiguous for subtype switching: applying a subtype
@@ -1490,6 +1486,19 @@ void MenuFactory::append_menu_item_precise_seam_submenu(wxMenu* menu, size_t pos
         if (!is_precise_seam(vol_type))
             return;
         selected_ps_types.push_back(vol_type);
+    }
+
+    // Match the label used by append_menu_item_change_type, including its translation.
+    int insert_pos     = wxNOT_FOUND;
+    int change_type_id = menu->FindItem(_L("Change Type"));
+    if (change_type_id != wxNOT_FOUND) {
+        for (size_t i = 0; i < menu->GetMenuItemCount(); i++) {
+            wxMenuItem* item = menu->FindItemByPosition(i);
+            if (item && item->GetId() == change_type_id) {
+                insert_pos = i + 1;  // insert directly after the Change Type entry
+                break;
+            }
+        }
     }
 
     // --- Build the subtype submenu ---
@@ -1550,11 +1559,7 @@ void MenuFactory::append_menu_item_precise_seam_submenu(wxMenu* menu, size_t pos
                    "menu_precise_seam_type",
                    []() { return true; },
                    m_parent,
-                   pos);
-    if (pos == size_t(wxNOT_FOUND))
-        menu->AppendSeparator();
-    else
-        menu->InsertSeparator(pos + 1);
+                   insert_pos);
 }
 
 void MenuFactory::append_menu_item_edit_text(wxMenu *menu, size_t pos)
@@ -2126,7 +2131,7 @@ wxMenu* MenuFactory::part_menu()
     // stored positions not works as expected since menu has multiple dynamic sections
     append_menu_item_per_object_settings(&m_part_menu, FindPositionById(&m_part_menu, m_part_project_marker) + 1);
     append_menu_item_change_filament(&m_part_menu, FindPositionById(&m_part_menu, m_part_props_marker) + 1);
-    append_menu_item_precise_seam_submenu(&m_part_menu, 0); // inserts itself to top of menu
+    append_menu_item_precise_seam_submenu(&m_part_menu);
     return &m_part_menu;
 }
 

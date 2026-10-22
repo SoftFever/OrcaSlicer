@@ -186,7 +186,7 @@ private:
     void        append_menu_item_merge_to_multipart_object(wxMenu *menu);
     void        append_menu_item_merge_to_single_object(wxMenu* menu);
     void        append_menu_item_align_distribute(wxMenu *menu);
-    void        append_menu_item_precise_seam_submenu(wxMenu* menu, size_t pos = -1);
+    void        append_menu_item_precise_seam_submenu(wxMenu* menu);
     void        append_menu_item_invalidate_cut_info(wxMenu *menu, size_t pos = -1);
     void        append_menu_item_edit_text(wxMenu *menu, size_t pos = -1);
     void        append_menu_item_edit_svg(wxMenu *menu, size_t pos = -1);
