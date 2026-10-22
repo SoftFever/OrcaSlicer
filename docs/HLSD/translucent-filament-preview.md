@@ -33,13 +33,18 @@ is not sorted and the second pass is skipped, so the first draws exactly what it
 
 1. The opaque segments, with depth writes.
 2. The option markers.
-3. The translucent segments, blended with `GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`, depth tested
-   but without depth writes. Opaque toolpaths and objects hide the translucent ones behind them,
-   and a translucent segment hides nothing. Drawing the markers first keeps those inside a
-   translucent part behind its surface, instead of on top of it.
+3. The translucent segments, in premultiplied color blended with `GL_ONE, GL_ONE_MINUS_SRC_ALPHA`,
+   depth tested but without depth writes. Opaque toolpaths and objects hide the translucent ones
+   behind them, and a translucent segment hides nothing. Drawing the markers first keeps those
+   inside a translucent part behind its surface, instead of on top of it.
 
-The translucent segments are not sorted by depth. The opaque pass draws the last printed segments first
-when looking down, to cut overdraw. The translucent pass draws them the other way round, so the
+A translucent segment takes its diffuse light in its own color, scaled by its opacity, and a
+highlight computed per fragment, untinted and not scaled, so a clear filament keeps its gloss
+instead of fading into the background. There is no Fresnel term: an extrusion seen end-on would
+turn into a bright opaque stripe.
+
+The translucent segments are not sorted by depth. The opaque pass draws the last printed segments
+first when looking down, to cut overdraw. The translucent pass draws them the other way round, so the
 farthest layers blend first. Overlapping surfaces of one filament share a color, so the order
 inside a layer barely shows; between two translucent filaments, it is approximate.
 

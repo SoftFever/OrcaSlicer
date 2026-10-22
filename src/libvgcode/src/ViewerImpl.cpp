@@ -2202,7 +2202,8 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
         glsafe(glGetIntegerv(GL_BLEND_DST_ALPHA, &curr_blend_func[3]));
         glsafe(glGetBooleanv(GL_DEPTH_WRITEMASK, &curr_depth_mask));
         glsafe(glEnable(GL_BLEND));
-        glsafe(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        // premultiplied, the highlights are not scaled by the opacity
+        glsafe(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
         glsafe(glDepthMask(GL_FALSE));
     }
 
