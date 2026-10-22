@@ -1,32 +1,37 @@
 #include "PrinterWebView.hpp"
 
 #include "PrinterWebViewHandler.hpp"
+#include "I18N.hpp"
+
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
-#include "libslic3r_version.h"
 
-#include <boost/filesystem/path.hpp>
-#include <utility>
-#include <wx/panel.h>
-#include <wx/gdicmn.h>
-#include <memory>
-#include <wx/log.h>
+#include "libslic3r_version.h"
+#include <libslic3r/PrintConfig.hpp>
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PresetBundle.hpp"
-#include <wx/event.h>
+
 #include <boost/log/trivial.hpp>
-#include <wx/sizer.h>
-#include <wx/string.h>
-#include <wx/toolbar.h>
+#include <boost/filesystem/path.hpp>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include <slic3r/GUI/Widgets/WebViewHostDialog.hpp>
-#include "I18N.hpp"
 #include <nlohmann/json.hpp>
+
+#include <wx/event.h>
+#include <wx/panel.h>
+#include <wx/gdicmn.h>
+#include <wx/log.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/toolbar.h>
 #include <wx/utils.h>
 #include <wx/webview.h>
+
+#include <memory>
+#include <utility>
 
 class wxWindow;
 
