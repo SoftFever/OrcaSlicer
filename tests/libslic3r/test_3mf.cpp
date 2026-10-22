@@ -2630,8 +2630,9 @@ TEST_CASE("A plate in a custom layout keeps its cell and stores its objects at t
     REQUIRE(dst_plates.size() == 1);
     REQUIRE(dst_model.objects.size() == 1);
     REQUIRE(dst_model.objects.front()->instances.size() == 1);
-    const Vec3d expected = Vec3d(100., 50., 0.) + (custom_layout ? layout_offset : Vec3d::Zero());
-    const Vec3d loaded   = dst_model.objects.front()->instances.front()->get_offset();
+    // Compare where the cube sits rather than the instance offset, which loading recenters on the mesh.
+    const Vec3d expected = object->instance_bounding_box(0).center() + (custom_layout ? layout_offset : Vec3d::Zero());
+    const Vec3d loaded   = dst_model.objects.front()->instance_bounding_box(0).center();
     CHECK_THAT(loaded.x(), Catch::Matchers::WithinAbs(expected.x(), 1e-6));
     CHECK_THAT(loaded.y(), Catch::Matchers::WithinAbs(expected.y(), 1e-6));
     if (custom_layout) {
