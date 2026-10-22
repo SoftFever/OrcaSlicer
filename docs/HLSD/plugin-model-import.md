@@ -24,7 +24,8 @@ else:
   the supplied order; separate files are not combined into one multipart object.
   Unsupported or missing paths reject the batch before changing the scene.
 - `plate` is `"current"` or `"new"`. A new plate uses the project's normal plate
-  creation behaviour. An empty new plate is removed if nothing is imported.
+  creation behaviour. Its active project settings are applied synchronously
+  before loading models. An empty new plate is removed if nothing is imported.
 - 3MF files supply model geometry, rather than changing project presets or
   replacing the scene. Native unit, geometry, multipart and texture decisions
   remain with Orca's loader. ZIP archive selection and G-code preview are not
@@ -78,3 +79,5 @@ those C++ reads do not raise separate Python audit events. The GIL is released
 during native loading and dialogs, then reacquired before converting the result
 to Python. The operation is synchronous;
 the import result is returned independently of queued arrangement.
+
+[Native GUI regression procedure](../../tests/slic3rutils/model_import_gui.md).

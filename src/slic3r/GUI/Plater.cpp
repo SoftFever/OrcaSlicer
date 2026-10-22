@@ -16667,7 +16667,7 @@ ModelImportResult Plater::import_models(const std::vector<fs::path>& paths, bool
         return result;
     }
     if (wxGetApp().is_closing() || IsBeingDeleted() || p->m_importing_models || inside_snapshot_capture() ||
-        is_loading_project() || !p->m_worker.is_idle() || !can_add_model()) {
+        is_loading_project() || !p->m_worker.is_idle() || !p->background_process.can_switch_print() || !can_add_model()) {
         result.errors.emplace_back("OrcaSlicer is busy. Try importing the models again when the current operation finishes.");
         return result;
     }
@@ -16720,8 +16720,13 @@ ModelImportResult Plater::import_models(const std::vector<fs::path>& paths, bool
     }
     p->m_slice_all_only_has_gcode = false;
     p->preview->get_canvas3d()->reset_select_plate_toolbar_selection();
+    // A fresh plate's Print still has default settings. Apply the project configuration
+    // through normal plate selection before importing or queuing an arrangement job.
+    const bool target_selected = !new_plate || select_plate(result.plate_index) == 0;
+    if (!target_selected)
+        result.errors.emplace_back("The new import plate could not be selected.");
     bool cancelled = false;
-    for (size_t file_index = 0; file_index < paths.size(); ++file_index) {
+    for (size_t file_index = 0; target_selected && file_index < paths.size(); ++file_index) {
         const fs::path& path = paths[file_index];
         PartPlate* target_plate = plates.get_plate(result.plate_index);
         if (target_plate == nullptr) {
