@@ -176,7 +176,7 @@ private:
     void apply_extra_perimeters(ExPolygons& infill_area);
     void process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width);
     // to save memory, directly modify top
-    bool should_enable_top_one_wall(const ExPolygons& original_expolys, ExPolygons& top);
+    bool should_enable_top_one_wall(const ExPolygons& original_expolys, const ExPolygons& top_expolys);
 
 private:
     bool        m_spiral_vase;

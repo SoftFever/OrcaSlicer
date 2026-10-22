@@ -1626,10 +1626,10 @@ void PerimeterGenerator::process_classic()
                             if (offset_result.empty() &&
                                 expolygon.area() < (ext_perimeter_half_width + ext_min_spacing_smaller) * scale_(narrow_loop_length_threshold)) {
                                 // BBS: for narrow external loop, use smaller line width
-                                offsets_with_smaller_width = std::move(offset_ex(expolygon, -this->smaller_ext_perimeter_flow.scaled_width() / 2.));
+                                offsets_with_smaller_width = offset_ex(expolygon, -this->smaller_ext_perimeter_flow.scaled_width() / 2.);
                             } else {
                                 //BBS: for not narrow loop, use normal external perimeter line width
-                                offsets = std::move(offset_ex(expolygon, -ext_perimeter_half_width));
+                                offsets = offset_ex(expolygon, -ext_perimeter_half_width);
                             }
                         }
                     }
@@ -3372,7 +3372,7 @@ void PerimeterGenerator::process_arachne()
 } // process_arachne()
 
 // ORCA: expand the top expoly and determine whether to enable top one wall feature
-bool PerimeterGenerator::should_enable_top_one_wall(const ExPolygons& original_expolys, ExPolygons& top_expolys)
+bool PerimeterGenerator::should_enable_top_one_wall(const ExPolygons& original_expolys, const ExPolygons& top_expolys)
 {
     if (config->wall_loops == 0)
         return true;
