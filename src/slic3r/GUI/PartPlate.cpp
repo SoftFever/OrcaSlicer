@@ -6403,47 +6403,79 @@ Vec2i32 PartPlateList::get_cell_at(const Vec2d& origin)
 	return Vec2i32((int)std::lround(origin.x() / plate_stride_x()), (int)std::lround(-origin.y() / plate_stride_y()));
 }
 
-bool PartPlateList::is_cell_blocked(int index, const Vec2i32& cell)
+std::map<int, Vec2i32> PartPlateList::plan_plate_move(int index, const Vec2i32& cell)
 {
-	for (int i = 0; i < (int)m_plate_list.size(); ++i)
-		if (i != index && compute_plate_cell(i, m_plate_cols) == cell)
-			return true;
+	std::map<int, Vec2i32> moves;
+	const auto in_range = [](const Vec2i32& c) {
+		return c.x() >= 0 && c.y() >= 0 && c.x() < (int)MAX_PLATES_COUNT && c.y() < (int)MAX_PLATES_COUNT;
+	};
+	if (index < 0 || index >= (int)m_plate_list.size() || !in_range(cell))
+		return moves;
+	const Vec2i32 from = compute_plate_cell(index, m_plate_cols);
+	if (cell == from)
+		return moves;
 
-	if (m_model == nullptr)
-		return false;
-	// Plate membership is geometric, so a plate dropped onto objects that are on no plate would take them.
-	const BoundingBoxf cell_box = compute_cell_box(cell);
-	const Vec2d&       min      = cell_box.min;
-	const Vec2d&       max      = cell_box.max;
-	for (int obj_id = 0; obj_id < (int)m_model->objects.size(); ++obj_id) {
-		ModelObject* object = m_model->objects[obj_id];
-		for (int inst_id = 0; inst_id < (int)object->instances.size(); ++inst_id) {
-			if (m_plate_list[index]->contain_instance(obj_id, inst_id))
-				continue;
-			const BoundingBoxf3 box = object->instance_convex_hull_bounding_box(inst_id);
-			if (box.min.x() < max.x() && box.max.x() > min.x() && box.min.y() < max.y() && box.max.y() > min.y())
-				return true;
+	std::map<std::pair<int, int>, int> occupant;
+	for (int i = 0; i < (int)m_plate_list.size(); ++i) {
+		const Vec2i32 c = compute_plate_cell(i, m_plate_cols);
+		occupant[{c.x(), c.y()}] = i;
+	}
+	const auto plate_at = [&occupant](int col, int row) {
+		const auto it = occupant.find({col, row});
+		return it == occupant.end() ? -1 : it->second;
+	};
+
+	moves[index] = cell;
+	if (plate_at(cell.x(), cell.y()) >= 0) {
+		if (from.y() == cell.y()) {
+			// Same row: the plates in between shift one cell toward the cell the dragged plate leaves.
+			const int step = cell.x() > from.x() ? -1 : 1;
+			for (int col = cell.x(); col != from.x(); col += step)
+				if (const int i = plate_at(col, cell.y()); i >= 0)
+					moves[i] = Vec2i32(col + step, cell.y());
+		} else {
+			// Another row: the plate and its neighbors on the right shift one cell right, up to the first free cell.
+			for (int col = cell.x(); plate_at(col, cell.y()) >= 0; ++col) {
+				if (!in_range(Vec2i32(col + 1, cell.y())))
+					return {};
+				moves[plate_at(col, cell.y())] = Vec2i32(col + 1, cell.y());
+			}
 		}
 	}
-	return false;
+
+	if (m_model == nullptr)
+		return moves;
+	// Plate membership is geometric, so a plate moved onto objects that are on no moving plate would take them.
+	for (const auto& [plate_index, plate_cell] : moves) {
+		const BoundingBoxf cell_box = compute_cell_box(plate_cell);
+		for (int obj_id = 0; obj_id < (int)m_model->objects.size(); ++obj_id) {
+			ModelObject* object = m_model->objects[obj_id];
+			for (int inst_id = 0; inst_id < (int)object->instances.size(); ++inst_id) {
+				if (std::any_of(moves.begin(), moves.end(), [this, obj_id, inst_id](const auto& move) {
+						return m_plate_list[move.first]->contain_instance(obj_id, inst_id);
+					}))
+					continue;
+				const BoundingBoxf3 box = object->instance_convex_hull_bounding_box(inst_id);
+				if (box.min.x() < cell_box.max.x() && box.max.x() > cell_box.min.x() && box.min.y() < cell_box.max.y() &&
+					box.max.y() > cell_box.min.y())
+					return {};
+			}
+		}
+	}
+	return moves;
 }
 
 bool PartPlateList::can_move_plate_to_cell(int index, const Vec2i32& cell)
 {
-	if (index < 0 || index >= (int)m_plate_list.size())
-		return false;
-	if (cell.x() < 0 || cell.y() < 0 || cell.x() >= (int)MAX_PLATES_COUNT || cell.y() >= (int)MAX_PLATES_COUNT)
-		return false;
-	if (cell == compute_plate_cell(index, m_plate_cols))
-		return false;
-	return !is_cell_blocked(index, cell);
+	return !plan_plate_move(index, cell).empty();
 }
 
 int PartPlateList::move_plate_to_cell(int index, const Vec2i32& cell)
 {
-	// Rebuild plate membership so the plate carries exactly the objects on it.
+	// Rebuild plate membership so each plate carries exactly the objects on it.
 	reload_all_objects();
-	if (!can_move_plate_to_cell(index, cell))
+	const std::map<int, Vec2i32> moves = plan_plate_move(index, cell);
+	if (moves.empty())
 		return -1;
 
 	if (!m_custom_layout) {
@@ -6453,18 +6485,20 @@ int PartPlateList::move_plate_to_cell(int index, const Vec2i32& cell)
 		m_custom_layout = true;
 	}
 
-	PartPlate* plate = m_plate_list[index];
-	plate->m_layout_cell = cell;
-	Vec3d origin = compute_origin(index, m_plate_cols);
-	plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
-	plate->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, compute_shape_position(index, m_plate_cols), m_height_to_lid, m_height_to_rod);
+	for (const auto& [plate_index, plate_cell] : moves) {
+		PartPlate* plate = m_plate_list[plate_index];
+		plate->m_layout_cell = plate_cell;
+		Vec3d origin = compute_origin(plate_index, m_plate_cols);
+		plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
+		plate->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, compute_shape_position(plate_index, m_plate_cols), m_height_to_lid, m_height_to_rod);
+	}
 
 	Vec3d unprintable_origin = compute_origin_for_unprintable();
 	unprintable_plate.set_pos_and_size(unprintable_origin, m_plate_width, m_plate_depth, m_plate_height, true);
 	calc_bounding_boxes();
 
-	if (m_plater && index == m_current_plate) {
-		Vec2d pos = compute_shape_position(index, m_plate_cols);
+	if (m_plater && moves.count(m_current_plate) > 0) {
+		Vec2d pos = compute_shape_position(m_current_plate, m_plate_cols);
 		m_plater->set_bed_position(pos);
 	}
 	return 0;
