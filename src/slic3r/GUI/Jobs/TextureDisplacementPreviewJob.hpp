@@ -29,6 +29,9 @@ struct TextureDisplacementPreviewVolume
     // The part's own UV channel (ModelVolume::texture_uv), so a ModelUV layer previews through the
     // same layout it will bake through. Empty when the part has none.
     std::vector<Vec2f>                    model_uv;
+    // Where the part sits in its object, as TextureDisplacementBakeVolume has it.
+    Vec3d                                 texture_anchor = Vec3d::Zero();
+    float                                 resting_drop   = 0.f;
 };
 
 struct TextureDisplacementPreviewInput

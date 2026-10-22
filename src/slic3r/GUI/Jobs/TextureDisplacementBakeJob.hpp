@@ -34,6 +34,10 @@ struct TextureDisplacementBakeVolume
     // The part's own UV channel (ModelVolume::texture_uv), empty when it has none: what a ModelUV
     // layer maps through, and what the commit puts back on the baked mesh.
     std::vector<Vec2f>                    model_uv;
+    // Where the part sits in its object: the world point the object's texture is anchored at, and how
+    // far the object's lowest point lies below the part's own. See build_texture_displacement().
+    Vec3d                                 texture_anchor = Vec3d::Zero();
+    float                                 resting_drop   = 0.f;
 };
 
 struct TextureDisplacementBakeInput
@@ -93,12 +97,15 @@ void queue_texture_displacement_bake(std::vector<TextureDisplacementBakeVolume> 
                                      const TextureColorSettings &color,
                                      std::function<void()> on_finished, bool take_snapshot = true);
 
-// `volume`'s share of a bake, read off the live Model. `layers` and `options` are passed in rather than
-// taken from `volume` because they belong to the object, not to the part: every part of a multibody
-// object is displaced by the same stack (see GLGizmoTextureDisplacement::layers_for_part()).
+// `volume`'s share of a bake, read off the live Model. `layers`, `options`, `texture_anchor` and
+// `resting_drop` are passed in rather than taken from `volume` because they belong to the object, not
+// to the part: every part of a multibody object is displaced by the same stack, in the same texture
+// frame and against the same plate (see GLGizmoTextureDisplacement::layers_for_part()).
 TextureDisplacementBakeVolume texture_displacement_bake_volume(const ModelVolume                           &volume,
                                                                const std::vector<TextureDisplacementLayer> &layers,
-                                                               const TextureDisplacementOptions            &options);
+                                                               const TextureDisplacementOptions            &options,
+                                                               const Vec3d                                 &texture_anchor,
+                                                               float                                        resting_drop);
 
 } // namespace Slic3r::GUI
 

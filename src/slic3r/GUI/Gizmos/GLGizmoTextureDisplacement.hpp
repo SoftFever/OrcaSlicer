@@ -70,6 +70,14 @@ public:
                                                          // to the samplers so a ModelUV layer drives
                                                          // the refinement through its own layout.
                                                          const std::vector<Vec2f>                    &model_uv,
+                                                         // `base`'s coordinates -> the frame the bake
+                                                         // samples the texture in, so the refinement
+                                                         // follows the texture the bake will apply.
+                                                         // Only the sampling moves into it: the mesh,
+                                                         // and every length in `params`, stay in
+                                                         // `base`'s own coordinates. Identity samples
+                                                         // there as well.
+                                                         const Transform3d                           &texture_frame,
                                                          const TextureDisplacementPrepareParams      &params,
                                                          const TextureColorSettings                  &color_settings,
                                                          const DisplacementProgressFn                &progress,
@@ -312,9 +320,21 @@ private:
     // seam edges, the island placements, their join groups and the per-vertex uv overrides. Carried onto
     // another part they would address triangles and charts that have nothing to do with it, so they are
     // dropped and that part unwraps on its own. Everything else - the image, depth, tiling, projection
-    // method, blend mode, colour - applies unchanged, which is what lets one stack texture a whole
-    // multibody object.
+    // method, blend mode, colour - applies unchanged, since every part is baked in the one texture frame
+    // anchored at texture_anchor(); that is what lets one stack texture a whole multibody object.
     std::vector<TextureDisplacementLayer> layers_for_part(const ModelVolume &part) const;
+    // The world point the object's texture is anchored at: texture_volume()'s origin. Every part is
+    // baked and previewed in the frame anchored there (see texture_displacement_bake_frame()), so a
+    // tiled pattern runs on across the parts and a view projection lands where it was aimed on each.
+    Vec3d texture_anchor() const;
+    // For each of `parts`, at the same index: how far the object's lowest point lies below that part's
+    // own, in mm - what its bake lowers its resting plane by, so every part is clamped against the one
+    // plane the object rests on. 0 for the lowest part, and so for a single-part object.
+    std::vector<float> resting_drops(const std::vector<ModelVolume *> &parts);
+    // Where prepare_mesh() samples `part`'s texture: the frame its bake samples in when the object has
+    // several model parts, so they are all refined for one continuous texture. A single-part object
+    // keeps the identity, the frame it has always been refined in.
+    Transform3d prepare_texture_frame(const ModelVolume &part);
 
     void add_texture_layer();
     void remove_texture_layer(int slot);
@@ -409,14 +429,14 @@ private:
     // volume's slot among them, or -1 if it has none (no selection, or the lists disagree).
     int texture_volume_raycaster_index() const;
 
-    // Paints exactly the facets currently visible from the camera onto the active layer, replacing
-    // whatever that layer had painted. "Visible" is two tests: the facet faces the camera, and its
-    // centroid is not hidden behind other geometry (a real raycast, so a concave part's far inner
-    // wall is correctly excluded). When `uv_clip` is given (the projection frame's matrix), facets
-    // whose centroid falls outside the frame's uv unit square are skipped first - which both clips
-    // the selection to the frame and spares the raycast for everything outside it. Costs one ray
-    // query per surviving facet, so it is a one-shot action, never a per-frame one. Returns the
-    // number of facets selected.
+    // Paints exactly the facets currently visible from the camera onto the active layer, on every model
+    // part, replacing whatever that layer had painted on each. "Visible" is two tests: the facet faces
+    // the camera, and its centroid is not hidden behind other geometry of any part (a real raycast, so
+    // a concave part's far inner wall is correctly excluded). When `uv_clip` is given (the projection
+    // frame's matrix), facets whose centroid falls outside the frame's uv unit square are skipped first
+    // - which both clips the selection to the frame and spares the raycast for everything outside it.
+    // Costs one ray query per surviving facet and part, so it is a one-shot action, never a per-frame
+    // one. Returns the number of facets selected.
     int select_visible_faces(const std::array<float, 12> *uv_clip = nullptr);
 
     // When set, "Capture current view" also re-selects the visible faces, so the viewpoint the

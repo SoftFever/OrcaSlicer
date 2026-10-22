@@ -58,7 +58,8 @@ void TextureDisplacementPreviewJob::process(Ctl &ctl)
         m_results[i].mesh = build_texture_displacement(volume.base_mesh, volume.layers, volume.facets_data,
                                                        volume.options, still_wanted, color, volume.volume_to_world,
                                                        nullptr, nullptr,
-                                                       volume.model_uv.empty() ? nullptr : &volume.model_uv);
+                                                       volume.model_uv.empty() ? nullptr : &volume.model_uv,
+                                                       &volume.texture_anchor, volume.resting_drop);
         if (!still_wanted(0)) {
             m_results.clear();
             return;

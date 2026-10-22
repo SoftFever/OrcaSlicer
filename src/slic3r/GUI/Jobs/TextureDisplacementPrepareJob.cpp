@@ -52,7 +52,8 @@ void TextureDisplacementPrepareJob::process(Ctl &ctl)
     for (size_t i = 0; i < count; ++i) {
         const TextureDisplacementPrepareVolume &volume = m_input.volumes[i];
         m_results[i] = GLGizmoTextureDisplacement::prepare_mesh(volume.base_mesh, volume.masks, volume.layers,
-                                                                volume.model_uv, m_input.params, m_input.color,
+                                                                volume.model_uv, volume.texture_frame,
+                                                                m_input.params, m_input.color,
                                                                 [&ctl, &status, &last_reported, i, count](int percent) {
                                                                     if (ctl.was_canceled())
                                                                         return false;

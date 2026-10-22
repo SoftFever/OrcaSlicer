@@ -49,6 +49,10 @@ struct TextureDisplacementPrepareVolume
     // resamples it onto the mesh it produces, and the commit puts it back - like the masks, it is
     // indexed by triangle and so cannot survive the stages on its own.
     std::vector<Vec2f>                    model_uv;
+    // Where prepare_mesh() samples the texture: the bake frame shared by every part of a multibody
+    // object, so each part is refined for the texture the bake will put on it. Identity, the part's own
+    // coordinates, for a single-part object.
+    Transform3d                           texture_frame = Transform3d::Identity();
 };
 
 struct TextureDisplacementPrepareInput

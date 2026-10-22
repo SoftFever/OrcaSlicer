@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "libslic3r/TextureDisplacement.hpp"
+#include "libslic3r/Point.hpp"
 #include <exception>
 #include <cstddef>
 #include <cstdint>
@@ -88,7 +89,7 @@ void TextureDisplacementBakeJob::process(Ctl &ctl)
                 return true;
             },
             color, volume.volume_to_world, nullptr, &m_results[i].stats,
-            volume.model_uv.empty() ? nullptr : &volume.model_uv));
+            volume.model_uv.empty() ? nullptr : &volume.model_uv, &volume.texture_anchor, volume.resting_drop));
         if (ctl.was_canceled())
             break;
     }
@@ -336,7 +337,9 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
 
 TextureDisplacementBakeVolume texture_displacement_bake_volume(const ModelVolume                           &volume,
                                                                const std::vector<TextureDisplacementLayer> &layers,
-                                                               const TextureDisplacementOptions            &options)
+                                                               const TextureDisplacementOptions            &options,
+                                                               const Vec3d                                 &texture_anchor,
+                                                               float                                        resting_drop)
 {
     TextureDisplacementBakeVolume out;
     out.volume_id       = volume.id();
@@ -344,6 +347,8 @@ TextureDisplacementBakeVolume texture_displacement_bake_volume(const ModelVolume
     out.layers          = layers;
     out.options         = options;
     out.volume_to_world = texture_displacement_volume_to_world(volume);
+    out.texture_anchor  = texture_anchor;
+    out.resting_drop    = resting_drop;
     if (volume.has_texture_uv())
         out.model_uv = volume.texture_uv;
     for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)

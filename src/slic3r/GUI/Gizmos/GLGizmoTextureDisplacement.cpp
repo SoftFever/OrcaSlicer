@@ -7,6 +7,7 @@
 
 #include "ColorSpaceConvert.hpp"
 #include "libslic3r/AABBTreeIndirect.hpp"
+#include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Color.hpp"
 #include "libslic3r/FilamentMixer.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -26,6 +27,7 @@
 #include "slic3r/GUI/GuiColor.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/MainFrame.hpp" // wxGetApp().mainframe, as the projector window's parent
+#include "slic3r/GUI/MeshUtils.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -2483,7 +2485,10 @@ void GLGizmoTextureDisplacement::queue_preview_job()
     // the overlays and the wireframe are keyed to - from the rest.
     std::vector<ObjectID> part_ids;
     part_ids.reserve(parts.size());
-    for (const ModelVolume *part : parts) {
+    const Vec3d              anchor = texture_anchor();
+    const std::vector<float> drops  = resting_drops(parts);
+    for (size_t i = 0; i < parts.size(); ++i) {
+        const ModelVolume               *part = parts[i];
         TextureDisplacementPreviewVolume entry;
         entry.base_mesh = part->mesh().its;
         entry.layers    = layers_for_part(*part);
@@ -2493,10 +2498,12 @@ void GLGizmoTextureDisplacement::queue_preview_job()
         if (entry.options.pipeline_v2)
             entry.options.v2_max_triangles_k = 0;
         entry.volume_to_world = texture_displacement_volume_to_world(*part);
+        entry.texture_anchor  = anchor;
+        entry.resting_drop    = drops[i];
         if (part->has_texture_uv())
             entry.model_uv = part->texture_uv;
-        for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
-            entry.facets_data[size_t(i)] = part->texture_displacement_facet(i).get_data();
+        for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot)
+            entry.facets_data[size_t(slot)] = part->texture_displacement_facet(slot).get_data();
         input.volumes.push_back(std::move(entry));
         part_ids.push_back(part->id());
     }
@@ -3839,6 +3846,36 @@ std::vector<TextureDisplacementLayer> GLGizmoTextureDisplacement::layers_for_par
     return out;
 }
 
+Vec3d GLGizmoTextureDisplacement::texture_anchor() const
+{
+    const ModelVolume *owner = texture_volume();
+    return owner != nullptr ? Vec3d(texture_displacement_volume_to_world(*owner).translation()) : Vec3d::Zero();
+}
+
+std::vector<float> GLGizmoTextureDisplacement::resting_drops(const std::vector<ModelVolume *> &parts)
+{
+    const auto bottom = [](const ModelVolume &part) {
+        return part.mesh().transformed_bounding_box(texture_displacement_volume_to_world(part)).min.z();
+    };
+    // Each part's bottom is measured the same way as the object's, so the lowest part's drop is exactly
+    // 0 and a single-part object bakes against its own bottom as it always has.
+    double object_bottom = std::numeric_limits<double>::max();
+    for (const ModelVolume *part : texture_parts())
+        object_bottom = std::min(object_bottom, bottom(*part));
+    std::vector<float> out;
+    out.reserve(parts.size());
+    for (const ModelVolume *part : parts)
+        out.push_back(float(bottom(*part) - object_bottom));
+    return out;
+}
+
+Transform3d GLGizmoTextureDisplacement::prepare_texture_frame(const ModelVolume &part)
+{
+    if (texture_parts().size() < 2)
+        return Transform3d::Identity();
+    return texture_displacement_bake_frame(texture_displacement_volume_to_world(part), texture_anchor());
+}
+
 void GLGizmoTextureDisplacement::update_model_object()
 {
     store_panel_state();
@@ -5119,7 +5156,10 @@ void GLGizmoTextureDisplacement::remove_texture_layer(int slot)
                                  [slot](const TextureDisplacementLayer &l) { return l.slot == slot; }),
                  layers.end());
     if (slot >= 0 && slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS)) {
-        mv->texture_displacement_facet(slot).reset();
+        // Every model part: paint left in the slot on another part would still bake, and the next layer
+        // added reuses the slot.
+        for (ModelVolume *part : texture_parts())
+            part->texture_displacement_facet(slot).reset();
         m_thumbnails[size_t(slot)].reset();
         m_thumbnail_source[size_t(slot)].reset();
         m_layer_expanded[size_t(slot)] = false;
@@ -5210,25 +5250,19 @@ void GLGizmoTextureDisplacement::move_texture_layer(int slot, int to_index)
 
 int GLGizmoTextureDisplacement::select_visible_faces(const std::array<float, 12> *uv_clip)
 {
-    ModelVolume *mv = texture_volume();
-    ModelObject *mo = m_c->selection_info()->model_object();
-    const int    idx = texture_volume_raycaster_index();
-    if (mv == nullptr || mo == nullptr || idx < 0 || idx >= int(m_triangle_selectors.size()))
+    const ModelVolume *owner = texture_volume();
+    ModelObject       *mo    = m_c->selection_info()->model_object();
+    // Every model part, at its selector's and its raycaster's index (see texture_parts()): what is in
+    // view gets painted whichever part it belongs to, and one part can hide another.
+    const std::vector<ModelVolume *>         parts      = texture_parts();
+    const std::vector<const MeshRaycaster *> raycasters = m_c->raycaster()->raycasters();
+    if (owner == nullptr || mo == nullptr || parts.size() > m_triangle_selectors.size() || parts.size() > raycasters.size())
         return 0;
 
-    const indexed_triangle_set &its = mv->mesh().its;
-    if (its.indices.empty())
-        return 0;
-
-    const Selection             &selection = m_parent.get_selection();
-    const Geometry::Transformation trafo(mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
-                                         mv->get_matrix());
-    const Transform3d            &to_world = trafo.get_matrix();
-    const Camera                 &camera   = wxGetApp().plater()->get_camera();
-
-    // Normals transform by the inverse transpose, not by the matrix itself - with a non-uniform
-    // scale the two differ, and using the wrong one flips the facing test on the scaled axes.
-    const Matrix3d normal_matrix = to_world.matrix().block<3, 3>(0, 0).inverse().transpose();
+    const Selection   &selection      = m_parent.get_selection();
+    const Transform3d  instance       = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix();
+    const Transform3d  owner_to_world = instance * owner->get_matrix();
+    const Camera      &camera         = wxGetApp().plater()->get_camera();
 
     // Pass 1 (cheap): drop back-facing triangles. Under perspective the view direction varies across
     // the model, so it is taken per triangle from the eye to the centroid; under an orthographic
@@ -5238,69 +5272,109 @@ int GLGizmoTextureDisplacement::select_visible_faces(const std::array<float, 12>
     const bool  ortho = camera.get_type() == Camera::EType::Ortho;
     const Vec3d fwd   = camera.get_dir_forward();
 
-    std::vector<Vec3f>    centroids;   // world coords, what get_unobscured_idxs() expects
-    std::vector<unsigned> front_facing; // parallel: which facet each centroid came from
-    centroids.reserve(its.indices.size() / 2);
-    front_facing.reserve(its.indices.size() / 2);
+    std::vector<Geometry::Transformation> trafos;
+    std::vector<std::vector<Vec3f>>       centroids(parts.size());    // world coords, what get_unobscured_idxs() expects
+    std::vector<std::vector<unsigned>>    front_facing(parts.size()); // parallel: which facet each centroid came from
+    trafos.reserve(parts.size());
+    for (size_t p = 0; p < parts.size(); ++p) {
+        const ModelVolume          &part = *parts[p];
+        const indexed_triangle_set &its  = part.mesh().its;
+        trafos.emplace_back(instance * part.get_matrix());
+        const Transform3d &to_world = trafos.back().get_matrix();
+        // The projection frame maps the owner's local coordinates (see apply_projection_frame()), so
+        // another part's centroids are brought into them before the clip test.
+        const Transform3d to_owner = (&part == owner) ? Transform3d::Identity() : Transform3d(owner_to_world.inverse() * to_world);
 
-    for (size_t f = 0; f < its.indices.size(); ++f) {
-        const stl_triangle_vertex_indices &tri = its.indices[f];
-        const Vec3d a = its.vertices[tri[0]].cast<double>();
-        const Vec3d b = its.vertices[tri[1]].cast<double>();
-        const Vec3d c = its.vertices[tri[2]].cast<double>();
-        const Vec3d n_world = normal_matrix * (b - a).cross(c - a);
-        if (n_world.squaredNorm() < 1e-20)
-            continue; // degenerate triangle: no meaningful normal, so no meaningful facing test
-        const Vec3d centroid_local = (a + b + c) / 3.0;
-        const Vec3d centroid_world = to_world * centroid_local;
-        const Vec3d view_dir       = ortho ? fwd : Vec3d(centroid_world - eye);
-        if (n_world.dot(view_dir) >= 0.0)
-            continue; // facing away from the camera
+        // Normals transform by the inverse transpose, not by the matrix itself - with a non-uniform
+        // scale the two differ, and using the wrong one flips the facing test on the scaled axes.
+        const Matrix3d normal_matrix = to_world.matrix().block<3, 3>(0, 0).inverse().transpose();
 
-        // Clip to the projection frame before the raycast, not after: outside the frame the texture
-        // samples to nothing anyway, so those facets would only be painted to no effect - and this
-        // is also what keeps the ray queries proportional to the framed area instead of the model.
-        if (uv_clip != nullptr) {
-            Vec2f uv;
-            if (!project_uv_projective(*uv_clip, centroid_local.cast<float>(), uv))
-                continue; // behind the projector
-            if (uv.x() < 0.f || uv.x() > 1.f || uv.y() < 0.f || uv.y() > 1.f)
-                continue;
+        centroids[p].reserve(its.indices.size() / 2);
+        front_facing[p].reserve(its.indices.size() / 2);
+        for (size_t f = 0; f < its.indices.size(); ++f) {
+            const stl_triangle_vertex_indices &tri = its.indices[f];
+            const Vec3d a = its.vertices[tri[0]].cast<double>();
+            const Vec3d b = its.vertices[tri[1]].cast<double>();
+            const Vec3d c = its.vertices[tri[2]].cast<double>();
+            const Vec3d n_world = normal_matrix * (b - a).cross(c - a);
+            if (n_world.squaredNorm() < 1e-20)
+                continue; // degenerate triangle: no meaningful normal, so no meaningful facing test
+            const Vec3d centroid_local = (a + b + c) / 3.0;
+            const Vec3d centroid_world = to_world * centroid_local;
+            const Vec3d view_dir       = ortho ? fwd : Vec3d(centroid_world - eye);
+            if (n_world.dot(view_dir) >= 0.0)
+                continue; // facing away from the camera
+
+            // Clip to the projection frame before the raycast, not after: outside the frame the texture
+            // samples to nothing anyway, so those facets would only be painted to no effect - and this
+            // is also what keeps the ray queries proportional to the framed area instead of the model.
+            if (uv_clip != nullptr) {
+                Vec2f uv;
+                if (!project_uv_projective(*uv_clip, (to_owner * centroid_local).cast<float>(), uv))
+                    continue; // behind the projector
+                if (uv.x() < 0.f || uv.x() > 1.f || uv.y() < 0.f || uv.y() > 1.f)
+                    continue;
+            }
+            centroids[p].emplace_back(centroid_world.cast<float>());
+            front_facing[p].push_back(unsigned(f));
         }
-        centroids.emplace_back(centroid_world.cast<float>());
-        front_facing.push_back(unsigned(f));
     }
-    if (centroids.empty())
-        return 0;
 
     // Pass 2 (the expensive one): a real ray query per surviving centroid, so geometry in front of a
     // front-facing triangle correctly hides it - the far inner wall of a cup is front-facing but not
-    // visible. This is why the whole thing is click-driven rather than live.
-    std::vector<unsigned> unobscured;
+    // visible. This is why the whole thing is click-driven rather than live. Each raycaster only sees
+    // its own part's mesh, so a centroid has to be clear of every one of them; its own part goes first,
+    // since that is what hides most of them.
+    size_t visible = 0;
     {
         wxBusyCursor wait;
-        unobscured = m_c->raycaster()->raycasters()[size_t(idx)]->get_unobscured_idxs(
-            trafo, camera, centroids, m_c->object_clipper()->get_clipping_plane());
+        const ClippingPlane *clipping_plane = m_c->object_clipper()->get_clipping_plane();
+        for (size_t p = 0; p < parts.size(); ++p) {
+            std::vector<Vec3f>    &points = centroids[p];
+            std::vector<unsigned> &facets = front_facing[p];
+            const auto keep_unobscured_by = [&](size_t q) {
+                const std::vector<unsigned> clear = raycasters[q]->get_unobscured_idxs(trafos[q], camera, points, clipping_plane);
+                std::vector<Vec3f>    kept_points;
+                std::vector<unsigned> kept_facets;
+                kept_points.reserve(clear.size());
+                kept_facets.reserve(clear.size());
+                for (unsigned i : clear) {
+                    kept_points.push_back(points[i]);
+                    kept_facets.push_back(facets[i]);
+                }
+                points = std::move(kept_points);
+                facets = std::move(kept_facets);
+            };
+            if (!points.empty())
+                keep_unobscured_by(p);
+            for (size_t q = 0; q < parts.size() && !points.empty(); ++q)
+                if (q != p)
+                    keep_unobscured_by(q);
+            visible += facets.size();
+        }
     }
-    if (unobscured.empty())
+    if (visible == 0)
         return 0;
 
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), _u8L("Select visible faces for texture displacement"),
                                   UndoRedo::SnapshotType::GizmoAction);
 
-    // Replaces the layer's paint rather than adding to it: the checkbox means "project onto what I
-    // can see", so a second capture from a new angle should not leave the previous angle painted.
+    // Replaces the layer's paint rather than adding to it, on every part including those nothing was
+    // visible on: the checkbox means "project onto what I can see", so a second capture from a new
+    // angle should not leave the previous angle painted.
     // TriangleSelectorGUI, not the TriangleSelector base: request_update_render_data() is declared on
     // the GUI subclass, so binding to the base here would drop it.
-    TriangleSelectorGUI &selector = *m_triangle_selectors[size_t(idx)];
-    selector.reset();
-    for (unsigned i : unobscured)
-        selector.set_facet(int(front_facing[i]), EnforcerBlockerType::ENFORCER);
-    selector.request_update_render_data(true);
+    for (size_t p = 0; p < parts.size(); ++p) {
+        TriangleSelectorGUI &selector = *m_triangle_selectors[p];
+        selector.reset();
+        for (unsigned f : front_facing[p])
+            selector.set_facet(int(f), EnforcerBlockerType::ENFORCER);
+        selector.request_update_render_data(true);
+    }
 
     update_model_object();
     m_parent.set_as_dirty();
-    return int(unobscured.size());
+    return int(visible);
 }
 
 void GLGizmoTextureDisplacement::select_whole_model()
@@ -5996,12 +6070,34 @@ ColorQuantizeFn GLGizmoTextureDisplacement::make_palette_quantizer(const std::ve
 TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
     const indexed_triangle_set &base, const TextureDisplacementFacetsData &masks,
     const std::vector<TextureDisplacementLayer> &layers, const std::vector<Vec2f> &model_uv,
-    const TextureDisplacementPrepareParams &params,
+    const Transform3d &texture_frame, const TextureDisplacementPrepareParams &params,
     const TextureColorSettings &color_settings, const DisplacementProgressFn &progress,
     BakeStageRecorder *debug)
 {
     TextureDisplacementPrepareResult out;
     const auto                       report = [&progress](int pct) { return !progress || progress(pct); };
+
+    // The samplers are built over a copy of the current mesh moved into `texture_frame`, and queried
+    // with points and normals mapped across, so the stages below go on measuring the mesh itself.
+    const bool           framed = !texture_frame.matrix().isApprox(Transform3d::Identity().matrix());
+    const Matrix3d       frame_normal = texture_frame.linear().inverse().transpose();
+    indexed_triangle_set framed_mesh;
+    const auto           mesh_to_sample = [&](const indexed_triangle_set &its) -> const indexed_triangle_set & {
+        if (!framed)
+            return its;
+        framed_mesh = its;
+        for (Vec3f &v : framed_mesh.vertices)
+            v = (texture_frame * v.cast<double>()).cast<float>();
+        return framed_mesh;
+    };
+    const auto sample_in_frame = [&](auto sampler) -> decltype(sampler) {
+        if (!framed || !sampler)
+            return sampler;
+        return [sampler, frame = texture_frame, frame_normal](const Vec3f &pos, const Vec3f &normal) {
+            return sampler((frame * pos.cast<double>()).cast<float>(),
+                           (frame_normal * normal.cast<double>()).normalized().cast<float>());
+        };
+    };
 
     // Stage capture for the debug view. Timed from the end of the previous stage, so the capture -
     // a copy plus an edge scan - never lands inside the measurement it reports.
@@ -6078,17 +6174,20 @@ TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
             // length baseline alone.
             const std::vector<Vec2f> uv_stage = uv_now();
             const std::vector<Vec2f> *uv_ptr  = uv_stage.empty() ? nullptr : &uv_stage;
+            const indexed_triangle_set &sampled = mesh_to_sample(mesh.its);
             HeightFieldSampler sampler;
             if (params.subdiv_feature)
-                sampler = make_combined_displacement_sampler(mesh.its, layers, current, uv_ptr);
+                sampler = sample_in_frame(make_combined_displacement_sampler(sampled, layers, current, uv_ptr));
             // Colour boundaries need triangles of their own - the chord test cannot see them, since
             // the height field is perfectly smooth across a change of filament.
             ColorFieldSampler color;
             // A flat-colour layer is matched against single filaments only, as the bake does, so its
             // boundaries are refined where the bake will actually change filament.
             if (params.subdiv_color_edge_mm > 0.f && !color_settings.empty())
-                color = make_combined_color_sampler(mesh.its, layers, current, make_palette_quantizer(color_settings.palette),
-                                                    make_palette_quantizer(color_settings.palette_pure), uv_ptr);
+                color = sample_in_frame(make_combined_color_sampler(sampled, layers, current,
+                                                                    make_palette_quantizer(color_settings.palette),
+                                                                    make_palette_quantizer(color_settings.palette_pure),
+                                                                    uv_ptr));
             // The refinement follows perceived colour: a mix is one colour here, however the slicer
             // interleaves its filaments layer by layer.
             // "Min edge" is a feature-mode control (it is the floor the curvature test refines down
@@ -6149,8 +6248,8 @@ TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
                     cut_region[i] = (region[size_t(source[i])] & REFINE_PAINTED) ? 1 : 0;
                 const std::vector<Vec2f> uv_refined = uv_now();
                 const HeightFieldSampler refined_sampler =
-                    make_combined_displacement_sampler(mesh.its, layers, current,
-                                                        uv_refined.empty() ? nullptr : &uv_refined);
+                    sample_in_frame(make_combined_displacement_sampler(mesh_to_sample(mesh.its), layers, current,
+                                                                       uv_refined.empty() ? nullptr : &uv_refined));
                 std::vector<int>     cut_source;
                 size_t               cuts = 0;
                 indexed_triangle_set cut = cut_mesh_at_steps(mesh.its, cut_region, refined_sampler,
@@ -6519,11 +6618,13 @@ void GLGizmoTextureDisplacement::bake(bool own_snapshot)
         return;
     }
 
+    const Vec3d                                anchor = texture_anchor();
+    const std::vector<float>                   drops  = resting_drops(parts);
     std::vector<TextureDisplacementBakeVolume> volumes;
     volumes.reserve(parts.size());
-    for (const ModelVolume *part : parts)
-        volumes.push_back(texture_displacement_bake_volume(*part, layers_for_part(*part),
-                                                           owner->texture_displacement_options));
+    for (size_t i = 0; i < parts.size(); ++i)
+        volumes.push_back(texture_displacement_bake_volume(*parts[i], layers_for_part(*parts[i]),
+                                                           owner->texture_displacement_options, anchor, drops[i]));
 
     m_bake_in_progress = true;
     queue_texture_displacement_bake(std::move(volumes), color_settings_for(*owner), [this]() {
@@ -6672,7 +6773,8 @@ void GLGizmoTextureDisplacement::run_stage_debug()
 
     m_debug_in_progress = true;
     queue_texture_displacement_debug(
-        *mv, color_settings_for(*mv), params, run_prepare, m_debug_check_topology,
+        *mv, color_settings_for(*mv), params, prepare_texture_frame(*mv), resting_drops({mv}).front(), run_prepare,
+        m_debug_check_topology,
         [this](std::vector<BakeStageSnapshot> stages) {
             m_debug_in_progress = false;
             if (!stages.empty()) {
@@ -6849,6 +6951,7 @@ void GLGizmoTextureDisplacement::queue_prepare(const TextureDisplacementPrepareP
         entry.layers    = layers_for_part(*part);
         if (part->has_texture_uv())
             entry.model_uv = part->texture_uv;
+        entry.texture_frame = prepare_texture_frame(*part);
         input.volumes.push_back(std::move(entry));
     }
     if (params.subdiv_color_edge_mm > 0.f)
@@ -8712,7 +8815,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
         ImGui::SameLine(x0 + panel_w - button_w * 2 - style.ItemSpacing.x);
 
-        const bool        can_bake   = !busy && mv != nullptr && any_part_painted();
+        // Read before Close below, which releases the selection any_part_painted() finds the parts through.
+        const bool        painted    = mv != nullptr && any_part_painted();
+        const bool        can_bake   = !busy && painted;
         const std::string bake_label = m_prepare_in_progress ? _u8L("Preparing...") :
                                        m_bake_in_progress    ? _u8L("Baking...") :
                                                                into_u8(m_desc.at("bake"));
@@ -8732,7 +8837,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         m_imgui->pop_bold_font();
         GLGizmoUtils::pop_orca_button_style();
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            panel_tooltip(mv != nullptr && !any_part_painted() ?
+            panel_tooltip(mv != nullptr && !painted ?
                               (m_seam_edit_mode ? _u8L("Nothing is painted yet. The UV editor's seam tool is on, so "
                                                        "strokes on the model mark seams instead of painting - turn "
                                                        "it off in the pane to paint.") :
@@ -8769,7 +8874,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                                              "Bake moves existing vertices - the model stays at %1% triangles", base_n)), base_count) :
                                             Slic3r::format(into_u8(_L_PLURAL("Bake result up to ~%1% k triangle", "Bake result up to ~%1% k triangles", result_n)),
                                                            base_k + m_subdivide_budget_k);
-            if (any_part_painted()) {
+            if (painted) {
                 std::vector<std::string> skipped;
                 for (const TextureDisplacementLayer &l : mv->texture_displacement_layers)
                     if (!slot_painted(l.slot))
