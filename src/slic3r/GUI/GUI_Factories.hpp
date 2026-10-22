@@ -110,12 +110,10 @@ private:
 
     MenuWithSeparators m_object_menu;
     wxMenu*            m_object_transform_menu;
-    wxMenu*            m_object_utilities_menu;
     size_t             m_object_geometry_pos;
     int                m_object_props_marker;
     MenuWithSeparators m_part_menu;
     wxMenu*            m_part_transform_menu;
-    wxMenu*            m_part_utilities_menu;
     int                m_part_props_marker;
     int                m_part_project_marker;
     MenuWithSeparators m_text_part_menu;

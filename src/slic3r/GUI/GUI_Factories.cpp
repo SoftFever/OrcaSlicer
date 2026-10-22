@@ -1272,12 +1272,6 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu, size_t pos)
             return option->getBool();
         }, m_parent);
 
-    for (auto node = menu->GetMenuItems().GetFirst(); node; node = node->GetNext())
-    {
-        wxMenuItem* item = node->GetData();
-        if (item->GetItemLabelText() == _L("Edit in Parameter Table"))
-            break;
-    }
     menu->Insert(pos, wxID_ANY, _L("Flush Options"), flush_options_menu);
 }
 
@@ -1359,11 +1353,11 @@ wxMenu* MenuFactory::append_menu_item_transform(wxMenu* menu, bool multi_selecti
     if(show_mirror){
         // Mirror
         append_menu_item(sub_menu, wxID_ANY, _L("Mirror") + ":", "", [](wxCommandEvent&){}, "", menu, [](){return false;}, m_parent);
-        append_menu_item(sub_menu, wxID_ANY, _L("Along X axis"), _L("Mirror along the X axis"),
+        append_menu_item(sub_menu, wxID_ANY, _L("Along X Axis"), _L("Mirror along the X axis"),
             [](wxCommandEvent&) { plater()->mirror(X); }, "menu_mirror_x", m_parent);
-        append_menu_item(sub_menu, wxID_ANY, _L("Along Y axis"), _L("Mirror along the Y axis"),
+        append_menu_item(sub_menu, wxID_ANY, _L("Along Y Axis"), _L("Mirror along the Y axis"),
             [](wxCommandEvent&) { plater()->mirror(Y); }, "menu_mirror_y", m_parent);
-        append_menu_item(sub_menu, wxID_ANY, _L("Along Z axis"), _L("Mirror along the Z axis"),
+        append_menu_item(sub_menu, wxID_ANY, _L("Along Z Axis"), _L("Mirror along the Z axis"),
             [](wxCommandEvent&) { plater()->mirror(Z); }, "menu_mirror_z", m_parent);
     }
 
@@ -1385,10 +1379,10 @@ wxMenu* MenuFactory::append_menu_item_modify(wxMenu* menu, bool multi_selection,
     if(splittable){
         // Object Split
         append_menu_item(sub_menu, wxID_ANY, _L("Split") + ":", "", [](wxCommandEvent&){}, "", menu, [](){return false;}, m_parent);
-        append_menu_item(sub_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
+        append_menu_item(sub_menu, wxID_ANY, _L("To Objects"), _L("Split the selected object into multiple objects"),
             [](wxCommandEvent&) { plater()->split_object(); }, "menu_split_objects", menu,
             []() { return plater()->can_split(true); }, m_parent);
-        append_menu_item(sub_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
+        append_menu_item(sub_menu, wxID_ANY, _L("To Parts"), _L("Split the selected object into multiple parts"),
             [](wxCommandEvent&) { plater()->split_volume(); }, "menu_split_parts", menu,
             []() { return plater()->can_split(false); }, m_parent);
     }
@@ -1712,7 +1706,7 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
 {
     append_menu_item_rename(menu);
     menu->AppendSeparator();
-    // TODO fix fix clone + instances logic
+
     append_menu_items_instance_manipulation(menu);
     
     // Object Split / Mirror / Mesh Tools
@@ -1724,7 +1718,6 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
     append_menu_item_delete(menu);
     menu->AppendSeparator();
 
-    // TODO replace with utilities menu
     append_menu_item_reload_from_disk(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_export_drc(menu);
@@ -1762,8 +1755,8 @@ void MenuFactory::create_extra_object_menu()
 
     append_menu_item_drop(&m_object_menu);
 
-    // Object Align/Distribute
     m_object_transform_menu = append_menu_item_transform(&m_object_menu, false /*multi_selection*/, true /*mirror*/, true /*is_scalable*/);
+    // Object Align/Distribute
     append_menu_item_align_distribute(&m_object_menu);
     append_menu_item_modify(&m_object_menu, false /*multi_selection*/, true /*splittable*/, true /*mesh*/, true /*mesh_boolean*/);
     m_object_geometry_pos = m_object_menu.GetMenuItemCount(); // pos for property related items
@@ -1791,7 +1784,7 @@ void MenuFactory::create_extra_object_menu()
 
     // ORCA Utilities menu
     m_object_menu.AppendSeparator();
-    m_object_utilities_menu = append_menu_item_more(&m_object_menu, false /*multi_selection*/, true /*disk_op*/, true/*export_op*/);
+    append_menu_item_more(&m_object_menu, false /*multi_selection*/, true /*disk_op*/, true/*export_op*/);
 }
 
 void MenuFactory::create_bbl_assemble_object_menu()
@@ -1890,7 +1883,7 @@ void MenuFactory::create_bbl_part_menu()
     m_part_project_marker = menu->FindItem(_L("Paste Process Settings")); // append_menu_item_per_object_settings() is inserted after this item
 
     menu->AppendSeparator();
-    m_part_utilities_menu = append_menu_item_more(&m_part_menu, false /*multi_selection*/, true /*disk_op*/, false /*export_op*/);
+    append_menu_item_more(&m_part_menu, false /*multi_selection*/, true /*disk_op*/, false /*export_op*/);
 }
 
 void MenuFactory::create_bbl_assemble_part_menu()
@@ -1973,7 +1966,7 @@ void MenuFactory::create_plate_menu()
         [](wxCommandEvent&) {
             plater()->select_all();
         }, "", nullptr, []() {
-            return !plater()->model().objects.empty() && plater()->can_delete_plate(); // also diable when only one plate exist
+            return !plater()->model().objects.empty() && plater()->can_delete_plate(); // also disable when only one plate exist
         }, m_parent);
 
     menu->AppendSeparator();
@@ -2007,7 +2000,6 @@ void MenuFactory::create_plate_menu()
         [](wxCommandEvent&) {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
-            //BBS TODO call auto rotate for current plate
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->orient();
         }, "", nullptr,
@@ -2028,7 +2020,7 @@ void MenuFactory::create_plate_menu()
         []() { return !plater()->model().objects.empty(); }, m_parent);
 
     append_submenu(menu, modify_menu, wxID_ANY, _L("Modify"), "", "", 
-        [](){ return !plater()->get_partplate_list().get_selected_plate()->empty(); }, m_parent);
+        [](){ return !plater()->model().objects.empty(); }, m_parent);
 
     menu->AppendSeparator();
 
@@ -2204,7 +2196,6 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_center(menu);
         append_menu_item_drop(menu);
 
-        //ORCA switch to sub menus if new items added
         auto transform_menu = append_menu_item_transform(menu, true /*multi_selection*/, false /*mirror*/, true /*is_scalable*/);
         append_menu_items_convert_unit(transform_menu);
         append_menu_item_align_distribute(menu);
@@ -2748,7 +2739,6 @@ void MenuFactory::append_menu_item_plate_delete(wxMenu *menu, size_t pos)
         menu->Destroy(item_id);
     }
 
-    // separator with its own id so it can be found and removed on the next rebuild (AppendSeparator() uses the shared wxID_SEPARATOR)
     menu->InsertSeparator(pos);
 
     PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
@@ -2759,8 +2749,8 @@ void MenuFactory::append_menu_item_plate_delete(wxMenu *menu, size_t pos)
         [](wxCommandEvent&) { plater()->delete_plate(); }, "", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent, pos + 1);
 
-    // delete current plate. no extra wxEVT_UPDATE_UI handler here: a second handler on the same id 
-    // runs before the one bound by append_menu_item() and, without evt.Skip(), swallows the enable/disable condition
+    // no extra wxEVT_UPDATE_UI handler here: a second handler on the same id runs before the one bound 
+    // by append_menu_item() and, without evt.Skip(), swallows the enable/disable condition
 }
 
 void MenuFactory::update_object_menu()
