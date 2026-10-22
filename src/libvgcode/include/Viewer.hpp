@@ -177,12 +177,12 @@ public:
     // Return the palette used to render the toolpaths when
     // the view type is EViewType::Tool.
     //
-    const Palette& get_tool_colors() const;
+    const PaletteWithAlpha& get_tool_colors() const;
     //
     // Set the palette used to render the toolpaths when
     // the view type is EViewType::Tool with the given one.
     //
-    void set_tool_colors(const Palette& colors);
+    void set_tool_colors(const PaletteWithAlpha& colors);
     //
     // Return the count of colors in the palette used to render
     // the toolpaths when the view type is EViewType::ColorPrint.
@@ -192,12 +192,12 @@ public:
     // Return the palette used to render the toolpaths when
     // the view type is EViewType::ColorPrint.
     //
-    const Palette& get_color_print_colors() const;
+    const PaletteWithAlpha& get_color_print_colors() const;
     //
     // Set the palette used to render the toolpaths when
     // the view type is EViewType::ColorPrint with the given one.
     //
-    void set_color_print_colors(const Palette& colors);
+    void set_color_print_colors(const PaletteWithAlpha& colors);
     //
     // Get the color range for the given view type.
     // Valid view types are:

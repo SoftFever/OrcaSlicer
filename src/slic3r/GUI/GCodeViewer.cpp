@@ -1415,22 +1415,8 @@ void GCodeViewer::load_as_gcode(const GCodeProcessorResult& gcode_result, const 
         //BBS: add logs
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": the same id %1%, return directly, result %2% ") % m_last_result_id % (&gcode_result);
 
-        // collect tool colors
-        libvgcode::Palette tools_colors;
-        tools_colors.reserve(str_tool_colors.size());
-        for (const std::string& color : str_tool_colors) {
-            tools_colors.emplace_back(libvgcode::convert(color));
-        }
-        m_viewer.set_tool_colors(tools_colors);
-
-        // collect color print colors
-        libvgcode::Palette color_print_colors;
-        const std::vector<std::string>& str_colors = str_color_print_colors.empty() ? str_tool_colors : str_color_print_colors;
-        color_print_colors.reserve(str_colors.size());
-        for (const std::string& color : str_colors) {
-            color_print_colors.emplace_back(libvgcode::convert(color));
-        }
-        m_viewer.set_color_print_colors(color_print_colors);
+        m_viewer.set_tool_colors(libvgcode::convert_filament_colors(str_tool_colors));
+        m_viewer.set_color_print_colors(libvgcode::convert_filament_colors(str_color_print_colors.empty() ? str_tool_colors : str_color_print_colors));
         return;
     }
 

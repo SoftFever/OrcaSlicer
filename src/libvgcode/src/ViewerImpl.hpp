@@ -184,12 +184,12 @@ public:
     std::vector<float> get_layers_estimated_times() const { return m_layers.get_times(m_settings.time_mode); }
 
     size_t get_tool_colors_count() const { return m_tool_colors.size(); }
-    const Palette& get_tool_colors() const { return m_tool_colors; }
-    void set_tool_colors(const Palette& colors);
+    const PaletteWithAlpha& get_tool_colors() const { return m_tool_colors; }
+    void set_tool_colors(const PaletteWithAlpha& colors);
 
     size_t get_color_print_colors_count() const { return m_color_print_colors.size(); }
-    const Palette& get_color_print_colors() const { return m_color_print_colors; }
-    void set_color_print_colors(const Palette& colors);
+    const PaletteWithAlpha& get_color_print_colors() const { return m_color_print_colors; }
+    void set_color_print_colors(const PaletteWithAlpha& colors);
 
     const Color& get_extrusion_role_color(EGCodeExtrusionRole role) const;
     void set_extrusion_role_color(EGCodeExtrusionRole role, const Color& color);
@@ -324,7 +324,9 @@ private:
     std::vector<PathVertex> m_vertices;
 
     // Cache for the colors to reduce the need to recalculate colors of all the vertices.
-    std::vector<float> m_vertices_colors;
+    std::vector<ColorWithAlpha> m_vertices_colors;
+    // ORCA: whether render() needs its blended pass
+    bool m_has_translucent_colors{ false };
 
     //
     // Variables used for toolpaths visibiliity
@@ -351,8 +353,8 @@ private:
     std::array<ColorRange, COLOR_RANGE_TYPES_COUNT> m_layer_time_range{
         ColorRange(EColorRangeType::Linear), ColorRange(EColorRangeType::Logarithmic)
     };
-    Palette m_tool_colors;
-    Palette m_color_print_colors;
+    PaletteWithAlpha m_tool_colors;
+    PaletteWithAlpha m_color_print_colors;
     //
     // OpenGL shaders ids
     //
@@ -393,6 +395,7 @@ private:
     int m_uni_segments_exposure_id{ -1 };
     int m_uni_segments_saturation_id{ -1 };
     int m_uni_segments_light_top_dir_id{ -1 };
+    int m_uni_segments_translucent_id{ -1 };
     // ORCA: the layers greyed or dimmed around the one the sliders show, in the segments and options shaders.
     struct LayerColorsUniforms
     {
@@ -440,7 +443,7 @@ private:
         void init(size_t vertices_count);
         void set_positions(const std::vector<Vec4>& positions);
         void set_heights_widths_angles(const std::vector<Vec4>& heights_widths_angles);
-        void set_colors(const std::vector<float>& colors);
+        void set_colors(const std::vector<ColorWithAlpha>& colors);
         void set_enabled_segments(const std::vector<uint32_t>& enabled_segments);
         void set_enabled_options(const std::vector<uint32_t>& enabled_options);
         void reset();
@@ -573,7 +576,9 @@ private:
     void update_view_full_range();
     void update_color_ranges();
     void update_heights_widths();
-    void render_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position);
+    uint8_t get_vertex_alpha(const PathVertex& v) const;
+    // ORCA: translucent draws only the segments whose color is translucent, the other pass only the opaque ones.
+    void render_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position, bool translucent = false);
     void render_options(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
     // ORCA: the program using uni must be current.
     void set_layer_colors(const LayerColorsUniforms& uni) const;
