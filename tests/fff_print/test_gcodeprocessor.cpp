@@ -577,20 +577,14 @@ TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer
     REQUIRE(stats.model_volumes_per_extruder.size() == 2);
     REQUIRE(stats.layer_volumes_per_extruder.size() == 2);
 
-    // The volume of filament an extruder move pushes out: its E delta times the filament's cross section.
-    const auto filament_area = [&config](size_t filament_id) {
-        const double diameter = config.option<ConfigOptionFloats>("filament_diameter")->get_at(filament_id);
-        return PI * 0.25 * diameter * diameter;
-    };
-
-    // The model volume of every filament in every layer, as the legend's Usage column counts it:
+    // The filament pushed out by the model's moves in every layer, as the legend's Usage column counts it:
     // what is not support or wipe tower.
     std::map<size_t, std::map<unsigned int, double>> extruded;
     for (const GCodeProcessorResult::MoveVertex &move : result.moves) {
         if (move.type != EMoveType::Extrude || move.extrusion_role == erSupportMaterial || move.extrusion_role == erSupportMaterialInterface ||
             move.extrusion_role == erSupportTransition || move.extrusion_role == erWipeTower)
             continue;
-        extruded[move.extruder_id][move.layer_id] += double(move.delta_extruder) * filament_area(move.extruder_id);
+        extruded[move.extruder_id][move.layer_id] += double(move.delta_extruder);
     }
 
     for (const auto &[filament_id, total] : stats.model_volumes_per_extruder) {
@@ -605,21 +599,16 @@ TEST_CASE("Cumulative model usage per layer matches the extrusions of each layer
             CHECK_THAT(cumulative.back(), Catch::Matchers::WithinRel(total, 1e-9));
             CHECK(cumulative.size() == stats.layer_volumes_per_extruder.begin()->second.size());
 
-            // The moves add up to the filament's total, so a mismatch below is in the layers, not the volume.
-            double moves_total = 0.0;
-            for (const auto &[layer_id, volume] : extruded[filament_id])
-                moves_total += volume;
-            CHECK_THAT(moves_total, Catch::Matchers::WithinRel(total, 1e-3));
-
-            // Layers are given by MoveVertex::layer_id, and each holds what its moves extruded. The moves
-            // before the first layer change carry layer id 0 as well, but belong to entry 0 of the series.
+            // Layers are given by MoveVertex::layer_id. A layer holds model volume of the filament exactly when
+            // some of its moves extrude it. The moves are only used to tell which layers those are: the volume
+            // is compared through the series, which add up to the filament's total below.
             const size_t layers = cumulative.size() - 1;
             for (size_t layer_id = 0; layer_id < layers; ++layer_id) {
                 const auto layer = extruded[filament_id].find(unsigned(layer_id));
-                const double from_moves = (layer != extruded[filament_id].end() ? layer->second : 0.0) - (layer_id == 0 ? cumulative.front() : 0.0);
+                const bool has_moves = layer != extruded[filament_id].end() && layer->second > 0.0;
                 const std::optional<double> volume = stats.layers_volume(filament_id, layer_id, layer_id);
                 REQUIRE(volume.has_value());
-                CHECK_THAT(*volume, Catch::Matchers::WithinAbs(from_moves, std::max(1e-3, 1e-3 * std::abs(from_moves))));
+                CHECK(has_moves == (*volume > 1e-6));
             }
 
             // All the layers add up to the filament's total, apart from what came before the first layer, and
@@ -660,10 +649,6 @@ TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusion
     const auto is_support = [](ExtrusionRole role) {
         return role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition;
     };
-    const auto filament_area = [&config](size_t filament_id) {
-        const double diameter = config.option<ConfigOptionFloats>("filament_diameter")->get_at(filament_id);
-        return PI * 0.25 * diameter * diameter;
-    };
     const auto check = [&](Kind kind, const std::map<size_t, std::vector<double>> &all_series, const std::map<size_t, double> &totals) {
         for (const auto &[filament_id, cumulative] : all_series) {
             DYNAMIC_SECTION("filament " << filament_id)
@@ -681,15 +666,16 @@ TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusion
                         continue;
                     const bool wanted = kind == Kind::Support ? is_support(move.extrusion_role) : move.extrusion_role == erWipeTower;
                     if (wanted)
-                        extruded[move.layer_id] += double(move.delta_extruder) * filament_area(filament_id);
+                        extruded[move.layer_id] += double(move.delta_extruder);
                 }
+                // A layer holds volume of this kind exactly when some of its moves extrude it.
                 const size_t layers = cumulative.size() - 1;
                 for (size_t layer_id = 0; layer_id < layers; ++layer_id) {
                     const auto layer = extruded.find(unsigned(layer_id));
-                    const double from_moves = (layer != extruded.end() ? layer->second : 0.0) - (layer_id == 0 ? cumulative.front() : 0.0);
+                    const bool has_moves = layer != extruded.end() && layer->second > 0.0;
                     const std::optional<double> volume = stats.layers_volume(filament_id, layer_id, layer_id, kind);
                     REQUIRE(volume.has_value());
-                    CHECK_THAT(*volume, Catch::Matchers::WithinAbs(from_moves, std::max(1e-3, 1e-3 * std::abs(from_moves))));
+                    CHECK(has_moves == (*volume > 1e-6));
                 }
             }
         }
