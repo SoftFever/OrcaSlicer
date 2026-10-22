@@ -182,6 +182,7 @@ void PresetComboBox::OnSelect(wxCommandEvent& evt)
         this->SetSelection(m_last_selected);
     else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
         m_last_selected = selected_item;
+        update_source_arrow();
         on_selection_changed(selected_item);
         evt.StopPropagation();
     }
@@ -243,7 +244,7 @@ void PresetComboBox::update_selection()
     SetToolTip(NULL);
 #endif
     SetToolTip(GetString(m_last_selected));
-
+    update_source_arrow();
 // A workaround for a set of issues related to text fitting into gtk widgets:
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
   GtkWidget* widget = m_widget;
@@ -269,6 +270,120 @@ void PresetComboBox::update_selection()
         g_warning("Expected GtkEntry, but got %s", G_OBJECT_TYPE_NAME(widget));
     }
 #endif
+}
+
+void PresetComboBox::update_source_arrow()
+{
+    const bool show_indicators = wxGetApp().app_config->get_bool("show_preset_source_indicators");
+    const bool dark_mode       = wxGetApp().dark_mode();
+
+    if (!show_indicators || !m_collection || m_last_selected < 0 || m_last_selected >= (int)GetCount()) {
+        this->ResetArrowBitmap();
+        return;
+    }
+
+    std::string preset_name = GetItemAlias(m_last_selected).ToUTF8().data();
+    if (preset_name.empty())
+        preset_name = GetString(m_last_selected).ToUTF8().data();
+    preset_name = Preset::remove_suffix_modified(preset_name);
+
+    const Preset* preset = m_collection->find_preset(preset_name);
+    if (!preset) {
+        this->ResetArrowBitmap();
+        return;
+    }
+
+    // 1. Identify preset origin & assign color
+    const bool is_system  = preset->is_default || preset->is_system;
+    const bool is_project = preset->is_project_embedded;
+
+    const wxColour dot_color = is_system  ? wxColour(0, 120, 215)   // Blue
+                             : is_project ? wxColour(40, 167, 69)   // Green
+                                          : wxColour(235, 120, 30);  // Orange
+
+    // 2. Query Cache
+    const std::string key = "arrow_dot_" + std::string(is_system ? "sys" : is_project ? "proj" : "usr")
+                          + (dark_mode ? "_dark" : "_light");
+    if (wxBitmap* cached = bitmap_cache().find(key)) {
+        this->SetArrowBitmap(*cached);
+        return;
+    }
+
+    // 3. Render base arrow
+    wxBitmap base_arrow = create_scaled_bitmap("drop_down", this, 16);
+    if (!base_arrow.IsOk()) {
+        this->ResetArrowBitmap();
+        return;
+    }
+
+    wxImage arrow_img = base_arrow.ConvertToImage();
+
+    static constexpr int kDotSize = 10;
+    static constexpr int kGap     = 5;
+
+    const int total_w = kDotSize + kGap + arrow_img.GetWidth();
+    const int total_h = std::max(kDotSize, arrow_img.GetHeight());
+
+    wxImage composite(total_w, total_h);
+    composite.InitAlpha();
+    std::memset(composite.GetAlpha(), 0, total_w * total_h);
+
+    unsigned char* dst_rgb   = composite.GetData();
+    unsigned char* dst_alpha = composite.GetAlpha();
+
+    // 4. Draw Smoothstep Anti-Aliased Dot directly into buffer (no jagged edges)
+    const int dot_oy = (total_h - kDotSize) / 2;
+    const double r   = kDotSize / 2.0;
+
+    for (int y = 0; y < kDotSize; ++y) {
+        for (int x = 0; x < kDotSize; ++x) {
+            const double dx   = x - r + 0.5;
+            const double dy   = y - r + 0.5;
+            const double dist = std::sqrt(dx * dx + dy * dy);
+
+            if (dist < r + 0.75) {
+                double t = (r + 0.75 - dist) / 1.5;
+                if (t > 1.0) t = 1.0;
+                // Hermite smoothstep curve for clean, vector-smooth edges
+                t = t * t * (3.0 - 2.0 * t);
+                const unsigned char a = static_cast<unsigned char>(t * 255.0);
+
+                const int idx = (dot_oy + y) * total_w + x;
+                dst_rgb[idx * 3 + 0] = dot_color.Red();
+                dst_rgb[idx * 3 + 1] = dot_color.Green();
+                dst_rgb[idx * 3 + 2] = dot_color.Blue();
+                dst_alpha[idx]       = a;
+            }
+        }
+    }
+
+    // 5. Direct copy of arrow image to the right of the dot
+    const int arrow_ox   = kDotSize + kGap;
+    const int arrow_oy   = (total_h - arrow_img.GetHeight()) / 2;
+    const int arrow_w    = arrow_img.GetWidth();
+    const int arrow_h    = arrow_img.GetHeight();
+    const bool has_alpha = arrow_img.HasAlpha();
+
+    const unsigned char* src_rgb   = arrow_img.GetData();
+    const unsigned char* src_alpha = has_alpha ? arrow_img.GetAlpha() : nullptr;
+
+    for (int y = 0; y < arrow_h; ++y) {
+        const int src_row = y * arrow_w;
+        const int dst_row = (arrow_oy + y) * total_w + arrow_ox;
+
+        for (int x = 0; x < arrow_w; ++x) {
+            const int src_idx = (src_row + x);
+            const int dst_idx = (dst_row + x);
+
+            dst_rgb[dst_idx * 3 + 0] = src_rgb[src_idx * 3 + 0];
+            dst_rgb[dst_idx * 3 + 1] = src_rgb[src_idx * 3 + 1];
+            dst_rgb[dst_idx * 3 + 2] = src_rgb[src_idx * 3 + 2];
+            dst_alpha[dst_idx]       = src_alpha ? src_alpha[src_idx] : 255;
+        }
+    }
+
+    wxBitmap* result = bitmap_cache().insert(key, wxBitmap(composite));
+    this->SetArrowBitmap(*result);
 }
 
 int PresetComboBox::update_ams_color()
@@ -751,76 +866,31 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 #endif
 }
 
-wxBitmap* PresetComboBox::get_bmp(Preset const& preset)
+wxBitmap *PresetComboBox::get_bmp(Preset const &preset)
 {
-    const bool show_indicators = wxGetApp().app_config->get_bool("show_preset_source_indicators");
-    const bool dark_mode       = wxGetApp().dark_mode();
-
-    static constexpr int kCanvasW       = 18;
-    static constexpr int kCanvasH       = 18;
-    static constexpr int kSvgRenderSize = 15;
-
-    // Fast return for disabled state: cached 18x18 transparent placeholder
-    if (!show_indicators) {
-        static const std::string empty_key = "empty_18x18";
-        wxBitmap* empty_bmp                = bitmap_cache().find(empty_key);
-        if (!empty_bmp) {
-            wxImage empty_img(kCanvasW, kCanvasH);
-            empty_img.InitAlpha();
-            std::memset(empty_img.GetAlpha(), 0, kCanvasW * kCanvasH);
-            empty_bmp = bitmap_cache().insert(empty_key, wxBitmap(empty_img));
-        }
-        return empty_bmp;
-    }
-
-    // Identify preset origin SVG asset
-    const bool is_system  = preset.is_default || preset.is_system;
-    const bool is_project = preset.is_project_embedded;
-
-    const char* svg_name = is_system ? "preset_source_system" : is_project ? "preset_source_project" : "preset_source_user";
-
-    // Check Cache
-    const std::string key = std::string("svg_src_") + svg_name + (dark_mode ? "_dark" : "_light");
-    if (wxBitmap* cached_bmp = bitmap_cache().find(key))
-        return cached_bmp;
-
-    // Render SVG
-    wxBitmap svg_bmp = create_scaled_bitmap(svg_name, nullptr, kSvgRenderSize);
-    if (!svg_bmp.IsOk())
-        return bitmap_cache().insert(key, wxBitmap(kCanvasW, kCanvasH));
-
-    wxImage svg_img = svg_bmp.ConvertToImage();
-    wxImage canvas(kCanvasW, kCanvasH);
-    canvas.InitAlpha();
-    std::memset(canvas.GetAlpha(), 0, kCanvasW * kCanvasH);
-
-    // Direct Buffer Copy (Centering the 15px SVG into the 18x18 canvas)
-    const int ox         = (kCanvasW - svg_img.GetWidth()) / 2;
-    const int oy         = (kCanvasH - svg_img.GetHeight()) / 2;
-    const int copy_w     = std::min(svg_img.GetWidth(), kCanvasW - ox);
-    const int copy_h     = std::min(svg_img.GetHeight(), kCanvasH - oy);
-    const bool has_alpha = svg_img.HasAlpha();
-
-    const unsigned char* src_rgb   = svg_img.GetData();
-    const unsigned char* src_alpha = has_alpha ? svg_img.GetAlpha() : nullptr;
-    unsigned char* dst_rgb         = canvas.GetData();
-    unsigned char* dst_alpha       = canvas.GetAlpha();
-
-    for (int y = 0; y < copy_h; ++y) {
-        const int src_row = y * svg_img.GetWidth();
-        const int dst_row = (oy + y) * kCanvasW + ox;
-
-        for (int x = 0; x < copy_w; ++x) {
-            const int src_idx = (src_row + x);
-            const int dst_idx = (dst_row + x);
-
-            dst_rgb[dst_idx * 3 + 0] = src_rgb[src_idx * 3 + 0];
-            dst_rgb[dst_idx * 3 + 1] = src_rgb[src_idx * 3 + 1];
-            dst_rgb[dst_idx * 3 + 2] = src_rgb[src_idx * 3 + 2];
-            dst_alpha[dst_idx]       = src_alpha ? src_alpha[src_idx] : 255;
+    static wxBitmap sbmp;
+    if (m_type == Preset::TYPE_FILAMENT) {
+        Preset const & preset2 = &m_collection->get_selected_preset() == &preset ? m_collection->get_edited_preset() : preset;
+        wxString color = preset2.config.opt_string("default_filament_colour", 0);
+        wxColour clr(color);
+        if (clr.IsOk()) {
+            std::string bitmap_key = "default_filament_colour_" + color.ToStdString();
+            wxBitmap *bmp        = bitmap_cache().find(bitmap_key);
+            if (bmp == nullptr) {
+                wxImage img(16, 16);
+                if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), 128, 128, 128);
+                    img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
+                } else {
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
+                }
+                bmp = new wxBitmap(img);
+                bmp = bitmap_cache().insert(bitmap_key, *bmp);
+            }
+            return bmp;
         }
     }
-    return bitmap_cache().insert(key, wxBitmap(canvas));
+    return &sbmp;
 }
 
 wxBitmap *PresetComboBox::get_bmp(std::string        bitmap_key,

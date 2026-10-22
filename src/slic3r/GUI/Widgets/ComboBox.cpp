@@ -107,13 +107,20 @@ void ComboBox::SetSelection(int n)
     SetLabel(drop.GetValue());
     if (drop.selection >= 0 && drop.iconSize.y > 0 && items[drop.selection].icon_textctrl.IsOk()) {
         if (m_keep_drop_arrow) {
-            SetIcon("drop_down");
+            if (m_custom_arrow_bmp.IsOk())
+                SetIcon(m_custom_arrow_bmp);
+            else
+                SetIcon("drop_down");
             SetIcon_1(items[drop.selection].icon_textctrl);
         } else {
             SetIcon(items[drop.selection].icon_textctrl);
         }
     } else {
-        SetIcon("drop_down");
+        if (m_custom_arrow_bmp.IsOk())
+            SetIcon(m_custom_arrow_bmp);
+        else
+            SetIcon("drop_down");
+
         if (m_keep_drop_arrow)
             SetIcon_1(wxNullBitmap);
     }
@@ -123,7 +130,6 @@ void ComboBox::SetSelection(int n)
     } else {
         SetStaticTips(wxEmptyString, wxNullBitmap);
     }
-
 }
 
 void ComboBox::SelectAndNotify(int n) {
@@ -273,7 +279,11 @@ int ComboBox::SetItems(const std::vector<DropDown::Item>& the_items)
 
 void ComboBox::DoClear()
 {
-    SetIcon("drop_down");
+    if (m_custom_arrow_bmp.IsOk())
+        SetIcon(m_custom_arrow_bmp);
+    else
+        SetIcon("drop_down");
+
     items.clear();
     drop.Invalidate(true);
 }
