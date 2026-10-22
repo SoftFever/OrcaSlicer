@@ -199,20 +199,20 @@ bool Layer::is_perimeter_compatible(const Print& print, const PrintRegion& a, co
         && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls;
 }
 
-static bool is_zero_wall_inside_hole(const LayerRegion *zero_layerm, const LayerRegion *walled_layerm)
+static bool is_zero_wall_inside_hole(const LayerRegion* zero_layerm, const LayerRegion* walled_layerm)
 {
     Polygons walled_holes;
-    for (const Surface &s : walled_layerm->slices.surfaces)
-        for (const Polygon &hole : s.expolygon.holes)
+    for (const Surface& s : walled_layerm->slices.surfaces)
+        for (const Polygon& hole : s.expolygon.holes)
             walled_holes.push_back(hole);
 
     if (walled_holes.empty())
         return false;
-    
+
     // The 0-wall region is considered interior if none of its area
-    // falls outside the walled region's holes. The small expand absorbs
-    // floating-point boundary touches without counting them as outside.
-    return diff(to_polygons(zero_layerm->slices.surfaces), expand(walled_holes, float(SCALED_EPSILON))).empty();
+    // falls outside the walled region's holes. Use 50-micron tolerance
+    // to absorb polygon simplification differences along the shared boundary.
+    return diff(to_polygons(zero_layerm->slices.surfaces), expand(walled_holes, float(scale_(0.05)))).empty();
 }
 
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
