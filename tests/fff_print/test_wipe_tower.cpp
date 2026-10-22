@@ -8,6 +8,7 @@
 #include <cstddef>
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -22,9 +23,11 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/GCode/WipeTower.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
 
 #include "test_helpers.hpp"
+#include "test_utils.hpp"
 #include "libslic3r/PrintBase.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 
@@ -217,6 +220,24 @@ TEST_CASE("The wipe tower sets Klipper's acceleration and accel_to_decel on one 
     CHECK_THAT(tower, Catch::Matchers::ContainsSubstring(" MINIMUM_CRUISE_RATIO=0.5\n"));
     CHECK_THAT(tower, !Catch::Matchers::ContainsSubstring("SET_VELOCITY_LIMIT ACCEL_TO_DECEL") &&
                       !Catch::Matchers::ContainsSubstring("M204"));
+}
+
+TEST_CASE("The wipe tower's G-code moves keep a decimal point in a comma-decimal locale", "[WipeTower]")
+{
+    // The GUI slices on a thread that keeps the user's numeric locale.
+    CommaNumericLocale comma;
+    CNumericLocalesSetter restore;
+    if (! comma.apply())
+        SKIP("no locale with a comma decimal separator is installed");
+    DynamicPrintConfig config = wipe_tower_toolchange_config("klipper");
+    // Type 1 towers join their toolchange blocks with a travel move of their own.
+    config.set_deserialize_strict({ { "wipe_tower_type", "type1" } });
+    const std::string gcode = slice_with_prime_tower(config);
+    REQUIRE_FALSE(wipe_tower_regions(gcode).empty());
+    std::istringstream lines(gcode);
+    for (std::string line; std::getline(lines, line);)
+        if (! line.empty() && line.front() == 'G' && line.find(',') != std::string::npos)
+            FAIL_CHECK(line);
 }
 
 // What Print feeds the shared estimate. The libslic3r WipeTowerEstimate cases cannot see this:
@@ -476,3 +497,4 @@ TEST_CASE("A tower printed without a tool change is still validated against the 
     CHECK(print.wipe_tower_data(1).depth > 0.f);
     CHECK_THAT(print.validate().string, Catch::Matchers::ContainsSubstring("printable area"));
 }
+
