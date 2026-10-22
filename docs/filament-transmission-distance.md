@@ -14,7 +14,8 @@ their own published values for that one line run from about 0.1 to about 4.1. Th
 attach a number to, so a default on the preset would mean choosing a representative colour - an
 editorial guess wearing the clothes of a measurement, and wrong for most spools of that line.
 
-So the values ship as `resources/filament_transmission_distance.json`, keyed by colour, and
+So the values ship as a table keyed by colour, one file per vendor under
+`resources/filament_td/`, and
 `filament_td_lookup()` consults it for a filament whose preset is still at the option's default. It
 needs both halves to agree: at least two words in common with a line the table knows, and a colour
 within 6 dE of one of that line's colours. That threshold is measured against the table rather than
@@ -28,6 +29,34 @@ A value somebody typed, or measured, always wins over the table.
 The table is small - 125 colours across three brands - and it is a seed rather than coverage. No
 source states the conditions either: not a layer height, not an instrument, not an illuminant. A
 transmission distance without its method is approximate however good its provenance.
+
+## Adding values
+
+A file holds one vendor's colours, so two vendors never edit the same file and never collide.
+
+```json
+{
+  "brand": "polymaker",
+  "vendor": "Polymaker",
+  "source": "where these numbers came from",
+  "license": "the terms they came under",
+  "filaments": [
+    { "name": "Panchroma Matte PLA Cotton White", "type": "PLA", "color": "#f0ece4", "td": 4.1 }
+  ]
+}
+```
+
+`brand` is what the filament preset's `filament_vendor` reduces to, lower case and without spaces -
+the lookup knows a few aliases, such as Prusa Polymers for Prusament. `name` is the line and the
+colour together, because the line is matched by its words and the colour by its value. `td` is in
+millimetres.
+
+- **A vendor** adds `resources/filament_td/<Vendor>.json` in a pull request, and touches nothing
+  else. Measured values for your own filament are the best thing this file can hold; say in `source`
+  how they were measured.
+- **Anyone** can put the same file in `filament_td/` inside OrcaSlicer's data directory. Those are
+  read first, so a value you measured for your own spool wins over the one that shipped. Nothing is
+  installed and nothing is overwritten by an update.
 
 ## Getting a value
 
