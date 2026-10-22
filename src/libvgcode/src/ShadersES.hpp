@@ -209,6 +209,9 @@ static const char* Segments_Shadow_Caster_Vertex_Shader_ES =
 "uniform bool reverse_order;\n"
 "uniform int instances_count;\n"
 "out vec3 world_position;\n"
+"uniform sampler2D color_tex;\n"
+"flat out float alpha;\n"
+"flat out int segment_id;\n"
 "ivec2 tex_coord(sampler2D sampler, int id) {\n"
 "  ivec2 tex_size = textureSize(sampler, 0);\n"
 "  return (tex_size.y == 1) ? ivec2(id, 0) : ivec2(id % tex_size.x, id / tex_size.x);\n"
@@ -222,6 +225,8 @@ static const char* Segments_Shadow_Caster_Vertex_Shader_ES =
 "  int corner = CORNERS[gl_VertexID - 6 * segment];\n"
 "  int instance = reverse_order ? instances_count - 1 - segment : segment;\n"
 "  int id_a = int(texelFetch(segment_index_tex, tex_coord_u(segment_index_tex, instance), 0).r);\n"
+"  alpha = texelFetch(color_tex, tex_coord(color_tex, id_a), 0).a;\n"
+"  segment_id = id_a;\n"
 "  int id = corner < 2 ? id_a : id_a + 1;\n"
 "  vec3 pos_a = texelFetch(position_tex, tex_coord(position_tex, id_a), 0).xyz;\n"
 "  vec3 pos_b = texelFetch(position_tex, tex_coord(position_tex, id_a + 1), 0).xyz;\n"
@@ -246,10 +251,19 @@ static const char* Segments_Shadow_Caster_Vertex_Shader_ES =
 static const char* Segments_Shadow_Caster_Fragment_Shader_ES =
 "#version 300 es\n"
 "precision highp float;\n"
+"precision highp int;\n"
 "uniform vec4 clipping_plane;\n"
 "in vec3 world_position;\n"
+"flat in float alpha;\n"
+"flat in int segment_id;\n"
+// ORCA: a translucent segment covers a share of the texels as large as its opacity, in an ordered pattern the
+// receivers' 5x5 filter reads as a lighter shadow. The pattern moves with the segment, so stacked layers add up.
+"const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);\n"
 "void main() {\n"
 "  if (dot(vec4(world_position, 1.0), clipping_plane) < 0.0)\n"
+"    discard;\n"
+"  ivec2 cell = (ivec2(gl_FragCoord.xy) + ivec2(segment_id, segment_id >> 2)) & 3;\n"
+"  if (alpha < 1.0 && (BAYER[4 * cell.y + cell.x] + 0.5) / 16.0 > alpha)\n"
 "    discard;\n"
 "}\n";
 

@@ -82,5 +82,9 @@ a texture.
 Without depth writes, every translucent surface on screen is shaded, so the cost of the second
 pass grows with the number of translucent surfaces stacked on screen. Order independent blending
 writes 10 bytes of float data per sample instead of 4, and roughly doubles that pass again.
-The shadow casters draw depth only, so translucent toolpaths cast shadows as opaque ones do.
+In realistic view, a translucent segment casts into a share of the shadow map texels as large as
+its opacity, in an ordered 4x4 pattern that the 5x5 filter of the receivers reads as a lighter
+shadow. The pattern shifts with the segment, so layers stacked along the light add up: a 1 mm
+translucent box at 35% casts a shadow about 60% as dark as an opaque one, a 10 mm box nearly a full
+one.
 The SSAO pass reads depth, so a translucent surface takes the occlusion of what lies behind it.
