@@ -683,8 +683,9 @@ TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusion
     check(Kind::Support, stats.layer_support_volumes_per_extruder, stats.support_volumes_per_extruder);
     check(Kind::WipeTower, stats.layer_wipe_tower_volumes_per_extruder, stats.wipe_tower_volumes_per_extruder);
 
-    // The flush has no moves of its own to tell the layers by, so only its series are checked.
-    REQUIRE_FALSE(stats.layer_flush_volumes_per_extruder.empty());
+    // The flush has no moves of its own to tell the layers by, so only its series are checked. This plate
+    // may not purge anything, then there is no series, just as there is no flush total.
+    CHECK(stats.layer_flush_volumes_per_extruder.size() == stats.flush_per_filament.size());
     for (const auto &[filament_id, cumulative] : stats.layer_flush_volumes_per_extruder) {
         DYNAMIC_SECTION("flush of filament " << filament_id)
         {
