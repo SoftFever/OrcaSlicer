@@ -5501,7 +5501,9 @@ int GCode::get_highest_bed_temperature(const bool is_first_layer, const Print& p
 {
     auto bed_type = m_config.curr_bed_type;
     int bed_temp = 0;
-    for (auto fidx : print.get_slice_used_filaments(is_first_layer)) {
+    // Only the filaments printed on the first layer touch the bed, so a filament that starts higher up, such as a
+    // support interface, must not raise the bed temperature for the rest of the print.
+    for (auto fidx : print.get_slice_used_filaments(true)) {
         bed_temp = std::max(bed_temp, get_bed_temperature(fidx, is_first_layer, bed_type));
     }
     return bed_temp;
