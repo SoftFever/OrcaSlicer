@@ -204,6 +204,7 @@ public:
                              std::function<void(const std::string&)> changed)
         : wxPanel(parent), m_selected(selected), m_changed(std::move(changed))
     {
+        SetBackgroundColour(*wxWHITE);
         m_input = new TextInput(this, "", "", "search", wxDefaultPosition, FromDIP(wxSize(150, -1)), wxTE_PROCESS_ENTER);
         m_input->SetFont(wxGetApp().normal_font());
         m_input->SetBorderColor(StateColor(std::make_pair(wxColour("#CECECE"), int(StateColor::Disabled)),
@@ -369,7 +370,7 @@ class ConditionalSettingsPanel : public wxPanel
             auto *row = new wxNavigationEnabled<::StaticBox>();
             row->Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
             row->SetCornerRadius(5);
-            row->SetBackgroundColorNormal(GetBackgroundColour());
+            row->SetBackgroundColorNormal(*wxWHITE);
             auto *frame = new wxBoxSizer(wxVERTICAL);
             auto *layout = new wxBoxSizer(wxVERTICAL);
             row->SetSizer(frame);
@@ -418,6 +419,7 @@ class ConditionalSettingsPanel : public wxPanel
             header->Add(name, 1, wxRIGHT, FromDIP(6));
             header->Add(remove, 0, wxALIGN_CENTER_VERTICAL);
             auto *body = new wxPanel(row);
+            body->SetBackgroundColour(*wxWHITE);
             auto *content = new wxBoxSizer(wxVERTICAL);
             body->SetSizer(content);
             layout->Add(body, 0, wxEXPAND);
@@ -560,6 +562,7 @@ public:
                              std::function<std::string(const std::string&)> initial_value)
         : wxPanel(parent), m_save(std::move(save)), m_initial_value(std::move(initial_value))
     {
+        SetBackgroundColour(*wxWHITE);
         auto *layout = new wxBoxSizer(wxVERTICAL);
         SetSizer(layout);
         m_rows = new wxBoxSizer(wxVERTICAL);
@@ -3802,6 +3805,13 @@ void TabPrint::build()
     //     optgroup->append_single_option_line(option);
 
     //     build_preset_description_line(optgroup.get());
+}
+
+void TabPrint::sys_color_changed()
+{
+    Tab::sys_color_changed();
+    if (m_conditional_settings_panel)
+        wxGetApp().UpdateDarkUIWin(m_conditional_settings_panel.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.

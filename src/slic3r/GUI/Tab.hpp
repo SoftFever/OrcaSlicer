@@ -535,6 +535,7 @@ public:
         Tab(parent, _(L("Process")), type) {}
 	~TabPrint() {}
 
+	void        sys_color_changed() override;
 	void		build() override;
 	void		reload_config() override;
 	void		update_description_lines() override;
