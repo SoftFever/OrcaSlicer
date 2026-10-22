@@ -682,4 +682,18 @@ TEST_CASE("Cumulative support and wipe tower usage per layer match the extrusion
     };
     check(Kind::Support, stats.layer_support_volumes_per_extruder, stats.support_volumes_per_extruder);
     check(Kind::WipeTower, stats.layer_wipe_tower_volumes_per_extruder, stats.wipe_tower_volumes_per_extruder);
+
+    // The flush has no moves of its own to tell the layers by, so only its series are checked.
+    REQUIRE_FALSE(stats.layer_flush_volumes_per_extruder.empty());
+    for (const auto &[filament_id, cumulative] : stats.layer_flush_volumes_per_extruder) {
+        DYNAMIC_SECTION("flush of filament " << filament_id)
+        {
+            CHECK(std::is_sorted(cumulative.begin(), cumulative.end()));
+            CHECK(cumulative.size() == stats.layer_volumes_per_extruder.begin()->second.size());
+            const auto total = stats.flush_per_filament.find(filament_id);
+            REQUIRE(total != stats.flush_per_filament.end());
+            CHECK_THAT(cumulative.back(), Catch::Matchers::WithinRel(total->second, 1e-6));
+            CHECK(stats.layers_volume(filament_id, 0, cumulative.size() - 2, Kind::Flush).has_value());
+        }
+    }
 }

@@ -2498,26 +2498,44 @@ std::vector<std::string> GCodeViewer::get_layers_filament_labels() const
     if (m_layer_gcode_ids.empty())
         return labels;
     const bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-    // model, support and wipe tower, each as cumulative volume per filament
-    const std::map<size_t, std::vector<double>>* all_series[] = { &m_print_statistics.layer_volumes_per_extruder,
-                                                                  &m_print_statistics.layer_support_volumes_per_extruder,
-                                                                  &m_print_statistics.layer_wipe_tower_volumes_per_extruder };
+    // cumulative volume per filament of what the model, the support, the wipe tower and the flush used
+    struct Part
+    {
+        std::string                                         name;
+        const std::map<size_t, std::vector<double>>*        series;
+    };
+    const Part parts[] = { { _u8L("Model"), &m_print_statistics.layer_volumes_per_extruder },
+                           { _u8L("Support"), &m_print_statistics.layer_support_volumes_per_extruder },
+                           { _u8L("Tower"), &m_print_statistics.layer_wipe_tower_volumes_per_extruder },
+                           { _u8L("Flushed"), &m_print_statistics.layer_flush_volumes_per_extruder } };
     labels.reserve(m_layer_gcode_ids.size());
     for (const unsigned int gcode_id : m_layer_gcode_ids) {
-        double length = 0.0; // mm
-        double weight = 0.0; // g
-        for (const auto* series : all_series)
-            for (const auto& [filament_id, cumulative] : *series) {
+        double length = 0.0; // mm, all parts
+        double weight = 0.0; // g, all parts
+        std::string split;
+        size_t      parts_used = 0;
+        for (const Part& part : parts) {
+            double part_weight = 0.0;
+            for (const auto& [filament_id, cumulative] : *part.series) {
                 if (cumulative.empty() || filament_id >= m_filament_diameters.size() || filament_id >= m_filament_densities.size())
                     continue;
                 // the entry after the layer's own: entry 0 is what was extruded before the first layer
                 const double volume = cumulative[std::min<size_t>(size_t(gcode_id) + 1, cumulative.size() - 1)];
                 length += volume / (PI * sqr(0.5 * m_filament_diameters[filament_id]));
-                weight += volume * m_filament_densities[filament_id] * 0.001;
+                part_weight += volume * m_filament_densities[filament_id] * 0.001;
             }
+            weight += part_weight;
+            if (part_weight > 0.0) {
+                split += (parts_used++ > 0 ? " / " : "") + part.name + " " + format_compact_weight(part_weight, imperial_units);
+            }
+        }
         char length_text[32];
         ::sprintf(length_text, imperial_units ? "%.2f in" : "%.2f m", imperial_units ? length / GizmoObjectManipulation::in_to_mm : length * 0.001);
-        labels.emplace_back(_u8L("Filament") + ": " + format_compact_weight(weight, imperial_units) + " (" + length_text + ")");
+        std::string label = _u8L("Filament") + ": " + format_compact_weight(weight, imperial_units) + " (" + length_text + ")";
+        // the split only says something when more than one part used filament
+        if (parts_used > 1)
+            label += "\n" + split;
+        labels.emplace_back(std::move(label));
     }
     return labels;
 }
@@ -4553,8 +4571,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         std::pair<double, double>                      model;
         std::optional<std::pair<double, double>>       support;
         std::optional<std::pair<double, double>>       wipe_tower;
-        double length() const { return model.first + (support ? support->first : 0.0) + (wipe_tower ? wipe_tower->first : 0.0); }
-        double weight() const { return model.second + (support ? support->second : 0.0) + (wipe_tower ? wipe_tower->second : 0.0); }
+        std::optional<std::pair<double, double>>       flush;
+        double length() const { return model.first + (support ? support->first : 0.0) + (wipe_tower ? wipe_tower->first : 0.0) + (flush ? flush->first : 0.0); }
+        double weight() const { return model.second + (support ? support->second : 0.0) + (wipe_tower ? wipe_tower->second : 0.0) + (flush ? flush->second : 0.0); }
     };
     auto visible_layers_usage = [&]() {
         std::vector<VisibleLayersUsage> usage;
@@ -4566,7 +4585,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             const auto model = from_volume(extruder_id, LayerKind::Model);
             if (!model)
                 return std::vector<VisibleLayersUsage>();
-            usage.push_back({ extruder_id, *model, from_volume(extruder_id, LayerKind::Support), from_volume(extruder_id, LayerKind::WipeTower) });
+            usage.push_back({ extruder_id, *model, from_volume(extruder_id, LayerKind::Support), from_volume(extruder_id, LayerKind::WipeTower),
+                            from_volume(extruder_id, LayerKind::Flush) });
         }
         return usage;
     };
@@ -5226,6 +5246,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                     text_line(name + _u8L("Support") + ": " + usage_text(*usage.support));
                 if (usage.wipe_tower)
                     text_line(name + _u8L("Tower") + ": " + usage_text(*usage.wipe_tower));
+                if (usage.flush)
+                    text_line(name + _u8L("Flushed") + ": " + usage_text(*usage.flush));
                 layers_m += usage.length();
                 layers_g += usage.weight();
             }

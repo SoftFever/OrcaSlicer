@@ -2479,6 +2479,7 @@ void GCodeProcessor::UsedFilaments::reset()
     layer_volumes_per_filament.clear();
     layer_support_volumes_per_filament.clear();
     layer_wipe_tower_volumes_per_filament.clear();
+    layer_flush_volumes_per_filament.clear();
     layers_recorded = 0;
 }
 
@@ -2527,8 +2528,8 @@ void GCodeProcessor::UsedFilaments::process_total_volume_cache(GCodeProcessor* p
 
 void GCodeProcessor::UsedFilaments::record_layer(GCodeProcessor* processor)
 {
-    // Commit what the active filament has extruded so far, then snapshot every filament's model, support
-    // and wipe tower volumes (flush is not recorded per layer).
+    // Commit what the active filament has extruded so far, then snapshot every filament's model, support,
+    // wipe tower and flush volumes.
     // Called at each layer change and once at the end, so entry 0 is what was extruded before the
     // first layer (purge line, priming) and the last entry is the plate's volume.
     process_model_cache(processor);
@@ -2545,6 +2546,7 @@ void GCodeProcessor::UsedFilaments::record_layer(GCodeProcessor* processor)
     snapshot(model_volumes_per_filament, layer_volumes_per_filament);
     snapshot(support_volumes_per_filament, layer_support_volumes_per_filament);
     snapshot(wipe_tower_volumes_per_filament, layer_wipe_tower_volumes_per_filament);
+    snapshot(flush_per_filament, layer_flush_volumes_per_filament);
     ++layers_recorded;
 }
 
@@ -7860,6 +7862,7 @@ void GCodeProcessor::update_estimated_times_stats()
     m_result.print_statistics.layer_volumes_per_extruder = m_used_filaments.layer_volumes_per_filament;
     m_result.print_statistics.layer_support_volumes_per_extruder = m_used_filaments.layer_support_volumes_per_filament;
     m_result.print_statistics.layer_wipe_tower_volumes_per_extruder = m_used_filaments.layer_wipe_tower_volumes_per_filament;
+    m_result.print_statistics.layer_flush_volumes_per_extruder = m_used_filaments.layer_flush_volumes_per_filament;
 }
 
 double GCodeProcessor::extract_absolute_position_on_axis(Axis axis, const GCodeReader::GCodeLine& line, double area_filament_cross_section)

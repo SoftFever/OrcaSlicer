@@ -112,9 +112,11 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         // each layer; entry 0 is what was extruded before the first layer, the last entry equals
         // model_volumes_per_extruder
         std::map<size_t, std::vector<double>>               layer_volumes_per_extruder;
-        // the same series for the support and for the wipe tower; a filament that never printed one has none
+        // the same series for the support, for the wipe tower and for the flush (what a tool change purges,
+        // which total_volumes_per_extruder includes); a filament that never printed one has none
         std::map<size_t, std::vector<double>>               layer_support_volumes_per_extruder;
         std::map<size_t, std::vector<double>>               layer_wipe_tower_volumes_per_extruder;
+        std::map<size_t, std::vector<double>>               layer_flush_volumes_per_extruder;
         //BBS: the flush amount of every filament
         std::map<size_t, double>                            flush_per_filament;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
@@ -149,6 +151,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             layer_volumes_per_extruder.clear();
             layer_support_volumes_per_extruder.clear();
             layer_wipe_tower_volumes_per_extruder.clear();
+            layer_flush_volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();
             total_filament_changes = 0;
@@ -167,11 +170,12 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         // given as MoveVertex::layer_id values. Entry 0 of the series is what was extruded before the
         // first layer, so the layer with id k ends at entry k + 1: the range is the entry of its last
         // layer minus the entry before its first. Empty when no series covers the range.
-        enum class LayerVolumeKind { Model, Support, WipeTower };
+        enum class LayerVolumeKind { Model, Support, WipeTower, Flush };
         std::optional<double> layers_volume(size_t extruder_id, size_t first_layer_id, size_t last_layer_id, LayerVolumeKind kind = LayerVolumeKind::Model) const
         {
             const std::map<size_t, std::vector<double>>& all_series = kind == LayerVolumeKind::Support ? layer_support_volumes_per_extruder :
-                kind == LayerVolumeKind::WipeTower ? layer_wipe_tower_volumes_per_extruder : layer_volumes_per_extruder;
+                kind == LayerVolumeKind::WipeTower ? layer_wipe_tower_volumes_per_extruder :
+                kind == LayerVolumeKind::Flush ? layer_flush_volumes_per_extruder : layer_volumes_per_extruder;
             const auto series = all_series.find(extruder_id);
             if (series == all_series.end() || first_layer_id > last_layer_id || last_layer_id + 1 >= series->second.size())
                 return std::nullopt;
@@ -864,6 +868,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             std::map<size_t, std::vector<double>> layer_volumes_per_filament;
             std::map<size_t, std::vector<double>> layer_support_volumes_per_filament;
             std::map<size_t, std::vector<double>> layer_wipe_tower_volumes_per_filament;
+            std::map<size_t, std::vector<double>> layer_flush_volumes_per_filament;
             size_t layers_recorded{0};
 
             double role_cache;
