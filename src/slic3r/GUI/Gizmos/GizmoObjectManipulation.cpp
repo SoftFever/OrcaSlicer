@@ -925,7 +925,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     }
     if (!focued_on_text) m_glcanvas.handle_sidebar_focus_event("", false);
 
-    // Align and distribute along the world axes, within the selection or to the object or plate holding it.
+    // Align and distribute along the coordinate system of the panel, within the selection or to the object or plate holding it.
     using AlignType                = GLGizmoAlignment::AlignType;
     const bool old_align_to_parent = m_align_to_parent;
     AlignType  hovered_align_type  = AlignType::NONE;
@@ -933,6 +933,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
+        m_alignment_helper.set_object_cs(is_instance_coordinates());
 
         // Each row is row_height tall, separated by ItemSpacing.y. Every control is centered vertically in its row.
         const float       row_y         = ImGui::GetCursorPosY();
