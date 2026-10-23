@@ -2806,6 +2806,7 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         m_frame_profiler.mark("bed");
         // Exception: the painting gizmos hide the bed mesh on purpose and draw the plate instead,
         // so there the plate list is the only bed reference in the scene.
+        _update_plate_shift_preview();
         if (show_bed || _is_below_plate_view_active()) //BBS: add outline logic
             _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
         _render_plate_drag_target(camera.get_view_matrix(), camera.get_projection_matrix());
@@ -5295,8 +5296,24 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_layers_editing.accept_changes(*this);
         }
         else if (m_plate_drag.plate_idx != -1 && m_mouse.dragging) {
-            if (evt.LeftUp() && m_plate_drag.valid)
-                wxGetApp().plater()->move_plate_to_cell(m_plate_drag.plate_idx, m_plate_drag.cell);
+            if (evt.LeftUp() && m_plate_drag.valid) {
+                PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+                const std::map<int, Vec2i32> moves = plate_list.plan_plate_move(m_plate_drag.plate_idx, m_plate_drag.cell);
+                // Where each plate is drawn now, relative to where the move puts it, so it settles in from there.
+                std::map<int, Vec3d> landing = m_plate_shift.current;
+                for (const auto& [plate_index, plate_cell] : moves) {
+                    const Vec2d shift = plate_list.compute_cell_box(plate_cell).min - plate_list.compute_cell_box(plate_list.get_plate_cell(plate_index)).min;
+                    landing[plate_index] -= Vec3d(shift.x(), shift.y(), 0.);
+                }
+                _clear_plate_shift_preview();
+                if (wxGetApp().plater()->move_plate_to_cell(m_plate_drag.plate_idx, m_plate_drag.cell) == 0) {
+                    m_plate_shift.current    = landing;
+                    m_plate_shift.last_frame = std::chrono::steady_clock::now();
+                }
+            } else
+                // Not dropped: the carried plate and the plates that made room slide back home.
+                m_plate_shift.target.clear();
+            request_extra_frame();
         }
         else if (m_mouse.drag.move_volume_idx != -1 && m_mouse.dragging) {
             do_move(L("Move object"));
@@ -6212,6 +6229,7 @@ void GLCanvas3D::mouse_up_cleanup()
     m_mouse.drag.move_volume_idx = -1;
     m_plate_drag.plate_idx = -1;
     m_plate_drag.target.reset();
+    m_plate_drag.outline.reset();
     m_mouse.set_start_position_3D_as_invalid();
     m_mouse.set_start_position_2D_as_invalid();
     m_mouse.dragging = false;
@@ -11978,9 +11996,11 @@ bool GLCanvas3D::_start_plate_drag(const Point& mouse_pos)
     m_plate_drag.plate_idx   = plate_idx;
     m_plate_drag.start       = mouse_pos;
     m_plate_drag.grab_offset = plate->get_origin().head<2>() - grab.head<2>();
+    m_plate_drag.ghost_shift = Vec2d::Zero();
     m_plate_drag.cell        = plate_list.get_plate_cell(plate_idx);
     m_plate_drag.valid       = false;
     m_plate_drag.target.reset();
+    m_plate_drag.outline.reset();
     if (!has_mouse_capture())
         m_canvas->CaptureMouse();
     return true;
@@ -11993,13 +12013,110 @@ void GLCanvas3D::_update_plate_drag(const Point& mouse_pos)
         return;
 
     PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-    const Vec2i32  cell       = plate_list.get_cell_at(pos.head<2>() + m_plate_drag.grab_offset);
+    PartPlate*     plate      = plate_list.get_plate(m_plate_drag.plate_idx);
+    if (plate == nullptr)
+        return;
+    const Vec2d ghost_origin   = pos.head<2>() + m_plate_drag.grab_offset;
+    m_plate_drag.ghost_shift   = ghost_origin - plate->get_origin().head<2>();
+    const Vec2i32 cell         = plate_list.get_cell_at(ghost_origin);
+    if (m_plate_shift.current.empty())
+        m_plate_shift.last_frame = std::chrono::steady_clock::now();
     if (cell != m_plate_drag.cell) {
-        m_plate_drag.cell  = cell;
-        m_plate_drag.valid = plate_list.can_move_plate_to_cell(m_plate_drag.plate_idx, cell);
+        m_plate_drag.cell = cell;
         m_plate_drag.target.reset();
+        // The plates in the way slide toward the cells they would take; the rest slide back home.
+        const std::map<int, Vec2i32> moves = plate_list.plan_plate_move(m_plate_drag.plate_idx, cell);
+        m_plate_drag.valid = !moves.empty();
+        m_plate_shift.target.clear();
+        for (const auto& [plate_index, plate_cell] : moves) {
+            const Vec2d shift = plate_list.compute_cell_box(plate_cell).min - plate_list.compute_cell_box(plate_list.get_plate_cell(plate_index)).min;
+            m_plate_shift.target[plate_index] = Vec3d(shift.x(), shift.y(), 0.);
+        }
     }
+    // The dragged plate is carried under the mouse, slightly lifted, with its objects.
+    const Vec3d carried(m_plate_drag.ghost_shift.x(), m_plate_drag.ghost_shift.y(), PlateDrag::Lift);
+    m_plate_shift.target[m_plate_drag.plate_idx]  = carried;
+    m_plate_shift.current[m_plate_drag.plate_idx] = carried;
     m_dirty = true;
+}
+
+void GLCanvas3D::_update_plate_shift_preview()
+{
+    if (m_plate_shift.target.empty() && m_plate_shift.current.empty())
+        return;
+
+    const auto   now = std::chrono::steady_clock::now();
+    const double dt  = std::min(0.1, std::chrono::duration<double>(now - m_plate_shift.last_frame).count());
+    m_plate_shift.last_frame = now;
+    // Exponential easing: a plate covers about 95% of the way in a quarter of a second, then settles.
+    const double step = 1. - std::exp(-dt / 0.08);
+
+    std::map<int, Vec3d> offsets;
+    bool                 moving = false;
+    for (const auto* plates : { &m_plate_shift.target, &m_plate_shift.current })
+        for (const auto& entry : *plates)
+            offsets.emplace(entry.first, Vec3d::Zero());
+    for (auto& [plate_index, offset] : offsets) {
+        const auto  t      = m_plate_shift.target.find(plate_index);
+        const auto  c      = m_plate_shift.current.find(plate_index);
+        const Vec3d target = t == m_plate_shift.target.end() ? Vec3d::Zero() : t->second;
+        offset             = c == m_plate_shift.current.end() ? Vec3d::Zero() : c->second;
+        offset += (target - offset) * step;
+        if ((target - offset).norm() < 0.01)
+            offset = target;
+        else
+            moving = true;
+    }
+    _apply_plate_shift_offsets(offsets);
+
+    m_plate_shift.current.clear();
+    for (const auto& [plate_index, offset] : offsets)
+        if (!offset.isZero())
+            m_plate_shift.current.emplace(plate_index, offset);
+    if (moving)
+        request_extra_frame();
+}
+
+void GLCanvas3D::_apply_plate_shift_offsets(const std::map<int, Vec3d>& offsets)
+{
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    const Model&   model      = wxGetApp().plater()->model();
+    for (const auto& [plate_index, offset] : offsets)
+        if (PartPlate* plate = plate_list.get_plate(plate_index))
+            plate->set_preview_offset(offset);
+
+    // The objects slide with their plates. Only the scene's copies move; the model stays where it is
+    // until the drop, and reload_scene() redraws from the model.
+    for (GLVolume* volume : m_volumes.volumes) {
+        const int obj_idx  = volume->object_idx();
+        const int inst_idx = volume->instance_idx();
+        int       plate_index = -1;
+        Vec3d     base        = Vec3d::Zero();
+        if (volume->is_wipe_tower) {
+            // A wipe tower is placed by its volume offset; its instance transformation is otherwise unused.
+            plate_index = obj_idx - 1000;
+        } else if (obj_idx >= 0 && obj_idx < (int)model.objects.size() && inst_idx >= 0 &&
+                   inst_idx < (int)model.objects[obj_idx]->instances.size()) {
+            for (const auto& entry : offsets)
+                if (PartPlate* plate = plate_list.get_plate(entry.first); plate != nullptr && plate->contain_instance(obj_idx, inst_idx)) {
+                    plate_index = entry.first;
+                    break;
+                }
+            base = model.objects[obj_idx]->instances[inst_idx]->get_offset();
+        }
+        if (const auto it = offsets.find(plate_index); it != offsets.end())
+            volume->set_instance_offset(base + it->second);
+    }
+}
+
+void GLCanvas3D::_clear_plate_shift_preview()
+{
+    std::map<int, Vec3d> home;
+    for (const auto& entry : m_plate_shift.current)
+        home.emplace(entry.first, Vec3d::Zero());
+    _apply_plate_shift_offsets(home);
+    m_plate_shift.current.clear();
+    m_plate_shift.target.clear();
 }
 
 void GLCanvas3D::_render_plate_drag_target(const Transform3d& view_matrix, const Transform3d& projection_matrix)
@@ -12008,30 +12125,34 @@ void GLCanvas3D::_render_plate_drag_target(const Transform3d& view_matrix, const
         return;
 
     PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-    // Dropping on the plate's own cell does nothing, so there is nothing to show.
-    if (m_plate_drag.cell == plate_list.get_plate_cell(m_plate_drag.plate_idx))
-        return;
+    const Vec2i32  home_cell  = plate_list.get_plate_cell(m_plate_drag.plate_idx);
 
-    if (!m_plate_drag.target.is_initialized()) {
-        const BoundingBoxf box = plate_list.compute_cell_box(m_plate_drag.cell);
-        const Vec2d&       min = box.min;
-        const Vec2d&       max = box.max;
-        const float        z   = 0.05f;
-
+    const auto make_rect = [](GLModel& model, const BoundingBoxf& box, float z, bool outline, const ColorRGBA& color) {
         GLModel::Geometry data;
-        data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
-        data.reserve_vertices(4);
-        data.reserve_indices(6);
-        data.add_vertex(Vec3f(float(min.x()), float(min.y()), z));
-        data.add_vertex(Vec3f(float(max.x()), float(min.y()), z));
-        data.add_vertex(Vec3f(float(max.x()), float(max.y()), z));
-        data.add_vertex(Vec3f(float(min.x()), float(max.y()), z));
-        data.add_triangle(0, 1, 2);
-        data.add_triangle(0, 2, 3);
-        m_plate_drag.target.init_from(std::move(data));
+        data.format = { outline ? GLModel::Geometry::EPrimitiveType::LineLoop : GLModel::Geometry::EPrimitiveType::Triangles,
+                        GLModel::Geometry::EVertexLayout::P3 };
+        data.add_vertex(Vec3f(float(box.min.x()), float(box.min.y()), z));
+        data.add_vertex(Vec3f(float(box.max.x()), float(box.min.y()), z));
+        data.add_vertex(Vec3f(float(box.max.x()), float(box.max.y()), z));
+        data.add_vertex(Vec3f(float(box.min.x()), float(box.max.y()), z));
+        if (outline) {
+            for (unsigned int i = 0; i < 4; ++i)
+                data.add_index(i);
+        } else {
+            data.add_triangle(0, 1, 2);
+            data.add_triangle(0, 2, 3);
+        }
+        model.init_from(std::move(data));
+        model.set_color(color);
+    };
+
+    if (!m_plate_drag.outline.is_initialized())
+        make_rect(m_plate_drag.outline, plate_list.compute_cell_box(home_cell), float(PlateDrag::Lift) + 0.3f, true,
+                  ColorRGBA(0.0f, 0.588f, 0.533f, 1.0f));
+    if (!m_plate_drag.target.is_initialized() && m_plate_drag.cell != home_cell)
         // Green where the plate can go, red where it or a plate making room for it would land on loose objects.
-        m_plate_drag.target.set_color(m_plate_drag.valid ? ColorRGBA(0.0f, 0.588f, 0.533f, 0.4f) : ColorRGBA(0.9f, 0.2f, 0.2f, 0.4f));
-    }
+        make_rect(m_plate_drag.target, plate_list.compute_cell_box(m_plate_drag.cell), 0.05f, false,
+                  m_plate_drag.valid ? ColorRGBA(0.0f, 0.588f, 0.533f, 0.3f) : ColorRGBA(0.9f, 0.2f, 0.2f, 0.4f));
 
     GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
@@ -12041,9 +12162,16 @@ void GLCanvas3D::_render_plate_drag_target(const Transform3d& view_matrix, const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     glsafe(::glDepthMask(GL_FALSE));
-    shader->set_uniform("view_model_matrix", view_matrix);
     shader->set_uniform("projection_matrix", projection_matrix);
-    m_plate_drag.target.render();
+    shader->set_uniform("view_model_matrix", view_matrix);
+    if (m_plate_drag.cell != home_cell)
+        m_plate_drag.target.render();
+    // The outline rides on the carried plate; the highlight shows the cell it snaps to.
+    const Vec3d ghost_shift(m_plate_drag.ghost_shift.x(), m_plate_drag.ghost_shift.y(), 0.);
+    shader->set_uniform("view_model_matrix", Transform3d(view_matrix * Geometry::translation_transform(ghost_shift)));
+    glsafe(::glLineWidth(2.0f));
+    m_plate_drag.outline.render();
+    glsafe(::glLineWidth(1.0f));
     glsafe(::glDepthMask(GL_TRUE));
     glsafe(::glDisable(GL_BLEND));
     shader->stop_using();
