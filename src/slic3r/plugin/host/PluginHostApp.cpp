@@ -15,7 +15,6 @@
 #include <slic3r/GUI/GUI_App.hpp>
 #include <slic3r/GUI/OpenGLManager.hpp>
 #include <slic3r/GUI/PartPlate.hpp>
-#include <slic3r/GUI/PartPlate.hpp>
 #include <slic3r/GUI/Plater.hpp>
 #include <slic3r/Utils/CloudProvider.hpp>
 #include <slic3r/Utils/NetworkAgent.hpp>
