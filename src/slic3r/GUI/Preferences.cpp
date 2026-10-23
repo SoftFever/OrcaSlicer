@@ -2026,6 +2026,14 @@ void PreferencesDialog::create_items()
         SETTING_OPENGL_REALISTIC_SHADOWS, ShadowsLabels, ShadowsValues);
     g_sizer->Add(item_realistic_shadows);
 
+    auto item_realistic_gloss = create_item_checkbox(
+        _L("Glossy toolpaths"),
+        _L("Highlights the toolpaths in Preview as glossy plastic in realistic view.\n"
+           "Translucent filaments keep the highlight either way, so that a clear one does not fade into the background."),
+        SETTING_OPENGL_REALISTIC_GLOSS
+    );
+    g_sizer->Add(item_realistic_gloss);
+
     //// GRAPHICS > Anti-aliasing
     g_sizer->Add(create_item_title(_L("Anti-aliasing")), 1, wxEXPAND);
 

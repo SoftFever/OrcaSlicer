@@ -60,11 +60,13 @@ write depth, so while there are translucent toolpaths they wait for them, in
 behind them, and the print would show a hole around the tool position.
 
 A translucent segment takes its diffuse light in its own color, scaled by its opacity. In
-realistic view, whatever its options, every segment, opaque or translucent, takes instead of the
-tinted highlight of the default shading an untinted one computed per fragment, not scaled by the
-opacity, so that the filaments look alike and a clear one keeps its gloss instead of fading into
-the background. `GLCanvas3D::_render_gcode()` switches it with `Viewer::set_gloss()`. Without
-realistic view a translucent filament is matte and an opaque one keeps the default shading. The
+realistic view, whatever its options, a translucent segment takes instead of the tinted highlight
+of the default shading an untinted one computed per fragment, not scaled by the opacity, so that
+a clear filament keeps its gloss instead of fading into the background. The opaque segments take
+the same highlight unless the "Glossy toolpaths" setting of the realistic view is off, so that all
+the filaments look alike. `GLCanvas3D::_render_gcode()` switches both with `Viewer::set_gloss()`.
+Without realistic view a translucent filament is matte and an opaque one keeps the default
+shading. The
 highlight takes the normal of the rounded extrusion a segment stands for, an ellipse of its height
 and width around its centre line, rather than that of its facets: it then runs smoothly across a
 joint, where the facets of two segments would catch it apart, and it fades out towards the tip of a
@@ -74,8 +76,8 @@ is no Fresnel term: an extrusion seen end-on would turn into a bright opaque str
 Each segment reaches half a line width past its ends, to fill the outside of a turn or round off a
 path end, so two segments of a path overlap at their joint. Depth hides that between opaque ones,
 but blending would draw the joint twice, and the highlight of realistic view shows the caps sticking
-out of an opaque one. A translucent segment, and in realistic view any segment, is therefore cut in
-the fragment shader at the bisector plane of each joint of its path, keeping 0.02 mm past it: the
+out of an opaque one. A translucent segment, and a glossy one, is therefore cut in the fragment
+shader at the bisector plane of each joint of its path, keeping 0.02 mm past it: the
 faces each segment turns to the camera do not quite meet without their caps. A vertex where two
 segments of a path meet carries 0.5 on top of its layer in the w of its position, which the shaders
 otherwise read as an int. That includes the joints across the vertex repeated in place that starts
