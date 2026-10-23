@@ -44,6 +44,13 @@ protected:
 private:
 	void update();
 
+#ifdef __WXOSX__
+    // Expose this checkbox to VoiceOver / Voice Control. Native NSButton-backed controls
+    // already report their role, value and press action, so this only supplies the
+    // accessible name and Voice Control identifier.
+    void applyAccessibility();
+#endif
+
 private:
     ScalableBitmap m_on;
     ScalableBitmap m_half;
