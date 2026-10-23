@@ -1590,11 +1590,12 @@ void ConfigBase::save_to_json(std::ostream &os, const std::string &name, const s
     // update_plugin_manifest). Only with a resolver (GUI); without one (CLI/headless) leave whatever
     // the "plugins" option already serialized above, so a round-trip never drops the manifest.
     if (resolve_capability_fn) {
-        std::vector<std::string> unique_refs = this->collect_plugin_manifest();
+        const std::string        manifest_key = this->plugin_manifest_key();
+        std::vector<std::string> unique_refs  = this->collect_plugin_manifest();
         if (unique_refs.empty())
-            j.erase("plugins");
+            j.erase(manifest_key);
         else
-            j["plugins"] = unique_refs;
+            j[manifest_key] = unique_refs;
     }
 
     os << j.dump(1, '\t', false, replace_invalid_utf8 ? json::error_handler_t::replace : json::error_handler_t::strict) << std::endl;
@@ -1639,13 +1640,28 @@ void ConfigBase::save_plugin_collection(const std::string& opt_key, const Config
         return;
     const std::string& type = opt_def->plugin_type;
 
+    // A capability that is not loaded here (e.g. its plugin is not installed on this machine yet)
+    // cannot be resolved. Keep the reference the manifest already holds for it, so saving the preset
+    // on that machine does not drop the plugin that other machines are offered to install.
+    const auto* previous_manifest = this->option<ConfigOptionStrings>(this->plugin_manifest_key());
+    const auto previous_ref = [previous_manifest](const std::string& capability_value) -> std::string {
+        if (previous_manifest == nullptr)
+            return {};
+        for (const std::string& entry : previous_manifest->values)
+            if (const auto ref = parse_capability_ref(entry); ref && ref->capability_name == capability_value)
+                return entry;
+        return {};
+    };
+
     // Resolve a single bare capability value into its full reference and append it, skipping unset
-    // values, capabilities that could not be resolved (resolver returns ""), and duplicates already
-    // collected (preserving insertion order).
-    const auto append_ref = [&plugin_refs, &type](const std::string& capability_value) {
+    // values, capabilities that resolve nowhere (resolver and manifest both empty), and duplicates
+    // already collected (preserving insertion order).
+    const auto append_ref = [&plugin_refs, &type, &previous_ref](const std::string& capability_value) {
         if (capability_value.empty())
             return;
         std::string ref = resolve_capability_fn(capability_value, type);
+        if (ref.empty())
+            ref = previous_ref(capability_value);
         if (!ref.empty() && std::find(plugin_refs.begin(), plugin_refs.end(), ref) == plugin_refs.end())
             plugin_refs.emplace_back(std::move(ref));
     };
@@ -1682,8 +1698,17 @@ void ConfigBase::update_plugin_manifest()
     // resolver (CLI/headless) leave whatever manifest was loaded from disk untouched.
     if (!resolve_capability_fn)
         return;
-    if (auto* manifest = this->option<ConfigOptionStrings>("plugins", true))
-        manifest->values = this->collect_plugin_manifest();
+    std::vector<std::string> refs = this->collect_plugin_manifest();
+    if (auto* manifest = this->option<ConfigOptionStrings>(this->plugin_manifest_key(), true))
+        manifest->values = std::move(refs);
+}
+
+std::string ConfigBase::plugin_manifest_key() const
+{
+    // A printer preset config holds "printer_plugins" but not the process preset's "plugins": the full
+    // print config applies the printer preset after the process preset, so a shared key would replace
+    // the process manifest. A full config holds both and keeps the combined manifest in "plugins".
+    return this->option("printer_plugins") != nullptr && this->option("plugins") == nullptr ? "printer_plugins" : "plugins";
 }
 
 DynamicConfig::DynamicConfig(const ConfigBase& rhs, const t_config_option_keys& keys)

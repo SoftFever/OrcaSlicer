@@ -16131,6 +16131,8 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
 
     up_to_date(true, false);
     up_to_date(true, true);
+    // clear_all() above also removed the missing-plugin notices; show them again for the current presets.
+    refresh_missing_plugin_notifications();
     return wxID_YES;
 }
 
@@ -21659,6 +21661,15 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     config_change_notification(config, std::string("print_sequence"));
 
+    // A preset switch can reference plugins this machine lacks, e.g. a printer preset synced from
+    // another computer. Offer them now instead of at the next plate validation. When the slicing block
+    // toggles, update() re-evaluates the Slice button.
+    if (p->main_frame->is_loaded()) {
+        bool plugins_block_changed = false;
+        refresh_missing_plugin_block(&plugins_block_changed);
+        update_scheduled |= plugins_block_changed;
+    }
+
     if (update_scheduled)
         update();
 
@@ -22922,7 +22933,7 @@ bool Plater::refresh_missing_plugin_block(bool* block_toggled)
     // installed/loaded, or when no active setting references it any more (refresh drops it then).
     // The block is derived solely from PluginResolver; snapshot it before the refresh to detect a
     // toggle (so the caller can refresh the Slice button).
-    const bool was_blocked = has_missing_plugins() || has_inactive_plugins() || has_broken_plugins();
+    const bool was_blocked = has_blocking_plugins();
     refresh_missing_plugins(*wxGetApp().preset_bundle);
 
     const auto missing_refs = [](const std::vector<MissingPlugin>& missing) {
@@ -22955,8 +22966,10 @@ bool Plater::refresh_missing_plugin_block(bool* block_toggled)
             }
             return;
         }
+        // Push again when the set changed, or when the notice is gone although the set did not change
+        // (clear_all() on a new project removes it).
         const std::string sig = signature(missing);
-        if (*shown_sig != sig) {
+        if (*shown_sig != sig || !p->notification_manager->has_notification_of_type(type)) {
             std::vector<JumpTo> body;
             for (const auto& m : missing)
                 body.emplace_back(JumpTo{m.ref.capability_name, m.opt, m.opt_type});
@@ -23002,7 +23015,7 @@ bool Plater::refresh_missing_plugin_block(bool* block_toggled)
            _u8L("Find on OrcaCloud"),
            [broken_refs](wxEvtHandler*) { open_missing_plugins_on_cloud(broken_refs); return false; });
 
-    const bool blocked = has_missing_plugins() || has_inactive_plugins() || has_broken_plugins();
+    const bool blocked = has_blocking_plugins();
     if (block_toggled)
         *block_toggled = (was_blocked != blocked);
     return blocked;
@@ -23017,6 +23030,15 @@ void Plater::revalidate_current_plate_if_plugins_missing()
         return;
     bool model_fits = true, validate_error = false;
     validate_current_plate(model_fits, validate_error);
+}
+
+void Plater::refresh_missing_plugin_notifications()
+{
+    bool block_toggled = false;
+    refresh_missing_plugin_block(&block_toggled);
+    // update() re-evaluates the Slice button, which honors plugins_block_slicing().
+    if (block_toggled)
+        update();
 }
 
 void Plater::install_missing_cloud_plugins(const std::vector<std::string>& cloud_refs)
@@ -23092,8 +23114,10 @@ void Plater::enable_inactive_plugins(const std::vector<std::string>& refs)
 bool Plater::plugins_block_slicing() const
 {
     // Single source of truth: slicing is blocked while PluginResolver still has unresolved plugin
-    // references — missing (download), inactive (activate), or broken (capability unavailable).
-    return has_missing_plugins() || has_inactive_plugins() || has_broken_plugins();
+    // references — missing (download), inactive (activate), or broken (capability unavailable) —
+    // from the process or filament presets. Printer preset plugins (e.g. printer agents) only prompt:
+    // they do not change the sliced result.
+    return has_blocking_plugins();
 }
 
 void Plater::open_platesettings_dialog(wxCommandEvent& evt) {

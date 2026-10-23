@@ -881,6 +881,46 @@ TEST_CASE_METHOD(PluginResolverFixture,
     CHECK(manifest == std::vector<std::string>{"x;;slicing-pipeline"});
 }
 
+TEST_CASE_METHOD(PluginResolverFixture,
+    "a printer preset config keeps its manifest in printer_plugins",
+    "[Config][plugins]") {
+    // The full print config applies the printer preset after the process preset, so a printer manifest
+    // stored in "plugins" would replace the process preset's.
+    std::unique_ptr<DynamicPrintConfig> printer(DynamicPrintConfig::new_from_defaults_keys(
+        {"printer_agent", "printer_plugins"}));
+    printer->option<ConfigOptionString>("printer_agent", true)->value = "agent";
+
+    printer->update_plugin_manifest();
+    CHECK(printer->option("plugins") == nullptr);
+    CHECK(printer->option<ConfigOptionStrings>("printer_plugins")->values == std::vector<std::string>{"agent;;printer-connection"});
+
+    // A full config holds both keys and keeps the combined manifest in "plugins".
+    std::unique_ptr<DynamicPrintConfig> full(DynamicPrintConfig::new_from_defaults_keys(
+        {"printer_agent", "printer_plugins", "plugins"}));
+    full->option<ConfigOptionString>("printer_agent", true)->value = "agent";
+    full->update_plugin_manifest();
+    CHECK(full->option<ConfigOptionStrings>("plugins")->values == std::vector<std::string>{"agent;;printer-connection"});
+    CHECK(full->option<ConfigOptionStrings>("printer_plugins")->values.empty());
+}
+
+TEST_CASE("update_plugin_manifest keeps the entry of a capability that is not loaded here", "[Config][plugins]") {
+    // Saving a preset on a machine that lacks one of its plugins must not drop that plugin from the
+    // manifest other machines read.
+    ConfigBase::set_resolve_capability_fn([](const std::string& name, const std::string& type) {
+        return name == "offline" || name == "gone" ? std::string() : name + ";;" + type;
+    });
+    std::unique_ptr<DynamicPrintConfig> config(DynamicPrintConfig::new_from_defaults_keys(
+        {"slicing_pipeline_plugin", "plugins"}));
+    config->option<ConfigOptionStrings>("slicing_pipeline_plugin", true)->values = {"offline", "here", "gone"};
+    config->option<ConfigOptionStrings>("plugins", true)->values = {"Pack;3f2a6c1e;offline", "Other;9b1d;stale"};
+
+    config->update_plugin_manifest();
+    ConfigBase::set_resolve_capability_fn(nullptr);
+    // "gone" resolves nowhere and has no previous entry; the stale entry nobody references is dropped.
+    CHECK(config->option<ConfigOptionStrings>("plugins")->values ==
+          std::vector<std::string>{"Pack;3f2a6c1e;offline", "here;;slicing-pipeline"});
+}
+
 TEST_CASE("H2C/A2L-era multi-nozzle and pre-heat config keys exist", "[config]") {
     // Foundation keys backing H2C 6-nozzle cluster grouping, the pre-heat/pre-cool time
     // model, and wipe-tower nozzle-change handling. Defaults must keep existing
