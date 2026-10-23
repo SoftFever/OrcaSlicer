@@ -732,6 +732,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         MarkdownTip::ExitTip();
         // Prevent queued selection/UI refresh work from running as normal during reset.
         wxGetApp().set_closing(true);
+        wxGetApp().start_exit_watchdog();
 
         m_plater->reset();
         this->shutdown();
