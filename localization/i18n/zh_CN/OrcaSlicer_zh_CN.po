@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2026-06-11 12:37-0300\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -1751,7 +1751,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "形状（%1%）的描边包含不受支持的内容：%2%。"
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "状态无效，请在 GitHub 上报告复现步骤"
 
 # AI Translated
@@ -1759,11 +1759,11 @@ msgid "No embossed file"
 msgstr "没有浮雕文件"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "浮雕形状中缺少 SVG 文件"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "缺少 SVG 文件数据"
 
 # AI Translated
@@ -5008,7 +5008,7 @@ msgid "Unknown C++ exception."
 msgstr "未知的 C++ 异常。"
 
 # AI Translated
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "正在处理之前文件的 G-code…"
 
 msgid "Slicing complete"
@@ -6699,7 +6699,7 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "发现G-code路径在层%d，高度为%.2lf mm处有冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
 
@@ -12013,6 +12013,10 @@ msgstr "上传文件到打印机存储失败，请重试。"
 msgid "Send Failed"
 msgstr "发送失败"
 
+# AI Translated
+msgid "No available printers"
+msgstr "没有可用的打印机"
+
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
 
@@ -13922,8 +13926,8 @@ msgid "Left mouse"
 msgstr "鼠标左键"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "在窗口任意位置可用，即使正在文本框中输入。"
+msgid "Available anywhere in the window."
+msgstr "在窗口任意位置可用。"
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -14038,10 +14042,6 @@ msgstr "%s 已分配给 %s。是否将其重新分配给 %s？"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "默认的 %s 已分配给 %s。是否将其重新分配给 %s？"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "全局快捷键在输入文字时同样生效。"
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -18085,6 +18085,14 @@ msgstr "对象排除"
 
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "启用此选项以在G-code中添加EXCLUDE OBJECT命令。"
+
+# AI Translated
+msgid "Outline tolerance"
+msgstr "轮廓线公差"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "写入 EXCLUDE_OBJECT_DEFINE 的对象轮廓线与原始轮廓线之间的最大偏差。数值越大，点数越少，有助于避免固件在解析包含大量对象的 G-code 时卡顿。0 表示保留所有点。"
 
 msgid "Verbose G-code"
 msgstr "注释G-code"
@@ -24004,7 +24012,7 @@ msgstr "开始测试 %s..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "测试 %s：IP 解析结果 = %s"
 
 # AI Translated
@@ -31498,20 +31506,21 @@ msgid "Basic Colors"
 msgstr "基本颜色"
 
 # AI Translated
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
 msgid "Orca Palette"
 msgstr "Orca 调色板"
 
 # AI Translated
-#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "RAL Classic"
 msgstr "RAL 经典色"
 
 # AI Translated
-#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "Gradients"
 msgstr "渐变预设"
 
 # AI Translated
+msgctxt "Color picker"
 msgid "Solid"
 msgstr "纯色"
 
@@ -32010,7 +32019,7 @@ msgid "Medium violet red"
 msgstr "中紫罗兰红"
 
 # AI Translated
-msgid "PaleV violet red"
+msgid "Pale violet red"
 msgstr "浅紫罗兰红"
 
 # AI Translated
@@ -32226,8 +32235,7 @@ msgid "Shallow sky"
 msgstr "浅空"
 
 # AI Translated
-# Needs human review: The English “Electric bel” looks like a typo (Electric blue? Electric eel?); the color is #1E90FF, so 电光蓝 was chosen. Recheck once the source name is fixed.
-msgid "Electric bel"
+msgid "Electric blue"
 msgstr "电光蓝"
 
 # AI Translated
@@ -32319,9 +32327,8 @@ msgid "Maize yellow"
 msgstr "玉米黄"
 
 # AI Translated
-# Needs human review: RAL 1007 is “Daffodil yellow” (水仙黄); the English name in the palette looks wrong. Recheck once the source name is fixed.
-msgid "Dalmatian yellow"
-msgstr "达尔马提亚黄"
+msgid "Daffodil yellow"
+msgstr "水仙黄"
 
 # AI Translated
 msgid "Brown beige"
@@ -32668,8 +32675,8 @@ msgid "Turquoise blue"
 msgstr "绿松石蓝"
 
 # AI Translated
-msgid "Capsanthin violet"
-msgstr "辣椒红素紫"
+msgid "Capri blue"
+msgstr "卡普里蓝"
 
 # AI Translated
 msgid "Ocean blue"
@@ -32820,8 +32827,8 @@ msgid "Silver grey"
 msgstr "银灰色"
 
 # AI Translated
-msgid "Olivestone"
-msgstr "橄榄石色"
+msgid "Olive grey"
+msgstr "橄榄灰"
 
 # AI Translated
 msgid "Moss grey"
@@ -33598,12 +33605,24 @@ msgid "Built-in"
 msgstr "内置"
 
 # AI Translated
+msgid "My textures"
+msgstr "我的纹理"
+
+# AI Translated
 msgid "No textures found."
 msgstr "未找到纹理。"
 
 # AI Translated
-msgid "My textures"
-msgstr "我的纹理"
+msgid "Texture libraries"
+msgstr "纹理库"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "探索更多纹理库"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "在主页中打开 OrcaCloud，浏览插件。"
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -36286,6 +36305,10 @@ msgid "Slicing Pipeline"
 msgstr "切片流水线"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "资源纹理"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "插件的配置界面为空。正在显示默认编辑器。"
 
@@ -36432,6 +36455,30 @@ msgstr "插件目录同时包含 .py 和 .whl 入口文件"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "插件目录不包含 .py 或 .whl 入口文件"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "未设置资源纹理目录"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "无法解析资源纹理目录"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "资源纹理路径不是目录"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "无法解析插件文件夹"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "资源纹理目录位于插件文件夹之外"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "无法读取资源纹理目录"
 
 # AI Translated
 #, boost-format
@@ -36891,7 +36938,7 @@ msgstr "加载配置文件“%1%”失败：%2%"
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "不是由 %1% 生成的 G-code 文件。"
 
 # AI Translated
@@ -37011,7 +37058,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "运行后处理脚本之前，无法创建 G-code 文件 %1% 的临时副本：%2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "后处理器找不到导出的 G-code 文件"
 
 # AI Translated
@@ -37399,6 +37446,40 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+# AI Translated
+# Needs human review: RAL 1007 is “Daffodil yellow” (水仙黄); the English name in the palette looks wrong. Recheck once the source name is fixed.
+#~ msgid "Dalmatian yellow"
+#~ msgstr "达尔马提亚黄"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "辣椒红素紫"
+
+# AI Translated
+#~ msgid "Olivestone"
+#~ msgstr "橄榄石色"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "在窗口任意位置可用，即使正在文本框中输入。"
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "全局快捷键在输入文字时同样生效。"
+
+# AI Translated
+#~ msgid "Solid"
+#~ msgstr "纯色"
+
+# AI Translated
+#~ msgid "PaleV violet red"
+#~ msgstr "浅紫罗兰红"
+
+# AI Translated
+# Needs human review: The English “Electric bel” looks like a typo (Electric blue? Electric eel?); the color is #1E90FF, so 电光蓝 was chosen. Recheck once the source name is fixed.
+#~ msgid "Electric bel"
+#~ msgstr "电光蓝"
 
 #~ msgid "Please choose the filament color"
 #~ msgstr "请选择耗材丝颜色"
@@ -37865,9 +37946,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "未配置的工具头"
 
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "所有打印结束时的结尾G-code"
-
 #~ msgid "Maximum X speed"
 #~ msgstr "X最大速度"
 
@@ -37885,24 +37963,9 @@ msgstr ""
 #~ msgstr "在每个切片流水线步骤中调用的 Python 插件，用于读取和修改中间切片数据，包括最终的 G-code 后处理步骤。研究/实验性。"
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "启用后，切片软件输出的 G-code 会以热床原点 (0,0) 为中心放置主区域的内容，由打印机固件负责把复制件/镜像件放到各个物理区域。仅当打印机固件在复制/镜像模式下会自行应用区域偏移时才启用（例如 RepRapFirmware 的 IDEX 复制模式）。主模式下无效。"
-
-# AI Translated
 # Needs human review: "pem-inversion defaults": confirm pem is the physical extruder map and that the default is its inverse.
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "按盘单独设置物理工具头到耗材丝槽位的映射（从 1 开始编号），覆盖默认映射。留空则使用由物理挤出机映射（pem）反推的默认值。"
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "切片前模型网格的旋转轴。这一旋转即传送带打印机的倾斜：它是保距（无畸变）旋转，同时用于热床渲染和支撑的重力倾斜；生成 G-code 时，逆变换会先还原这一旋转，再进行机器坐标系剪切/缩放和重映射。X 是典型的龙门倾斜轴（传送带沿 Y 方向移动）。"
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "专家选项：单独设置机器坐标系（G-code 剪切/缩放）的倾斜角度，与切片前的旋转角度互不影响。禁用时，机器坐标系变换由传送带倾斜角度推导，两个阶段使用同一个角度。仅当机器实际的龙门倾角与切片旋转角度不一致时，才需启用此项进行补偿。"
-
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "在为“最大墙体分辨率”设置降低分辨率时所允许的最大偏差。如果增大此值，打印精度会降低，但 G-code 会更小。“最大墙体偏差”会限制“最大墙体分辨率”，因此当两者冲突时，以“最大墙体偏差”为准。"
 
 #~ msgid " not in range "
 #~ msgstr " 不在合理范围内"

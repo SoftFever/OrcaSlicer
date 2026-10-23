@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1637,16 +1637,16 @@ msgstr ""
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr ""
 
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr ""
 
 msgid "No embossed file"
 msgstr ""
 
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr ""
 
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr ""
 
 msgid "Face the camera"
@@ -4579,7 +4579,7 @@ msgstr ""
 msgid "Unknown C++ exception."
 msgstr ""
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr ""
 
 msgid "Slicing complete"
@@ -5320,6 +5320,9 @@ msgstr ""
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid "Invalid collision volume format. Use XxY, XxY, ... or ZMIN..ZMAX;XxY, XxY, ... and separate multiple volumes with |."
+msgstr ""
+
 msgid "Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
 msgstr ""
 
@@ -6049,7 +6052,7 @@ msgstr ""
 msgid "Size:"
 msgstr ""
 
-#, possible-boost-format
+#, possible-c-format, possible-boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
@@ -6516,6 +6519,12 @@ msgid "Show &Labels"
 msgstr ""
 
 msgid "Show object labels in 3D scene."
+msgstr ""
+
+msgid "Show all collision volumes"
+msgstr ""
+
+msgid "Show the full height of every configured collision volume, including on an empty bed."
 msgstr ""
 
 msgid "Show &Overhang"
@@ -10657,6 +10666,9 @@ msgstr ""
 msgid "Send Failed"
 msgstr ""
 
+msgid "No available printers"
+msgstr ""
+
 msgid "The name length exceeds the limit."
 msgstr ""
 
@@ -11044,6 +11056,12 @@ msgid "Parameters with this icon can be configured per nozzle."
 msgstr ""
 
 msgid "Click to reset all settings to the last saved preset."
+msgstr ""
+
+msgid "This definition contains collision-volume syntax. Add it to the toolhead collision volumes for G-code checking and travel avoidance? The existing excluded bed area will be preserved."
+msgstr ""
+
+msgid "Add collision volumes"
 msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
@@ -12315,7 +12333,7 @@ msgstr ""
 msgid "Left mouse"
 msgstr ""
 
-msgid "Available anywhere in the window, even while typing in a text field."
+msgid "Available anywhere in the window."
 msgstr ""
 
 msgid "Run favorite 1 to 10"
@@ -12410,9 +12428,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
-msgstr ""
-
-msgid "Global shortcuts also apply while typing."
 msgstr ""
 
 msgid "A key that types a character cannot be a global shortcut."
@@ -12708,6 +12723,17 @@ msgid ""
 "Is the disk full?"
 msgstr ""
 
+#, possible-boost-format
+msgid "A G-code move intersects a collision volume for extruder %1%. This may cause a printer collision."
+msgstr ""
+
+msgid "A G-code move intersects a collision volume. This may cause a printer collision."
+msgstr ""
+
+#, possible-boost-format
+msgid "The intersecting move is at G-code line %1%. Its Z position is unknown after homing, so Orca checked it against every height."
+msgstr ""
+
 #. TRN %1% is the temporary file path, %2% the output file path, %3% the system error message.
 #, possible-boost-format
 msgid ""
@@ -12972,6 +12998,14 @@ msgstr ""
 
 #, possible-boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
+msgstr ""
+
+#, possible-boost-format
+msgid "%1% intersects collision volumes for every available extruder."
+msgstr ""
+
+#, possible-boost-format
+msgid "%1% intersects a collision volume for extruder %2%."
 msgstr ""
 
 #, possible-boost-format
@@ -13303,7 +13337,34 @@ msgstr ""
 msgid "Excluded bed area"
 msgstr ""
 
-msgid "Unprintable area in XY plane. For example, X1 Series printers use the front left corner to cut filament during filament change. The area is expressed as polygon by points in following format: \"XxY, XxY, ...\""
+msgid "Unprintable area in XY plane. For example, X1 Series printers use the front left corner to cut filament during filament change. The area is expressed as a polygon in the format \"XxY, XxY, ...\". It constrains material and model placement, but allows machine travel. Configure toolhead collision volumes separately for G-code checking and travel avoidance."
+msgstr ""
+
+msgid "Toolhead collision volumes"
+msgstr ""
+
+msgid "Collision volumes used for model and generated-material exclusion, G-code checking, and travel avoidance. Use \"XxY, XxY, ...\" for a full-height polygon or \"ZMIN..ZMAX;XxY, XxY, ...\" for a Z-limited volume. Separate multiple volumes with \"|\". These volumes are additional to the excluded bed area. Automatic arrangement conservatively uses the bounding box of a non-convex volume."
+msgstr ""
+
+msgid "Collision volume behavior"
+msgstr ""
+
+msgid "Choose whether all nozzles use the same collision volumes, derive toolhead-relative volumes from each nozzle's XY offset, or configure independent volumes for every extruder. In individual mode, select each extruder on the Extruder page to configure its volumes."
+msgstr ""
+
+msgid "Shared"
+msgstr ""
+
+msgid "Toolhead-relative (nozzle offsets)"
+msgstr ""
+
+msgid "Individual per extruder"
+msgstr ""
+
+msgid "Extruder collision volumes"
+msgstr ""
+
+msgid "Collision volumes used only by this extruder in individual mode. Use the same polygon and optional Z-range format as the shared collision volumes. Leave empty for no collision volumes on this extruder. Automatic arrangement conservatively uses the bounding box of a non-convex volume."
 msgstr ""
 
 msgid "Bed custom texture"
@@ -15643,6 +15704,12 @@ msgid "Exclude objects"
 msgstr ""
 
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
+msgstr ""
+
+msgid "Outline tolerance"
+msgstr ""
+
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
 msgstr ""
 
 msgid "Verbose G-code"
@@ -18210,6 +18277,15 @@ msgstr ""
 msgid "invalid value "
 msgstr ""
 
+msgid "Invalid collision volume definition."
+msgstr ""
+
+msgid "A nozzle offset is required for every extruder when toolhead-relative collision volumes are enabled."
+msgstr ""
+
+msgid "Invalid per-extruder collision volume definition."
+msgstr ""
+
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr ""
 
@@ -20540,7 +20616,7 @@ msgid "test %s start..."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -26492,17 +26568,18 @@ msgstr ""
 msgid "Basic Colors"
 msgstr ""
 
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
 msgid "Orca Palette"
 msgstr ""
 
-#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "RAL Classic"
 msgstr ""
 
-#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "Gradients"
 msgstr ""
 
+msgctxt "Color picker"
 msgid "Solid"
 msgstr ""
 
@@ -26877,7 +26954,7 @@ msgstr ""
 msgid "Medium violet red"
 msgstr ""
 
-msgid "PaleV violet red"
+msgid "Pale violet red"
 msgstr ""
 
 msgid "Deep pink"
@@ -27039,7 +27116,7 @@ msgstr ""
 msgid "Shallow sky"
 msgstr ""
 
-msgid "Electric bel"
+msgid "Electric blue"
 msgstr ""
 
 msgid "Dolphin"
@@ -27108,7 +27185,7 @@ msgstr ""
 msgid "Maize yellow"
 msgstr ""
 
-msgid "Dalmatian yellow"
+msgid "Daffodil yellow"
 msgstr ""
 
 msgid "Brown beige"
@@ -27369,7 +27446,7 @@ msgstr ""
 msgid "Turquoise blue"
 msgstr ""
 
-msgid "Capsanthin violet"
+msgid "Capri blue"
 msgstr ""
 
 msgid "Ocean blue"
@@ -27483,7 +27560,7 @@ msgstr ""
 msgid "Silver grey"
 msgstr ""
 
-msgid "Olivestone"
+msgid "Olive grey"
 msgstr ""
 
 msgid "Moss grey"
@@ -28071,10 +28148,19 @@ msgstr ""
 msgid "Built-in"
 msgstr ""
 
+msgid "My textures"
+msgstr ""
+
 msgid "No textures found."
 msgstr ""
 
-msgid "My textures"
+msgid "Texture libraries"
+msgstr ""
+
+msgid "Explore more texture libraries"
+msgstr ""
+
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
 msgstr ""
 
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -30127,6 +30213,9 @@ msgstr ""
 msgid "Slicing Pipeline"
 msgstr ""
 
+msgid "Resource Texture"
+msgstr ""
+
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr ""
 
@@ -30240,6 +30329,24 @@ msgid "Plugin directory contains both .py and .whl entry files"
 msgstr ""
 
 msgid "Plugin directory does not contain a .py or .whl entry file"
+msgstr ""
+
+msgid "Resource texture directory is not set"
+msgstr ""
+
+msgid "Resource texture directory could not be resolved"
+msgstr ""
+
+msgid "Resource texture path is not a directory"
+msgstr ""
+
+msgid "Plugin folder could not be resolved"
+msgstr ""
+
+msgid "Resource texture directory is outside the plugin folder"
+msgstr ""
+
+msgid "Resource texture directory could not be read"
 msgstr ""
 
 #, possible-boost-format
@@ -30598,7 +30705,7 @@ msgstr ""
 
 #. TRN %1% is the application name.
 #, possible-boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr ""
 
 #. TRN %1% is a tag in the G-code file that must not be translated.
@@ -30686,7 +30793,7 @@ msgstr ""
 msgid "Failed making a temporary copy of G-code file %1% before running a post-processing script: %2%"
 msgstr ""
 
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr ""
 
 #, possible-boost-format
