@@ -494,6 +494,13 @@ enum class ToolChangeOrderingType
 };
 
 // BBS
+enum class TopOneWallType {
+    None,
+    Topmost,
+    Alltop
+};
+
+// BBS
 enum OverhangFanThreshold {
     Overhang_threshold_none = 0,
     Overhang_threshold_1_4,
@@ -1569,10 +1576,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercentsNullable, overhang_2_4_speed))
     ((ConfigOptionFloatsOrPercentsNullable, overhang_3_4_speed))
     ((ConfigOptionFloatsOrPercentsNullable, overhang_4_4_speed))
-    ((ConfigOptionBool,                 only_one_wall_top))
+    ((ConfigOptionEnum<TopOneWallType>,     top_one_wall_type))
 
     //SoftFever
     ((ConfigOptionFloatOrPercent,       min_width_top_surface))
+    ((ConfigOptionPercent,              top_surface_inset))
     ((ConfigOptionBool,                 only_one_wall_first_layer))
     ((ConfigOptionFloat,                print_flow_ratio))
     ((ConfigOptionFloatOrPercent,       seam_gap))
