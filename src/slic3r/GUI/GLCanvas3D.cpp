@@ -103,6 +103,7 @@
 #include "GUI_Colors.hpp"
 #include "Mouse3DController.hpp"
 #include "I18N.hpp"
+#include "format.hpp"
 #include "NotificationManager.hpp"
 #include "DailyTips.hpp"
 #include "FilamentMapDialog.hpp"
@@ -1885,27 +1886,31 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
     auto mode = object_result.mode;
 
     for (auto& obj_filament : object_result.object_filaments) {
+        bool found_left = false;
+        bool found_right = false;
+
         if (mode == FilamentMapMode::fmmManual) {
             for (auto& elem : obj_filament.manual_filaments) {
-                bool found_left = false, found_right = false;
-                int filamnet_id = elem.first;
                 int extruder_id = elem.second;
-                if (extruder_id == 1 && !found_left) {
+                if (extruder_id == 1) {
                     found_left = true;
-                    left_unprintable_objects.emplace_back(obj_filament);
                 }
-                if (extruder_id == 2 && !found_right) {
+                if (extruder_id == 2) {
                     found_right = true;
-                    right_unprintable_objects.emplace_back(obj_filament);
                 }
             }
         }
         else {
             if (!obj_filament.auto_filaments.empty()) {
-                left_unprintable_objects.emplace_back(obj_filament);
-                right_unprintable_objects.emplace_back(obj_filament);
+                found_left = true;
+                found_right = true;
             }
         }
+
+        if (found_left)
+            left_unprintable_objects.emplace_back(obj_filament);
+        if (found_right)
+            right_unprintable_objects.emplace_back(obj_filament);
     }
 
     Preset &preset = GUI::wxGetApp().preset_bundle->printers.get_edited_preset();
@@ -1941,7 +1946,7 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
             model_prefix = (boost::format(_u8L("The position or size of some models exceeds the %s's printable range.")) % nozzle_name).str();
         else
             model_prefix = (boost::format(_u8L("The position or size of the model %s exceeds the %s's printable range."))
-                           %object_result.object_filaments.front().object->name % nozzle_name).str();
+                           %unprintable_objs.front().object->name % nozzle_name).str();
         tips[idx] += model_prefix;
 
         tips[idx] += (boost::format(_u8L(" Please check and adjust the part's position or size to fit the printable range:\n"))).str();
@@ -2812,7 +2817,6 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
             // Design tab: replace the plate's corner-origin grid with the origin-centred CAD grid.
             _render_cad_grid(camera.get_view_matrix(), camera.get_projection_matrix());
         m_frame_profiler.mark("plates");
-        
         //BBS: add outline logic
         // Depth pass for object-on-object and self shadows; consumed by the gouraud shader below.
         _render_shadows(camera.get_view_matrix(), camera.get_projection_matrix());
@@ -2820,6 +2824,14 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_below_plate_volumes();
         m_frame_profiler.mark("objects");
+        // Collision previews follow the same visibility rule as the bed.
+        const bool show_exclusion_intersections = m_show_bed &&
+            (!m_main_toolbar.is_enabled() ||
+             (gizmo_type != GLGizmosManager::FdmSupports && gizmo_type != GLGizmosManager::Seam &&
+              gizmo_type != GLGizmosManager::MmSegmentation && gizmo_type != GLGizmosManager::FuzzySkin));
+        if (show_exclusion_intersections)
+            wxGetApp().plater()->get_partplate_list().render_exclusion_volume_intersections(
+                camera.get_view_matrix(), camera.get_projection_matrix());
         _render_sla_slices();
         _render_selection();
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
@@ -3591,13 +3603,25 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 // psWipeTower, so gating on it would skip the clamp exactly when it is needed.
                 {
                     Vec3d clamped_pos, clamped_size;
-                    part_plate->estimate_wipe_tower_polygon(full_config, plate_id, clamped_pos, clamped_size);
+                    WipeTowerRelocation relocation;
+                    part_plate->estimate_wipe_tower_polygon(full_config, plate_id, clamped_pos, clamped_size, 0, false, &relocation);
                     if (std::abs(x - (float) clamped_pos(0)) > EPSILON || std::abs(y - (float) clamped_pos(1)) > EPSILON) {
                         x = (float) clamped_pos(0);
                         y = (float) clamped_pos(1);
                         ConfigOptionFloat wt_x_opt(x), wt_y_opt(y);
                         dynamic_cast<ConfigOptionFloats*>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
                         dynamic_cast<ConfigOptionFloats*>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
+                        // The stored position changes once, so this is shown once per move.
+                        if (NotificationManager *notifications = wxGetApp().notification_manager(); notifications != nullptr && relocation.moved) {
+                            if (relocation.overlaps_objects)
+                                notifications->push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                    // TRN %1% is the plate number.
+                                    format(_u8L("The prime tower on plate %1% no longer fits where it was placed. There is no free space left on the plate for it, so it was moved onto an object."), plate_id + 1));
+                            else
+                                notifications->push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::RegularNotificationLevel,
+                                    // TRN %1% is the plate number.
+                                    format(_u8L("The prime tower on plate %1% no longer fits where it was placed, so it was moved to free space on the plate."), plate_id + 1));
+                        }
                     }
                 }
 
@@ -3875,6 +3899,8 @@ void GLCanvas3D::bind_event_handlers()
                 // The key-up that would commit a keyboard edit goes to whatever took the focus.
                 if (m_selection_edit.kind != SelectionEdit::None)
                     finish_selection_edit();
+                release_held_modifiers();
+                wxGetApp().imgui()->forget_key_claims();
                 ImGui::SetWindowFocus(nullptr);
                 render();
                 evt.Skip();
@@ -4008,11 +4034,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = evt.GetKeyCode();
 
-    auto imgui = wxGetApp().imgui();
-    if (imgui->update_key_data(evt)) {
+    auto       imgui         = wxGetApp().imgui();
+    const bool imgui_claimed = imgui->claim_key_event(evt);
+    if (imgui->update_key_data(evt) || imgui_claimed)
         render();
+    if (imgui_claimed)
         return;
-    }
 
     // Design tab: Delete, Esc, Ctrl+Z/Y and F are NOT handled here. DesignPanel's CHAR_HOOK owns
     // them (one route per key, whatever holds focus) and only lets a key through to this canvas
@@ -4303,20 +4330,35 @@ static bool key_repeats(int key)
 
 static void key_released(int key) { s_keys_down.erase(key); }
 
+void GLCanvas3D::release_held_modifiers()
+{
+    for (const int key : { WXK_SHIFT, WXK_CONTROL, WXK_ALT }) {
+        if (s_keys_down.count(key) == 0)
+            continue;
+        wxKeyEvent release(wxEVT_KEY_UP);
+        release.m_keyCode = key;
+        on_key(release);
+    }
+}
+
 void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
 
-    const int keyCode = evt.GetKeyCode();
+    auto       imgui         = wxGetApp().imgui();
+    const int  keyCode       = evt.GetKeyCode();
+    const bool imgui_claimed = imgui->claim_key_event(evt);
     if (evt.GetEventType() == wxEVT_KEY_DOWN)
         m_key_down = { keyCode, key_repeats(keyCode) };
     else if (evt.GetEventType() == wxEVT_KEY_UP)
         key_released(keyCode);
     const bool alt_wheel_released = evt.GetEventType() == wxEVT_KEY_UP && keyCode == WXK_ALT && std::exchange(m_alt_wheel_used, false);
 
-    auto imgui = wxGetApp().imgui();
-    if (imgui->update_key_data(evt))
+    // ImGui closes a popup on Esc only through keyboard navigation, which is off.
+    if (imgui_claimed && evt.GetEventType() == wxEVT_KEY_DOWN && keyCode == WXK_ESCAPE)
+        imgui->close_top_popup();
+    if (imgui->update_key_data(evt) || imgui_claimed)
         render();
-    else
+    if (!imgui_claimed)
     {
         // Before the gizmos and the selection, which Esc also closes.
         if (evt.GetEventType() == wxEVT_KEY_DOWN && keyCode == WXK_ESCAPE && std::exchange(m_section_view->panel_open, false)) {
@@ -4858,6 +4900,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // It should be detection of volume change
         // Not only detection of some modifiers !!!
         if (evt.Dragging()) {
+            if (PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate())
+                plate->clear_exclusion_volume_intersections();
             GLGizmosManager::EType c = m_gizmos.get_current_type();
             if (current_printer_technology() == ptFFF &&
                 (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
@@ -5086,6 +5130,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             if (!m_mouse.drag.move_requires_threshold) {
                 m_mouse.dragging = true;
+                if (PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate())
+                    plate->clear_exclusion_volume_intersections();
                 Vec3d cur_pos = m_mouse.drag.start_position_3D;
                 // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
                 if (m_selection.contains_volume(get_first_hover_volume_idx())) {
@@ -6192,6 +6238,13 @@ void GLCanvas3D::set_cursor(ECursorType type)
 
 void GLCanvas3D::mouse_up_cleanup()
 {
+    // Both direct dragging and gizmo manipulation clear the expensive red
+    // exclusion-intersection mesh while moving. Gizmo drags do not always set
+    // m_mouse.dragging, so every completed mouse operation must allow the
+    // cached preview to restore/recompute that mesh.
+    if (PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate())
+        plate->invalidate_exclusion_volume_preview();
+
     m_moving = false;
     m_camera_movement = false;
     m_mouse.drag.move_volume_idx = -1;

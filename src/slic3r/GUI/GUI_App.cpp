@@ -132,6 +132,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <regex>
+#include <system_error>
 #include <thread>
 #include <string_view>
 
@@ -139,6 +140,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/sources/severity_feature.hpp>
+#include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -1292,6 +1296,32 @@ void GUI_App::shutdown()
     NetworkAgentFactory::clear_printer_agent_cache();
 
     BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown exit";
+}
+
+void GUI_App::start_exit_watchdog()
+{
+    // Last resort for code that never returns while the app closes (plugins, vendor libraries,
+    // network calls). The app config is saved on idle and again in MainFrame::shutdown, so ending
+    // the process loses little; static destructors and atexit handlers are skipped too, as they may
+    // be what is stuck.
+    constexpr auto grace = std::chrono::seconds(30);
+    try {
+        // Made now: by the time the watchdog fires, static destruction may be under way. The logger
+        // holds its own reference, which keeps boost::log's core and sinks alive.
+        boost::log::sources::severity_logger_mt<boost::log::trivial::severity_level> logger;
+        std::thread([grace, logger]() mutable {
+            std::this_thread::sleep_for(grace);
+            try {
+                BOOST_LOG_SEV(logger, boost::log::trivial::error)
+                    << "OrcaSlicer did not finish closing within " << grace.count() << " s; ending the process";
+            } catch (...) {
+                // A failing log sink must not stop the exit.
+            }
+            std::_Exit(EXIT_FAILURE);
+        }).detach();
+    } catch (const std::system_error& ex) {
+        BOOST_LOG_TRIVIAL(warning) << "Could not start the exit watchdog: " << ex.what();
+    }
 }
 
 
