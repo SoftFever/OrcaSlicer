@@ -1118,7 +1118,7 @@ void ViewerImpl::load(GCodeInputData&& gcode_data)
 
     m_settings.spiral_vase_mode = gcode_data.spiral_vase_mode;
 
-    m_extrusions_box = { Vec3{ FLT_MAX, FLT_MAX, FLT_MAX }, Vec3{ -FLT_MAX, -FLT_MAX, -FLT_MAX } };
+    m_extrusions_box = get_bounding_box({ EMoveType::Extrude });
     for (size_t i = 0; i < m_vertices.size(); ++i) {
         const PathVertex& v = m_vertices[i];
 
@@ -1136,10 +1136,6 @@ void ViewerImpl::load(GCodeInputData&& gcode_data)
 
         if (v.type == EMoveType::Extrude) {
             m_extrusion_roles.add(v.role, v.times);
-            for (size_t j = 0; j < 3; ++j) {
-                m_extrusions_box[0][j] = std::min(m_extrusions_box[0][j], v.position[j]);
-                m_extrusions_box[1][j] = std::max(m_extrusions_box[1][j], v.position[j]);
-            }
 
             auto estruder_it = m_used_extruders.find(v.extruder_id);
             if (estruder_it == m_used_extruders.end())
