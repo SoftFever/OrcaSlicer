@@ -116,6 +116,8 @@ private:
     Vec3d m_origin;
     // Orca: grid cell (col, row) this plate occupies when the plate list uses a custom layout.
     Vec2i32 m_layout_cell{-1, -1};
+    // Orca: where the plate is drawn relative to its origin while plates slide out of the way of a dragged plate.
+    Vec3d m_preview_offset{Vec3d::Zero()};
     int m_width;
     int m_depth;
     double m_height;
@@ -251,6 +253,7 @@ private:
     void set_hover_tooltip(const std::string& tooltip);
     void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
     void render_only_numbers(bool bottom);
+    Transform3d preview_view_matrix(const Transform3d& view_matrix) const;
     void render_plate_name_texture();
     void invalidate_plate_name_texture();
     void register_raycasters_for_picking(GLCanvas3D& canvas);
@@ -553,6 +556,9 @@ public:
     void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false, bool show_grid = true, bool hide_chrome = false);
 
     void set_selected();
+    // Orca: draw the plate moved by offset, without moving it or its objects.
+    void set_preview_offset(const Vec3d& offset) { m_preview_offset = offset; }
+    const Vec3d& get_preview_offset() const { return m_preview_offset; }
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
     const BoundingBoxf3& get_bounding_box(bool extended = false) { return extended ? m_extended_bounding_box : m_bounding_box; }
@@ -817,10 +823,6 @@ class PartPlateList : public ObjectBase
     Vec2i32 compute_plate_cell(int index, int cols) const;
     Vec2d   compute_cell_position(const Vec2i32& cell);
     Vec2i32 compute_grid_cell_for_unprintable() const;
-    // Orca: the plates that move, with their new cells, when plate index is dropped on cell; empty when the drop
-    // is not allowed. A plate already on cell makes room: in the dragged plate's row the plates in between shift
-    // toward the cell it leaves, in another row the plates from cell rightward shift one cell right.
-    std::map<int, Vec2i32> plan_plate_move(int index, const Vec2i32& cell);
     //generate icon textures
     void generate_icon_textures();
     void release_icon_textures();
@@ -985,6 +987,10 @@ public:
     Vec2i32 get_cell_at(const Vec2d& origin);
     // Area the plate covers when it sits in cell.
     BoundingBoxf compute_cell_box(const Vec2i32& cell);
+    // Orca: the plates that move, with their new cells, when plate index is dropped on cell; empty when the drop
+    // is not allowed. A plate already on cell makes room: in the dragged plate's row the plates in between shift
+    // toward the cell it leaves, in another row the plates from cell rightward shift one cell right.
+    std::map<int, Vec2i32> plan_plate_move(int index, const Vec2i32& cell);
     bool    can_move_plate_to_cell(int index, const Vec2i32& cell);
     // Move the plate and its objects to cell, making room as plan_plate_move() does; switches to the custom layout.
     // Returns 0 on success.
