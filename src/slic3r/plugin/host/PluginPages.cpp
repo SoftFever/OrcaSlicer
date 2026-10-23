@@ -3,6 +3,7 @@
 
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/Notebook.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
@@ -502,7 +503,9 @@ void PluginPages::relayout()
     const bool overflow_changed = need_overflow != (m_overflow_button != nullptr);
     if (need_overflow) {
         if (m_overflow_button == nullptr) {
-            auto* btn = new Button(m_parent->GetBtnsListCtrl(), wxString(L"\u25BE"), wxString(), wxNO_BORDER);
+            auto* btn = new Button(m_parent->GetBtnsListCtrl(), wxString(), "sidebutton_dropdown", wxNO_BORDER, 14);
+            btn->SetName(_L("More"));
+            btn->SetToolTip(_L("More"));
             btn->SetCornerRadius(0);
             btn->SetBackgroundColor(StateColor(
                 std::pair{wxColour(107, 107, 107), int(StateColor::Hovered)},
