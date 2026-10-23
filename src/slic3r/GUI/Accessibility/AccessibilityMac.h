@@ -34,19 +34,9 @@ struct Descriptor {
     // Accessible name. When empty, the window's tooltip is used so icon-only controls
     // still get a name.
     wxString name;
-    // Future: let a caller override the auto-derived Voice Control identifier. Currently
-    // apply() always derives it from the window id (see default_identifier()), so no
-    // caller sets this.
-    // wxString identifier;
-    // Future: expose a custom-drawn (non-native) toggle's checked/mixed state as
-    // accessibilityValue (0 = off, 1 = on, 2 = mixed). No custom toggle is exposed yet,
-    // and the native checkbox reports its own value.
-    // int value = -1;
-    // Default action invoked when the assistive technology activates the element; empty
-    // for non-interactive elements. It may capture the widget's `this` and is stored on
-    // the window's NSView, which wxWidgets releases (in ~wxWidgetCocoaImpl) before the
-    // widget is freed; only valid for window-backed elements. Native controls already
-    // have a press action and ignore this.
+    // Default action invoked when the assistive technology activates the element. Stored
+    // as a block on the window's NSView (see detach()) and may capture the widget's
+    // `this`. Ignored for native controls, which have their own press action.
     std::function<void()> press;
 };
 
@@ -58,6 +48,10 @@ struct Descriptor {
 // action, so apply() only fills in the name and Voice Control identifier. Custom-drawn
 // views are configured in full.
 void apply(wxWindow* win, const Descriptor& desc);
+
+// Clear the press block apply() stored on the window's NSView. Call when the widget is
+// destroyed so the view cannot outlive it with a press block capturing the freed widget.
+void detach(wxWindow* win);
 
 } // namespace Accessibility
 } // namespace GUI

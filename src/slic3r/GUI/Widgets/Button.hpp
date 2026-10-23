@@ -128,6 +128,11 @@ protected:
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
 #endif
 
+#ifdef __WXOSX__
+    void DoSetToolTipText(const wxString& tip) override;
+    void DoEnable(bool enable) override;
+#endif
+
     bool AcceptsFocus() const override;
 
 private:

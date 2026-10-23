@@ -33,7 +33,9 @@ protected:
     
 #ifdef __WXOSX__
     virtual wxBitmap DoGetBitmap(State which) const wxOVERRIDE;
-    
+
+    virtual void DoSetToolTipText(const wxString& tip) wxOVERRIDE;
+
     void updateBitmap(wxEvent & evt);
     
     bool m_disable = false;

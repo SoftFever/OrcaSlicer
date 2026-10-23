@@ -161,6 +161,7 @@ bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, 
     messureSize();
 #ifdef __WXOSX__
     applyAccessibility();
+    Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent&) { Slic3r::GUI::Accessibility::detach(this); });
 #endif
     return true;
 }
@@ -617,6 +618,21 @@ void Button::Click()
 }
 
 #ifdef __WXOSX__
+void Button::DoSetToolTipText(const wxString& tip)
+{
+    wxWindow::DoSetToolTipText(tip);
+    // Icon-only buttons are named by their tooltip, which callers set after Create().
+    applyAccessibility();
+}
+
+void Button::DoEnable(bool enable)
+{
+    wxWindow::DoEnable(enable);
+    // Keep the accessibility enabled state in sync; wx cascades DoEnable to children
+    // when an ancestor is (re)enabled, and apply() reads the ancestor-aware IsEnabled().
+    applyAccessibility();
+}
+
 void Button::applyAccessibility()
 {
     Slic3r::GUI::Accessibility::Descriptor desc;

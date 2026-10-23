@@ -9,71 +9,53 @@
 // VoiceOver / Voice Control accessibility for custom-drawn controls.
 //
 // OrcaSlicer renders its dialog controls with a plain wxNSView (backed by wxWindow),
-// which assistive technologies neither name nor identify. We configure the
-// NSAccessibility attributes of those views using AppKit's instance-scoped setters
-// (setAccessibilityRole:, setAccessibilityTitle:, setAccessibilityValue:,
-// setAccessibilityIdentifier:, setAccessibilityElement:). Using the setters — rather
-// than a category overriding the getters on every NSView — confines the change to the
-// specific views we opt in.
+// which assistive technologies neither name nor identify. The NSAccessibility
+// attributes of those views are configured through AppKit's instance-scoped setters
+// (setAccessibilityRole:, setAccessibilityTitle:, setAccessibilityEnabled:,
+// setAccessibilityIdentifier:, setAccessibilityElement:), which confines the change
+// to the specific views we opt in.
 //
-// Two attributes cannot be expressed as static setters and are provided through a small
-// NSView category that only affects plain NSView instances (native controls such as
-// NSButton implement these methods themselves, shadowing the category):
-//   - accessibilityPerformPress, the activation action, which is a method with no setter;
-//   - isAccessibilityEnabled, which must reflect the widget's live wxWindow state.
+// The press action has no setter, so accessibilityPerformPress is swizzled onto
+// NSView once (install_press_action()). The replacement runs the press block stored
+// on the view and otherwise forwards to the original implementation, so views that
+// were never configured behave exactly as before.
 // ---------------------------------------------------------------------------
 
-static const void* kOrcaAccessibilityPressKey  = &kOrcaAccessibilityPressKey;
-static const void* kOrcaAccessibilityWindowKey = &kOrcaAccessibilityWindowKey;
+static const void* kOrcaAccessibilityPressKey = &kOrcaAccessibilityPressKey;
 
-@interface NSView (OrcaSlicerAccessibility)
-- (void)orcaSetAccessibilityPressHandler:(void(^)(void))handler;
-- (void)orcaSetAccessibilityWindow:(wxWindow*)win;
-- (wxWindow*)orcaAccessibilityWindow;
-@end
-
-@implementation NSView (OrcaSlicerAccessibility)
-
-- (void)orcaSetAccessibilityPressHandler:(void(^)(void))handler
+// Swizzle accessibilityPerformPress on NSView, keeping the original implementation
+// reachable through the captured IMP. dispatch_once makes this safe to trigger from
+// every apply() call.
+static void install_press_action()
 {
-    objc_setAssociatedObject(self, kOrcaAccessibilityPressKey, handler, OBJC_ASSOCIATION_COPY_NONATOMIC);
-}
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        SEL sel = @selector(accessibilityPerformPress);
+        Method original = class_getInstanceMethod([NSView class], sel);
+        if (!original)
+            return;
 
-- (void)orcaSetAccessibilityWindow:(wxWindow*)win
-{
-    objc_setAssociatedObject(self, kOrcaAccessibilityWindowKey, [NSValue valueWithPointer:win], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
+        IMP original_imp = method_getImplementation(original);
+        IMP replacement = imp_implementationWithBlock(^BOOL(NSView* view) {
+            void (^handler)(void) = objc_getAssociatedObject(view, kOrcaAccessibilityPressKey);
+            if (handler) {
+                handler();
+                return YES;
+            }
+            return ((BOOL (*)(id, SEL))original_imp)(view, sel);
+        });
 
-- (wxWindow*)orcaAccessibilityWindow
-{
-    return (wxWindow*)[(NSValue*)objc_getAssociatedObject(self, kOrcaAccessibilityWindowKey) pointerValue];
+        const char* types = method_getTypeEncoding(original);
+        if (!class_addMethod([NSView class], sel, replacement, types)) {
+            // NSView implements the method itself rather than inheriting it, so adding
+            // failed; exchange the implementations instead. The captured original_imp
+            // stays valid and is called directly, so there is no recursion risk.
+            SEL stored = @selector(orca_accessibilityPerformPress);
+            if (class_addMethod([NSView class], stored, replacement, types))
+                method_exchangeImplementations(original, class_getInstanceMethod([NSView class], stored));
+        }
+    });
 }
-
-// NSAccessibilityEnabledAttribute. Reflects the live widget state, which includes a
-// disabled ancestor, so it cannot be captured as a one-shot setter value.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
-- (BOOL)isAccessibilityEnabled
-{
-    wxWindow* win = [self orcaAccessibilityWindow];
-    return win ? win->IsEnabled() : YES;
-}
-
-// NSAccessibilityPressAction. A method, not a settable property, so it is implemented
-// here for custom-drawn views. Views that were never configured have no handler and
-// simply report the press as unhandled, matching the default NSView behaviour.
-- (BOOL)accessibilityPerformPress
-{
-    void(^handler)(void) = objc_getAssociatedObject(self, kOrcaAccessibilityPressKey);
-    if (handler) {
-        handler();
-        return YES;
-    }
-    return NO;
-}
-#pragma clang diagnostic pop
-
-@end
 
 namespace Slic3r {
 namespace GUI {
@@ -93,9 +75,9 @@ NSString* role_string(Role role)
     return NSAccessibilityUnknownRole;
 }
 
-// A stable, unique identifier for Voice Control. wxWindow::GetId() is unique within the
-// window for the lifetime of the process, which is all Voice Control's number overlay
-// needs to keep its spoken-number mapping stable.
+// Voice Control identifier. wxWindow::GetId() is stable for the window's lifetime but
+// can be recycled once a window is destroyed; Voice Control's spoken-number overlay
+// only needs the mapping to stay stable while the element is on screen.
 wxString default_identifier(const wxWindow* win)
 {
     return wxString::Format("wxID_%d", (int)win->GetId());
@@ -119,41 +101,42 @@ void apply(wxWindow* win, const Descriptor& desc)
     // of this, so it is configured in full below.
     const bool native = [view isKindOfClass:[NSControl class]];
 
-    // NSAccessibilityTitleAttribute — the element's name. Fall back to the tooltip so
-    // icon-only controls still get a name.
+    // The element's name. Fall back to the tooltip so icon-only controls get a name.
     wxString name = desc.name;
     if (name.empty())
         name = win->GetToolTipText();
     [view setAccessibilityTitle:name.empty() ? nil : wxCFStringRef(name).AsNSString()];
 
-    // NSAccessibilityIdentifierAttribute — a stable id Voice Control uses to map spoken
-    // commands back to the element. Derived from the window id (see default_identifier()).
-    wxString identifier = default_identifier(win);
-    [view setAccessibilityIdentifier:wxCFStringRef(identifier).AsNSString()];
+    // A stable id Voice Control uses to map spoken commands back to the element.
+    [view setAccessibilityIdentifier:wxCFStringRef(default_identifier(win)).AsNSString()];
 
     if (native)
         return;
 
-    [view orcaSetAccessibilityWindow:win];
+    install_press_action();
 
-    // NSAccessibilityRoleAttribute — the element's role ("button", "checkbox", ...).
     [view setAccessibilityRole:role_string(desc.role)];
 
-    // Future: NSAccessibilityValueAttribute — a custom-drawn toggle's checked/mixed
-    // state (0 = off, 1 = on, 2 = mixed). No custom toggle is exposed yet; the native
-    // checkbox reports its own value.
-    // if (desc.value >= 0)
-    //     [view setAccessibilityValue:@(desc.value)];
+    // wxWindow::IsEnabled() includes disabled ancestors; kept current by re-calling
+    // apply() from the widget's DoEnable() (wx cascades DoEnable to children).
+    [view setAccessibilityEnabled:win->IsEnabled()];
 
     if (desc.press) {
         auto press = desc.press; // copy the std::function into the stored block
-        [view orcaSetAccessibilityPressHandler:^{ press(); }];
+        objc_setAssociatedObject(view, kOrcaAccessibilityPressKey, ^{ press(); }, OBJC_ASSOCIATION_COPY_NONATOMIC);
     } else {
-        [view orcaSetAccessibilityPressHandler:nil];
+        objc_setAssociatedObject(view, kOrcaAccessibilityPressKey, nil, OBJC_ASSOCIATION_COPY_NONATOMIC);
     }
 
-    // isAccessibilityElement — opt this view into the accessibility tree.
+    // Opt this view into the accessibility tree.
     [view setAccessibilityElement:YES];
+}
+
+void detach(wxWindow* win)
+{
+    NSView* view = win ? (NSView*)win->GetHandle() : nil;
+    if (view)
+        objc_setAssociatedObject(view, kOrcaAccessibilityPressKey, nil, OBJC_ASSOCIATION_COPY_NONATOMIC);
 }
 
 } // namespace Accessibility

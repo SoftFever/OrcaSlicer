@@ -142,6 +142,13 @@ void CheckBox::updateBitmap(wxEvent & evt)
     }
 }
 
+void CheckBox::DoSetToolTipText(const wxString& tip)
+{
+    wxWindow::DoSetToolTipText(tip);
+    // The accessible name comes from the tooltip, which callers set after construction.
+    applyAccessibility();
+}
+
 void CheckBox::applyAccessibility()
 {
     // This is an NSButton-backed control, so apply() only fills in the accessible name
