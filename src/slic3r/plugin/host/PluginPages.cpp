@@ -7,6 +7,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
+#include "slic3r/GUI/Widgets/StateColor.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/plugin/PluginManager.hpp"
 
@@ -30,6 +31,7 @@
 #include <wx/app.h>
 #include <vector>
 #include <wx/bookctrl.h>
+#include <wx/colour.h>
 #include <wx/event.h>
 #include <wx/menu.h>
 #include <wx/sizer.h>
@@ -502,6 +504,10 @@ void PluginPages::relayout()
         if (m_overflow_button == nullptr) {
             auto* btn = new Button(m_parent->GetBtnsListCtrl(), wxString(L"\u25BE"), wxString(), wxNO_BORDER);
             btn->SetCornerRadius(0);
+            btn->SetBackgroundColor(StateColor(
+                std::pair{wxColour(107, 107, 107), int(StateColor::Hovered)},
+                std::pair{wxColour(59, 68, 70), int(StateColor::Normal)}));
+            btn->SetTextColor(StateColor(wxColour(254, 254, 254)));
             const int em = em_unit(m_parent);
             btn->SetMinSize({40 * em / 10, 36 * em / 10});
             btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { show_overflow_menu(); });
