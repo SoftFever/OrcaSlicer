@@ -1276,8 +1276,8 @@ void ViewerImpl::load(GCodeInputData&& gcode_data)
 
     update_view_full_range();
     m_view_range.set_visible(m_view_range.get_enabled());
-    update_enabled_entities();
     update_colors();
+    update_enabled_entities();
 }
 
 void ViewerImpl::update_enabled_entities()
@@ -1474,7 +1474,7 @@ void ViewerImpl::update_colors()
 
     // ORCA: the enabled segments are sorted by opacity
     if (had_translucent_colors || m_has_translucent_colors)
-        update_enabled_entities();
+        m_settings.update_enabled_entities = true;
 }
 
 void ViewerImpl::apply_pending_updates()
@@ -1482,11 +1482,12 @@ void ViewerImpl::apply_pending_updates()
     if (m_settings.update_view_full_range)
         update_view_full_range();
 
-    if (m_settings.update_enabled_entities)
-        update_enabled_entities();
-
+    // ORCA: the colors first, which decide the order of the enabled segments
     if (m_settings.update_colors)
         update_colors();
+
+    if (m_settings.update_enabled_entities)
+        update_enabled_entities();
 }
 
 void ViewerImpl::render(const Mat4x4& view_matrix, const Mat4x4& projection_matrix)
