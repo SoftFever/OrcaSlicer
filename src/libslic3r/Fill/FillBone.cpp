@@ -914,6 +914,18 @@ std::vector<Polylines> generate_bone_walls(const std::vector<BoneLayer> &layers,
     return out;
 }
 
+double bone_max_depth(const std::vector<BoneLayer> &layers, const std::function<void()> &throw_if_canceled)
+{
+    BoundingBox bbox;
+    for (const BoneLayer &layer : layers)
+        bbox.merge(get_extents(*layer.outline));
+    if (!bbox.defined)
+        return 0.;
+    const DistanceGrid grid = build_distance_grid(layers, BoundingBoxf(unscaled(bbox.min), unscaled(bbox.max)), throw_if_canceled);
+    // Inside is negative.
+    return std::max(0., -double(*std::min_element(grid.v.begin(), grid.v.end())));
+}
+
 BoneInfill::BoneInfill(const PrintObject &object, const std::function<void()> &throw_if_canceled)
 {
     const auto &layers = object.layers();

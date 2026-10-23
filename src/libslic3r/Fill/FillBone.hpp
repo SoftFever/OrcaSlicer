@@ -88,6 +88,10 @@ bool uses_bone_infill(const PrintRegionConfig &config);
 std::vector<Polylines> generate_bone_walls(const std::vector<BoneLayer> &layers, const BoneParams &params,
                                            const std::function<void()> &throw_if_canceled);
 
+// Depth below the surface of the deepest point of a stack of layers, on the same distance field as the infill. Only
+// the outlines of the layers are used. The tuning dialog shows it to put the gradient in proportion to the part.
+double bone_max_depth(const std::vector<BoneLayer> &layers, const std::function<void()> &throw_if_canceled);
+
 // Bone infill: the walls of a 3D foam graded like cancellous bone. Cells are small just inside the
 // walls and grow towards the core, which can be hollow like a medullary cavity. Every layer is a
 // cross-section of the same 3D foam, so its walls tilt in every direction and brace the part

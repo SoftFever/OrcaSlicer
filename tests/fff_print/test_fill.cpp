@@ -2689,3 +2689,15 @@ TEST_CASE("Bone infill walls are the same each time they are generated", "[Fill]
     CHECK_FALSE(first[20].empty());
     CHECK(first == second);
 }
+
+TEST_CASE("Bone infill measures the deepest point of a part", "[Fill]")
+{
+    // A 60 mm cube in 0.5 mm layers: its centre is 30 mm below every face.
+    const ExPolygons square { ExPolygon(Polygon { Point::new_scale(0., 0.), Point::new_scale(60., 0.), Point::new_scale(60., 60.),
+                                                  Point::new_scale(0., 60.) }) };
+    std::vector<BoneLayer> layers;
+    for (int l = 0; l < 120; ++l)
+        layers.push_back({ 0.5 * l, 0.5 * (l + 1), &square, {} });
+    // The distance field is made of 0.4 mm voxels: within one and a half of them.
+    CHECK_THAT(bone_max_depth(layers, [] {}), Catch::Matchers::WithinAbs(30., 0.6));
+}

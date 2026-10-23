@@ -202,6 +202,18 @@ the three modes trade differently:
 Stepped shells and Smooth blend need neither lobes nor reaches, which are not
 built for them.
 
+## Density graph
+
+`AdaptiveInfillDialog` (`src/slic3r/GUI/AdaptiveInfillDialog.{hpp,cpp}`) opens
+from the "Edit on graph" button below the adaptive gradient. It plots the target
+density, the surface density times `adaptive_infill_target_scale()`, from the
+surface to the deepest point, on a `DensityCurveGraph` (see
+[bone-infill.md](bone-infill.md)). Its two points set `sparse_infill_density`
+and `adaptive_infill_interior_density`, and a list picks
+`adaptive_infill_gradient`; Apply writes them into the Process tab. Stepped
+shells and Smooth blend reach that target in steps, and the lobe modes average
+it over the ball around the center, so the graph shows what the modes aim at.
+
 ## Constraints
 
 - With `adaptive_infill_mode` disabled, or for other patterns, the fill parameters are reset

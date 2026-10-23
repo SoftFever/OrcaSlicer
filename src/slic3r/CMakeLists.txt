@@ -20,6 +20,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/FilamentLoad.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
+    GUI/AdaptiveInfillDialog.cpp
+    GUI/AdaptiveInfillDialog.hpp
     GUI/AnimatedTexture.cpp
     GUI/AnimatedTexture.hpp
     GUI/AmsMappingPopup.cpp
@@ -55,6 +57,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BBLTopbar.hpp
     GUI/BedShapeDialog.cpp
     GUI/BedShapeDialog.hpp
+    GUI/BoneInfillDialog.cpp
+    GUI/BoneInfillDialog.hpp
     GUI/BindDialog.cpp
     GUI/BindDialog.hpp
     GUI/BitmapCache.cpp

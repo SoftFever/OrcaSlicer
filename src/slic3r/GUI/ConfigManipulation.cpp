@@ -853,12 +853,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool have_bone_infill = have_infill && pattern == ipBone && config->option<ConfigOptionPercent>("sparse_infill_density")->value < 100;
     toggle_line("adaptive_infill_interior_density", have_adaptive_infill || have_bone_infill);
     toggle_line("adaptive_infill_gradient", have_adaptive_infill);
+    toggle_line("adaptive_infill_graph", have_adaptive_infill);
 
     // gyroid_optimized only applies when the sparse infill pattern is gyroid without adaptive density;
     // hide the whole line otherwise.
     toggle_line("gyroid_optimized", have_infill && pattern == ipGyroid && !have_adaptive_infill);
 
-    for (auto el : {"bone_falloff", "bone_falloff_curve", "bone_hollow_depth", "bone_irregularity", "bone_isotropy", "bone_max_bridge"})
+    for (auto el : {"bone_falloff", "bone_falloff_curve", "bone_hollow_depth", "bone_irregularity", "bone_isotropy", "bone_max_bridge",
+                    "bone_infill_tuning"})
         toggle_line(el, have_bone_infill);
     toggle_line("bone_falloff_custom", have_bone_infill && config->opt_enum<BoneFalloffCurve>("bone_falloff_curve") == BoneFalloffCurve::Custom);
 
