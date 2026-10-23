@@ -6,6 +6,8 @@ Review is the slowest part of getting a PR merged. A small group of reviewers wo
 
 For questions about using OrcaSlicer, please ask on [Discord](https://discord.gg/P4VE9UY9gJ) or in [Discussions](https://github.com/OrcaSlicer/OrcaSlicer/discussions), not in an issue or PR.
 
+Opening an issue? See [Opening an Issue](https://www.orcaslicer.com/wiki/developer_reference/how_to_contribute#opening-an-issue).
+
 ## The short version
 
 - Search open PRs and issues before you start. Someone may already be working on it.
