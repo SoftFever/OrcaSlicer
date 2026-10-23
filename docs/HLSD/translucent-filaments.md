@@ -51,8 +51,11 @@ is not sorted and the second pass is skipped, so the first draws exactly what it
 `GLCanvas3D::_render_gcode_translucent()` calls after the SSAO pass. Drawn that late, the pass turns the
 depth test on itself, as the passes before it may leave it off. The occlusion that pass reads
 from depth would otherwise shade a translucent surface as the surface behind it, as it would the
-centre of mass marker. FXAA still comes after, and so do the sequential view markers drawn by
-`GCodeViewer::render_scene()`, which hide the translucent toolpaths behind them.
+centre of mass marker. FXAA still comes after. The sequential view markers and the IDEX/IQEX
+toolhead boxes, which `GCodeViewer::render_scene()` draws after the toolpaths, are translucent but
+write depth, so while there are translucent toolpaths they wait for them, in
+`GCodeViewer::render_translucent_toolpaths()`. Drawn before, they would hide the translucent toolpaths
+behind them, and the print would show a hole around the tool position.
 
 A translucent segment takes its diffuse light in its own color, scaled by its opacity. In
 realistic view, whatever its options, every segment, opaque or translucent, takes instead of the

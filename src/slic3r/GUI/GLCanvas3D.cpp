@@ -2903,7 +2903,7 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
     }
 
     if (m_canvas_type == ECanvasType::CanvasPreview && m_render_preview) {
-        _render_gcode_translucent();
+        _render_gcode_translucent(cnv_size.get_width(), cnv_size.get_height());
         m_frame_profiler.mark("gcode translucent");
     }
 
@@ -9904,10 +9904,10 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
     _bind_gcode_shadow_map(false);
 }
 
-void GLCanvas3D::_render_gcode_translucent()
+void GLCanvas3D::_render_gcode_translucent(int canvas_width, int canvas_height)
 {
     _bind_gcode_shadow_map(true);
-    m_gcode_viewer.render_translucent_toolpaths();
+    m_gcode_viewer.render_translucent_toolpaths(canvas_width, canvas_height);
     _bind_gcode_shadow_map(false);
 }
 

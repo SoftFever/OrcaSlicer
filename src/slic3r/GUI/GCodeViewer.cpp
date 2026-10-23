@@ -2211,7 +2211,13 @@ void GCodeViewer::render_scene(int canvas_width, int canvas_height)
         return;
 
     render_toolpaths();
+    // ORCA: the markers write depth, which would hide the translucent toolpaths behind them
+    if (!m_viewer.has_translucent_toolpaths())
+        render_markers(canvas_width, canvas_height);
+}
 
+void GCodeViewer::render_markers(int canvas_width, int canvas_height)
+{
     auto current = m_viewer.get_view_visible_range();
     auto endpoints = m_viewer.get_view_full_range();
     m_sequential_view.m_show_marker = m_sequential_view.m_show_marker || (current.back() != endpoints.back() && !m_no_render_path);
@@ -3242,14 +3248,16 @@ ColorRGBA GCodeViewer::shown_filament_color(ColorRGBA color) const
     return color;
 }
 
-void GCodeViewer::render_translucent_toolpaths()
+void GCodeViewer::render_translucent_toolpaths(int canvas_width, int canvas_height)
 {
-    if (m_viewer.get_extrusion_roles_count() == 0)
+    if (m_viewer.get_extrusion_roles_count() == 0 || !m_viewer.has_translucent_toolpaths())
         return;
 
     const Camera& camera = wxGetApp().plater()->get_camera();
     m_viewer.render_translucent(libvgcode::convert(static_cast<Matrix4f>(camera.get_view_matrix().matrix().cast<float>())),
                                 libvgcode::convert(static_cast<Matrix4f>(camera.get_projection_matrix().matrix().cast<float>())));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    render_markers(canvas_width, canvas_height);
 }
 
 void GCodeViewer::render_toolpaths()

@@ -78,6 +78,7 @@ public:
     //
     void render(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
     void render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
+    bool has_translucent_toolpaths() const { return m_enabled_translucent_segments_count > 0; }
     //
     // ORCA: realistic view. Render the toolpaths as seen from the light, to fill the caller's
     // shadow map. Only depth matters here, so the caller masks colour writes; light_position

@@ -402,8 +402,8 @@ public:
     //BBS: GUI refactor: add canvas width and height
     // Shells, toolpaths, the sequential markers and the IDEX/IQEX toolhead boxes, drawn in 3D.
     void render_scene(int canvas_width, int canvas_height);
-    // ORCA: the toolpaths of translucent filaments, which render_scene() leaves out, blended over the scene.
-    void render_translucent_toolpaths();
+    // ORCA: the toolpaths of translucent filaments, blended over the scene, then the markers. render_scene() leaves both out.
+    void render_translucent_toolpaths(int canvas_width, int canvas_height);
     // Legend, sliders, the marker's position window and the G-code window, all ImGui.
     void render_overlay(int canvas_width, int canvas_height, int right_margin);
     // ORCA: realistic view. Depth-only pass drawing the toolpaths as the light sees them, into
@@ -540,6 +540,8 @@ private:
     // Canvas height minus the room the horizontal slider takes.
     int sequential_view_height(int canvas_height) const;
     void render_toolpaths();
+    // The sequential markers and the IDEX/IQEX toolhead boxes.
+    void render_markers(int canvas_width, int canvas_height);
     void render_shells(int canvas_width, int canvas_height);
     // ORCA: a filament color as the toolpaths show it, opaque unless translucent filaments are shown
     ColorRGBA shown_filament_color(ColorRGBA color) const;

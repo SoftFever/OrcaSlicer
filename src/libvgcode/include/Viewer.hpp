@@ -70,6 +70,10 @@ public:
     //
     void render_translucent(const Mat4x4& view_matrix, const Mat4x4& projection_matrix);
     //
+    // ORCA: whether the last render() left out any toolpaths for render_translucent() to draw.
+    //
+    bool has_translucent_toolpaths() const;
+    //
     // ORCA: realistic view. Render the toolpaths as seen from the light, to fill the caller's
     // shadow map. Depth only - the caller masks colour writes and owns the framebuffer.
     //

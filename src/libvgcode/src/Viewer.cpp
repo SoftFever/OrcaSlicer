@@ -54,6 +54,11 @@ void Viewer::render_translucent(const Mat4x4& view_matrix, const Mat4x4& project
     m_impl->render_translucent(view_matrix, projection_matrix);
 }
 
+bool Viewer::has_translucent_toolpaths() const
+{
+    return m_impl->has_translucent_toolpaths();
+}
+
 void Viewer::render_shadow_casters(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& light_position)
 {
     m_impl->render_shadow_casters(view_matrix, projection_matrix, light_position);
