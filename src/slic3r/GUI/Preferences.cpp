@@ -2029,7 +2029,7 @@ void PreferencesDialog::create_items()
     auto item_realistic_gloss = create_item_checkbox(
         _L("Glossy toolpaths"),
         _L("Highlights the toolpaths in Preview as glossy plastic in realistic view.\n"
-           "Translucent filaments keep the highlight either way, so that a clear one does not fade into the background."),
+           "Off, a translucent filament is matte and an opaque one keeps the highlight of the plain view."),
         SETTING_OPENGL_REALISTIC_GLOSS
     );
     g_sizer->Add(item_realistic_gloss);

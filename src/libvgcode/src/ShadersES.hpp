@@ -17,7 +17,6 @@ static const char* Segments_Vertex_Shader_ES =
 "#define FIX_TWISTING\n"
 "uniform vec3 light_top_dir;\n"
 "uniform float gloss_strength;\n"
-"uniform bool gloss_opaque;\n"
 "const float light_top_diffuse = 0.6 * 0.8;\n"
 // ORCA: the specular was 0.6 * 0.125, too faint to give the filament any sheen.
 "const float light_top_specular = 0.6 * 0.25;\n"
@@ -119,8 +118,7 @@ static const char* Segments_Vertex_Shader_ES =
 // its joints. The w of a position carries 0.5 at a joint, see extract_pos_and_or_hwa().
 "  vec3 joint_prev = vec3(0.0);\n"
 "  vec3 joint_next = vec3(0.0);\n"
-"  bool glossy = gloss_strength > 0.0 && (alpha < 1.0 || gloss_opaque);\n"
-"  if (alpha < 1.0 || glossy) {\n"
+"  if (alpha < 1.0 || gloss_strength > 0.0) {\n"
 "    if (id_a > 0 && fract(texelFetch(position_tex, tex_coord(position_tex, id_a), 0).w) > 0.25) {\n"
 "      vec3 prev = pos_a - texelFetch(position_tex, tex_coord(position_tex, id_a - 1), 0).xyz;\n"
 // ORCA: past the vertex repeated in place that starts a split path
@@ -220,12 +218,12 @@ static const char* Segments_Vertex_Shader_ES =
 "  vec3 eye_normal = (view_matrix * vec4(normalize(pos - endpoint_pos), 0.0)).xyz;\n"
 "  vec3 color_base = decode_color(texelFetch(color_tex, tex_coord(color_tex, id), 0).rgb, id, int(texelFetch(position_tex, tex_coord(position_tex, id), 0).w));\n"
 "  color = color_base * (ambient + emission);\n"
-"  color_direct = color_base * ((alpha < 1.0 || glossy) ? diffuse_lighting(eye_normal) : direct_lighting(eye_position, eye_normal));\n"
+"  color_direct = color_base * ((alpha < 1.0 || gloss_strength > 0.0) ? diffuse_lighting(eye_normal) : direct_lighting(eye_position, eye_normal));\n"
 "  world_position = pos;\n"
 "  shadow_normal = eye_normal;\n"
 "  segment_id = id_a;\n"
 "  cut_color_direct = clipping_plane.xyz == vec3(0.0) ? vec3(0.0) :\n"
-"    color_base * ((alpha < 1.0 || glossy) ? diffuse_lighting(mat3(view_matrix) * -clipping_plane.xyz) :\n"
+"    color_base * ((alpha < 1.0 || gloss_strength > 0.0) ? diffuse_lighting(mat3(view_matrix) * -clipping_plane.xyz) :\n"
 "                                direct_lighting(eye_position, mat3(view_matrix) * -clipping_plane.xyz));\n"
 "  gl_Position = projection_matrix * vec4(eye_position, 1.0);\n"
 "}\n";
@@ -335,7 +333,6 @@ static const char* Segments_Fragment_Shader_ES =
 "const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);\n"
 // ORCA: in realistic view every filament is glossy, with an untinted highlight a translucent one's opacity does not dim
 "uniform float gloss_strength;\n"
-"uniform bool gloss_opaque;\n"
 "const float GLOSS_SHININESS = 80.0;\n"
 "in vec3 color;\n"
 "in vec3 color_direct;\n"
@@ -408,8 +405,7 @@ static const char* Segments_Fragment_Shader_ES =
 "  return dot(n, n) > 1e-4 && float(step) * dot(normalize(n), world_position - pos) > 0.02;\n"
 "}\n"
 "void main() {\n"
-"  bool glossy = gloss_strength > 0.0 && (alpha < 1.0 || gloss_opaque);\n"
-"  if (alpha < 1.0 || glossy) {\n"
+"  if (alpha < 1.0 || gloss_strength > 0.0) {\n"
 "    vec3 pos_a = fetch(position_tex, segment_id).xyz;\n"
 "    vec3 pos_b = fetch(position_tex, segment_id + 1).xyz;\n"
 "    vec3 line_dir = normalize(pos_b - pos_a);\n"
@@ -439,7 +435,7 @@ static const char* Segments_Fragment_Shader_ES =
 // and width around its centre line, smooth across a joint, where the facets of two segments would catch it
 // apart. It fades out towards the tip of a path end, whose normal runs along the extrusion.
 "  float gloss = 0.0;\n"
-"  if (glossy) {\n"
+"  if (gloss_strength > 0.0) {\n"
 "    vec3 across = normalize(normal);\n"
 "    vec3 start = fetch(position_tex, segment_id).xyz;\n"
 "    vec3 line = fetch(position_tex, segment_id + 1).xyz - start;\n"

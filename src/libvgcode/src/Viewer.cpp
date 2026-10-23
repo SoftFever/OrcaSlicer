@@ -74,9 +74,9 @@ void Viewer::set_light_top_dir(const Vec3& direction)
     m_impl->set_light_top_dir(direction);
 }
 
-void Viewer::set_gloss(bool translucent, bool opaque)
+void Viewer::set_gloss(bool gloss)
 {
-    m_impl->set_gloss(translucent, opaque);
+    m_impl->set_gloss(gloss);
 }
 
 void Viewer::set_tone(float exposure, float saturation)

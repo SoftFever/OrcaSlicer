@@ -60,13 +60,12 @@ write depth, so while there are translucent toolpaths they wait for them, in
 behind them, and the print would show a hole around the tool position.
 
 A translucent segment takes its diffuse light in its own color, scaled by its opacity. In
-realistic view, whatever its options, a translucent segment takes instead of the tinted highlight
-of the default shading an untinted one computed per fragment, not scaled by the opacity, so that
-a clear filament keeps its gloss instead of fading into the background. The opaque segments take
-the same highlight unless the "Glossy toolpaths" setting of the realistic view is off, so that all
-the filaments look alike. `GLCanvas3D::_render_gcode()` switches both with `Viewer::set_gloss()`.
-Without realistic view a translucent filament is matte and an opaque one keeps the default
-shading. The
+realistic view, whatever its other options, with its "Glossy toolpaths" setting on, every segment,
+opaque or translucent, takes instead of the tinted highlight of the default shading an untinted one
+computed per fragment, not scaled by the opacity, so that the filaments look alike and a clear one
+keeps its gloss instead of fading into the background. `GLCanvas3D::_render_gcode()` switches it
+with `Viewer::set_gloss()`. Without realistic view, or with the setting off, a translucent filament
+is matte and an opaque one keeps the default shading. The
 highlight takes the normal of the rounded extrusion a segment stands for, an ellipse of its height
 and width around its centre line, rather than that of its facets: it then runs smoothly across a
 joint, where the facets of two segments would catch it apart, and it fades out towards the tip of a

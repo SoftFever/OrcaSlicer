@@ -416,8 +416,8 @@ public:
     // ORCA: section view
     void set_clipping_plane(const ClippingPlane& plane);
     void set_light_top_dir(const Vec3d& direction);
-    // ORCA: the untinted highlight of the translucent filaments, and of the opaque ones, which the canvas gives them in realistic view only
-    void set_gloss(bool translucent, bool opaque) { m_viewer.set_gloss(translucent, opaque); }
+    // ORCA: the untinted highlight of the filaments, which the canvas gives them in realistic view only
+    void set_gloss(bool gloss) { m_viewer.set_gloss(gloss); }
     //BBS
     // void _render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager);
     // void _render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager);
