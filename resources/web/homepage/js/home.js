@@ -17,6 +17,7 @@ function OnInit()
 	SendMsg_GetStaffPick();
 
 	Set_AccountMenu_Event();
+	Set_PopupDismiss_Event();
 }
 
 //------最佳打开文件的右键菜单功能----------
@@ -64,22 +65,21 @@ function Set_RecentFile_MouseRightBtn_Event()
 		//					 DocumentWidth+' - '+DocumentHeight+'<br/>'+
 		//					 MousePosX+' - '+MousePosY +'<br/>' );
 	} );
-	
 
-	$(document).click( function(){		
-		var e = e || window.event;
-        var elem = e.target || e.srcElement;
-        while (elem) {
-			if (elem.id && elem.id == 'recnet_context_menu') {
-                    return;
-			}
-			elem = elem.parentNode;
-		}		
-		
-		$("#recnet_context_menu").hide();
-	} );
+}
 
-	
+function Set_PopupDismiss_Event() {
+  $(document).off("click.popupDismiss").on("click.popupDismiss", function (e) {
+    var elem = e.target;
+    while (elem) {
+      if (elem.id == 'recnet_context_menu' || elem.id == 'cali_context_menu' || elem.id == 'cali_menu_trigger')
+        return;
+      elem = elem.parentNode;
+    }
+
+    $("#recnet_context_menu").hide();
+    if (typeof CloseCalibrationMenu === "function") CloseCalibrationMenu();
+  });
 }
 
 function SetLoginPanelVisibility(visible) {
