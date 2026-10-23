@@ -9362,10 +9362,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, const std::string &path_d
         effective_height = static_cast<float>(m_sub_layer_height);
     }
 
-    // Effective extrusion length per distance unit = (filament_flow_ratio/cross_section) * mm3_per_mm / print flow ratio
-    // m_writer.extruder()->e_per_mm3() below is (filament flow ratio / cross-sectional area)
-    double e_per_mm = m_writer.filament()->e_per_mm3() * _mm3_per_mm;
-    e_per_mm /= filament_flow_ratio;
+    // _mm3_per_mm already includes the filament flow ratio, so convert it with the bare cross-section
+    // rather than e_per_mm3(), which would apply the ratio a second time.
+    double e_per_mm = _mm3_per_mm / m_writer.filament()->filament_crossection();
 
     // set speed
     if (speed == -1) {

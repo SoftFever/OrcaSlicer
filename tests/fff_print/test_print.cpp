@@ -647,6 +647,31 @@ TEST_CASE("Print::validate tolerates a null warnings pointer", "[Print][validate
     CHECK(err.string.empty());
 }
 
+TEST_CASE("Print::validate refuses a used filament with a flow ratio of 0", "[Print][validate][Regression]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_key_value("filament_flow_ratio", new ConfigOptionFloatsNullable{ 0. });
+
+    std::vector<StringObjectException> warnings;
+    StringObjectException err = validate_cubes(config, warnings);
+
+    CHECK_FALSE(err.string.empty());
+    CHECK_FALSE(err.is_warning);
+    CHECK(err.opt_key == "filament_flow_ratio");
+}
+
+TEST_CASE("Print::validate ignores a flow ratio of 0 on an unused filament", "[Print][validate]")
+{
+    // The cube prints with filament 1, so filament 2's ratio is never used.
+    DynamicPrintConfig config = multifilament_config(2, { { "filament_self_index", "1,2" } });
+    config.set_key_value("filament_flow_ratio", new ConfigOptionFloatsNullable{ 1., 0. });
+
+    std::vector<StringObjectException> warnings;
+    StringObjectException err = validate_cubes(config, warnings);
+
+    CHECK(err.string.empty());
+}
+
 TEST_CASE("Purge tower selection keeps ordinary printers on the classic path", "[Print][PurgeTower][Regression]")
 {
     DynamicPrintConfig config = multifilament_config(2, {
