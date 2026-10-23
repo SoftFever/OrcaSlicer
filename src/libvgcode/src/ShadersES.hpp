@@ -55,8 +55,6 @@ static const char* Segments_Vertex_Shader_ES =
 // ORCA: the opaque and the translucent segments are drawn in separate passes, see ViewerImpl::render_segments().
 "uniform int first_instance;\n"
 "flat out float alpha;\n"
-"flat out vec4 joint_a;\n"
-"flat out vec4 joint_b;\n"
 // ORCA: the layers greyed or dimmed around the one the sliders show, see ViewerImpl::set_layer_colors().
 "uniform ivec2 lit_layers;\n"
 "uniform int grey_below_layer;\n"
@@ -116,11 +114,8 @@ static const char* Segments_Vertex_Shader_ES =
 "  else\n"
 "    line_right_dir = normalize(cross(line_dir, UP));\n"
 "  vec3 line_up_dir = normalize(cross(line_right_dir, line_dir));\n"
-// ORCA: two segments of a path overlap at their joint, which blending would draw twice and the highlight of
-// realistic view shows on opaque ones too, so each is cut at the bisector plane of the joint. The w of a
-// position carries 0.5 at a joint, see extract_pos_and_or_hwa().
-"  joint_a = vec4(0.0);\n"
-"  joint_b = vec4(0.0);\n"
+// ORCA: the direction of the path across each joint, for the caps below; the fragment shader cuts the segment at
+// its joints. The w of a position carries 0.5 at a joint, see extract_pos_and_or_hwa().
 "  vec3 joint_prev = vec3(0.0);\n"
 "  vec3 joint_next = vec3(0.0);\n"
 "  if (alpha < 1.0 || gloss_strength > 0.0) {\n"
@@ -130,22 +125,16 @@ static const char* Segments_Vertex_Shader_ES =
 "      if (dot(prev, prev) < 1e-4 && id_a > 1)\n"
 "        prev = pos_a - texelFetch(position_tex, tex_coord(position_tex, id_a - 2), 0).xyz;\n"
 "      vec3 n = dot(prev, prev) > 1e-8 ? normalize(prev) + line_dir : vec3(0.0);\n"
-"      if (dot(n, n) > 1e-4) {\n"
-"        n = normalize(n);\n"
-"        joint_a = vec4(n, -dot(n, pos_a));\n"
+"      if (dot(n, n) > 1e-4)\n"
 "        joint_prev = prev;\n"
-"      }\n"
 "    }\n"
 "    if (id_b + 1 < textureSize(position_tex, 0).x * textureSize(position_tex, 0).y && fract(texelFetch(position_tex, tex_coord(position_tex, id_b), 0).w) > 0.25) {\n"
 "      vec3 next = texelFetch(position_tex, tex_coord(position_tex, id_b + 1), 0).xyz - pos_b;\n"
 "      if (dot(next, next) < 1e-4 && id_b + 2 < textureSize(position_tex, 0).x * textureSize(position_tex, 0).y)\n"
 "        next = texelFetch(position_tex, tex_coord(position_tex, id_b + 2), 0).xyz - pos_b;\n"
 "      vec3 n = dot(next, next) > 1e-8 ? line_dir + normalize(next) : vec3(0.0);\n"
-"      if (dot(n, n) > 1e-4) {\n"
-"        n = normalize(n);\n"
-"        joint_b = vec4(-n, dot(n, pos_b));\n"
+"      if (dot(n, n) > 1e-4)\n"
 "        joint_next = next;\n"
-"      }\n"
 "    }\n"
 "  }\n"
 "  const vec2 horizontal_vertical_view_signs_array[16] = vec2[](\n"
@@ -352,8 +341,6 @@ static const char* Segments_Fragment_Shader_ES =
 "flat in int segment_id;\n"
 "in vec3 cut_color_direct;\n"
 "flat in float alpha;\n"
-"flat in vec4 joint_a;\n"
-"flat in vec4 joint_b;\n"
 "out vec4 fragment_color;\n"
 "float shadow_shade(vec3 position, vec3 normal) {\n"
 "  if (shadow_intensity <= 0.0)\n"
@@ -402,10 +389,29 @@ static const char* Segments_Fragment_Shader_ES =
 "                                     fetch(height_width_angle_tex, segment_id + 1).xy, along);\n"
 "  return abs(dot(offset, right_dir)) / half_height_width.y + abs(dot(offset, cross(right_dir, line_dir))) / half_height_width.x <= 1.0;\n"
 "}\n"
+// ORCA: two segments of a path overlap at their joint, which blending would draw twice and the highlight of
+// realistic view shows on opaque ones too, so each is cut at the bisector plane of its joints: whether the
+// fragment lies past the plane of the joint at vertex id, step being -1 for the start of the segment and 1 for
+// its end, keeping 0.02 mm of overlap where the faces each segment turns to the camera would leave gaps without
+// their caps. Past the vertex repeated in place that starts a split path, the neighbour is one vertex further.
+"bool beyond_joint(int id, vec3 pos, vec3 line_dir, int step) {\n"
+"  int size = textureSize(position_tex, 0).x * textureSize(position_tex, 0).y;\n"
+"  if (id + step < 0 || id + step >= size || fract(fetch(position_tex, id).w) <= 0.25)\n"
+"    return false;\n"
+"  vec3 dir = float(step) * (fetch(position_tex, id + step).xyz - pos);\n"
+"  if (dot(dir, dir) < 1e-4 && id + 2 * step >= 0 && id + 2 * step < size)\n"
+"    dir = float(step) * (fetch(position_tex, id + 2 * step).xyz - pos);\n"
+"  vec3 n = dot(dir, dir) > 1e-8 ? normalize(dir) + line_dir : vec3(0.0);\n"
+"  return dot(n, n) > 1e-4 && float(step) * dot(normalize(n), world_position - pos) > 0.02;\n"
+"}\n"
 "void main() {\n"
-// ORCA: with 0.02 mm of overlap, where the faces each segment turns to the camera leave gaps without their caps
-"  if (dot(vec4(world_position, 1.0), joint_a) < -0.02 || dot(vec4(world_position, 1.0), joint_b) < -0.02)\n"
-"    discard;\n"
+"  if (alpha < 1.0 || gloss_strength > 0.0) {\n"
+"    vec3 pos_a = fetch(position_tex, segment_id).xyz;\n"
+"    vec3 pos_b = fetch(position_tex, segment_id + 1).xyz;\n"
+"    vec3 line_dir = normalize(pos_b - pos_a);\n"
+"    if (beyond_joint(segment_id, pos_a, line_dir, -1) || beyond_joint(segment_id + 1, pos_b, line_dir, 1))\n"
+"      discard;\n"
+"  }\n"
 "  vec3 c;\n"
 "  vec3 position = world_position;\n"
 "  vec3 normal = shadow_normal;\n"
