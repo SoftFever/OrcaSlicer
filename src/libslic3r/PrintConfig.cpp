@@ -5290,12 +5290,6 @@ void PrintConfigDef::init_fff_params()
     def->mode       = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("silent_mode", coBool);
-    def->label = L("Silent Mode");
-    def->tooltip = L("Whether the machine supports silent mode in which machine uses lower acceleration to print more quietly");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("emit_machine_limits_to_gcode", coBool);
     def->label = L("Emit limits to G-code");
     def->category = L("Machine limits");

@@ -651,7 +651,7 @@ void MenuFactory::load_handy_model(std::size_t index)
         return;
     pl->load_files(input_files, LoadStrategy::LoadModel);
     if (model.arrange_after_import) {
-        pl->set_prepare_state(Job::PREPARE_STATE_MENU);
+        pl->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
         pl->arrange();
     }
 
