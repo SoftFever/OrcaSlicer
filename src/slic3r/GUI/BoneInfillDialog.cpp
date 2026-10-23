@@ -473,9 +473,14 @@ struct BoneInfillDialog::priv
     int    bottom_layers { 3 }, top_layers { 4 };
 
     DensityCurveGraph *graph { nullptr };
-    // The settings when a drag of the graph began, restored if it is cancelled, and the extent of its axis then.
+    // The settings when a drag of the graph began, restored if it is cancelled, and the extent of its axis then, in
+    // mm, with its units per mm.
     DynamicPrintConfig drag_start;
     double             drag_x_max { 10. };
+    double             drag_scale { 1. };
+    // The graph shows depths in mm rather than in percent of the depth of the center of the model.
+    bool               depth_in_mm { false };
+    ::CheckBox        *mm_check { nullptr };
     // Depth below the walls of the deepest point of the models, and the name of that model. Unknown until measured,
     // or without a model.
     double             model_depth { std::numeric_limits<double>::quiet_NaN() };
@@ -516,6 +521,8 @@ struct BoneInfillDialog::priv
     wxSizer     *build_row(Row &row);
     void         update_row(Row &row);
     void         update_all();
+    double       row_max(const std::string &key) const;
+    double       graph_scale() const;
     double       graph_x_max(const BoneGradient &g) const;
     DensityCurve graph_curve() const;
     void         drag_graph(const DensityCurveGraph::Drag &drag);
@@ -548,6 +555,22 @@ void BoneInfillDialog::priv::build()
 
     // Graph, with the curve type above it, as in the other density graphs.
     auto *graph_header = new wxBoxSizer(wxHORIZONTAL);
+    depth_in_mm        = wxGetApp().app_config->get_bool("bone_graph_depth_mm");
+    mm_check           = new ::CheckBox(dlg);
+    mm_check->SetValue(depth_in_mm);
+    // Percent needs the depth of the model, measured once the dialog is open.
+    mm_check->Enable(false);
+    mm_check->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
+        depth_in_mm = mm_check->GetValue();
+        wxGetApp().app_config->set_bool("bone_graph_depth_mm", depth_in_mm);
+        graph->set_curve(graph_curve());
+        e.Skip();
+    });
+    auto *mm_label = new wxStaticText(dlg, wxID_ANY, _L("Depth in mm"));
+    mm_label->SetToolTip(_L("Show the depth below the walls in millimeters instead of in percent of the depth of the center of "
+                            "the model. Percent needs a model on the plate."));
+    graph_header->Add(mm_check, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, dlg->FromDIP(6));
+    graph_header->Add(mm_label, 0, wxALIGN_CENTER_VERTICAL);
     graph_header->AddStretchSpacer();
     curve_label = new wxStaticText(dlg, wxID_ANY, _(print_config_def.get("bone_falloff_curve")->label));
     curve_label->SetToolTip(_(print_config_def.get("bone_falloff_curve")->tooltip));
@@ -723,9 +746,22 @@ void BoneInfillDialog::priv::update_all()
     graph->set_curve(graph_curve());
 }
 
+double BoneInfillDialog::priv::row_max(const std::string &key) const
+{
+    return std::find_if(rows.begin(), rows.end(), [&key](const Row &row) { return row.key == key; })->max;
+}
+
+double BoneInfillDialog::priv::graph_scale() const
+{
+    return !depth_in_mm && std::isfinite(model_depth) && model_depth > 0. ? 100. / model_depth : 1.;
+}
+
 double BoneInfillDialog::priv::graph_x_max(const BoneGradient &g) const
 {
-    // Room for the falloff and the hollow core, and the whole depth of the model.
+    // In percent, from the walls to the center of the model.
+    if (graph_scale() != 1.)
+        return 100.;
+    // In mm, room for the falloff and the hollow core, and the whole depth of the model.
     double need = std::max({ 10., g.falloff * 1.5, g.hollow_depth * 1.25 });
     if (std::isfinite(model_depth))
         need = std::max(need, model_depth * 1.05);
@@ -735,17 +771,20 @@ double BoneInfillDialog::priv::graph_x_max(const BoneGradient &g) const
 DensityCurve BoneInfillDialog::priv::graph_curve() const
 {
     const BoneGradient g = BoneGradient::from_config(config);
+    // Graph units per mm.
+    const double       s = graph_scale();
     DensityCurve       curve;
-    curve.density        = [g](double depth) { return g.density(depth); };
+    curve.density        = [g, s](double x) { return g.density(x / s); };
     curve.x_max          = graph_x_max(g);
-    curve.x_title        = _L("Depth below the walls (mm)");
+    curve.x_title        = s != 1. ? _L("Depth from the walls to the center (%)") : _L("Depth below the walls (mm)");
     curve.y_title        = _L("Infill density");
     curve.spread         = 0.35 * config.option<ConfigOptionPercent>("bone_irregularity")->value / 100.;
-    curve.guides         = { g.falloff };
-    curve.shade_from     = g.hollow_from();
+    curve.guides         = { g.falloff * s };
+    curve.shade_from     = g.hollow_from() * s;
     curve.shade_title    = _L("Hollow core");
+    // In percent the axis ends at the center, so the mark only shows in mm.
     if (std::isfinite(model_depth)) {
-        curve.mask_from = model_depth;
+        curve.mask_from = model_depth * s;
         if (model_name.IsEmpty())
             curve.mask_label = _L("Center of the model");
         else
@@ -760,10 +799,10 @@ DensityCurve BoneInfillDialog::priv::graph_curve() const
     curve.handles.push_back({ DensityCurve::HandleKind::Point, 0., g.wall_density, readout(g.wall_density, 0.) });
     for (int k = 1; k <= 4; ++k) {
         const double depth = g.falloff * k / 5.;
-        curve.handles.push_back({ middle, depth, g.density(depth), readout(g.density(depth), depth) });
+        curve.handles.push_back({ middle, depth * s, g.density(depth), readout(g.density(depth), depth) });
     }
-    curve.handles.push_back({ DensityCurve::HandleKind::Point, g.falloff, g.core_density, readout(g.core_density, g.falloff) });
-    curve.handles.push_back({ DensityCurve::HandleKind::Edge, g.hollow_depth > 0. ? g.hollow_depth : curve.x_max, 0.,
+    curve.handles.push_back({ DensityCurve::HandleKind::Point, g.falloff * s, g.core_density, readout(g.core_density, g.falloff) });
+    curve.handles.push_back({ DensityCurve::HandleKind::Edge, g.hollow_depth > 0. ? g.hollow_depth * s : curve.x_max, 0.,
                               g.hollow_depth > 0. ? format_wxstr(_L("Hollow below %1% mm"), double_to_string(g.hollow_depth, 1)) :
                                                     _L("Drag left to set a hollow core") });
     return curve;
@@ -776,7 +815,8 @@ void BoneInfillDialog::priv::drag_graph(const DensityCurveGraph::Drag &drag)
     switch (drag.phase) {
     case DensityCurveGraph::Drag::Phase::Begin:
         drag_start = config;
-        drag_x_max = graph_x_max(BoneGradient::from_config(config));
+        drag_scale = graph_scale();
+        drag_x_max = graph_x_max(BoneGradient::from_config(config)) / drag_scale;
         return;
     case DensityCurveGraph::Drag::Phase::Cancel:
         config = drag_start;
@@ -787,16 +827,18 @@ void BoneInfillDialog::priv::drag_graph(const DensityCurveGraph::Drag &drag)
     }
 
     BoneGradient g = BoneGradient::from_config(config);
-    // Percentages snap to whole numbers and depths to tenths of a millimetre, like the inputs.
+    const double x = drag.x / drag_scale;
+    // Percentages snap to whole numbers and depths to tenths of a millimetre, and both stay within the limits of the
+    // inputs below, so that the graph never sets a value they can't show.
     auto percent = [](double v, double lo, double hi) { return std::clamp(std::round(v * 100.), lo, hi) / 100.; };
     auto mm      = [](double v, double lo, double hi) { return std::clamp(std::round(v * 10.) / 10., lo, hi); };
     switch (GraphHandle(drag.handle)) {
     case Wall: g.wall_density = percent(drag.density, 2., 99.); break;
     case End:
-        g.falloff      = mm(drag.x, 0.5, drag_x_max);
+        g.falloff      = mm(x, 0.5, std::min(drag_x_max, row_max("bone_falloff")));
         g.core_density = percent(drag.density, 1., 100.);
         break;
-    case Hollow: g.hollow_depth = drag.x >= drag_x_max * 0.98 ? 0. : mm(drag.x, 0.5, drag_x_max); break;
+    case Hollow: g.hollow_depth = x >= drag_x_max * 0.98 ? 0. : mm(x, 0.5, std::min(drag_x_max, row_max("bone_hollow_depth"))); break;
     default: {
         if (std::abs(g.wall_density - g.core_density) < 0.005)
             return;
@@ -964,6 +1006,7 @@ void BoneInfillDialog::priv::measure_models()
             if (!canceled && !eptr && deepest->first > shell) {
                 model_depth = deepest->first - shell;
                 model_name  = from_u8(deepest->second);
+                mm_check->Enable(true);
                 graph->set_curve(graph_curve());
             }
         });
@@ -1013,6 +1056,7 @@ void BoneInfillDialog::on_dpi_changed(const wxRect &)
     p->curve_combo->Rescale();
     p->curve_combo->SetMinSize(FromDIP(wxSize(150, -1)));
     p->sliders_check->Rescale();
+    p->mm_check->Rescale();
     p->refresh->Rescale();
     p->graph->rescale();
     p->preview->rescale();
