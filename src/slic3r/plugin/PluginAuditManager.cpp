@@ -325,10 +325,15 @@ bool PluginAuditManager::network_permission_matches(const std::vector<std::strin
         }
 
         if (!entry_url.empty()) {
-            // Bare hosts carry no scheme: match the host part of a scheme://host grant.
-            const std::string entry_host = entry_url.substr(entry_url.find("://") + 3);
-            if (without_ipv6_brackets(entry_host) == target_host)
-                return true;
+            // A bare host carries no scheme: only a canonical scheme://host grant is host-wide.
+            // A grant that persisted a full URL stays scoped to that URL, so it must not
+            // authorize raw socket access to its whole host. Normalization lowercases the scheme
+            // and host, so a canonical grant compares equal to its lowercased form.
+            if (ascii_lower(entry) == entry_url) {
+                const std::string entry_host = entry_url.substr(entry_url.find("://") + 3);
+                if (without_ipv6_brackets(entry_host) == target_host)
+                    return true;
+            }
         } else if (without_ipv6_brackets(network_host_from_target(entry)) == target_host) {
             // Legacy persisted address tuples, e.g. "('host', 443)".
             return true;
@@ -1094,6 +1099,13 @@ bool has_network_permission(const PluginPermissions& permissions, const std::str
            PluginAuditManager::network_permission_matches(permissions.network_socket, target);
 }
 
+// A targetless network event names no host the grant could be matched against: http.client.send
+// writes to a connection that was already opened. Any recorded network grant covers it.
+bool has_any_network_permission(const PluginPermissions& permissions)
+{
+    return !permissions.network_http.empty() || !permissions.network_socket.empty();
+}
+
 // A sandbox plugin may not have a sidecar yet. Seed the small amount of install metadata the
 // writer needs so clicking Yes still creates the JSON file.
 void seed_install_metadata(const PluginDescriptor& descriptor, PluginInstallState& state)
@@ -1172,9 +1184,17 @@ wxString audit_message(AuditEventCategory category, const wxString& plugin_name,
                                           "Plugin \"%s\" is requesting to delete the following files:\n%s", target_count),
                                 plugin_name, target_list);
     case AuditEventCategory::Http:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to make an HTTP request to:\n%s"), plugin_name, target_list);
+        return wxString::Format(
+            _L("Plugin \"%s\" is requesting network access to:\n%s\n\n"
+               "Approval covers HTTP or HTTPS access and raw network connections to the listed hosts. "
+               "It does not restrict ports. A URL with a path, query or port is covered only for that "
+               "exact URL."),
+            plugin_name, target_list);
     case AuditEventCategory::Socket:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to open a network connection to:\n%s"), plugin_name, target_list);
+        return wxString::Format(
+            _L("Plugin \"%s\" is requesting network access to:\n%s\n\n"
+               "Approval covers raw network connections to the listed hosts. It does not restrict ports."),
+            plugin_name, target_list);
     case AuditEventCategory::ProcessCreate:
         return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to run the following command:\n%s",
                                           "Plugin \"%s\" is requesting to run the following commands:\n%s", target_count),
@@ -1306,13 +1326,16 @@ int decide_audited_event(PluginAuditManager&             mgr,
     std::vector<std::string> unresolved = keys;
     if (permission_list || is_network_category(category)) {
         unresolved.clear();
-        // Network grants authorize a specific target, not targetless events such as
-        // http.client.send.
-        for (const auto& key : keys)
-            if (!(permission_list && has_permission(*permission_list, key)) &&
-                !(is_network_category(category) &&
-                  !by_event && has_network_permission(state.permissions, key)))
+        for (const auto& key : keys) {
+            // A network grant authorizes a specific host, except for a targetless event such as
+            // http.client.send, which names no host: any network grant covers that.
+            const bool granted_network =
+                is_network_category(category) &&
+                (by_event ? has_any_network_permission(state.permissions)
+                          : has_network_permission(state.permissions, key));
+            if (!(permission_list && has_permission(*permission_list, key)) && !granted_network)
                 unresolved.push_back(key);
+        }
         if (unresolved.empty())
             return 0;
     }

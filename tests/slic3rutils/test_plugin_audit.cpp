@@ -474,6 +474,30 @@ TEST_CASE("Plugin audit network permissions match by scheme and host", "[audit]"
         CHECK_FALSE(PluginAuditManager::network_permission_matches(granted, "other.example.com"));
     }
 
+    SECTION("a saved full URL does not authorize raw socket access to its host")
+    {
+        const std::vector<std::string> saved_url{"https://api.example.com/v1"};
+        CHECK(PluginAuditManager::network_permission_matches(saved_url, "https://api.example.com/v1"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(saved_url, "api.example.com"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(saved_url, "api.example.com:443"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(saved_url, "('api.example.com', 443)"));
+
+        const std::vector<std::string> saved_ipv6{"https://[2001:db8::1]/v1"};
+        CHECK(PluginAuditManager::network_permission_matches(saved_ipv6, "https://[2001:db8::1]/v1"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(saved_ipv6, "2001:db8::1"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(saved_ipv6, "[2001:db8::1]:443"));
+
+        // Canonical scheme://host grants still cover raw socket targets, IPv6 brackets aside.
+        const std::vector<std::string> canonical{"https://api.example.com", "https://[2001:db8::1]"};
+        CHECK(PluginAuditManager::network_permission_matches(canonical, "api.example.com"));
+        CHECK(PluginAuditManager::network_permission_matches(canonical, "2001:db8::1"));
+
+        // Normalization lowercases the scheme and host, so case alone keeps a grant canonical.
+        const std::vector<std::string> uppercase{"HTTPS://API.Example.com", "HTTPS://[2001:DB8::1]"};
+        CHECK(PluginAuditManager::network_permission_matches(uppercase, "api.example.com"));
+        CHECK(PluginAuditManager::network_permission_matches(uppercase, "2001:db8::1"));
+    }
+
     SECTION("legacy persisted address tuples keep matching their host")
     {
         const std::vector<std::string> legacy_granted{"('api.example.com', 443)"};
@@ -1058,6 +1082,45 @@ right.close()
     CHECK(harness.saved_permissions(PLUGIN).events ==
           std::vector<std::string>{"Socket:socket.__new__", "Socket:socket.gethostname", "Socket:socket.sendmsg"});
 #endif
+}
+
+TEST_CASE("A saved network grant covers a network event that names no target", "[Audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    // The connection is opened outside the plugin, so only the send itself is judged: it names
+    // no host, just the connection it writes to.
+    python.exec(R"PY(
+connection = http.client.HTTPConnection("127.0.0.1", PORT)
+connection.connect()
+)PY");
+    harness.save_permissions(PLUGIN, http_grants({"http://127.0.0.1"}));
+
+    python.run_as(PLUGIN, R"PY(
+send_outcome = attempt(lambda: connection.send(b"GET /"))
+)PY");
+
+    // The host grant already covers the connection's send: no prompt, and no event grant.
+    CHECK(python.str("send_outcome") == "ok");
+    CHECK(describe(harness.prompts).empty());
+    CHECK(harness.saved_permissions(PLUGIN).events.empty());
+
+    // With no network grant there is nothing covering the send, so it is asked for by name.
+    harness.save_permissions(PLUGIN, http_grants({}));
+    python.run_as(PLUGIN, R"PY(
+denied_outcome = attempt(lambda: connection.send(b"GET /"))
+)PY");
+    CHECK(python.str("denied_outcome") == "denied");
+    CHECK(describe(harness.prompts) == "http.client.send:\n");
+    CHECK(harness.saved_permissions(PLUGIN).events.empty());
+    CHECK(harness.saved_permissions(PLUGIN).network_http.empty());
+
+    python.exec("connection.close()");
 }
 
 TEST_CASE("An event grant does not stand in for another access or a target of the same name", "[audit][Python]")

@@ -165,8 +165,9 @@ public:
     // a bare host (http.client.connect, socket.getaddrinfo) or an address as exposed by the audit
     // event (a hostname, a host:port pair, or a legacy persisted tuple such as "('host', 443)").
     // URL targets must match both scheme and host. Canonical scheme://host grants cover all paths;
-    // older full-URL grants remain exact. A bare host carries no scheme, so it matches the host
-    // part of any grant; it never matches a different host.
+    // older full-URL grants remain exact. A bare host carries no scheme, so it matches the host of
+    // a canonical scheme://host grant only; a full-URL grant does not authorize raw sockets to its
+    // host, and a bare host never matches a different host.
     static bool network_permission_matches(const std::vector<std::string>& granted,
                                            const std::string& target);
 
