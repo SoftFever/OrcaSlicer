@@ -194,7 +194,7 @@ int TaskManager::start_print(const std::vector<PrintParams>& params, TaskSetting
     return 0;
 }
 
-static int start_print_test(PrintParams& params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
+static int start_print_test(const PrintParams& params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
 {
     int tick = 2;
     for (int i = 0; i < 100 * tick; i++) {
@@ -238,10 +238,10 @@ int TaskManager::schedule(TaskStateInfo* task)
             // Keep both lifecycle callbacks on this per-task worker thread. Plugin observers can
             // therefore associate Started and Finished for one task with a single execution context.
             const PrintParams params = task->get_params();
-            const int plate_index = params.print_type == "from_normal" && params.plate_index > 0 ? params.plate_index - 1 : -1;
+            const int plate_index = print_job_plate_index(params.print_type, params.plate_index);
             LifecycleEventContext start_ctx;
-            start_ctx.name = task->params().project_name;
-            start_ctx.device_id = task->params().dev_id;
+            start_ctx.name = params.project_name;
+            start_ctx.device_id = params.dev_id;
             start_ctx.job_id = std::to_string(task->task_info_id);
             start_ctx.source = "task_manager";
             start_ctx.index = plate_index;
@@ -257,9 +257,9 @@ int TaskManager::schedule(TaskStateInfo* task)
                 try {
 // DEBUG FOR TEST
 #if 0
-                    result = start_print_test(task->get_params(), task->update_status_fn, task->cancel_fn, task->wait_fn);
+                    result = start_print_test(params, task->update_status_fn, task->cancel_fn, task->wait_fn);
 #else
-                    result = agent->start_print(task->get_params(), task->update_status_fn, task->cancel_fn, task->wait_fn);
+                    result = agent->start_print(params, task->update_status_fn, task->cancel_fn, task->wait_fn);
 #endif
                 } catch (const std::exception& ex) {
                     BOOST_LOG_TRIVIAL(error) << "task_manager: start_print threw: " << ex.what();
@@ -281,8 +281,8 @@ int TaskManager::schedule(TaskStateInfo* task)
             }
 
             LifecycleEventContext finish_ctx;
-            finish_ctx.name = task->params().project_name;
-            finish_ctx.device_id = task->params().dev_id;
+            finish_ctx.name = params.project_name;
+            finish_ctx.device_id = params.dev_id;
             finish_ctx.job_id = std::to_string(task->task_info_id);
             finish_ctx.source = "task_manager";
             finish_ctx.index = plate_index;

@@ -310,10 +310,8 @@ void PrintJob::process(Ctl &ctl)
     params.task_use_ams         = this->task_use_ams;
     params.task_bed_type        = this->task_bed_type;
     params.print_type           = this->m_print_type;
-    // The transport uses one-based plate numbers. External/calibration jobs do
-    // not identify a plate in the live project, even when a plate is selected.
-    m_lifecycle_plate_index = job_data.is_from_plater && !m_is_calibration_task &&
-        params.print_type == "from_normal" && params.plate_index > 0 ? params.plate_index - 1 : -1;
+    m_lifecycle_plate_index = print_job_plate_index(params.print_type, params.plate_index,
+                                                   job_data.is_from_plater && !m_is_calibration_task);
     params.auto_bed_leveling    = this->auto_bed_leveling;
     params.auto_flow_cali       = this->auto_flow_cali;
     params.auto_offset_cali     = this->auto_offset_cali;
