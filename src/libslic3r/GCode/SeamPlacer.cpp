@@ -771,6 +771,15 @@ void process_perimeter_polygon(const Polygon &orig_polygon, float z_coord, const
                                      (loop_xy[(i + 1) % loop_xy.size()] - loop_xy[i]);
     return Vec3f(float(p.x()), float(p.y()), z_coord);
   };
+  // Green paint without exact ends: an edge whose start is within the edge length of paint gets a point every
+  // enforcer_oversampling_distance, passed to emit as its distance from the start.
+  const auto oversample_green = [&](const Vec3f &start, float length, const auto &emit) {
+    if (ignore_full_paint || !global_model_info.is_enforced(start, length))
+      return;
+    for (float step = SeamPlacer::enforcer_oversampling_distance; step < length;
+         step += SeamPlacer::enforcer_oversampling_distance)
+      emit(step);
+  };
   // Points to insert: the range ends, middles and every enforcer_oversampling_distance from their begin, and the
   // middle of each gap between ranges, which keeps neighboring ranges apart as patches; as sorted loop positions
   // in [0, loop_length).
@@ -798,21 +807,21 @@ void process_perimeter_polygon(const Polygon &orig_polygon, float z_coord, const
     marks.insert(marks.end(), {interval.begin, interval.end, 0.5 * (interval.begin + interval.end),
                                interval.end + guard, next_begin - guard, 0.5 * (interval.end + next_begin)});
   }
-  if (perimeter.exact_blocked_ends && !perimeter.exact_enforced_ends && !ignore_full_paint) {
+  if (perimeter.exact_blocked_ends && !perimeter.exact_enforced_ends) {
     // Red marks must not suppress legacy green oversampling when its boundary is uncertain.
-    for (size_t i = 0; i < loop_xy.size(); ++i) {
-      const double length = loop_arc[i + 1] - loop_arc[i];
-      if (global_model_info.is_enforced(point_at(loop_arc[i]), float(length)))
-        for (double s = loop_arc[i] + SeamPlacer::enforcer_oversampling_distance;
-             s < loop_arc[i + 1]; s += SeamPlacer::enforcer_oversampling_distance)
-          marks.push_back(s);
-    }
+    for (size_t i = 0; i < loop_xy.size(); ++i)
+      oversample_green(point_at(loop_arc[i]), float(loop_arc[i + 1] - loop_arc[i]),
+                       [&](float step) { marks.push_back(loop_arc[i] + step); });
   }
   for (double &s : marks)
     s = std::fmod(s, loop_length);
   std::sort(marks.begin(), marks.end());
-  marks.erase(std::unique(marks.begin(), marks.end(),
-                          [](double a, double b) { return b - a < enforced_end_tolerance; }), marks.end());
+  // A mark closer than the tolerance to the last one kept is the same point.
+  size_t kept = 0;
+  for (size_t i = 0; i < marks.size(); ++i)
+    if (kept == 0 || marks[i] - marks[kept - 1] >= enforced_end_tolerance)
+      marks[kept++] = marks[i];
+  marks.resize(kept);
 
   std::queue<double> oversampled_arcs { }; // Loop positions of the inserted points with exact ranges.
   bool some_point_enforced = false;
@@ -859,17 +868,10 @@ void process_perimeter_polygon(const Polygon &orig_polygon, float z_coord, const
         oversampled_arcs.push(*it);
       }
     } else if (orig_point) {
-      Vec3f pos_of_next = orig_polygon_points.empty() ? first : orig_polygon_points.front();
-      float distance_to_next = (position - pos_of_next).norm();
-      if (!ignore_full_paint && global_model_info.is_enforced(position, distance_to_next)) {
-        Vec3f vec_to_next = (pos_of_next - position).normalized();
-        float step_size = SeamPlacer::enforcer_oversampling_distance;
-        float step = step_size;
-        while (step < distance_to_next) {
-          oversampled_points.push(position + vec_to_next * step);
-          step += step_size;
-        }
-      }
+      const Vec3f pos_of_next = orig_polygon_points.empty() ? first : orig_polygon_points.front();
+      const Vec3f vec_to_next = (pos_of_next - position).normalized();
+      oversample_green(position, (position - pos_of_next).norm(),
+                       [&](float step) { oversampled_points.push(position + vec_to_next * step); });
     }
 
     result.points.emplace_back(position, perimeter, local_ccw_angle, type);
@@ -1100,9 +1102,9 @@ void gather_enforcers_blockers(GlobalModelInfo &result, const PrintObject *po) {
 
   auto obj_transform = po->trafo_sliced();
 
+  indexed_triangle_set painted_non_green; // Used only if the object has green paint.
   for (const ModelVolume *mv : po->model_object()->volumes) {
     // Collect painting only from model parts (what the gizmo edits) and negative volumes (the only way
-  indexed_triangle_set painted_non_green; // Used only if the object has green paint.
     // to paint a hole's wall); painting left on modifiers and helpers after a type change is ignored.
     // TODO: painting on negative volumes still affects the seam, but the gizmo neither shows nor edits it;
     // making it editable also needs model_custom_seam_data_changed() to track it.
@@ -1129,18 +1131,18 @@ void gather_enforcers_blockers(GlobalModelInfo &result, const PrintObject *po) {
       painted = selector.get_facets_strict(EnforcerBlockerType::BLOCKER);
       its_transform(painted, model_transformation, true);
       append_painted_contour(result.blocker_contour, painted);
-    }
-  }
 
       indexed_triangle_set non_green = selector.get_facets(EnforcerBlockerType::NONE);
       its_transform(non_green, model_transformation, true);
       its_merge(painted_non_green, non_green);
+    }
+  }
 
   // Unpainted objects need no extra surface copy or tree; only green paint requires a coverage proof.
   if (!result.enforcers.empty()) {
+    result.non_enforcers = std::move(painted_non_green);
     for (const ModelVolume *mv : po->model_object()->volumes) {
       if ((!mv->is_model_part() && !mv->is_negative_volume()) || mv->is_seam_painted())
-    result.non_enforcers = std::move(painted_non_green);
         continue;
       indexed_triangle_set non_green = mv->mesh().its;
       its_transform(non_green, obj_transform * mv->get_matrix(), true);

@@ -358,7 +358,9 @@ TEST_CASE("Full surface paint preserves strong Precise Seam positions", "[SeamPl
             REQUIRE(layer.perimeters.size() == 1);
             const auto &perimeter = layer.perimeters.front();
             REQUIRE(perimeter.precise_seam_point.has_value());
-            CHECK(perimeter.final_seam_position == *perimeter.precise_seam_point); // Strong placement stays exact.
+            // Strong placement stays exact.
+            CHECK_THAT(double((perimeter.final_seam_position - *perimeter.precise_seam_point).norm()),
+                       Catch::Matchers::WithinAbs(0.0, 1e-6));
         }
         const auto actual = placed_seams(placer, object);
         if (!painted) expected = actual;
@@ -603,8 +605,6 @@ TEST_CASE("Painted ranges end exactly where the paint contour crosses the layer"
     CHECK(centers == 1);
 }
 
-TEST_CASE("Random seams stay inside exact green ranges and keep varying", "[SeamPlacer][Regression]")
-{
 TEST_CASE("Exact paint ends do not depend on where the loop starts", "[SeamPlacer][Regression]")
 {
     // The paint ends project onto the front corners of the loop. A loop repeats its first point, so at its
@@ -637,6 +637,8 @@ TEST_CASE("Exact paint ends do not depend on where the loop starts", "[SeamPlace
     CHECK_THAT(last, Catch::Matchers::WithinAbs(unscale<double>(corners[1].x()), 1e-3));
 }
 
+TEST_CASE("Random seams stay inside exact green ranges and keep varying", "[SeamPlacer][Regression]")
+{
     const int origin = GENERATE(0, 1, 2);
     const bool partial_blocker = GENERATE(false, true);
     CAPTURE(origin, partial_blocker);

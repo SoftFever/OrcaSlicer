@@ -56,9 +56,8 @@ struct Perimeter {
   // Red paint is reconstructed on the contour; its edge samples remain Blocked.
   bool exact_blocked_ends = false;
 
-  // During alignment, a final position may be stored here. In that case, finalized is set to true.
-  // Note that final seam position is not limited to points of the perimeter loop. In theory it can be any position
-  // Random position also uses this flexibility to set final seam point position
+  // Alignment and Random may store a final position here, then set finalized. It lies on the perimeter polygon,
+  // though not necessarily at a candidate point.
   bool finalized = false;
   Vec3f final_seam_position = Vec3f::Zero();
 

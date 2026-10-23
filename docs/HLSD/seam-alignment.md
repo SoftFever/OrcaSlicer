@@ -4,7 +4,7 @@
 
 SeamPlacer selects candidates, connects neighboring layers into strings, fits each string and
 places the resulting seam on its own contour. Painted ranges are reconstructed separately for
-green enforcers and red blockers. Candidate ranking retains its existing priorities.
+green enforcers and red blockers. These stages do not alter candidate ranking.
 String construction and fitting apply to Aligned, Aligned Back and Back (`spRear`).
 Nearest and Random bypass this stage, but share the paint reconstruction rules.
 
@@ -44,9 +44,9 @@ range midpoint, a gap midpoint and permitted guard samples up to 2 µm outside t
 The guard distance is reduced to one quarter of a shorter gap; gaps at or below the membership
 tolerance can remain closed. Candidate marks closer than 1 µm merge.
 These adjacent permitted samples limit fitted and optimized movement to the geometric red
-edge, with the small outward guard, rather than to a distant original gray vertex. No new
-penalty or change to candidate ranking is introduced. Existing Precise Seam modifier priority
-still applies after paint classification.
+edge, with the small outward guard, rather than to a distant original gray vertex. Red ranges add
+no penalty and do not change candidate ranking. Precise Seam modifiers apply after paint
+classification and take priority over it.
 
 Random placement samples an outgoing edge of its selected candidate. On loops with exact
 green ranges, an Enforced candidate followed by a non-Enforced candidate contributes no outgoing
@@ -60,16 +60,16 @@ remaining distance to that edge, preventing float rounding from overrunning the
 candidate list or the permitted segment.
 
 Exact green and red ends bound the seam center position without expanding the painted range
-along the contour by the line width. A seam can therefore approach a red edge without the old
-line-width clearance. Paint can be extended to request a larger clearance; the boundary does not
+along the contour by the line width. A seam can therefore reach a red edge with no line-width
+clearance. Paint can be extended to request a larger clearance; the boundary does not
 guarantee that the finite-width extrusion or a seam blemish stays entirely outside red paint.
 
-If boundary crossings cannot be paired, the corresponding color retains its previous line-width
+If boundary crossings cannot be paired, the corresponding color falls back to the line-width
 proximity classification, including its possible fringe beyond the paint edge. The fallback is
 independent for each color and loop. For red this includes paint not crossing the layer,
-ambiguous contours and a completely red surface without boundary crossings. In the all-blocked case the existing
-best-effort placement continues to produce a seam; red paint does not suppress extrusion.
-An exact red reconstruction does not suppress legacy green oversampling when green
+ambiguous contours and a completely red surface without boundary crossings. In the all-blocked case
+best-effort placement still produces a seam; red paint does not suppress extrusion.
+An exact red reconstruction does not suppress proximity-based green oversampling when green
 boundaries remain uncertain.
 
 On a layer, the contour edges crossing the slicing plane give the exact ends of the painted band.
@@ -85,7 +85,7 @@ pair bounds a **painted range**. Such a loop has **exact ends**:
   and one in the middle of each gap between ranges, so that ranges with no vertex between them stay
   separate patches;
 - the central candidate of the longest patch is the middle of its range, unless the patch has a
-  sharp corner, which keeps priority as before.
+  sharp corner, which keeps priority.
 
 Before generating candidates, a fully painted closed surface is treated like an unpainted surface:
 it imposes no choice of seam position. A loop on a partly painted object can also be normalized when
@@ -97,8 +97,7 @@ the ordinary conservative paint treatment. This is a sufficient test, not a clai
 fully covered contour near unrelated surfaces.
 
 A normalized loop keeps the original candidates, without paint oversampling, Enforced status,
-central enforcer, extra fitting or positional weights, painted-corner blending or legacy paint
-fixation. Sharp-angle and Precise Seam rules remain authoritative. Whole-surface painting and no
+central enforcer, extra fitting or positional weights, painted-corner blending or paint fixation. Sharp-angle and Precise Seam rules remain authoritative. Whole-surface painting and no
 painting therefore feed identical candidates into alignment.
 
 Otherwise, which includes paint not crossing the layer (a dot between layers, the top and bottom of
@@ -118,12 +117,12 @@ below the start. This keeps a matching neighboring seam in the same aligned stri
 
 Seam strings resolve the next layer's boundary before comparing seam preferences.
 Each perimeter retains whether it bounds material or a hole, its layer-local index,
-and immutable candidate geometry. Occupancy does not participate in correspondence: the legacy search skips occupied
+and immutable candidate geometry. Occupancy does not participate in correspondence: the radius search skips occupied
 members of the permitted set without expanding it to unrelated walls.
 
 Each layer builds an AABB tree of contour bounds once. Nearby-contour queries,
 fast bounds matching, material containment and boundary proximity use this index
-before applying their existing exact predicates. Query results are sorted by the
+before applying their exact predicates. Query results are sorted by the
 original contour index, preserving deterministic tie-breaking. Index construction
 checks cancellation between layers. The index avoids scanning unrelated contours
 for each seed; overlapping global bounds can still require many exact checks.
@@ -131,13 +130,13 @@ for each seed; overlapping global bounds can still require many exact checks.
 Only closed extrusion loops provide a reliable boundary role. Open paths and
 collection fallbacks retain unknown geometry rather than deriving a physical role
 from an artificial closing edge. An unknown source, or an unknown path whose
-bounding box intersects the local query box in either layer, leaves the legacy
+bounding box intersects the local query box in either layer, leaves the radius
 search unrestricted. This conservative box test also covers the material probes;
 it may disable the filter even when the path's segments are farther away.
 Reverse confirmation applies only to candidates that pass the applicable distance
 and normal checks, plus material checks on the local path outside the noise band.
 Unknown geometry encountered around such a candidate's foot during reverse confirmation
-also leaves the entire legacy search unrestricted, rather than discarding only
+also leaves the entire radius search unrestricted, rather than discarding only
 that candidate. A reliable reverse rejection still excludes the candidate.
 Unknown paths outside these query boxes do not disable reliable correspondence.
 
@@ -163,19 +162,20 @@ air. Three samples are a bounded heuristic, not a topological proof.
 Each local candidate must map back to a set containing the source boundary. A candidate
 is discarded only if another has both a distance advantage of at least a quarter of
 the source line width and a normal-angle advantage of at least five degrees. Equal or
-conflicting criteria retain multiple candidates; legacy seam preferences choose within
+conflicting criteria retain multiple candidates; seam preferences choose within
 this set. Air-facing normals and material checks distinguish wall sides without imposing
 an invariant exterior/hole label across topology changes. They are geometric gates,
 not numerical preference weights.
 
-If no geometric candidate survives, the original radius search is left unrestricted.
-This intentionally preserves legacy continuation and can also preserve a legacy wall
-switch where geometry cannot resolve the case. A nonempty geometric set is never
+If no geometric candidate survives, the radius search is left unrestricted. Continuation
+then follows seam preferences alone and can switch walls where geometry cannot resolve
+the case. A nonempty geometric set is never
 expanded because its contours are occupied or fail later seam preference checks.
 
 Correspondence queries are cached per source vertex, direction and search radius
 for alternative string starts. Geometry construction and the seed loop check
-cancellation to keep large multi-island objects interruptible. Candidate preference weights and their tolerance remain unchanged.
+cancellation to keep large multi-island objects interruptible. Correspondence does not alter candidate
+preference weights or their tolerance.
 
 ## Final position
 
@@ -267,7 +267,7 @@ Properties:
 ## Constraints
 
 Strong Precise Seam coordinates remain immutable. Angles of at least 55 degrees retain the
-selected candidate. Ambiguous paint boundaries use the existing proximity fallback; an entirely
+selected candidate. Ambiguous paint boundaries use the proximity fallback; an entirely
 blocked perimeter still needs a printed seam. Mesh topology and candidate sampling can change
 which first-approximation string is selected. Painting a verified complete perimeter introduces
 no artificial center preference.
