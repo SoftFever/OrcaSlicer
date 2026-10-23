@@ -450,14 +450,10 @@ public:
             if (other->values.empty())
                 throw ConfigurationError("ConfigOptionVector::set_at(): Assigning from an empty vector");
             this->values[i] = other->get_at(j);
-        } else if (rhs->type() == this->scalar_type()) {
-            auto other = dynamic_cast<const ConfigOptionSingle<T>*>(rhs);
-            if (other == nullptr)
-                throw ConfigurationError("ConfigOptionVector::set_at(): Assigning an incompatible type");
-            this->values[i] = other->value;
-        } else {
+        } else if (rhs->type() == this->scalar_type())
+            this->values[i] = static_cast<const ConfigOptionSingle<T>*>(rhs)->value;
+        else
             throw ConfigurationError("ConfigOptionVector::set_at(): Assigning an incompatible type");
-        }
     }
 
     //BBS
