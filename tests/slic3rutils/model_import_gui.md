@@ -51,3 +51,15 @@ permission prompts. The host unit tests do not construct a native Plater.
   any retained geometry. Retained imports must be undoable normally.
 - Invoke import while native slicing or an incompatible job is active. Expect
   a busy result without plate creation, geometry or settings changes.
+- In a disposable project, use a debugger or test hook to reorder or delete an
+  arranged import's target plate after queueing but before preparation. Repeat
+  after processing but before finalisation. The captured target must be
+  rejected, without moving objects on a replacement plate or applying stale
+  arrangement results.
+  Check the cancellation message and diagnostic reason, then dismiss any error
+  dialog and run Arrange normally. No ongoing-arrangement notification or busy
+  flag may remain, and the normal controls must still work.
+- Cancel an arrangement through its normal progress control, then arrange
+  again. Check that cancellation leaves object transforms unchanged and clears
+  the ongoing-arrangement notification and busy state.
+

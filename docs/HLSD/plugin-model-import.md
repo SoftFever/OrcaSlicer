@@ -3,8 +3,9 @@
 `orca.host.plater().import_models(paths, *, plate="current", arrange=True)` imports
 local model files through OrcaSlicer's native geometry loader. It is intended for
 library, model-search and generator plugins following a user action. It appends
-geometry to the existing project and retains its printer, process and filament
-settings. It does not open or replace a project.
+geometry to the existing project and keeps its active printer and process
+presets. Native geometry import may add filament slots to preserve imported
+colours. It does not open or replace a project.
 
 ```python
 result = orca.host.plater().import_models(

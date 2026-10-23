@@ -3,6 +3,7 @@
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/SVG.hpp"
 #include "libslic3r/MTUtils.hpp"
+#include "libslic3r/Utils.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/IMEXArrange.hpp"
@@ -641,8 +642,11 @@ bool ArrangeJob::target_plate_is_valid() const
 
 void ArrangeJob::prepare()
 {
-    if (!target_plate_is_valid())
-        throw std::runtime_error(_u8L("The arrangement target plate changed. Please arrange the plate again."));
+    if (!target_plate_is_valid()) {
+        BOOST_LOG_TRIVIAL(warning) << "Arrangement target plate " << *m_target_plate
+            << " changed or was removed before preparation (captured plate ID " << m_target_plate_id.id << ").";
+        throw std::runtime_error(_u8L("Arranging canceled."));
+    }
     m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
         NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging..."));
     m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
@@ -849,6 +853,10 @@ static std::string concat_strings(const std::set<std::string> &strings,
 }
 
 void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
+    ScopeGuard cleanup([this] {
+        m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
+        m_plater->m_arrange_running.store(false);
+    });
     try {
         if (eptr)
             std::rethrow_exception(eptr);
@@ -863,10 +871,9 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
     if (canceled || eptr)
         return;
     if (!target_plate_is_valid()) {
-        m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
-        m_plater->m_arrange_running.store(false);
-        eptr = std::make_exception_ptr(std::runtime_error(
-            _u8L("The arrangement target plate changed. Please arrange the plate again.")));
+        BOOST_LOG_TRIVIAL(warning) << "Discarding arrangement results because target plate " << *m_target_plate
+            << " changed or was removed (captured plate ID " << m_target_plate_id.id << ").";
+        eptr = std::make_exception_ptr(std::runtime_error(_u8L("Arranging canceled.")));
         return;
     }
 
@@ -875,11 +882,8 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
     // a too large item to whichever plate it happens to reach over.
     const bool nothing_arranged = !m_selected.empty() &&
         std::all_of(m_selected.begin(), m_selected.end(), [](const ArrangePolygon &ap) { return !ap.is_arranged(); });
-    if (nothing_arranged) {
-        m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
-        m_plater->m_arrange_running.store(false);
+    if (nothing_arranged)
         return;
-    }
 
     // Unprintable items go to the last virtual bed
     int beds = 0;
@@ -978,8 +982,6 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
             _L("Arrangement ignored the following objects which can't fit into a single bed:\n%s"),
             concat_strings(names, "\n")));
     }
-    m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
-
     //BBS: reload all objects due to arrange. Plates are never recycled here: arranging
     // must not remove a plate the user created, even when the arrange left it empty.
     if (only_on_partplate) {
@@ -999,8 +1001,6 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
     wxGetApp().obj_list()->reload_all_plates();
 
     m_plater->update();
-
-    m_plater->m_arrange_running.store(false);
 }
 
 std::optional<arrangement::ArrangePolygon>
