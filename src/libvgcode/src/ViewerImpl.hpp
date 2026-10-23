@@ -586,8 +586,7 @@ private:
     // ORCA: section view
     std::array<float, 4> m_clipping_plane{ 0.0f, 0.0f, 0.0f, 1.0f };
 
-    // ORCA: the translucent segments come in more than one color, whose blending order would show
-    bool m_translucent_colors_differ{ false };
+    // ORCA: the depth range the weights of render_translucent_segments() span
     AABox m_extrusions_box{ Vec3{ 0.0f, 0.0f, 0.0f }, Vec3{ 0.0f, 0.0f, 0.0f } };
 #ifndef ENABLE_OPENGL_ES
     //

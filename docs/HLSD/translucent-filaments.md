@@ -83,14 +83,16 @@ neighbour one vertex further, and the caps the angle of the joint, which the ver
 there.
 
 The translucent segments are not sorted by depth. The opaque pass draws the last printed segments
-first when looking down, to cut overdraw. The translucent pass draws them the other way round, so the
-farthest layers blend first. Surfaces of one color blend alike in any order, so a single translucent
-color stays in this direct pass.
+first when looking down, to cut overdraw. The direct translucent pass, which only some cases fall
+back to (see below), draws them the other way round, so the farthest layers blend first.
 
-## More than one translucent color
+## Order independent blending
 
-Between two translucent colors the blending order shows, so on desktop OpenGL the translucent
-segments then blend order independently, in `ViewerImpl::render_translucent_segments()`. The nearest
+Blended in print order, the order shows even with a single translucent color, since its surfaces are
+shaded apart. A layer's infill, printed after its walls, blends over the walls in front of it: seen
+from the side, the dark bridge under a deck draws a sawtooth over the hull's outer wall, as if a piece
+of it were missing. So on desktop OpenGL the translucent segments blend order independently, in
+`ViewerImpl::render_translucent_segments()`. The nearest
 translucent surface of each pixel is drawn over a weighted blended order independent transparency
 (McGuire and Bavoil, 2013) of the others. The mean alone would not do: the walls of a painted object
 lie a fraction of a millimetre apart, so its depth weights barely differ, and the more opaque and more
@@ -115,9 +117,8 @@ numerous surfaces of one filament would hide the other filament's outer wall in 
 
 Swapping the drawing order changes the result by at most 2 levels out of 255, against up to 246 in
 the direct pass. The targets take about 26 bytes per pixel, and 18 more per sample with
-multisampling, which is why a single translucent color keeps the direct pass. OpenGL ES, whose float
-targets are optional, always takes the direct pass, as does a multisampled framebuffer object, whose
-depth cannot be copied into a texture.
+multisampling. OpenGL ES, whose float targets are optional, takes the direct pass, as does a
+multisampled framebuffer object, whose depth cannot be copied into a texture.
 
 ## Cost and side effects
 

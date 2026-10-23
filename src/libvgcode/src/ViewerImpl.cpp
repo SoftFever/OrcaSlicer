@@ -968,7 +968,6 @@ void ViewerImpl::reset()
     std::vector<PathVertex>().swap(m_vertices);
     std::vector<ColorWithAlpha>().swap(m_vertices_colors);
     m_has_translucent_colors = false;
-    m_translucent_colors_differ = false;
     m_enabled_translucent_segments_count = 0;
     m_extrusions_box = { Vec3{ 0.0f, 0.0f, 0.0f }, Vec3{ 0.0f, 0.0f, 0.0f } };
     for (std::vector<float>& times : m_layer_start_times)
@@ -1467,19 +1466,11 @@ void ViewerImpl::update_colors()
     // the "normal" color on every slider move.
     const bool had_translucent_colors = m_has_translucent_colors;
     m_has_translucent_colors = false;
-    m_translucent_colors_differ = false;
-    ColorWithAlpha first_translucent = { 0, 0, 0, 0 };
     for (size_t i = 0; i < m_vertices.size(); ++i) {
         const Color color = get_vertex_color(m_vertices[i]);
         const uint8_t alpha = get_vertex_alpha(m_vertices[i]);
         m_vertices_colors[i] = { color[0], color[1], color[2], alpha };
-        if (alpha < 255) {
-            if (!m_has_translucent_colors)
-                first_translucent = m_vertices_colors[i];
-            else if (!m_translucent_colors_differ)
-                m_translucent_colors_differ = m_vertices_colors[i] != first_translucent;
-            m_has_translucent_colors = true;
-        }
+        m_has_translucent_colors |= alpha < 255;
     }
 
     update_colors_texture();
@@ -2595,21 +2586,19 @@ void ViewerImpl::render_translucent(const Mat4x4& view_matrix, const Mat4x4& pro
 void ViewerImpl::render_translucent_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position)
 {
 #ifndef ENABLE_OPENGL_ES
-    // ORCA: a single translucent color blends alike in any order, so only more colors take the order
-    // independent path, whose targets are as large as the canvas: the nearest translucent surface over
-    // the weighted blended order independent transparency (McGuire and Bavoil, 2013) of the others.
+    // ORCA: the order independent path, whose targets are as large as the canvas: the nearest translucent surface
+    // over the weighted blended order independent transparency (McGuire and Bavoil, 2013) of the others. Blended in
+    // print order, even one color shows the order, its surfaces being shaded apart.
     std::array<int, 4> viewport = { 0, 0, 0, 0 };
     int draw_fbo = 0;
     int read_fbo = 0;
     int samples = 0;
-    if (m_translucent_colors_differ) {
-        glsafe(glGetIntegerv(GL_VIEWPORT, viewport.data()));
-        glsafe(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &draw_fbo));
-        glsafe(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &read_fbo));
-        glsafe(glGetIntegerv(GL_SAMPLES, &samples));
-    }
+    glsafe(glGetIntegerv(GL_VIEWPORT, viewport.data()));
+    glsafe(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &draw_fbo));
+    glsafe(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &read_fbo));
+    glsafe(glGetIntegerv(GL_SAMPLES, &samples));
     // the depth of a multisampled framebuffer object cannot be copied into a texture
-    if (!m_translucent_colors_differ || (read_fbo != 0 && samples > 0) || !m_translucent_targets.update(viewport[2], viewport[3], samples)) {
+    if ((read_fbo != 0 && samples > 0) || !m_translucent_targets.update(viewport[2], viewport[3], samples)) {
         render_segments(view_matrix, projection_matrix, camera_position, true);
         return;
     }
