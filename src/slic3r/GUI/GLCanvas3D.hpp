@@ -659,10 +659,22 @@ private:
         int     plate_idx{-1};
         Point   start;                      // mouse position when the button went down
         Vec2d   grab_offset{Vec2d::Zero()}; // from the grab point to the plate origin
+        Vec2d   ghost_shift{Vec2d::Zero()}; // from the plate's cell to where it is carried under the mouse
         Vec2i32 cell{-1, -1};               // cell the plate would be dropped on
         bool    valid{false};
         GLModel target;                     // highlight of that cell
+        GLModel outline;                    // border of the carried plate
+        static constexpr double Lift = 2.; // mm the carried plate is raised, so it reads as picked up
     } m_plate_drag;
+    // Orca: plates sliding out of the way of a dragged plate, and back, and the dragged plate carried under the
+    // mouse. Each frame eases the offset a plate is drawn at toward its target; neither the plates nor the model
+    // move until the drop, after which the plates settle from where they were drawn into their new cells.
+    struct PlateShiftPreview
+    {
+        std::map<int, Vec3d> target;  // plate index -> offset to slide to; plates not listed slide home
+        std::map<int, Vec3d> current; // plate index -> offset drawn now, nonzero only
+        std::chrono::steady_clock::time_point last_frame;
+    } m_plate_shift;
     // Orca: Gesture pans have their own lifecycle and stable world-space anchor.
     std::optional<Vec3d> m_gesture_pan_anchor;
     GLGizmosManager m_gizmos;
@@ -1619,6 +1631,9 @@ private:
     // Orca: start dragging a plate when the left button goes down on its move handle.
     bool _start_plate_drag(const Point& mouse_pos);
     void _update_plate_drag(const Point& mouse_pos);
+    void _update_plate_shift_preview();
+    void _apply_plate_shift_offsets(const std::map<int, Vec3d>& offsets);
+    void _clear_plate_shift_preview();
 
     // Orca: Navigation type selects the legacy pivot policy used when no visible surface is hit.
     enum class ECameraNavigationType : unsigned char
