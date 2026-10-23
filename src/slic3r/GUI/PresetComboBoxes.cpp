@@ -301,16 +301,9 @@ void PresetComboBox::update_source_arrow()
         preset = &m_collection->get_selected_preset();
     }
 
-    if (!preset) {
-        this->SetIcon("drop_down");
-        return;
-    }
-
-    const char* icon_name = (preset->is_default || preset->is_system) ? "drop_down_indicator_system"
-                          : preset->is_project_embedded               ? "drop_down_indicator_project"
-                                                                      : "drop_down_indicator_user";
-
-    this->SetIcon(icon_name);
+    this->SetIcon(!preset ? "drop_down" :
+        "drop_down_indicator_" + std::string((preset->is_default || preset->is_system) ? "system" :
+                                             preset->is_project_embedded               ? "project" : "user"));
 }
 
 int PresetComboBox::update_ams_color()
