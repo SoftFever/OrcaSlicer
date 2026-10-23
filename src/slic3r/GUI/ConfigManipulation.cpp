@@ -808,7 +808,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     toggle_field("enable_arc_fitting", !have_volumetric_extrusion_rate_slope && !is_belt_printer, -1, _L("Arc fitting is unavailable for belt printers and when extrusion rate smoothing is enabled."));
     toggle_line("max_volumetric_extrusion_rate_slope_segment_length", have_volumetric_extrusion_rate_slope, -1, extrusion_smoothing_reason);
     toggle_line("extrusion_rate_smoothing_external_perimeter_only", have_volumetric_extrusion_rate_slope, -1, extrusion_smoothing_reason);
-    if(have_volumetric_extrusion_rate_slope) config->set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
+    if(have_volumetric_extrusion_rate_slope) config->set_key_value("enable_arc_fitting", new ConfigOptionEnum<ArcFittingMode>(ArcFittingMode::Disabled));
     if(have_volumetric_extrusion_rate_slope_segment_length < 0.5) {
         DynamicPrintConfig new_conf = *config;
         new_conf.set_key_value("max_volumetric_extrusion_rate_slope_segment_length", new ConfigOptionFloat(1));

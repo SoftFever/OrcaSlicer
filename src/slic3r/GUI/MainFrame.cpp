@@ -3136,12 +3136,15 @@ void MainFrame::init_menubar_as_editor()
     {
         editMenu = new wxMenu();
 
+    // Feeds the key to ImGui instead when ImGui has the focused canvas's keyboard, since the menu
+    // handles its key equivalents before the canvas receives the key.
     auto handle_key_event = [](wxKeyEvent& evt) {
-        if (wxGetApp().imgui()->update_key_data(evt)) {
-            wxGetApp().plater()->get_current_canvas3D()->render();
-            return true;
-        }
-        return false;
+        const ImGuiWrapper* imgui = focused_canvas_imgui(wxWindow::FindFocus());
+        if (imgui == nullptr || !imgui->owns_keyboard())
+            return false;
+        wxGetApp().imgui()->update_key_data(evt);
+        wxGetApp().plater()->get_current_canvas3D()->render();
+        return true;
     };
 #ifndef __APPLE__
         // BBS undo
