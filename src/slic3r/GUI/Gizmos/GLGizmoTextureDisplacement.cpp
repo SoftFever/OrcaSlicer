@@ -5900,7 +5900,7 @@ void GLGizmoTextureDisplacement::render_chroma_details(TextureDisplacementLayer 
             row_label(_L("Profile"));
             ImGui::SetNextItemWidth(m_imgui->scaled(6.f));
             int profile = int(frame.profile);
-            const char *const profiles[] = { "Flat", "Bevel", "Step", "Round", "Ogee" };
+            const char *const profiles[] = { "Flat", "Bevel", "Step", "Round", "Ogee", "Mat", "Cove", "Double step" };
             push_panel_combo_style(m_parent.get_scale());
             if (ImGui::Combo("##hf_frame_profile", &profile, profiles, IM_ARRAYSIZE(profiles))) {
                 frame.profile = ChromaFrame::Profile(profile);
@@ -5910,6 +5910,45 @@ void GLGizmoTextureDisplacement::render_chroma_details(TextureDisplacementLayer 
             tip(_u8L("What the frame does between the plate's edge and the picture, in cross-section. Flat is "
                      "a border of one color; the rest are mouldings, and all of them print in whichever "
                      "filament is loaded at that height."));
+
+            // The cross-section itself, drawn from the same polyline the mesh is swept from. A frame
+            // is its profile, and naming one does not describe it: a drawing settles in a glance what
+            // rebuilding the plate to look at it settles in a second and a half.
+            {
+                const std::vector<Vec2f> profile = chroma_frame_profile(frame, plate.base_mm);
+                const float              w       = m_imgui->scaled(7.f);
+                const float              h       = std::round(frame_h * 1.6f);
+                const ImVec2             p0      = ImGui::GetCursorScreenPos();
+                ImGui::Dummy(ImVec2(w, h));
+                if (profile.size() >= 2) {
+                    // Scaled to fit, with the picture's own surface as the baseline: what the drawing
+                    // has to show is how far the frame stands off the picture, not how tall the plate
+                    // is.
+                    float top = plate.base_mm;
+                    for (const Vec2f &s : profile)
+                        top = std::max(top, s.y());
+                    const float span = std::max(1e-3f, top - plate.base_mm);
+                    const float pad  = std::round(h * 0.18f);
+                    const auto  at   = [&](const Vec2f &s) {
+                        return ImVec2(p0.x + w * (1.f - s.x() / std::max(1e-3f, frame.width_mm)),
+                                      p0.y + h - pad - (h - 2.f * pad) * (s.y() - plate.base_mm) / span);
+                    };
+                    // The picture's surface, as the line the profile lands on.
+                    const float base_y = at(Vec2f(frame.width_mm, plate.base_mm)).y;
+                    dl->AddLine(ImVec2(p0.x, base_y), ImVec2(p0.x + w, base_y),
+                                ImGui::GetColorU32(ImGuiCol_Separator));
+                    // Outer edge of the plate on the left, picture on the right, which is the way the
+                    // sweep runs and the way a frame is looked at in section.
+                    for (size_t i = 0; i + 1 < profile.size(); ++i)
+                        dl->AddLine(at(profile[i]), at(profile[i + 1]), ImGui::GetColorU32(ImGuiWrapper::COL_ORCA),
+                                    std::max(1.5f, std::round(h * 0.06f)));
+                    dl->AddLine(at(profile.front()), ImVec2(at(profile.front()).x, base_y),
+                                ImGui::GetColorU32(ImGuiCol_Separator));
+                }
+                if (ImGui::IsItemHovered())
+                    panel_tooltip(_u8L("The frame in cross-section, as it will be swept around the plate: the "
+                                       "plate's outer edge on the left, the picture's surface on the right."));
+            }
 
             if (frame.profile != ChromaFrame::Profile::Flat) {
                 ImGui::SameLine(0.f, gap_s);

@@ -149,10 +149,14 @@ struct ChromaFrame
     enum class Profile : int
     {
         Flat   = 0, // level with the picture's base: a border of one colour and nothing more
-        Bevel  = 1, // a straight ramp from the outer edge up to the lip
-        Step   = 2, // one square step, the shape of a mount board
+        Bevel  = 1, // a straight ramp from the outer edge down to the picture
+        Step   = 2, // one square step
         Round  = 3, // a quarter round, the shape of a moulding
         Ogee   = 4, // round out then round in, the shape a picture frame usually is
+        // Appended rather than inserted: the value is what a saved project stores.
+        Mat    = 5, // a flat lip and a window cut at 45 degrees - what a mount board is
+        Cove   = 6, // a hollow quarter, the inverse of Round
+        Step2  = 7, // two square steps
     };
 
     Shape   shape     = Shape::Rectangle;

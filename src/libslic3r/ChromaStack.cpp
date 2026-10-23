@@ -717,8 +717,39 @@ std::vector<Vec2f> chroma_frame_profile(const ChromaFrame &frame, float base_mm)
         out = { Vec2f(0.f, top), Vec2f(width, base_mm) };
         break;
     case ChromaFrame::Profile::Step:
-        // A mount board: a flat lip, then a square drop to the picture.
+        // A flat lip, then a square drop to the picture.
         out = { Vec2f(0.f, top), Vec2f(0.5f * width, top), Vec2f(0.5f * width, base_mm), Vec2f(width, base_mm) };
+        break;
+    case ChromaFrame::Profile::Mat: {
+        // A mount board, which is the shape a framed picture is actually read by: a flat lip, and a
+        // window cut at 45 degrees so the thickness of the board shows as a bright line around the
+        // picture. The run of the cut equals its drop - that is what makes it 45 - and it is given
+        // whatever room is left when the lip has had its share.
+        const float cut = std::min(rise, 0.8f * width);
+        out = { Vec2f(0.f, top), Vec2f(width - cut, top), Vec2f(width, base_mm) };
+        break;
+    }
+    case ChromaFrame::Profile::Cove: {
+        // A hollow: the same quarter as Round, turned inside out, so the band scoops away from the
+        // picture instead of swelling over it.
+        constexpr int steps = 12;
+        out.reserve(steps + 1);
+        for (int i = 0; i <= steps; ++i) {
+            const float t = float(i) / float(steps);
+            const float u = 1.f - t;
+            out.emplace_back(width * t, base_mm + rise * (1.f - std::sqrt(std::max(0.f, 1.f - u * u))));
+        }
+        break;
+    }
+    case ChromaFrame::Profile::Step2:
+        // Two square steps, which reads as a deeper frame than its rise: each tread catches the light
+        // differently and the eye counts the edges rather than the height.
+        out = { Vec2f(0.f, top),
+                Vec2f(width / 3.f, top),
+                Vec2f(width / 3.f, base_mm + 0.5f * rise),
+                Vec2f(2.f * width / 3.f, base_mm + 0.5f * rise),
+                Vec2f(2.f * width / 3.f, base_mm),
+                Vec2f(width, base_mm) };
         break;
     case ChromaFrame::Profile::Round: {
         // A quarter ellipse, high at the edge and flat where it meets the picture: a moulding.

@@ -812,7 +812,9 @@ TEST_CASE("A frame's profile is a cross-section, not a shape of its own", "[Chro
     SECTION("it always arrives exactly where the picture's surface is")
     {
         for (ChromaFrame::Profile p : { ChromaFrame::Profile::Bevel, ChromaFrame::Profile::Step,
-                                        ChromaFrame::Profile::Round, ChromaFrame::Profile::Ogee }) {
+                                        ChromaFrame::Profile::Round, ChromaFrame::Profile::Ogee,
+                                        ChromaFrame::Profile::Mat, ChromaFrame::Profile::Cove,
+                                        ChromaFrame::Profile::Step2 }) {
             frame.profile = p;
             const std::vector<Vec2f> profile = chroma_frame_profile(frame, 1.f);
             REQUIRE(profile.size() >= 2);
@@ -827,6 +829,32 @@ TEST_CASE("A frame's profile is a cross-section, not a shape of its own", "[Chro
                 REQUIRE(s.x() <= 8.f + 1e-5f);
             }
         }
+    }
+
+    SECTION("a mat's window really is cut at 45 degrees")
+    {
+        // The whole point of a mount board: the run of the cut equals its drop, so the board's
+        // thickness shows as an even bright line all the way round the picture.
+        frame.profile = ChromaFrame::Profile::Mat;
+        const std::vector<Vec2f> profile = chroma_frame_profile(frame, 1.f);
+        REQUIRE(profile.size() == 3);
+        const Vec2f lip = profile[1], window = profile[2];
+        REQUIRE_THAT(window.x() - lip.x(), WithinAbs(lip.y() - window.y(), 1e-4f));
+    }
+
+    SECTION("a cove is hollow where a round is full")
+    {
+        // Halfway in, the two curves are on opposite sides of the straight ramp between the same two
+        // ends. That is the only thing that distinguishes them, and it is what the eye reads.
+        frame.profile = ChromaFrame::Profile::Round;
+        const std::vector<Vec2f> round = chroma_frame_profile(frame, 1.f);
+        frame.profile = ChromaFrame::Profile::Cove;
+        const std::vector<Vec2f> cove = chroma_frame_profile(frame, 1.f);
+        REQUIRE(round.size() == cove.size());
+        const size_t mid    = round.size() / 2;
+        const float  ramp   = 1.f + 2.f * (1.f - round[mid].x() / 8.f);
+        REQUIRE(round[mid].y() > ramp);
+        REQUIRE(cove[mid].y() < ramp);
     }
 
     SECTION("no width is no frame at all")
