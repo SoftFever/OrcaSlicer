@@ -50,7 +50,7 @@ std::vector<MissingPlugin> get_broken_plugins();
 bool                     has_broken_plugins();
 
 // True while a missing, inactive or broken reference comes from the process or filament presets.
-// Printer preset plugins (e.g. printer agents) are reported but never block slicing:
+// Printer preset plugins (printer agents, printer assets) are reported but never block slicing:
 // they do not change the sliced result.
 bool                     has_blocking_plugins();
 

@@ -428,7 +428,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     };
 
     static std::unordered_set<std::string> steps_ignore = {
-        // Which plugins the printer preset uses: no influence on slicing.
+        // Which printer asset packs and printer plugins the printer preset uses: no influence on slicing.
+        "printer_asset_plugins",
         "printer_plugins",
     };
     static const std::unordered_set<std::string> steps_exclusion_geometry = {

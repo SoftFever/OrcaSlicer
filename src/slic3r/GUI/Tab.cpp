@@ -90,6 +90,7 @@
 #include "slic3r/Utils/PresetUpdater.hpp"
 #include "slic3r/plugin/PluginConfig.hpp"
 #include "slic3r/plugin/PluginManager.hpp"
+#include "slic3r/plugin/host/PluginPrinterAssets.hpp"
 #include "Plater.hpp"
 #include "ParamsDialog.hpp"
 #include "MainFrame.hpp"
@@ -2738,8 +2739,18 @@ void Tab::apply_searcher()
 
 void Tab::cache_config_diff(const std::vector<std::string>& selected_options, const DynamicPrintConfig* config/* = nullptr*/)
 {
+    const DynamicPrintConfig& source = config ? *config : m_presets->get_edited_preset().config;
     m_cache_options = selected_options;
-    m_cache_config.apply_only(config ? *config : m_presets->get_edited_preset().config, selected_options);
+    m_cache_config.apply_only(source, selected_options);
+    // Bed files from printer asset packs travel with their packs' manifest entries, so the target can
+    // name packs that are not installed here (apply_config_from_cache).
+    m_cache_printer_plugins.reset();
+    const bool moves_bed_files = std::any_of(selected_options.begin(), selected_options.end(), [](const std::string& key) {
+        return key == "bed_custom_texture" || key == "bed_custom_model";
+    });
+    if (m_type == Preset::TYPE_PRINTER && moves_bed_files)
+        if (const auto* manifest = source.option<ConfigOptionStrings>("printer_plugins"))
+            m_cache_printer_plugins = *manifest;
 }
 
 void Tab::apply_config_from_cache()
@@ -2751,9 +2762,14 @@ void Tab::apply_config_from_cache()
         was_applied = static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
 
     if (!m_cache_config.empty()) {
-        m_presets->get_edited_preset().config.apply_only(m_cache_config, m_cache_options);
+        DynamicPrintConfig& edited = m_presets->get_edited_preset().config;
+        edited.apply_only(m_cache_config, m_cache_options);
+        // Name the packs the transferred bed files come from, so the notices and the saved manifest match.
+        if (m_cache_printer_plugins)
+            update_printer_asset_plugins(edited, &*m_cache_printer_plugins);
         m_cache_config.clear();
         m_cache_options.clear();
+        m_cache_printer_plugins.reset();
 
         was_applied = true;
     }
@@ -8622,6 +8638,11 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                 const std::string& custom_model = dlg.get_custom_model();
                 if (!shape.empty())
                 {
+                    // Name the printer asset packs the bed files come from before the change
+                    // propagates, so the manifest and the missing-plugin notices see them.
+                    m_config->set_key_value("bed_custom_texture", new ConfigOptionString(custom_texture));
+                    m_config->set_key_value("bed_custom_model", new ConfigOptionString(custom_model));
+                    update_printer_asset_plugins(*m_config);
                     load_key_value("printable_area", shape);
                     load_key_value("bed_custom_texture", custom_texture);
                     load_key_value("bed_custom_model", custom_model);
