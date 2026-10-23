@@ -6,6 +6,7 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/miniz_extension.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -54,7 +55,9 @@
 #include <string>
 #include <mutex>
 #include <memory>
+#include <miniz.h>
 #include <sstream>
+#include <regex>
 #include <set>
 #include <thread>
 #include <vector>
@@ -158,6 +161,26 @@ uint64_t steady_now_ms()
 {
     return static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+// Writes the sliced plate's G-code (Metadata/plate_<n>.gcode) out of a .gcode.3mf bundle.
+bool extract_plate_gcode(const std::string& archive_path, const std::string& gcode_path)
+{
+    static const std::regex plate_gcode(R"(Metadata/plate_\d+\.gcode)");
+
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+    if (!Slic3r::open_zip_reader(&archive, archive_path))
+        return false;
+
+    bool extracted = false;
+    for (mz_uint i = 0, n = mz_zip_reader_get_num_files(&archive); i < n && !extracted; ++i) {
+        mz_zip_archive_file_stat stat;
+        if (mz_zip_reader_file_stat(&archive, i, &stat) && std::regex_match(stat.m_filename, plate_gcode))
+            extracted = mz_zip_reader_extract_to_file(&archive, i, Slic3r::encode_path(gcode_path.c_str()).c_str(), 0);
+    }
+    Slic3r::close_zip_reader(&archive);
+    return extracted;
 }
 
 } // namespace
@@ -389,8 +412,25 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
         return BAMBU_NETWORK_ERR_FILE_NOT_EXIST;
     }
 
-    // Extract filename for upload (relative to gcodes root)
-    std::string upload_filename = source_path.filename().string();
+    // The print dialog hands over the plate as a .gcode.3mf bundle; Klipper needs the plain G-code
+    // inside it, or it reads the zip as G-code and aborts on the first "command".
+    // Extract next to the bundle under a name of our own: the plate's live .gcode sits beside it
+    // under the bundle's stem, and Orca holds that file open.
+    fs::path extracted;
+    if (boost::iends_with(gcode_path, ".3mf")) {
+        extracted = source_path;
+        extracted.replace_extension(".upload.gcode");
+        if (!extract_plate_gcode(gcode_path, extracted.string())) {
+            BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: no plate G-code in " << gcode_path;
+            return BAMBU_NETWORK_ERR_FILE_NOT_EXIST;
+        }
+        gcode_path  = extracted.string();
+        source_path = extracted;
+    }
+
+    // Extract filename for upload (relative to gcodes root); prefer the job name the dialog shows
+    // over the temp file's name.
+    std::string upload_filename = params.project_name.empty() ? source_path.filename().string() : params.project_name;
     if (!boost::iends_with(upload_filename, ".gcode")) {
         upload_filename += ".gcode";
     }
@@ -400,7 +440,12 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
     // Upload file
     if (update_fn)
         update_fn(PrintingStageUpload, 0, _u8L("Uploading G-code..."));
-    if (!upload_gcode(gcode_path, upload_filename, device_info.base_url, device_info.api_key, update_fn, cancel_fn)) {
+    const bool uploaded = upload_gcode(gcode_path, upload_filename, device_info.base_url, device_info.api_key, update_fn, cancel_fn);
+    if (!extracted.empty()) {
+        boost::system::error_code ec;
+        fs::remove(extracted, ec);
+    }
+    if (!uploaded) {
         return BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED;
     }
 
@@ -409,17 +454,21 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
         return BAMBU_NETWORK_ERR_CANCELED;
     }
 
-    // Start print via gcode script (simpler than JSON-RPC)
     if (update_fn)
         update_fn(PrintingStageSending, 0, _u8L("Starting print..."));
-    std::string gcode = "SDCARD_PRINT_FILE FILENAME=" + upload_filename;
-    if (!send_gcode_sync(device_info.dev_id, gcode)) {
+    if (!print_uploaded_file(params, upload_filename)) {
         return BAMBU_NETWORK_ERR_PRINT_LP_PUBLISH_MSG_FAILED;
     }
 
     if (update_fn)
         update_fn(PrintingStageFinished, 100, _u8L("Print started"));
     return BAMBU_NETWORK_SUCCESS;
+}
+
+bool MoonrakerPrinterAgent::print_uploaded_file(const PrintParams& /*params*/, const std::string& filename)
+{
+    // Start print via gcode script (simpler than JSON-RPC)
+    return send_gcode_sync(device_info.dev_id, "SDCARD_PRINT_FILE FILENAME=" + filename);
 }
 
 int MoonrakerPrinterAgent::start_sdcard_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
@@ -515,6 +564,9 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
         nlohmann::json ams_unit = nlohmann::json::object();
         ams_unit["id"] = std::to_string(ams_id);
         ams_unit["info"] = "0002";  // treat as AMS_LITE 
+        if (const std::string name = ams_unit_name(ams_id); !name.empty()) {
+            ams_unit["display_name"] = name;
+        }
 
         nlohmann::json tray_array = nlohmann::json::array();
         int max_slot_in_this_ams = std::min(3, max_lane_index - ams_id * 4);
@@ -1994,7 +2046,12 @@ nlohmann::json MoonrakerPrinterAgent::build_print_payload_locked() const
         if (homed.find('Z') != std::string::npos)
             home_flag |= 4; // bit 2
     }
+    // Bits 8-9 carry the storage state, and the parser resets it from them on every push. Klipper
+    // prints from its virtual_sdcard, which is always there, so report it present; otherwise the
+    // print dialog blocks with "Storage needs to be inserted" between filament syncs.
+    home_flag |= DevStorage::HAS_SDCARD_NORMAL << 8;
     payload["print"]["home_flag"] = home_flag;
+    payload["print"]["sdcard"]    = true;
 
     // Moonraker doesn't provide temperature ranges via API - use hardcoded defaults
     payload["print"]["nozzle_temp_range"] = {100, 370}; // Typical Klipper range
@@ -2239,7 +2296,8 @@ bool MoonrakerPrinterAgent::send_jsonrpc_command(const std::string&    base_url,
     http.header("Content-Type", "application/json")
         .set_post_body(request_str)
         .timeout_connect(5)
-        .timeout_max(10)
+        // Some firmware, like Qidi's, copies the file before starting the print and only answers afterwards
+        .timeout_max(60)
         .on_complete([&](std::string body, unsigned status) {
             if (status == 200) {
                 response = body;
