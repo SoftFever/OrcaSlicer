@@ -1102,6 +1102,7 @@ void gather_enforcers_blockers(GlobalModelInfo &result, const PrintObject *po) {
 
   for (const ModelVolume *mv : po->model_object()->volumes) {
     // Collect painting only from model parts (what the gizmo edits) and negative volumes (the only way
+  indexed_triangle_set painted_non_green; // Used only if the object has green paint.
     // to paint a hole's wall); painting left on modifiers and helpers after a type change is ignored.
     // TODO: painting on negative volumes still affects the seam, but the gizmo neither shows nor edits it;
     // making it editable also needs model_custom_seam_data_changed() to track it.
@@ -1109,32 +1110,39 @@ void gather_enforcers_blockers(GlobalModelInfo &result, const PrintObject *po) {
       continue;
     const auto model_transformation = obj_transform * mv->get_matrix();
     if (mv->is_seam_painted()) {
-      indexed_triangle_set enforcers = mv->seam_facets.get_facets(*mv, EnforcerBlockerType::ENFORCER);
+      // One selector serves every paint state; each FacetsAnnotation query would rebuild it from the mesh.
+      TriangleSelector selector(mv->mesh());
+      selector.deserialize(mv->seam_facets.get_data(), false);
+      indexed_triangle_set enforcers = selector.get_facets(EnforcerBlockerType::ENFORCER);
       // ORCA fix (not related to Precise Seam): fix winding for mirrored transforms
       its_transform(enforcers, model_transformation, true);
       its_merge(result.enforcers, enforcers);
 
-      indexed_triangle_set painted = mv->seam_facets.get_facets_strict(*mv, EnforcerBlockerType::ENFORCER);
+      indexed_triangle_set painted = selector.get_facets_strict(EnforcerBlockerType::ENFORCER);
       its_transform(painted, model_transformation, true);
       append_painted_contour(result.enforcer_contour, painted);
 
-      indexed_triangle_set blockers = mv->seam_facets.get_facets(*mv, EnforcerBlockerType::BLOCKER);
+      indexed_triangle_set blockers = selector.get_facets(EnforcerBlockerType::BLOCKER);
       // ORCA fix (not related to Precise Seam): fix winding for mirrored transforms
       its_transform(blockers, model_transformation, true);
       its_merge(result.blockers, blockers);
-      painted = mv->seam_facets.get_facets_strict(*mv, EnforcerBlockerType::BLOCKER);
+      painted = selector.get_facets_strict(EnforcerBlockerType::BLOCKER);
       its_transform(painted, model_transformation, true);
       append_painted_contour(result.blocker_contour, painted);
     }
   }
 
+      indexed_triangle_set non_green = selector.get_facets(EnforcerBlockerType::NONE);
+      its_transform(non_green, model_transformation, true);
+      its_merge(painted_non_green, non_green);
+
   // Unpainted objects need no extra surface copy or tree; only green paint requires a coverage proof.
   if (!result.enforcers.empty()) {
     for (const ModelVolume *mv : po->model_object()->volumes) {
-      if (!mv->is_model_part() && !mv->is_negative_volume())
+      if ((!mv->is_model_part() && !mv->is_negative_volume()) || mv->is_seam_painted())
+    result.non_enforcers = std::move(painted_non_green);
         continue;
-      indexed_triangle_set non_green = mv->is_seam_painted() ?
-          mv->seam_facets.get_facets(*mv, EnforcerBlockerType::NONE) : mv->mesh().its;
+      indexed_triangle_set non_green = mv->mesh().its;
       its_transform(non_green, obj_transform * mv->get_matrix(), true);
       its_merge(result.non_enforcers, non_green);
     }
