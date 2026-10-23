@@ -1,0 +1,83 @@
+diff --git a/src/osx/cocoa/nonownedwnd.mm b/src/osx/cocoa/nonownedwnd.mm
+index bf79a5d..4ab42d5 100644
+--- a/src/osx/cocoa/nonownedwnd.mm
++++ b/src/osx/cocoa/nonownedwnd.mm
+@@ -781,6 +781,17 @@ void wxNonOwnedWindowCocoaImpl::WillBeDestroyed()
+     }
+ }
+ 
++// Orca: ordinary dialogs must be selectable in the macOS window switchers.
++// Keep transient controls and tool windows as panels, with their existing behaviour.
++static bool IsManagedDialog(const wxNonOwnedWindow* window)
++{
++    const long style = window->GetWindowStyle();
++    const long extraStyle = window->GetExtraStyle();
++    return (extraStyle & wxTOPLEVEL_EX_DIALOG) && (style & wxCAPTION) &&
++           !(style & (wxPOPUP_WINDOW | wxFRAME_TOOL_WINDOW)) &&
++           !(extraStyle & wxWS_EX_TRANSIENT);
++}
++
+ void wxNonOwnedWindowCocoaImpl::Create( wxWindow* WXUNUSED(parent), const wxPoint& pos, const wxSize& size,
+ long style, long extraStyle, const wxString& WXUNUSED(name) )
+ {
+@@ -793,7 +804,8 @@ long style, long extraStyle, const wxString& WXUNUSED(name) )
+     int windowstyle = NSBorderlessWindowMask;
+ 
+     if ( style & wxFRAME_TOOL_WINDOW || ( style & wxPOPUP_WINDOW ) ||
+-            GetWXPeer()->GetExtraStyle() & wxTOPLEVEL_EX_DIALOG )
++            ((GetWXPeer()->GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) &&
++             !IsManagedDialog(GetWXPeer())) )
+         m_macWindow = [wxNSPanel alloc];
+     else
+         m_macWindow = [wxNSWindow alloc];
+@@ -852,6 +864,19 @@ long style, long extraStyle, const wxString& WXUNUSED(name) )
+         defer:NO
+         ];
+ 
++    if ( IsManagedDialog(GetWXPeer()) )
++    {
++        NSUInteger behaviour = [m_macWindow collectionBehavior];
++        behaviour &= ~(NSWindowCollectionBehaviorTransient |
++                       NSWindowCollectionBehaviorStationary |
++                       NSWindowCollectionBehaviorIgnoresCycle);
++        behaviour |= NSWindowCollectionBehaviorManaged |
++                     NSWindowCollectionBehaviorParticipatesInCycle;
++        [m_macWindow setCollectionBehavior:behaviour];
++        // A dialog may be constructed and titled long before it is shown.
++        [m_macWindow setExcludedFromWindowsMenu:YES];
++    }
++
+     if (!NSEqualRects([m_macWindow frame], frameRect))
+     {
+         [m_macWindow setFrame:frameRect display:NO];
+@@ -982,10 +1007,21 @@ bool wxNonOwnedWindowCocoaImpl::Show(bool show)
+             else
+                 [m_macWindow orderFront:nil];
+         }
++        // AppKit doesn't automatically list non-resizable dialogs.
++        if ( wxpeer && IsManagedDialog(wxpeer) )
++        {
++            [m_macWindow setExcludedFromWindowsMenu:NO];
++            [NSApp addWindowsItem:m_macWindow title:[m_macWindow title] filename:NO];
++        }
+         [[m_macWindow contentView] setNeedsDisplay: YES];
+     }
+     else
+     {
++        if ( IsManagedDialog(GetWXPeer()) )
++        {
++            [m_macWindow setExcludedFromWindowsMenu:YES];
++            [NSApp removeWindowsItem:m_macWindow];
++        }
+         // avoid propagation of orderOut to parent
+         if ([m_macWindow parentWindow] != nullptr)
+             [[m_macWindow parentWindow] removeChildWindow: m_macWindow];
+@@ -1121,6 +1157,8 @@ bool wxNonOwnedWindowCocoaImpl::SetShape(const wxRegion& WXUNUSED(region))
+ void wxNonOwnedWindowCocoaImpl::SetTitle( const wxString& title )
+ {
+     [m_macWindow setTitle:wxCFStringRef( title  ).AsNSString()];
++    if ( IsManagedDialog(GetWXPeer()) && [m_macWindow isVisible] )
++        [NSApp changeWindowsItem:m_macWindow title:[m_macWindow title] filename:NO];
+ }
+ 
+ wxContentProtection wxNonOwnedWindowCocoaImpl::GetContentProtection() const

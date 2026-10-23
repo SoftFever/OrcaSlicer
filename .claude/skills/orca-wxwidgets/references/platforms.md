@@ -69,19 +69,22 @@ Contents: [Rules](#rules) · [The wx build Orca uses](#the-wx-build-orca-uses) �
   under the consuming compiler's prefix first and then the sibling one (`clang` ↔ `vc`), because cl
   and clang-cl share an ABI and either can consume either build
   (`build/cmake/wxWidgetsConfig.cmake.in:53-73`).
-- **The one local patch** is `deps/wxWidgets/0001-macos-use-srgb-colour-components.patch`, applied
-  only `if (APPLE)`. The `PATCH_COMMAND` first runs `git checkout -f -- src/osx/cocoa/colour.mm` and
-  then `git apply`, so the step can run again safely (a7775296b0). The patch makes the wxOSX
+- **Local macOS patches** are applied only `if (APPLE)`. The `PATCH_COMMAND` first restores
+  `src/osx/cocoa/colour.mm` and `src/osx/cocoa/nonownedwnd.mm`, then applies both patches, so
+  the step can run again safely. `0001-macos-use-srgb-colour-components.patch` makes the wxOSX
   `wxColour` component getters (`wxNSColorRefData::Red/Green/Blue/Alpha` and `IsSolid`) convert the
   `NSColor` with `[NSColorSpace sRGBColorSpace]` instead of `NSCalibratedRGBColorSpace`, so colours
   read back on macOS match their sRGB values (custom-colour accuracy). Colour usage:
   `references/colours-dark-mode.md`.
+  `0002-macos-managed-dialog-windows.patch` makes ordinary captioned dialogs native windows
+  participating in macOS window management while preserving popup/tool/transient panels;
+  its exact selection and activation-recovery contracts are in `references/windows-dialogs.md` §5.
 - The checked-out source is the tree that every wx citation in this skill refers to:
   `deps/build/<arch>/dep_wxWidgets-prefix/src/dep_wxWidgets` on macOS and
   `deps/<tree>/dep_wxWidgets-prefix/src/dep_wxWidgets` on Linux and Windows (`deps/build` for a
   release build; `build_win.bat` names the others). Locate it with the bash or PowerShell lookup in
   `SKILL.md` §Ground truth. On macOS its
-  `src/osx/cocoa/colour.mm` already has the patch applied.
+  `src/osx/cocoa/colour.mm` and `src/osx/cocoa/nonownedwnd.mm` already have the patches applied.
 - **Flatpak builds wx separately.** `deps/CMakeLists.txt` leaves `dep_wxWidgets` out of the deps
   target when `FLATPAK` is set. Instead, `scripts/flatpak/com.orcaslicer.OrcaSlicer.yml` has its own
   `wxWidgets` module whose config-opts "mirror deps/wxWidgets/wxWidgets.cmake with FLATPAK=ON,
