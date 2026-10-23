@@ -605,6 +605,38 @@ TEST_CASE("Painted ranges end exactly where the paint contour crosses the layer"
 
 TEST_CASE("Random seams stay inside exact green ranges and keep varying", "[SeamPlacer][Regression]")
 {
+TEST_CASE("Exact paint ends do not depend on where the loop starts", "[SeamPlacer][Regression]")
+{
+    // The paint ends project onto the front corners of the loop. A loop repeats its first point, so at its
+    // first vertex the edge behind it has zero length; origin 0 puts the end with paint behind it there.
+    const int origin = GENERATE(0, 1, 2, 3);
+    CAPTURE(origin);
+    PipelineFixture fixture;
+    paint_front_face(fixture);
+    PrintObject &object = fixture.prepare();
+    auto &region = clear_first_layer(object);
+    auto outline = fixture.points_in_layer(object, {{19.8, 0.2}, {19.8, 19.8}, {0.2, 19.8}, {0.2, 0.2}});
+    std::rotate(outline.begin(), outline.begin() + origin, outline.end());
+    append_loop(region, std::move(outline));
+    SeamPlacer placer;
+    placer.init(fixture.print, [] {});
+    const auto &data = placer.m_seam_per_object.at(&object).layers.front();
+    REQUIRE(data.perimeters.size() == 1);
+    CHECK(data.perimeters.front().exact_enforced_ends);
+
+    const auto corners = fixture.points_in_layer(object, {{0.2, 0.2}, {19.8, 0.2}});
+    double first = std::numeric_limits<double>::max(), last = std::numeric_limits<double>::lowest();
+    for (const auto &candidate : data.points) {
+        if (candidate.type != SeamType::Enforced)
+            continue;
+        CHECK_THAT(double(candidate.position.y()), Catch::Matchers::WithinAbs(unscale<double>(corners[0].y()), 1e-3));
+        first = std::min(first, double(candidate.position.x()));
+        last = std::max(last, double(candidate.position.x()));
+    }
+    CHECK_THAT(first, Catch::Matchers::WithinAbs(unscale<double>(corners[0].x()), 1e-3));
+    CHECK_THAT(last, Catch::Matchers::WithinAbs(unscale<double>(corners[1].x()), 1e-3));
+}
+
     const int origin = GENERATE(0, 1, 2);
     const bool partial_blocker = GENERATE(false, true);
     CAPTURE(origin, partial_blocker);

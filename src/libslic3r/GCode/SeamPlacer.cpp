@@ -609,9 +609,15 @@ std::vector<PaintedInterval> exact_painted_intervals(const std::vector<Vec2d> &l
     max = max.cwiseMax(p);
   }
   const auto crossings = contour.crossings(z, min - Vec2d(reach, reach), max + Vec2d(reach, reach));
-  const auto direction = [&](size_t i) {
-    const Vec2d d = loop[(i + 1) % count] - loop[i];
-    return d.squaredNorm() > 0.0 ? Vec2d(d.normalized()) : Vec2d::Zero();
+  // Direction of the first edge from edge i on, forward or backward, that is longer than the tolerance: loops
+  // repeat their first point and the shared ends of their paths.
+  const auto direction = [&](size_t i, bool forward) {
+    for (size_t step = 0; step < count; ++step, i = forward ? (i + 1) % count : (i + count - 1) % count) {
+      const Vec2d d = loop[(i + 1) % count] - loop[i];
+      if (d.norm() >= enforced_end_tolerance)
+        return Vec2d(d.normalized());
+    }
+    return Vec2d(Vec2d::Zero());
   };
   std::vector<std::pair<double, bool>> ends; // Position along the loop; true if paint lies ahead.
   for (const auto &[point, inward] : crossings) {
@@ -628,9 +634,11 @@ std::vector<PaintedInterval> exact_painted_intervals(const std::vector<Vec2d> &l
         position = arc[i] + along;
         // At a vertex the loop turns, so its direction there is the mean of the two edges; a crossing at a
         // corner may land a rounding error off the vertex, on either edge.
-        tangent = along < enforced_end_tolerance ? direction((i + count - 1) % count) + direction(i) :
-                  arc[i + 1] - position < enforced_end_tolerance ? direction(i) + direction((i + 1) % count) :
-                                                                   direction(i);
+        const size_t vertex = along < enforced_end_tolerance                 ? i :
+                              arc[i + 1] - position < enforced_end_tolerance ? (i + 1) % count :
+                                                                               count;
+        tangent = vertex < count ? direction((vertex + count - 1) % count, false) + direction(vertex, true) :
+                                   direction(i, true);
       }
     }
     if (best > reach * reach)

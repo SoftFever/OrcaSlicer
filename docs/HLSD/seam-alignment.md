@@ -74,8 +74,10 @@ boundaries remain uncertain.
 
 On a layer, the contour edges crossing the slicing plane give the exact ends of the painted band.
 Each crossing within the line width of the loop is moved to its closest loop point; the direction
-into the paint, against the loop direction there (the mean of both edges at a vertex), tells whether
-paint lies ahead or behind. Along the loop, ends where paint begins and ends must alternate; each
+into the paint, against the loop direction there, tells whether paint lies ahead or behind. At a
+vertex the loop direction is the mean of the two edges, skipping edges shorter than 1 µm such as
+the repeated closing point and the shared ends of extrusion paths, so the result does not depend on
+where the loop starts. Along the loop, ends where paint begins and ends must alternate; each
 pair bounds a **painted range**. Such a loop has **exact ends**:
 
 - a vertex is Enforced if it lies in a range (within 1 µm);
