@@ -3,10 +3,13 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstddef>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include <boost/filesystem/directory.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/nowide/fstream.hpp>
