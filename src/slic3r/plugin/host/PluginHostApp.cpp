@@ -1,7 +1,9 @@
 #include "PluginHostBindings.hpp"
 #include <pybind11/cast.h>
+#include <pybind11/gil.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
+#include <pybind11/stl.h>
 
 #include <libslic3r/Model.hpp>
 #include <libslic3r/PresetBundle.hpp>
@@ -13,6 +15,7 @@
 #include <slic3r/GUI/DeviceManager.hpp>
 #include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/GUI_App.hpp>
+#include <slic3r/GUI/ModelImport.hpp>
 #include <slic3r/GUI/OpenGLManager.hpp>
 #include <slic3r/GUI/Plater.hpp>
 #include <slic3r/Utils/CloudProvider.hpp>
@@ -31,6 +34,7 @@
 #include <wx/thread.h>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace py = pybind11;
 
@@ -90,6 +94,35 @@ void export_3mf_copy(GUI::Plater& plater, const std::string& path)
         throw py::error_already_set();
     if (!plater.export_3mf_copy(GUI::into_path(GUI::from_u8(path))))
         throw std::runtime_error("Failed to write " + path);
+}
+
+GUI::ModelImportResult import_models(GUI::Plater& plater, const std::vector<std::string>& paths,
+                                    const std::string& plate, bool arrange)
+{
+    require_main_thread("import_models");
+    if (paths.empty())
+        throw py::value_error("import_models() needs at least one model path");
+    if (plate != "current" && plate != "new")
+        throw py::value_error("plate must be 'current' or 'new'");
+
+    std::vector<boost::filesystem::path> input_files;
+    input_files.reserve(paths.size());
+    for (const std::string& path : paths) {
+        if (path.empty() || path.find('\0') != std::string::npos)
+            throw py::value_error("model paths must be non-empty and contain no NUL characters");
+        input_files.emplace_back(GUI::into_path(GUI::from_u8(path)));
+    }
+    // Native format readers do not raise Python's filesystem audit events. Check every
+    // input before creating a plate or importing anything, as export_3mf_copy() does.
+    for (const std::string& path : paths) {
+        if (PySys_Audit("open", "ssi", path.c_str(), "r", 0) < 0)
+            throw py::error_already_set();
+    }
+
+    // Native import dialogs may dispatch other plugin callbacks. Do not hold the GIL
+    // while Orca loads the files or asks the user how to handle their geometry.
+    py::gil_scoped_release nogil;
+    return plater.import_models(input_files, plate == "new", arrange);
 }
 
 py::object gl_info()
@@ -156,6 +189,21 @@ py::object selected_printer()
 // app and only reachable once the GUI is up (the accessors throw before that).
 void host_bindings::register_app(py::module_& host)
 {
+    py::enum_<GUI::ModelImportStatus>(host, "ModelImportStatus")
+        .value("Success", GUI::ModelImportStatus::Success)
+        .value("Partial", GUI::ModelImportStatus::Partial)
+        .value("Cancelled", GUI::ModelImportStatus::Cancelled)
+        .value("Failed", GUI::ModelImportStatus::Failed);
+
+    py::class_<GUI::ModelImportResult>(host, "ModelImportResult")
+        .def_readonly("status", &GUI::ModelImportResult::status)
+        .def_readonly("object_ids", &GUI::ModelImportResult::object_ids)
+        .def_readonly("object_ids_by_file", &GUI::ModelImportResult::object_ids_by_file)
+        .def_readonly("instance_ids", &GUI::ModelImportResult::instance_ids)
+        .def_readonly("plate_index", &GUI::ModelImportResult::plate_index)
+        .def_readonly("arrange_started", &GUI::ModelImportResult::arrange_started)
+        .def_readonly("errors", &GUI::ModelImportResult::errors);
+
     py::class_<GUI::Plater, std::unique_ptr<GUI::Plater, py::nodelete>>(host, "Plater")
         .def("model", static_cast<Model& (GUI::Plater::*)()>(&GUI::Plater::model), py::return_value_policy::reference_internal)
         .def("is_project_dirty", &GUI::Plater::is_project_dirty)
@@ -168,7 +216,12 @@ void host_bindings::register_app(py::module_& host)
         })
         .def("export_3mf_copy", &export_3mf_copy, py::arg("path"),
              "Write the current project, unsaved changes included, to path as a 3MF copy. The project's "
-             "file name and saved state are not changed, and the signed-in account is not written as the designer.");
+             "file name and saved state are not changed, and the signed-in account is not written as the designer.")
+        .def("import_models", &import_models, py::arg("paths"), py::kw_only(),
+             py::arg("plate") = "current", py::arg("arrange") = true,
+             "Import model files onto the current or a new plate, keeping the current project settings. "
+             "Must run on the UI thread. Returns imported object/instance IDs and the import outcome; "
+             "arrange_started reports whether native arrangement was queued, not whether it finished.");
 
     host.def("plater", &current_plater, py::return_value_policy::reference);
     host.def("model", []() -> Model& {

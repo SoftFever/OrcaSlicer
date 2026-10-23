@@ -1047,7 +1047,7 @@ public:
 
     void postprocess_bed_index_for_selected(arrangement::ArrangePolygon& arrange_polygon);
     void postprocess_bed_index_for_unselected(arrangement::ArrangePolygon& arrange_polygon);
-    void postprocess_bed_index_for_current_plate(arrangement::ArrangePolygon& arrange_polygon);
+    void postprocess_bed_index_for_current_plate(arrangement::ArrangePolygon& arrange_polygon, int plate_index = -1);
 
     //postprocess an arrangement:;ArrangePolygon
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);

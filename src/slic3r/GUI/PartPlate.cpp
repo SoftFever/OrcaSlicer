@@ -7872,7 +7872,7 @@ void PartPlateList::postprocess_bed_index_for_unselected(arrangement::ArrangePol
 }
 
 //postprocess an arrangement::ArrangePolygon, other instances are under locked states
-void PartPlateList::postprocess_bed_index_for_current_plate(arrangement::ArrangePolygon& arrange_polygon)
+void PartPlateList::postprocess_bed_index_for_current_plate(arrangement::ArrangePolygon& arrange_polygon, int plate_index)
 {
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, locked_plate %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % arrange_polygon.locked_plate % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
 
@@ -7882,7 +7882,7 @@ void PartPlateList::postprocess_bed_index_for_current_plate(arrangement::Arrange
 		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not be arranged inside plate!");
 	}
 	else if (arrange_polygon.bed_idx == 0)
-		arrange_polygon.bed_idx += m_current_plate;
+		arrange_polygon.bed_idx += plate_index < 0 ? m_current_plate : plate_index;
 	else
 		arrange_polygon.bed_idx = m_plate_list.size();
 

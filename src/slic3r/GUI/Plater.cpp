@@ -1,4 +1,5 @@
 #include "Plater.hpp"
+#include "ModelImport.hpp"
 #include "../Utils/NetworkAgent.hpp"
 #include "IPrinterAgent.hpp"
 #include "CalibUtils.hpp"
@@ -102,6 +103,7 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -128,6 +130,7 @@
 #include <wx/notebook.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
+#include <wx/thread.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/bmpcbox.h>
@@ -7218,6 +7221,7 @@ struct Plater::priv
     bool m_ignore_event{false};
     bool m_slice_all{false};
     bool m_is_slicing {false};
+    bool m_importing_models {false};
     // Missing-plugin set signatures (sorted full refs joined by '\n'), one per notification. They
     // gate plugin-load re-validation and avoid needlessly recreating the notification when the set
     // is unchanged. Whether missing plugins block slicing is derived directly from PluginResolver
@@ -7429,12 +7433,20 @@ struct Plater::priv
 
     // BBS: backup & restore
     using LoadProgressCallback = std::function<bool(int, const wxString&)>;
+    struct LoadFilesOutcome {
+        bool cancelled {false};
+        std::optional<Vec2d> target_center;
+        std::vector<size_t> object_ids;
+        std::vector<std::string> errors;
+    };
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files,
                                    LoadStrategy strategy,
                                    bool ask_multi      = false,
                                    bool* published_out = nullptr,
-                                   bool* config_loaded_out = nullptr);
-    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool split_object = false, bool auto_drop = true);
+                                   bool* config_loaded_out = nullptr,
+                                   LoadFilesOutcome* outcome = nullptr);
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool split_object = false, bool auto_drop = true,
+                                         LoadFilesOutcome* outcome = nullptr);
 
     // Texture-to-color import: a mesh loaded with UVs + a texture map gets its faces clustered
     // into printable colours, which are then matched against (or added to) the filament list.
@@ -7931,7 +7943,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt)
     {
         if (&evt.GetTimer() == &this->background_process_timer) {
-            if (!this->suppressed_backround_processing_update)
+            // Import dialogs yield to the event loop while a plugin batch is incomplete.
+            if (this->m_importing_models)
+                this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
+            else if (!this->suppressed_backround_processing_update)
                 this->update_restart_background_process(false, false);
         } else if (&evt.GetTimer() == &this->auto_reslice_timer) {
             this->auto_reslice_timer.Stop();
@@ -8940,7 +8955,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                              LoadStrategy strategy,
                                              bool ask_multi,
                                              bool* published_out,
-                                             bool* config_loaded_out)
+                                             bool* config_loaded_out,
+                                             LoadFilesOutcome* outcome)
 {
     if (config_loaded_out != nullptr)
         *config_loaded_out = false;
@@ -8983,6 +8999,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     const auto loading = _L("Loading") + dots;
     ProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
+    ScopeGuard report_outcome([&] {
+        if (outcome != nullptr)
+            outcome->cancelled = is_user_cancel || !dlg_cont || dlg.WasCancelled();
+    });
     wxBusyCursor busy;
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
@@ -9883,10 +9903,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
             }
         } catch (const ConfigurationError &e) {
+            if (outcome != nullptr)
+                outcome->errors.emplace_back(e.what());
             std::string message = GUI::format(_L("Failed loading file \"%1%\". An invalid configuration was found."), filename.string()) + "\n\n" + e.what();
             GUI::show_error(q, message);
             continue;
         } catch (const std::exception &e) {
+            is_user_cancel = is_user_cancel || dlg.WasCancelled();
+            if (outcome != nullptr && !is_user_cancel)
+                outcome->errors.emplace_back(e.what());
             if (!is_user_cancel)
                 GUI::show_error(q, e.what());
             continue;
@@ -10009,7 +10034,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         if (one_by_one) {
             // BBS: add load_old_project logic
-            if (type_3mf && !is_project_file && !load_old_project)
+            if (outcome != nullptr && outcome->target_center)
+                center_prepositioned_model_for_import(model, *outcome->target_center);
+            else if (type_3mf && !is_project_file && !load_old_project)
                 // if (type_3mf && !is_project_file)
                 model.center_instances_around_point(this->bed.build_volume().bed_center());
             // BBS: add auxiliary files logic
@@ -10030,6 +10057,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     return dlg_cont;
                 };
                 if (!run_textured_mesh_import_dialog(model, texture_import_result, cancel_cb, progress_cb)) {
+                    is_user_cancel = true;
                     q->skip_thumbnail_invalid = false;
                     return empty_result;
                 }
@@ -10051,7 +10079,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", before load_model_objects, count %1%")%model.objects.size();
-            auto loaded_idxs = load_model_objects(model.objects, is_project_file);
+            auto loaded_idxs = load_model_objects(model.objects, is_project_file, false, true, outcome);
             obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
 
             // load_model_objects only transfers ModelObjects; carry the Model-level CAD recipe
@@ -10115,7 +10143,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         // DONE when manually split to object ask users if looks_like_multipart and none have auto_drob disabled if they want to disable auto_drop for all resulting objects.
         // - add icon in object list, similar to fuzzy painting, etc.
 
-        auto loaded_idxs = load_model_objects(new_model->objects, false, false, new_model_auto_drop);
+        auto loaded_idxs = load_model_objects(new_model->objects, false, false, new_model_auto_drop, outcome);
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
 
         if (single_object_answer == wxID_NO && new_model_auto_drop == false) {
@@ -10312,7 +10340,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
  #define AUTOPLACEMENT_ON_LOAD
 
-std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z, bool split_object, bool auto_drop)
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z, bool split_object, bool auto_drop,
+                                                 LoadFilesOutcome* outcome)
 {
     const Vec3d bed_size = Slic3r::to_3d(this->bed.build_volume().bounding_volume2d().size(), 1.0) - 2.0 * Vec3d::Ones();
 
@@ -10322,12 +10351,16 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     bool scaled_down = false;
     std::vector<size_t> obj_idxs;
     unsigned int obj_count = model.objects.size();
+    if (outcome != nullptr)
+        outcome->object_ids.reserve(outcome->object_ids.size() + model_objects.size());
 
 #ifdef AUTOPLACEMENT_ON_LOAD
     ModelInstancePtrs new_instances;
 #endif /* AUTOPLACEMENT_ON_LOAD */
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
+        if (outcome != nullptr)
+            outcome->object_ids.emplace_back(object->id().id);
         object->sort_volumes(true);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
         obj_idxs.push_back(obj_count++);
@@ -11155,6 +11188,10 @@ void Plater::priv::schedule_auto_reslice_if_needed()
 
 void Plater::priv::trigger_auto_reslice_now()
 {
+    if (this->m_importing_models) {
+        this->auto_reslice_timer.Start(500, wxTIMER_ONE_SHOT);
+        return;
+    }
     this->auto_reslice_pending = false;
 
     AppConfig* cfg = wxGetApp().app_config;
@@ -16619,6 +16656,142 @@ bool Plater::up_to_date(bool saved, bool backup)
     // never carry a recipe, so the empty-project shortcut is unchanged for them.
     return (p->model.objects.empty() && p->model.cad_recipe.empty()) ||
            (p->up_to_date(saved, backup) && !Slic3r::has_other_changes(backup));
+}
+
+ModelImportResult Plater::import_models(const std::vector<fs::path>& paths, bool new_plate, bool arrange)
+{
+    ModelImportResult result;
+    result.object_ids_by_file.resize(paths.size());
+    if (!wxIsMainThread()) {
+        result.errors.emplace_back("Model import must run on the UI thread.");
+        return result;
+    }
+    if (wxGetApp().is_closing() || IsBeingDeleted() || p->m_importing_models || inside_snapshot_capture() ||
+        is_loading_project() || !p->m_worker.is_idle() || !p->background_process.can_switch_print() || !can_add_model()) {
+        result.errors.emplace_back("OrcaSlicer is busy. Try importing the models again when the current operation finishes.");
+        return result;
+    }
+    GLCanvas3D* canvas = get_view3D_canvas3D();
+    if (canvas == nullptr || canvas->get_gizmos_manager().is_in_editing_mode() || only_gcode_mode() || is_gcode_3mf()) {
+        result.errors.emplace_back("Model import requires an editable Prepare view.");
+        return result;
+    }
+    if (paths.empty()) {
+        result.errors.emplace_back("No model files were supplied.");
+        return result;
+    }
+    // Preflight the whole batch before creating a plate or changing the scene.
+    for (const fs::path& path : paths) {
+        if (!is_supported_model_import_filename(path.filename().string())) {
+            result.errors.emplace_back("Unsupported model file: " + path.string());
+            continue;
+        }
+        boost::system::error_code ec;
+        if (!fs::is_regular_file(path, ec))
+            result.errors.emplace_back("Model file is not a readable regular file: " + path.string() + (ec ? ": " + ec.message() : ""));
+    }
+    if (!result.errors.empty())
+        return result;
+    if (new_plate && !can_add_plate()) {
+        result.errors.emplace_back("A new plate cannot be added.");
+        return result;
+    }
+    PartPlateList& plates = p->partplate_list;
+    const int previous_plate = plates.get_curr_plate_index();
+    if (!new_plate && plates.get_curr_plate()->is_locked()) {
+        result.errors.emplace_back("The target plate is locked.");
+        return result;
+    }
+
+    p->m_importing_models = true;
+    ScopeGuard reset_importing([this] { p->m_importing_models = false; });
+    const bool previous_thumbnail_skip = skip_thumbnail_invalid;
+    ScopeGuard restore_thumbnail_skip([this, previous_thumbnail_skip] { skip_thumbnail_invalid = previous_thumbnail_skip; });
+    std::unordered_set<size_t> imported_ids;
+
+    // add_plate/select_plate and the native import dialogs may take their own snapshots.
+    // Keep plate creation and the model imports in one Undo action. The queued arranger
+    // finishes after this scope and follows the native job/Undo behaviour.
+    TakeSnapshot snapshot(this, _u8L("Import"));
+    result.plate_index = new_plate ? add_plate() : previous_plate;
+    if (result.plate_index < 0) {
+        result.errors.emplace_back("A new plate could not be added.");
+        return result;
+    }
+    p->m_slice_all_only_has_gcode = false;
+    p->preview->get_canvas3d()->reset_select_plate_toolbar_selection();
+    // A fresh plate's Print still has default settings. Apply the project configuration
+    // through normal plate selection before importing or queuing an arrangement job.
+    const bool target_selected = !new_plate || select_plate(result.plate_index) == 0;
+    if (!target_selected)
+        result.errors.emplace_back("The new import plate could not be selected.");
+    bool cancelled = false;
+    for (size_t file_index = 0; target_selected && file_index < paths.size(); ++file_index) {
+        const fs::path& path = paths[file_index];
+        PartPlate* target_plate = plates.get_plate(result.plate_index);
+        if (target_plate == nullptr) {
+            result.errors.emplace_back("The import target plate is no longer available.");
+            break;
+        }
+        priv::LoadFilesOutcome outcome;
+        outcome.target_center = target_plate->get_center_origin().head<2>();
+        try {
+            // Load files individually to retain each file's units, multipart and texture
+            // prompts. LoadModel imports 3MF geometry without opening/replacing a project.
+            p->load_files({path}, LoadStrategy::LoadModel, false, nullptr, nullptr, &outcome);
+        } catch (const std::exception& e) {
+            outcome.errors.emplace_back(e.what());
+        }
+        imported_ids.insert(outcome.object_ids.begin(), outcome.object_ids.end());
+        result.object_ids_by_file[file_index] = std::move(outcome.object_ids);
+        for (const std::string& error : outcome.errors)
+            result.errors.emplace_back(path.string() + ": " + error);
+        if (outcome.cancelled) {
+            cancelled = true;
+            result.errors.emplace_back("Import cancelled while loading: " + path.string());
+            break;
+        }
+        if (result.object_ids_by_file[file_index].empty() && outcome.errors.empty())
+            result.errors.emplace_back("No geometry was added from: " + path.string());
+    }
+
+    // Native loading can return an empty index list after a late Cancel, even though it
+    // already added objects. Report the actual objects left in the scene in all outcomes.
+    for (const ModelObject* object : model().objects) {
+        if (imported_ids.count(object->id().id) == 0)
+            continue;
+        result.object_ids.emplace_back(object->id().id);
+        for (const ModelInstance* instance : object->instances)
+            result.instance_ids.emplace_back(instance->id().id);
+    }
+    const std::unordered_set<size_t> remaining_ids(result.object_ids.begin(), result.object_ids.end());
+    for (auto& file_ids : result.object_ids_by_file)
+        file_ids.erase(std::remove_if(file_ids.begin(), file_ids.end(),
+                                     [&](size_t id) { return remaining_ids.count(id) == 0; }), file_ids.end());
+    if (result.object_ids.empty()) {
+        if (new_plate) {
+            if (delete_plate(result.plate_index) >= 0)
+                result.plate_index = -1;
+            else
+                result.errors.emplace_back("The empty import plate could not be removed.");
+            if (select_plate(previous_plate) < 0)
+                result.errors.emplace_back("The previously selected plate could not be restored.");
+        }
+        result.status = cancelled ? ModelImportStatus::Cancelled : ModelImportStatus::Failed;
+        return result;
+    }
+
+    update();
+    schedule_background_process(true);
+    mark_plate_toolbar_image_dirty();
+    if (arrange && !cancelled) {
+        if (printer_technology() == ptFFF)
+            result.arrange_started = queue_job(get_ui_job_worker(), std::make_unique<ArrangeJob>(result.plate_index));
+        if (!result.arrange_started)
+            result.errors.emplace_back("Models were imported, but arrangement could not be queued.");
+    }
+    result.status = result.errors.empty() ? ModelImportStatus::Success : ModelImportStatus::Partial;
+    return result;
 }
 
 bool Plater::add_model(bool imperial_units, std::string fname)
