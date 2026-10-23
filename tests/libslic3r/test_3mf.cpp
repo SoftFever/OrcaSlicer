@@ -2636,10 +2636,11 @@ TEST_CASE("A plate in a custom layout keeps its cell and stores its objects at t
     CHECK_THAT(loaded.x(), Catch::Matchers::WithinAbs(expected.x(), 1e-6));
     CHECK_THAT(loaded.y(), Catch::Matchers::WithinAbs(expected.y(), 1e-6));
     if (custom_layout) {
-        CHECK(dst_plates.front()->layout_cell == Vec2i32(2, 1));
+        REQUIRE(dst_plates.front()->layout_cell);
+        CHECK(*dst_plates.front()->layout_cell == Vec2i32(2, 1));
         REQUIRE(dst_plates.front()->objects_and_instances.size() == 1);
         CHECK(dst_plates.front()->objects_and_instances.front() == std::make_pair(0, 0));
     } else {
-        CHECK(dst_plates.front()->layout_cell == Vec2i32(-1, -1));
+        CHECK_FALSE(dst_plates.front()->layout_cell);
     }
 }

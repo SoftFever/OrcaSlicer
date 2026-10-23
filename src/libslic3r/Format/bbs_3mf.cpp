@@ -4642,7 +4642,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 m_curr_plater->plate_name = xml_unescape(value.c_str());
             }
             else if (key == LAYOUT_CELL_ATTR) {
-                std::istringstream(value) >> m_curr_plater->layout_cell.x() >> m_curr_plater->layout_cell.y();
+                Vec2i32 cell;
+                if (std::istringstream(value) >> cell.x() >> cell.y())
+                    m_curr_plater->layout_cell = cell;
             }
             else if (key == LAYOUT_INSTANCES_ATTR) {
                 // "object:instance" pairs of model indices, separated by spaces.
@@ -6703,7 +6705,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         ObjectToObjectDataMap objects_data;
         m_layout_offsets.clear();
-        if (!plate_data_list.empty() && plate_data_list.front() != nullptr && plate_data_list.front()->layout_cell.x() >= 0) {
+        if (!plate_data_list.empty() && plate_data_list.front() != nullptr && plate_data_list.front()->layout_cell) {
             for (const ModelObject* object : model.objects)
                 for (const ModelInstance* instance : object->instances)
                     m_layout_offsets[instance] = plate_data_list.front()->layout_unplaced_offset;
@@ -8480,9 +8482,9 @@ bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archiv
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->plate_index + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATER_NAME_ATTR << "\" " << VALUE_ATTR << "=\"" <<  xml_escape(plate_data->plate_name.c_str()) << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
-                if (plate_data->layout_cell.x() >= 0 && plate_data->layout_cell.y() >= 0) {
+                if (plate_data->layout_cell) {
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LAYOUT_CELL_ATTR << "\" " << VALUE_ATTR << "=\""
-                           << plate_data->layout_cell.x() << " " << plate_data->layout_cell.y() << "\"/>\n";
+                           << plate_data->layout_cell->x() << " " << plate_data->layout_cell->y() << "\"/>\n";
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LAYOUT_INSTANCES_ATTR << "\" " << VALUE_ATTR << "=\"";
                     for (size_t j = 0; j < plate_data->objects_and_instances.size(); ++j)
                         stream << (j == 0 ? "" : " ") << plate_data->objects_and_instances[j].first << ":" << plate_data->objects_and_instances[j].second;

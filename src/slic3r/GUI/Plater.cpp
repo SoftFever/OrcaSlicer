@@ -7591,6 +7591,8 @@ struct Plater::priv
     void on_combobox_select(wxCommandEvent&);
     void on_select_bed_type(wxCommandEvent&);
     void on_select_preset(wxCommandEvent&);
+    // Orca: after plates moved or were renumbered; on change, refreshes the scene and marks the project dirty.
+    void on_plate_layout_changed(bool changed);
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
     void on_process_completed(SlicingProcessCompletedEvent&);
@@ -23142,6 +23144,18 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 }
 
 
+void Plater::priv::on_plate_layout_changed(bool changed)
+{
+    // Plate meshes are rebuilt and picking ids are made from plate numbers, so the raycasters are registered again.
+    GLCanvas3D* canvas = view3D->get_canvas3d();
+    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
+    partplate_list.register_raycasters_for_picking(*canvas);
+    if (changed) {
+        q->update();
+        q->set_plater_dirty(true);
+    }
+}
+
 int Plater::move_plate_to_cell(int plate_index, const Vec2i32& cell)
 {
     PartPlateList& plate_list = p->partplate_list;
@@ -23149,15 +23163,50 @@ int Plater::move_plate_to_cell(int plate_index, const Vec2i32& cell)
         return -1;
 
     Plater::TakeSnapshot snapshot(this, "Move plate");
-    // The plate's meshes are rebuilt, so its picking raycasters are registered again.
-    GLCanvas3D* canvas = p->view3D->get_canvas3d();
-    int ret = plate_list.move_plate_to_cell(plate_index, cell);
-    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
-    plate_list.register_raycasters_for_picking(*canvas);
-    if (ret == 0) {
-        update();
-        set_plater_dirty(true);
-    }
+    const int ret = plate_list.move_plate_to_cell(plate_index, cell);
+    p->on_plate_layout_changed(ret == 0);
+    return ret;
+}
+
+bool Plater::can_move_current_plate_by(int columns)
+{
+    PartPlateList& plate_list = p->partplate_list;
+    const int      index      = plate_list.get_curr_plate_index();
+    return plate_list.can_move_plate_to_cell(index, plate_list.get_plate_cell(index) + Vec2i32(columns, 0));
+}
+
+int Plater::move_current_plate_by(int columns)
+{
+    PartPlateList& plate_list = p->partplate_list;
+    const int      index      = plate_list.get_curr_plate_index();
+    return move_plate_to_cell(index, plate_list.get_plate_cell(index) + Vec2i32(columns, 0));
+}
+
+int Plater::close_plate_gaps()
+{
+    if (p->partplate_list.plan_close_gaps().empty())
+        return -1;
+    Plater::TakeSnapshot snapshot(this, "Close plate gaps");
+    const int ret = p->partplate_list.close_gaps();
+    p->on_plate_layout_changed(ret == 0);
+    return ret;
+}
+
+int Plater::renumber_plates_by_position()
+{
+    PartPlateList& plate_list = p->partplate_list;
+    if (plate_list.is_numbered_by_position())
+        return -1;
+    Plater::TakeSnapshot snapshot(this, "Renumber plates");
+    const int ret = plate_list.renumber_plates_by_position();
+    // As "Move to front" does: the slice results and the object list follow the new numbers.
+    plate_list.update_slice_context_to_current_plate(p->background_process);
+    p->preview->update_gcode_result(plate_list.get_current_slice_result());
+    p->sidebar->obj_list()->reload_all_plates();
+    plate_list.update_plates();
+    // Picking ids are made from plate numbers.
+    p->on_plate_layout_changed(ret == 0);
+    plate_list.select_plate(plate_list.get_curr_plate_index());
     return ret;
 }
 
@@ -23168,12 +23217,8 @@ void Plater::reset_plate_layout()
         return;
 
     Plater::TakeSnapshot snapshot(this, "Reset plate layout");
-    GLCanvas3D* canvas = p->view3D->get_canvas3d();
     plate_list.reset_layout();
-    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
-    plate_list.register_raycasters_for_picking(*canvas);
-    update();
-    set_plater_dirty(true);
+    p->on_plate_layout_changed(true);
 }
 
 //BBS: select Plate by hover_id

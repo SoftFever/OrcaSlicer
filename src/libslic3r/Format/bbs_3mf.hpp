@@ -95,10 +95,10 @@ struct PlateData
 
     int plate_index;
     std::vector<std::pair<int, int>> objects_and_instances;
-    // Orca: custom plate layout. The plate's cell, (-1, -1) for the automatic grid, and the translation
+    // Orca: custom plate layout. The plate's cell, empty for the automatic grid, and the translation
     // that moves its instances from the cell to the grid position, applied on export so readers that
-    // don't know the layout still find every object on its plate.
-    Vec2i32 layout_cell{-1, -1};
+    // don't know the layout still find every object on its plate. Cells may be negative.
+    std::optional<Vec2i32> layout_cell;
     Vec3d   layout_offset{Vec3d::Zero()};
     // Translation for instances on no plate, the same on every plate of a custom layout. It moves the
     // area right of the custom layout, where unprintable objects wait, to the grid's unprintable area.

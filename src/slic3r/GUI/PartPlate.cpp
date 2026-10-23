@@ -29,6 +29,7 @@
 #include <cstring>
 #include <exception>
 #include "libslic3r/ParameterUtils.hpp"
+#include "libslic3r/PlateLayout.hpp"
 #include <imgui.h>
 #include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/Print.hpp"
@@ -2124,7 +2125,7 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 
             if (hover_id == PLATE_MOVE_ID) {
                 render_icon_texture(m_move_plate_icon.model, m_partplate_list->m_move_plate_hovered_texture);
-                set_hover_tooltip(_u8L("Drag to move the plate"));
+                set_hover_tooltip(_u8L("Drag to rearrange plates"));
             } else
                 render_icon_texture(m_move_plate_icon.model, m_partplate_list->m_move_plate_texture);
 
@@ -5258,11 +5259,10 @@ Vec3d PartPlateList::compute_origin_for_unprintable()
 {
 	Vec2i32 cell = compute_grid_cell_for_unprintable();
 	if (m_custom_layout) {
-		// Orca: right of the rightmost plate, so it never overlaps a plate.
-		int max_col = 0;
+		// Orca: right of the rightmost plate on the top row, so it never overlaps a plate.
+		cell = m_plate_list.empty() ? Vec2i32(0, 0) : m_plate_list.front()->m_layout_cell;
 		for (const PartPlate* plate : m_plate_list)
-			max_col = std::max(max_col, plate->m_layout_cell.x());
-		cell = Vec2i32(max_col + 1, 0);
+			cell = Vec2i32(std::max(cell.x(), plate->m_layout_cell.x() + 1), std::min(cell.y(), plate->m_layout_cell.y()));
 	}
 	const Vec2d pos = compute_cell_position(cell);
 	return Vec3d(pos.x(), pos.y(), 0);
@@ -5302,29 +5302,20 @@ Vec2i32 PartPlateList::compute_plate_cell(int index, int cols) const
 	if (index < (int)m_plate_list.size())
 		return m_plate_list[index]->m_layout_cell;
 
-	// Plates not created yet take the first free cell inside the layout's bounding box,
-	// or extend the first row when there is none.
-	std::set<std::pair<int, int>> occupied;
-	for (const PartPlate* plate : m_plate_list)
-		occupied.emplace(plate->m_layout_cell.x(), plate->m_layout_cell.y());
-	Vec2i32 cell(-1, -1);
-	for (int i = (int)m_plate_list.size(); i <= index; ++i) {
-		int max_col = -1, max_row = -1;
-		for (const auto& c : occupied) {
-			max_col = std::max(max_col, c.first);
-			max_row = std::max(max_row, c.second);
-		}
-		cell = Vec2i32(max_col + 1, 0);
-		bool found = false;
-		for (int row = 0; row <= max_row && !found; ++row)
-			for (int col = 0; col <= max_col && !found; ++col)
-				if (occupied.count({col, row}) == 0) {
-					cell = Vec2i32(col, row);
-					found = true;
-				}
-		occupied.emplace(cell.x(), cell.y());
-	}
-	return cell;
+	// Plates not created yet take the next free cells.
+	std::vector<Vec2i32> cells = get_plate_cells();
+	while ((int)cells.size() <= index)
+		cells.push_back(PlateLayout::next_free_cell(cells));
+	return cells[index];
+}
+
+std::vector<Vec2i32> PartPlateList::get_plate_cells() const
+{
+	std::vector<Vec2i32> cells;
+	cells.reserve(m_plate_list.size());
+	for (int i = 0; i < (int)m_plate_list.size(); ++i)
+		cells.push_back(compute_plate_cell(i, m_plate_cols));
+	return cells;
 }
 
 //generate icon textures
@@ -6410,46 +6401,16 @@ Vec2i32 PartPlateList::get_cell_at(const Vec2d& origin)
 
 std::map<int, Vec2i32> PartPlateList::plan_plate_move(int index, const Vec2i32& cell)
 {
-	std::map<int, Vec2i32> moves;
-	const auto in_range = [](const Vec2i32& c) {
-		return c.x() >= 0 && c.y() >= 0 && c.x() < (int)MAX_PLATES_COUNT && c.y() < (int)MAX_PLATES_COUNT;
-	};
-	if (index < 0 || index >= (int)m_plate_list.size() || !in_range(cell))
-		return moves;
-	const Vec2i32 from = compute_plate_cell(index, m_plate_cols);
-	if (cell == from)
-		return moves;
+	std::map<int, Vec2i32> moves = PlateLayout::plan_drop(get_plate_cells(), index, cell, MAX_PLATES_COUNT);
+	if (!cells_clear_of_loose_objects(moves))
+		moves.clear();
+	return moves;
+}
 
-	std::map<std::pair<int, int>, int> occupant;
-	for (int i = 0; i < (int)m_plate_list.size(); ++i) {
-		const Vec2i32 c = compute_plate_cell(i, m_plate_cols);
-		occupant[{c.x(), c.y()}] = i;
-	}
-	const auto plate_at = [&occupant](int col, int row) {
-		const auto it = occupant.find({col, row});
-		return it == occupant.end() ? -1 : it->second;
-	};
-
-	moves[index] = cell;
-	if (plate_at(cell.x(), cell.y()) >= 0) {
-		if (from.y() == cell.y()) {
-			// Same row: the plates in between shift one cell toward the cell the dragged plate leaves.
-			const int step = cell.x() > from.x() ? -1 : 1;
-			for (int col = cell.x(); col != from.x(); col += step)
-				if (const int i = plate_at(col, cell.y()); i >= 0)
-					moves[i] = Vec2i32(col + step, cell.y());
-		} else {
-			// Another row: the plate and its neighbors on the right shift one cell right, up to the first free cell.
-			for (int col = cell.x(); plate_at(col, cell.y()) >= 0; ++col) {
-				if (!in_range(Vec2i32(col + 1, cell.y())))
-					return {};
-				moves[plate_at(col, cell.y())] = Vec2i32(col + 1, cell.y());
-			}
-		}
-	}
-
+bool PartPlateList::cells_clear_of_loose_objects(const std::map<int, Vec2i32>& moves)
+{
 	if (m_model == nullptr)
-		return moves;
+		return true;
 	// Plate membership is geometric, so a plate moved onto objects that are on no moving plate would take them.
 	for (const auto& [plate_index, plate_cell] : moves) {
 		const BoundingBoxf cell_box = compute_cell_box(plate_cell);
@@ -6463,11 +6424,11 @@ std::map<int, Vec2i32> PartPlateList::plan_plate_move(int index, const Vec2i32& 
 				const BoundingBoxf3 box = object->instance_convex_hull_bounding_box(inst_id);
 				if (box.min.x() < cell_box.max.x() && box.max.x() > cell_box.min.x() && box.min.y() < cell_box.max.y() &&
 					box.max.y() > cell_box.min.y())
-					return {};
+					return false;
 			}
 		}
 	}
-	return moves;
+	return true;
 }
 
 bool PartPlateList::can_move_plate_to_cell(int index, const Vec2i32& cell)
@@ -6479,7 +6440,32 @@ int PartPlateList::move_plate_to_cell(int index, const Vec2i32& cell)
 {
 	// Rebuild plate membership so each plate carries exactly the objects on it.
 	reload_all_objects();
-	const std::map<int, Vec2i32> moves = plan_plate_move(index, cell);
+	return move_plates_to_cells(plan_plate_move(index, cell));
+}
+
+std::map<int, Vec2i32> PartPlateList::plan_close_gaps()
+{
+	std::map<int, Vec2i32> moves;
+	if (!m_custom_layout)
+		return moves;
+	const std::vector<Vec2i32> cells  = get_plate_cells();
+	const std::vector<Vec2i32> closed = PlateLayout::close_gaps(cells);
+	for (int i = 0; i < (int)cells.size(); ++i)
+		if (closed[i] != cells[i])
+			moves.emplace(i, closed[i]);
+	if (!cells_clear_of_loose_objects(moves))
+		moves.clear();
+	return moves;
+}
+
+int PartPlateList::close_gaps()
+{
+	reload_all_objects();
+	return move_plates_to_cells(plan_close_gaps());
+}
+
+int PartPlateList::move_plates_to_cells(const std::map<int, Vec2i32>& moves)
+{
 	if (moves.empty())
 		return -1;
 
@@ -6509,6 +6495,32 @@ int PartPlateList::move_plate_to_cell(int index, const Vec2i32& cell)
 	return 0;
 }
 
+bool PartPlateList::is_numbered_by_position() const
+{
+	const std::vector<int> order = PlateLayout::reading_order(get_plate_cells());
+	return std::is_sorted(order.begin(), order.end());
+}
+
+int PartPlateList::renumber_plates_by_position()
+{
+	const std::vector<int> order = PlateLayout::reading_order(get_plate_cells());
+	if (std::is_sorted(order.begin(), order.end()))
+		return -1;
+
+	// Plates keep their cells and objects; only their numbers change.
+	reload_all_objects();
+	const int               current = m_current_plate;
+	std::vector<PartPlate*> plates(m_plate_list.size());
+	for (int i = 0; i < (int)order.size(); ++i) {
+		plates[i] = m_plate_list[order[i]];
+		plates[i]->set_index(i);
+		if (order[i] == current)
+			m_current_plate = i;
+	}
+	std::copy(plates.begin(), plates.end(), m_plate_list.begin());
+	return 0;
+}
+
 void PartPlateList::reset_layout()
 {
 	if (!m_custom_layout)
@@ -6535,7 +6547,7 @@ bool PartPlateList::apply_loaded_layout()
 
 	std::set<std::pair<int, int>> cells;
 	for (const PendingLayoutPlate& p : pending)
-		if (p.cell.x() < 0 || p.cell.y() < 0 || p.cell.x() >= (int)MAX_PLATES_COUNT || p.cell.y() >= (int)MAX_PLATES_COUNT ||
+		if (std::abs(p.cell.x()) >= (int)MAX_PLATES_COUNT || std::abs(p.cell.y()) >= (int)MAX_PLATES_COUNT ||
 			!cells.emplace(p.cell.x(), p.cell.y()).second) {
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": invalid plate layout in project, keep the automatic layout";
 			return false;
@@ -8087,9 +8099,9 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 
 	}
 	// Orca: keep a custom layout for apply_loaded_layout(), which runs once the objects are loaded.
-	if (std::all_of(plate_data_list.begin(), plate_data_list.end(), [](const PlateData* plate_data) { return plate_data->layout_cell.x() >= 0; }))
+	if (std::all_of(plate_data_list.begin(), plate_data_list.end(), [](const PlateData* plate_data) { return plate_data->layout_cell.has_value(); }))
 		for (const PlateData* plate_data : plate_data_list)
-			m_pending_layout.push_back({plate_data->layout_cell, plate_data->objects_and_instances});
+			m_pending_layout.push_back({*plate_data->layout_cell, plate_data->objects_and_instances});
 	print();
 	ret = reload_all_objects();
 	print();

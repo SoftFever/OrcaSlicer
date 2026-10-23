@@ -823,6 +823,9 @@ class PartPlateList : public ObjectBase
     Vec2i32 compute_plate_cell(int index, int cols) const;
     Vec2d   compute_cell_position(const Vec2i32& cell);
     Vec2i32 compute_grid_cell_for_unprintable() const;
+    bool    cells_clear_of_loose_objects(const std::map<int, Vec2i32>& moves);
+    // Move plates with their objects to new cells and switch to the custom layout. Returns 0 on success.
+    int     move_plates_to_cells(const std::map<int, Vec2i32>& moves);
     //generate icon textures
     void generate_icon_textures();
     void release_icon_textures();
@@ -981,20 +984,31 @@ public:
     int move_plate_to_index(int old_index, int new_index);
 
     // Orca: custom plate layout. Plates sit in cells of the automatic grid's stride, so they never overlap.
+    // The rules live in libslic3r/PlateLayout.hpp; this class applies them to plates and objects.
     bool    has_custom_layout() const { return m_custom_layout; }
     Vec2i32 get_plate_cell(int index) const { return compute_plate_cell(index, m_plate_cols); }
+    std::vector<Vec2i32> get_plate_cells() const;
     // Cell whose plate origin is nearest to origin.
     Vec2i32 get_cell_at(const Vec2d& origin);
     // Area the plate covers when it sits in cell.
     BoundingBoxf compute_cell_box(const Vec2i32& cell);
-    // Orca: the plates that move, with their new cells, when plate index is dropped on cell; empty when the drop
-    // is not allowed. A plate already on cell makes room: in the dragged plate's row the plates in between shift
-    // toward the cell it leaves, in another row the plates from cell rightward shift one cell right.
+    // Orca: the plates that move, with their new cells, when plate index is dropped on cell (see
+    // PlateLayout::plan_drop()); empty when the drop is not allowed, also when a plate would land on objects
+    // that are on no plate.
     std::map<int, Vec2i32> plan_plate_move(int index, const Vec2i32& cell);
     bool    can_move_plate_to_cell(int index, const Vec2i32& cell);
     // Move the plate and its objects to cell, making room as plan_plate_move() does; switches to the custom layout.
     // Returns 0 on success.
     int     move_plate_to_cell(int index, const Vec2i32& cell);
+    // The moves that slide each row left and remove empty rows (see PlateLayout::close_gaps()); empty when
+    // nothing would move or a plate would land on objects that are on no plate.
+    std::map<int, Vec2i32> plan_close_gaps();
+    // Returns 0 on success.
+    int     close_gaps();
+    // Whether plate numbers follow the reading order of the cells.
+    bool    is_numbered_by_position() const;
+    // Number the plates in reading order of their cells; plates and objects stay in place. Returns 0 on success.
+    int     renumber_plates_by_position();
     // Return to the automatic grid, moving plates and their objects.
     void    reset_layout();
     // Apply the layout read by load_from_3mf_structure(); returns true if plates moved.

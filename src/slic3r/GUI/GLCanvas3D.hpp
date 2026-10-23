@@ -658,12 +658,17 @@ private:
     {
         int     plate_idx{-1};
         Point   start;                      // mouse position when the button went down
+        Point   last_mouse;                 // latest mouse position, where the plate is carried while the view pans
         Vec2d   grab_offset{Vec2d::Zero()}; // from the grab point to the plate origin
         Vec2d   ghost_shift{Vec2d::Zero()}; // from the plate's cell to where it is carried under the mouse
         Vec2i32 cell{-1, -1};               // cell the plate would be dropped on
         bool    valid{false};
         GLModel target;                     // highlight of that cell
-        GLModel outline;                    // border of the carried plate
+        GLModel outline;                    // border of the carried plate, also drawn around a plate whose handle is hovered
+        GLModel free_cells;                 // borders of the empty cells next to the layout
+        bool    free_cells_built{false};
+        BoundingBoxf outline_box;           // what the outline was built for
+        bool    cancelled{false};           // the drag was cancelled; the rest of the press does nothing
         static constexpr double Lift = 2.; // mm the carried plate is raised, so it reads as picked up
     } m_plate_drag;
     // Orca: plates sliding out of the way of a dragged plate, and back, and the dragged plate carried under the
@@ -1418,6 +1423,9 @@ public:
     void export_toolpaths_to_obj(const char* filename) const { m_gcode_viewer.export_toolpaths_to_obj(filename); }
 
     void mouse_up_cleanup();
+    // Orca: Esc, a lost mouse capture or focus: the plates glide home and the rest of the press does nothing.
+    // Returns false if no plate is being dragged.
+    bool cancel_plate_drag();
 
     bool are_labels_shown() const { return m_labels.is_shown(); }
     void show_labels(bool show) { m_labels.show(show); }
@@ -1628,12 +1636,16 @@ private:
 
     // Convert the screen space coordinate to world coordinate on the bed.
     Vec3d _mouse_to_bed_3d(const Point& mouse_pos);
+    // Orca: the plate whose move handle is hovered, if a drag can start there; -1 otherwise.
+    int  _hovered_plate_handle() const;
     // Orca: start dragging a plate when the left button goes down on its move handle.
     bool _start_plate_drag(const Point& mouse_pos);
     void _update_plate_drag(const Point& mouse_pos);
     void _update_plate_shift_preview();
     void _apply_plate_shift_offsets(const std::map<int, Vec3d>& offsets);
     void _clear_plate_shift_preview();
+    // Orca: pan the view while a dragged plate is held near the edge of the canvas; returns true if it panned.
+    bool _pan_plate_drag_at_edge(double dt);
 
     // Orca: Navigation type selects the legacy pivot policy used when no visible surface is hit.
     enum class ECameraNavigationType : unsigned char
