@@ -1327,7 +1327,8 @@ int GLGizmoTextureDisplacement::layer_projection_frame(const indexed_triangle_se
     Vec3f average_normal;
     texture_displacement_patch_frame(patch_in_world(local_patch),
                                      texture_displacement_vertex_normals(patch_in_world(mv->mesh().its)),
-                                     center, axis, average_normal);
+                                     center, axis, average_normal, layer.proj_axis,
+                                     layer.proj_center_set ? &layer.proj_center : nullptr);
     return layer.projection_method == TextureProjectionMethod::Cylindrical ? 1 : 2;
 }
 
@@ -3401,7 +3402,75 @@ bool GLGizmoTextureDisplacement::update_adjust_anchor()
 
     m_adjust_anchor_pos    = pos_local;
     m_adjust_anchor_normal = n_local;
+
+    // The wrapped projections' frame is invalidated rather than recomputed here: the mapping can be
+    // changed without the anchor moving at all, so ensure_adjust_projection() refreshes it on demand.
+    m_adjust_cached_method = -1;
+
     return true;
+}
+
+float GLGizmoTextureDisplacement::layer_for_projection_radius() const
+{
+    const TextureDisplacementLayer *layer = active_layer();
+    return (layer != nullptr && layer->proj_radius > 0.f) ? layer->proj_radius : -1.f;
+}
+
+void GLGizmoTextureDisplacement::ensure_adjust_projection() const
+{
+    const TextureDisplacementLayer *layer = active_layer();
+    const ModelVolume              *mv    = texture_volume();
+    const int   method = (layer != nullptr) ? int(layer->projection_method) : -1;
+    const Vec3f want     = (layer != nullptr) ? layer->proj_axis : Vec3f::Zero();
+    const Vec3f want_c   = (layer != nullptr && layer->proj_center_set) ? layer->proj_center : Vec3f::Zero();
+    const float want_r   = (layer != nullptr) ? layer->proj_radius : -1.f;
+    if (method == m_adjust_cached_method && want.isApprox(m_adjust_cached_axis) &&
+        want_c.isApprox(m_adjust_cached_center) && want_r == m_adjust_cached_radius)
+        return;
+    m_adjust_cached_method   = method;
+    m_adjust_cached_axis     = want;
+    m_adjust_cached_center   = want_c;
+    m_adjust_cached_radius   = want_r;
+    m_adjust_projection_mode = 0;
+    m_adjust_patch_center    = Vec3f::Zero();
+    m_adjust_patch_axis      = Vec3f::UnitZ();
+    m_adjust_patch_radius    = 1.f;
+    if (layer == nullptr || mv == nullptr || !m_adjust_anchor_valid ||
+        (layer->projection_method != TextureProjectionMethod::Cylindrical &&
+         layer->projection_method != TextureProjectionMethod::Spherical))
+        return;
+
+    // From the model's own facet data, the way compute_layer_paint_anchor() does, and not from the
+    // live triangle selector: the selector can be empty around a layer switch, and an empty patch
+    // left this unset.
+    const indexed_triangle_set patch =
+        extract_painted_patch(mv->mesh().its, mv->texture_displacement_facet(m_active_layer_slot).get_data());
+    if (patch.indices.empty())
+        return;
+    m_adjust_projection_mode = layer_projection_frame(patch, *layer, m_adjust_patch_center, m_adjust_patch_axis);
+    if (m_adjust_projection_mode == 0)
+        return;
+
+    // The mean distance of the *patch's own points* from the axis, which is the radius of the
+    // cylinder the texture is actually wrapped around. Not the anchor's distance, which is what this
+    // was first written as: the anchor is the patch's centroid, and the centroid of a ring painted
+    // all the way round sits on the axis, so that read zero and the whole thing fell back to the flat
+    // frame. Weighted over triangle vertices, as texture_displacement_patch_frame() weights the
+    // centre these are measured from.
+    const indexed_triangle_set in_frame = patch_in_world(patch);
+    const Vec3f up = (m_adjust_patch_axis.norm() > 1e-8f) ? Vec3f(m_adjust_patch_axis.normalized()) : Vec3f::UnitZ();
+    double sum = 0.0;
+    int    n   = 0;
+    for (const stl_triangle_vertex_indices &tri : in_frame.indices)
+        for (int i = 0; i < 3; ++i) {
+            const Vec3f rel = in_frame.vertices[size_t(tri[i])] - m_adjust_patch_center;
+            sum += double((m_adjust_projection_mode == 1) ? (rel - up * rel.dot(up)).norm() : rel.norm());
+            ++n;
+        }
+    m_adjust_patch_radius = (layer->proj_radius > 0.f) ? layer->proj_radius :
+                                                         ((n > 0) ? float(sum / double(n)) : 0.f);
+    if (m_adjust_patch_radius < 1e-4f)
+        m_adjust_projection_mode = 0; // degenerate, fall back to the flat frame
 }
 
 bool GLGizmoTextureDisplacement::adjust_anchor_in_frame(Vec3f &pos, Vec3f &normal) const
@@ -3451,6 +3520,7 @@ Vec3f GLGizmoTextureDisplacement::adjust_plane_point() const
 
 void GLGizmoTextureDisplacement::end_adjust_texture_mode()
 {
+    m_adjust_spin_axis   = -1; // the revealed orbit goes away with the rest of the live state
     m_adjust_drag_kind   = AdjustHandle::None;
     m_adjust_drag_index  = -1;
     m_adjust_hover_kind  = AdjustHandle::None;
@@ -3464,6 +3534,48 @@ void GLGizmoTextureDisplacement::end_adjust_texture_mode()
 // the image's corner, and rotating and scaling hold this point still, so they turn and resize the
 // image about its middle.
 static const Vec2f ADJUST_TILE_UV_CENTER(0.5f, 0.5f);
+
+Vec2f GLGizmoTextureDisplacement::adjust_planar_at_uv(const TextureDisplacementLayer &layer, float aspect,
+                                                       const Vec2f &uv)
+{
+    // uv = M S^-1 R(planar) + offset, so planar = R^-1 (S M (uv - offset)), the aspect undone on v.
+    // A negation is its own inverse, which is why the mirror's sign appears here unchanged.
+    const Vec2f tile = layer_tile_mm(layer);
+    const Vec2f sign = layer_mirror_sign(layer);
+    const float a    = (aspect > 0.f) ? aspect : 1.f;
+    const float X    = (uv.x() - layer.offset.x()) * tile.x() * sign.x();
+    const float Y    = (uv.y() - layer.offset.y()) * tile.y() / a * sign.y();
+    const float rad  = layer.rotation_deg * float(M_PI) / 180.f;
+    const float cs = std::cos(rad), sn = std::sin(rad);
+    return Vec2f(cs * X + sn * Y, -sn * X + cs * Y);
+}
+
+Vec3f GLGizmoTextureDisplacement::adjust_point_at_planar(const Vec2f &planar, const Vec3f &base,
+                                                         const Vec2f &base_planar, const Vec3f &u_axis,
+                                                         const Vec3f &v_axis) const
+{
+    if (m_adjust_projection_mode == 1) {
+        // project_cylindrical() inverted: planar is (angle * radius, -height) about the patch axis,
+        // in the same (right, fwd, up) frame it builds. Rebuilt the same way here so the tile's
+        // border comes back onto the cylinder the bake wrapped the texture around.
+        const Vec3f up        = (m_adjust_patch_axis.norm() > 1e-8f) ? Vec3f(m_adjust_patch_axis.normalized()) :
+                                                                       Vec3f::UnitZ();
+        const Vec3f arbitrary = (std::abs(up.dot(Vec3f::UnitZ())) < 0.9f) ? Vec3f::UnitZ() : Vec3f::UnitX();
+        const Vec3f right     = Vec3f(up.cross(arbitrary).normalized());
+        const Vec3f fwd       = Vec3f(up.cross(right).normalized());
+        const float angle     = planar.x() / m_adjust_patch_radius;
+        return m_adjust_patch_center + (right * std::cos(angle) + fwd * std::sin(angle)) * m_adjust_patch_radius -
+               up * planar.y();
+    }
+    if (m_adjust_projection_mode == 2) {
+        // project_spherical() inverted, in world axes as it uses them, with the latitude negated back.
+        const float lon = planar.x() / m_adjust_patch_radius;
+        const float lat = -planar.y() / m_adjust_patch_radius;
+        const Vec3f dir(std::cos(lat) * std::cos(lon), std::cos(lat) * std::sin(lon), std::sin(lat));
+        return m_adjust_patch_center + dir * m_adjust_patch_radius;
+    }
+    return base + u_axis * (planar.x() - base_planar.x()) + v_axis * (planar.y() - base_planar.y());
+}
 
 Vec2f GLGizmoTextureDisplacement::adjust_handle_planar(const TextureDisplacementLayer &layer, float aspect)
 {
@@ -3547,6 +3659,8 @@ constexpr double ADJUST_GRIP_HALF_PX  = 4.6 * ADJUST_UI_SCALE;  // half the side
 constexpr double ADJUST_PICK_ROT_PX   = 12.0 * ADJUST_UI_SCALE;
 constexpr double ADJUST_PICK_GRIP_PX  = 11.0 * ADJUST_UI_SCALE;
 constexpr double ADJUST_PICK_BAR_PX   = 9.0 * ADJUST_UI_SCALE;  // around the bar's own segment
+constexpr double ADJUST_PROJ_PICK_PX  = 11.0 * ADJUST_UI_SCALE; // around a projection handle
+constexpr double ADJUST_PROJ_R_PX     = 5.5 * ADJUST_UI_SCALE;  // how big one is drawn
 constexpr double ADJUST_PICK_TIP_PX   = 11.0 * ADJUST_UI_SCALE; // around the arrow's chevron
 constexpr double ADJUST_PICK_SHAFT_PX = 8.0 * ADJUST_UI_SCALE;  // around the arrow's shaft
 // How much nearer another corner has to be before the rotate ring moves to it. Without a margin the
@@ -3567,23 +3681,23 @@ double point_to_segment_px(const Vec2d &p, const Vec2d &a, const Vec2d &b)
     return (p - (a + ab * t)).norm();
 }
 
-// Point in a convex quad, vertices in order: every edge's cross product shares a sign for a point
-// inside. A degenerate edge (the frame seen exactly edge-on) contributes no sign and is skipped.
-bool point_in_quad(const Vec2d &p, const std::array<Vec2d, 4> &q)
+// Point in a closed polyline, by crossing count. The convex-only test this replaces was enough for
+// four corners, but a tile bent around a cylinder is not convex, and a test that assumes it is
+// rejects points that are plainly inside.
+bool point_in_polygon(const Vec2d &p, const std::vector<Vec2d> &poly)
 {
-    int sign = 0;
-    for (int i = 0; i < 4; ++i) {
-        const Vec2d &a = q[size_t(i)], &b = q[size_t((i + 1) % 4)];
-        const double cr = (b.x() - a.x()) * (p.y() - a.y()) - (b.y() - a.y()) * (p.x() - a.x());
-        const int    s  = (cr > 0.0) ? 1 : ((cr < 0.0) ? -1 : 0);
-        if (s == 0)
-            continue;
-        if (sign == 0)
-            sign = s;
-        else if (s != sign)
-            return false;
+    if (poly.size() < 3)
+        return false;
+    bool inside = false;
+    for (size_t i = 0, j = poly.size() - 1; i < poly.size(); j = i++) {
+        const Vec2d &a = poly[i], &b = poly[j];
+        if ((a.y() > p.y()) != (b.y() > p.y())) {
+            const double dy = b.y() - a.y();
+            if (std::abs(dy) > 1e-12 && p.x() < a.x() + (b.x() - a.x()) * (p.y() - a.y()) / dy)
+                inside = !inside;
+        }
     }
-    return true;
+    return inside;
 }
 } // namespace
 
@@ -3689,15 +3803,44 @@ GLGizmoTextureDisplacement::AdjustFrame GLGizmoTextureDisplacement::adjust_frame
         return Vec2d(double(p.x()), double(p.y()));
     };
 
-    f.center      = to_screen(centre);
-    f.corner[0]   = to_screen(centre + du + dv);
-    f.corner[1]   = to_screen(centre + du - dv);
-    f.corner[2]   = to_screen(centre - du - dv);
-    f.corner[3]   = to_screen(centre - du + dv);
-    f.edge_mid[0] = to_screen(centre + du);
-    f.edge_mid[1] = to_screen(centre - du);
-    f.edge_mid[2] = to_screen(centre + dv);
-    f.edge_mid[3] = to_screen(centre - dv);
+    // One tile is uv [0,1], so every part of the frame is named by a uv and carried back onto the
+    // surface. For Box mapping that is the flat arithmetic above written another way; for a wrapped
+    // mapping it is what bends the frame onto the model, because the point a uv came from is on the
+    // cylinder or the sphere, not on a plane laid over it.
+    ensure_adjust_projection();
+    f.curved = m_adjust_projection_mode != 0;
+    Vec3f anchor_pos, anchor_n;
+    if (!adjust_anchor_in_frame(anchor_pos, anchor_n))
+        return f;
+    const Vec2f base_planar = project_planar(base, anchor_n);
+    const auto  at_uv       = [&](const Vec2f &uv) {
+        return adjust_point_at_planar(adjust_planar_at_uv(*layer, aspect, uv), base, base_planar, u_axis, v_axis);
+    };
+
+    f.center      = to_screen(at_uv(Vec2f(0.5f, 0.5f)));
+    f.corner[0]   = to_screen(at_uv(Vec2f(1.f, 1.f)));
+    f.corner[1]   = to_screen(at_uv(Vec2f(1.f, 0.f)));
+    f.corner[2]   = to_screen(at_uv(Vec2f(0.f, 0.f)));
+    f.corner[3]   = to_screen(at_uv(Vec2f(0.f, 1.f)));
+    f.edge_mid[0] = to_screen(at_uv(Vec2f(1.f, 0.5f)));
+    f.edge_mid[1] = to_screen(at_uv(Vec2f(0.f, 0.5f)));
+    f.edge_mid[2] = to_screen(at_uv(Vec2f(0.5f, 1.f)));
+    f.edge_mid[3] = to_screen(at_uv(Vec2f(0.5f, 0.f)));
+
+    // The outline. A straight edge needs two points; a wrapped one is sampled, finely enough that
+    // the bend reads as a curve rather than as a chain of facets.
+    {
+        const int steps = f.curved ? 14 : 1;
+        // The uv square's corners, walked in the same order the corners above are named.
+        static const Vec2f ring[4] = { { 0.f, 0.f }, { 1.f, 0.f }, { 1.f, 1.f }, { 0.f, 1.f } };
+        f.border.clear();
+        f.border.reserve(size_t(steps) * 4);
+        for (int e = 0; e < 4; ++e)
+            for (int i = 0; i < steps; ++i) {
+                const float t = float(i) / float(steps);
+                f.border.push_back(to_screen(at_uv(ring[e] + (ring[(e + 1) % 4] - ring[e]) * t)));
+            }
+    }
 
     // A tile can project to a handful of pixels - a fine texture, or a zoomed-out view - and a
     // control that small cannot be aimed at. Below the floor the frame is pushed out from its centre
@@ -3712,6 +3855,8 @@ GLGizmoTextureDisplacement::AdjustFrame GLGizmoTextureDisplacement::adjust_frame
             c = f.center + (c - f.center) * k;
         for (Vec2d &m : f.edge_mid)
             m = f.center + (m - f.center) * k;
+        for (Vec2d &b : f.border)
+            b = f.center + (b - f.center) * k;
         f.clamped = true;
     }
 
@@ -3755,6 +3900,54 @@ GLGizmoTextureDisplacement::AdjustFrame GLGizmoTextureDisplacement::adjust_frame
                                  ((len > 1e-6) ? Vec2d(out / len) : fallback_diag[i]) * ADJUST_ROT_STEM_PX;
     }
 
+    // ---- the projection's own frame: where it wraps, and how wide ---------------------------
+    if (m_adjust_projection_mode != 0) {
+        const Vec3f up = (m_adjust_patch_axis.norm() > 1e-8f) ? Vec3f(m_adjust_patch_axis.normalized()) :
+                                                                Vec3f::UnitZ();
+        const Vec3f a1 = (std::abs(up.z()) < 0.9f) ? Vec3f(up.cross(Vec3f::UnitZ()).normalized()) :
+                                                     Vec3f(up.cross(Vec3f::UnitX()).normalized());
+        const Vec3f a2 = Vec3f(up.cross(a1).normalized());
+        const float r  = std::max(m_adjust_patch_radius, 1e-3f);
+
+        f.proj          = true;
+        f.proj_has_axis = m_adjust_projection_mode == 1; // a sphere has no axis of its own
+        f.proj_center   = to_screen(m_adjust_patch_center);
+        f.proj_axis_dir  = up;
+        f.proj_spin_axis = f.proj_has_axis ? std::clamp(m_adjust_spin_axis, -1, 2) : -1;
+
+        // Three rings about world X, Y and Z, and three arrows along them. Sized off the radius so
+        // the manipulator stays in proportion to the shape it is wrapping.
+        constexpr int SPIN = 48;
+        const float   ring_r = r * 1.35f;
+        const float   arm    = r * 1.75f;
+        for (int k = 0; k < 3; ++k) {
+            const Vec3f n  = Vec3f::Unit(k);
+            const Vec3f b1 = Vec3f::Unit((k + 1) % 3);
+            const Vec3f b2 = Vec3f::Unit((k + 2) % 3);
+            if (f.proj_has_axis && k == m_adjust_spin_axis) {
+                f.proj_spin[size_t(k)].clear();
+                f.proj_spin[size_t(k)].reserve(SPIN);
+                for (int i = 0; i < SPIN; ++i) {
+                    const float t = float(i) / float(SPIN) * 2.f * float(M_PI);
+                    f.proj_spin[size_t(k)].push_back(
+                        to_screen(m_adjust_patch_center + (b1 * std::cos(t) + b2 * std::sin(t)) * ring_r));
+                }
+                f.proj_spin_grip[size_t(k)] = to_screen(m_adjust_patch_center + b1 * ring_r);
+            }
+            f.proj_move_tip[size_t(k)] = to_screen(m_adjust_patch_center + n * arm);
+        }
+
+        // The radius, drawn as the circle it actually is rather than as a number in the panel.
+        constexpr int RING = 48;
+        f.proj_ring.clear();
+        f.proj_ring.reserve(RING);
+        for (int i = 0; i < RING; ++i) {
+            const float t = float(i) / float(RING) * 2.f * float(M_PI);
+            f.proj_ring.push_back(to_screen(m_adjust_patch_center + (a1 * std::cos(t) + a2 * std::sin(t)) * r));
+        }
+        f.proj_ring_grip = to_screen(m_adjust_patch_center + a1 * r);
+    }
+
     f.rotate_shown = std::clamp(m_adjust_rotate_corner, 0, 3);
     f.valid        = true;
     return f;
@@ -3792,6 +3985,45 @@ GLGizmoTextureDisplacement::adjust_pick(const Vec2d &mouse, const AdjustFrame &f
     // Outermost first. The rotate ring is the only handle off the frame, so it is the cheapest to
     // rule out; the corners and the arms come before the interior so that a grip stays grabbable
     // even when the frame is foreshortened to a sliver and every handle lands on the move area.
+    if (f.proj) {
+        // The projection's handles come first. They are few, they sit away from the tile, and a
+        // mis-grab here is worse than one on the tile: it moves the whole wrap rather than the image
+        // on it.
+        // Every one of these is pickable along the whole of what is drawn, not just at its knob.
+        // Only the knobs were, which meant a click on the visible shaft of an arrow - or anywhere on
+        // the diameter ring but its one grip - hit nothing and went to the camera instead.
+        if (within(f.proj_ring_grip, ADJUST_PROJ_PICK_PX))
+            return AdjustHandle::ProjRadius;
+        for (int k = 0; k < 3; ++k) {
+            // The shaft is pickable from a little way out, not from the centre: all three start
+            // there, and so does the tile's own move grip, which these would otherwise swallow.
+            const Vec2d &tip  = f.proj_move_tip[size_t(k)];
+            const Vec2d  from = f.proj_center + (tip - f.proj_center) * 0.35;
+            if (within(tip, ADJUST_PROJ_PICK_PX) || point_to_segment_px(mouse, from, tip) <= ADJUST_PICK_BAR_PX) {
+                index = k;
+                return AdjustHandle::ProjMove;
+            }
+        }
+        for (size_t i = 0; i + 1 < f.proj_ring.size(); ++i)
+            if (point_to_segment_px(mouse, f.proj_ring[i], f.proj_ring[i + 1]) <= ADJUST_PICK_BAR_PX)
+                return AdjustHandle::ProjRadius;
+        if (f.proj_has_axis && f.proj_spin_axis >= 0) {
+            // Only the orbit that is drawn. Anywhere along it, not just at its grip: a ring you can
+            // only grab at one point is a button, and reaching round the model for it is the thing
+            // this is meant to avoid.
+            const size_t k = size_t(f.proj_spin_axis);
+            if (within(f.proj_spin_grip[k], ADJUST_PROJ_PICK_PX)) {
+                index = f.proj_spin_axis;
+                return AdjustHandle::ProjSpin;
+            }
+            for (size_t i = 0; i + 1 < f.proj_spin[k].size(); ++i)
+                if (point_to_segment_px(mouse, f.proj_spin[k][i], f.proj_spin[k][i + 1]) <= ADJUST_PICK_BAR_PX) {
+                    index = f.proj_spin_axis;
+                    return AdjustHandle::ProjSpin;
+                }
+        }
+    }
+
     // Only the ring that is drawn: a hidden handle that still takes clicks is worse than no handle.
     if (within(f.rotate_at[size_t(std::clamp(f.rotate_shown, 0, 3))], ADJUST_PICK_ROT_PX)) {
         index = f.rotate_shown;
@@ -3823,7 +4055,7 @@ GLGizmoTextureDisplacement::adjust_pick(const Vec2d &mouse, const AdjustFrame &f
         }
     // A real polygon test, not a circle through the corners: the old hit test let a move start from
     // empty space beside the tile, and refused one near a corner the circle did not reach.
-    if (point_in_quad(mouse, f.corner))
+    if (point_in_polygon(mouse, f.border))
         return AdjustHandle::Move;
     return AdjustHandle::None;
 }
@@ -3835,16 +4067,59 @@ bool GLGizmoTextureDisplacement::adjust_planar_under(const Vec2d &mouse, Vec2f &
     if (!adjust_basis(trafo, u_axis, v_axis, base))
         return false;
     const Camera &camera = wxGetApp().plater()->get_camera();
-    Vec3d         world_hit;
     Vec3f anchor_pos = m_adjust_anchor_pos, anchor_n = m_adjust_anchor_normal;
     adjust_anchor_in_frame(anchor_pos, anchor_n);
+
+    // The drag is measured against the same surface the frame is drawn on, or the handle would not
+    // follow the cursor: a plane for Box mapping, the cylinder or the sphere for the wrapped ones.
+    // Everything here is in the projection's own absolute planar coordinates, which is what
+    // adjust_planar_at_uv() and adjust_offset_for_planar() also speak.
+    ensure_adjust_projection();
+    if (m_adjust_projection_mode != 0) {
+        Vec3d ray_origin, ray_dir;
+        CameraUtils::ray_from_screen_pos(camera, mouse, ray_origin, ray_dir);
+        const Transform3d to_frame = trafo.inverse();
+        const Vec3f o = (to_frame * ray_origin).cast<float>();
+        const Vec3f d = Vec3f((to_frame.linear() * ray_dir).cast<float>()).normalized();
+        const Vec3f c = m_adjust_patch_center;
+        const float r = m_adjust_patch_radius;
+
+        Vec3f oc = o - c, dd = d;
+        if (m_adjust_projection_mode == 1) {
+            // An infinite cylinder about the patch axis: drop the along-axis part of both the origin
+            // and the direction and the problem becomes the circle below.
+            const Vec3f up = (m_adjust_patch_axis.norm() > 1e-8f) ? Vec3f(m_adjust_patch_axis.normalized()) :
+                                                                    Vec3f::UnitZ();
+            oc -= up * oc.dot(up);
+            dd -= up * d.dot(up);
+        }
+        const float a = dd.dot(dd);
+        if (a < 1e-12f)
+            return false; // looking straight along the axis: no crossing to speak of
+        const float b = 2.f * oc.dot(dd);
+        const float cq = oc.dot(oc) - r * r;
+        const float disc = b * b - 4.f * a * cq;
+        if (disc < 0.f)
+            return false; // the cursor is off the shape entirely
+        const float sq = std::sqrt(disc);
+        float       t  = (-b - sq) / (2.f * a);
+        if (t < 0.f)
+            t = (-b + sq) / (2.f * a); // inside it: take the far crossing rather than the one behind
+        if (t < 0.f)
+            return false;
+        const Vec3f hit = o + d * t;
+        const float rad_ovr = layer_for_projection_radius();
+        planar = (m_adjust_projection_mode == 1) ?
+                     project_cylindrical(hit, m_adjust_patch_center, m_adjust_patch_axis, rad_ovr) :
+                     project_spherical(hit, m_adjust_patch_center, rad_ovr);
+        return true;
+    }
+
+    Vec3d world_hit;
     if (!ray_plane_hit(camera, mouse, trafo, base, anchor_n, world_hit))
         return false;
     const Vec3f local = (trafo.inverse() * world_hit).cast<float>();
-    // project_planar() is absolute, and everything here is relative to the anchor, so the base's own
-    // planar coordinate is the origin. Taking it from the very point the frame is built on is what
-    // keeps the hit, the frame and the offset arithmetic in one coordinate system.
-    planar = project_planar(local, anchor_n) - project_planar(base, anchor_n);
+    planar = project_planar(local, anchor_n);
     return true;
 }
 
@@ -3904,13 +4179,13 @@ void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
         dl->AddPolyline(pts, n, halo, fl, w + ADJUST_HALO_W_PX);
         dl->AddPolyline(pts, n, col, fl, w);
     };
-    const auto dashed = [&](const Vec2d &a, const Vec2d &b, ImU32 col, double dash, double gap) {
+    const auto dashed = [&](const Vec2d &a, const Vec2d &b, ImU32 col, double dash, double gap, float w = 1.3f) {
         const double len = (b - a).norm();
         if (len < 1e-6)
             return;
         const Vec2d dir = (b - a) / len;
         for (double t = 0.0; t < len; t += dash + gap)
-            dl->AddLine(P(a + dir * t), P(a + dir * std::min(t + dash, len)), col, 1.3f);
+            dl->AddLine(P(a + dir * t), P(a + dir * std::min(t + dash, len)), col, w);
     };
 
     // ---- drag feedback, under the gizmo itself --------------------------------------------------
@@ -3973,14 +4248,24 @@ void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
     }
 
     // ---- the tile ------------------------------------------------------------------------------
-    const ImVec2 quad[4] = { P(f.corner[0]), P(f.corner[1]), P(f.corner[2]), P(f.corner[3]) };
-    dl->AddConvexPolyFilled(quad, 4, move_live ? fill_hot : fill);
-    if (f.clamped)
-        // Dashed says "not to scale": the tile is really smaller than this.
-        for (int i = 0; i < 4; ++i)
-            dashed(f.corner[size_t(i)], f.corner[size_t((i + 1) % 4)], frame_col, 5.0, 5.0);
-    else
-        stroke(quad, 4, true, frame_col, frame_w);
+    std::vector<ImVec2> outline;
+    outline.reserve(f.border.size());
+    for (const Vec2d &b : f.border)
+        outline.push_back(P(b));
+    if (!outline.empty()) {
+        // The fill is only for the flat frame. A tile bent round a cylinder is not convex, and
+        // AddConvexPolyFilled on a concave outline tears; a triangle fan instead would seam along
+        // every shared edge at this alpha. The outline carries the shape on its own there, and the
+        // interior is still the move target whether or not it is tinted.
+        if (!f.curved)
+            dl->AddConvexPolyFilled(outline.data(), int(outline.size()), move_live ? fill_hot : fill);
+        if (f.clamped)
+            // Dashed says "not to scale": the tile is really smaller than this.
+            for (size_t i = 0; i < f.border.size(); ++i)
+                dashed(f.border[i], f.border[(i + 1) % f.border.size()], frame_col, 5.0, 5.0);
+        else
+            stroke(outline.data(), int(outline.size()), true, frame_col, frame_w);
+    }
 
     // ---- axis arrows: a move held to one of the tile's own axes --------------------------------
     for (int i = 0; i < 4; ++i) {
@@ -4072,6 +4357,89 @@ void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
         dl->AddPolyline(head, 3, gcol, 0, 1.5f);
     }
 
+    // ---- the projection's frame: its axis, its centre, its radius ------------------------------
+    if (f.proj) {
+        // Drawn in the structure grey rather than the accent: this is the frame the texture is
+        // wrapped on, not the texture's own placement, and the two should not read as one control.
+        //
+        // And faint until the cursor is actually on it. It sits around the whole shape, so at full
+        // strength it competes with the texture the rest of the gizmo is there to position; a touch
+        // brings it back. The halo and the casing fade with it, or a faint mark would keep a solid
+        // outline and end up louder than what it surrounds.
+        const auto at_alpha = [](ImU32 c, float k) {
+            const ImU32 a = ImU32(float((c >> IM_COL32_A_SHIFT) & 0xFF) * k);
+            return (c & ~(ImU32(0xFF) << IM_COL32_A_SHIFT)) | (a << IM_COL32_A_SHIFT);
+        };
+        // Two strengths, not one. The axis arrows are three coloured lines crossing the whole shape,
+        // so they stay quiet until touched; the diameter is a single ring that has to be legible at
+        // rest, because it is the one thing here that reads as a measurement.
+        const bool  arrows_live = act == AdjustHandle::ProjMove || act == AdjustHandle::ProjSpin;
+        const bool  ring_live   = act == AdjustHandle::ProjRadius;
+        const float arrows_a    = arrows_live ? 1.f : 0.26f;
+        const float ring_a      = ring_live ? 1.f : 0.9f;
+        const auto  fade        = [&](ImU32 c) { return at_alpha(c, arrows_a); };
+        const auto  proj_dot    = [&](const Vec2d &at, bool live, float alpha) {
+            const float r = float(ADJUST_PROJ_R_PX);
+            dl->AddCircleFilled(P(at), r + 0.5f * ADJUST_CASING_W_PX, at_alpha(casing, alpha), 16);
+            dl->AddCircleFilled(P(at), r + 0.5f * ADJUST_HALO_W_PX, at_alpha(halo, alpha), 16);
+            dl->AddCircleFilled(P(at), r, at_alpha(live ? act_col : handle, alpha), 16);
+            dl->AddCircle(P(at), r, at_alpha(live ? act_col : rest_col, alpha), 16, 1.6f);
+        };
+
+        // Orca's own axis colours, so X, Y and Z mean here what they mean in the move and rotate
+        // gizmos rather than being three anonymous rings.
+        const auto axis_col = [&](int k, bool live) {
+            if (live)
+                return fade(act_col);
+            const ColorRGBA &c = GLGizmoBase::AXES_COLOR[size_t(k)];
+            return fade(IM_COL32(int(c.r() * 255.f), int(c.g() * 255.f), int(c.b() * 255.f), 235));
+        };
+
+        for (int k = 0; k < 3; ++k) {
+            const bool  live_m = act == AdjustHandle::ProjMove && act_idx == k;
+            const ImU32 col    = axis_col(k, live_m);
+            const ImVec2 arm[2] = { P(f.proj_center), P(f.proj_move_tip[size_t(k)]) };
+            // No casing on a quiet arrow: a faint line inside a solid outline ends up louder than
+            // the thing it is drawn around.
+            if (live_m)
+                stroke(arm, 2, false, col, 1.8f);
+            else
+                dl->AddPolyline(arm, 2, col, ImDrawFlags(0), 1.4f);
+            proj_dot(f.proj_move_tip[size_t(k)], live_m, arrows_a);
+        }
+        if (f.proj_has_axis && f.proj_spin_axis >= 0) {
+            const size_t              k    = size_t(f.proj_spin_axis);
+            const std::vector<Vec2d> &ring = f.proj_spin[k];
+            if (ring.size() >= 3) {
+                const bool  live_s = act == AdjustHandle::ProjSpin;
+                const ImU32 col    = axis_col(f.proj_spin_axis, live_s);
+                for (size_t i = 0; i < ring.size(); ++i)
+                    dashed(ring[i], ring[(i + 1) % ring.size()], col, 7.0, 5.0);
+                proj_dot(f.proj_spin_grip[k], live_s, arrows_a);
+            }
+        }
+
+        // The radius as the circle it is, so "diameter" is something to drag rather than type.
+        if (f.proj_ring.size() > 2) {
+            // Dashed so it is never mistaken for an edge of the model, but with its own casing and
+            // weight so it is actually readable: this is a measurement, and it was the faintest mark
+            // on screen while the arrows beside it were the loudest.
+            const ImU32 col  = at_alpha(ring_live ? act_col : rest_col, ring_a);
+            const ImU32 cas  = at_alpha(casing, ring_a);
+            const ImU32 hal  = at_alpha(halo, ring_a);
+            const float w    = ring_live ? 2.6f : 2.2f;
+            for (size_t i = 0; i < f.proj_ring.size(); ++i) {
+                const Vec2d &a = f.proj_ring[i], &b = f.proj_ring[(i + 1) % f.proj_ring.size()];
+                dashed(a, b, cas, 9.0, 4.0, w + ADJUST_CASING_W_PX);
+                dashed(a, b, hal, 9.0, 4.0, w + ADJUST_HALO_W_PX);
+                dashed(a, b, col, 9.0, 4.0, w);
+            }
+            proj_dot(f.proj_ring_grip, ring_live, ring_a);
+        }
+        // The centre itself is a marker, not a handle: the three arrows are what moves it.
+        proj_dot(f.proj_center, false, arrows_a);
+    }
+
     // ---- the readout, by the cursor, only while a drag is live ----------------------------------
     if (!m_adjust_readout.empty() && ImGui::IsMousePosValid()) {
         const ImVec2 mouse = ImGui::GetIO().MousePos;
@@ -4099,6 +4467,76 @@ bool GLGizmoTextureDisplacement::on_mouse_adjust_texture(const wxMouseEvent &mou
         // when the gesture ends, exactly as a paint stroke is flushed on mouse-up.
         rebuild_preview();
         m_preview_params_dirty = false;
+        m_parent.set_as_dirty();
+        return true;
+    }
+
+    if (mouse_event.Dragging() &&
+        (m_adjust_drag_kind == AdjustHandle::ProjMove || m_adjust_drag_kind == AdjustHandle::ProjSpin ||
+         m_adjust_drag_kind == AdjustHandle::ProjRadius)) {
+        // The projection's own frame, dragged against world axes rather than against the camera's
+        // plane. A camera-plane drag cannot be aimed - the same gesture means a different thing from
+        // every viewpoint, and it can never land the axis exactly on an axis - which is why these are
+        // a ring and an arrow per world axis instead.
+        Transform3d trafo;
+        Vec3f       u_axis, v_axis, base;
+        if (!adjust_basis(trafo, u_axis, v_axis, base))
+            return true;
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        Vec3d         ray_o, ray_d;
+        CameraUtils::ray_from_screen_pos(camera, mouse, ray_o, ray_d);
+        const Transform3d to_frame = trafo.inverse();
+        const Vec3f o = (to_frame * ray_o).cast<float>();
+        const Vec3f d = Vec3f((to_frame.linear() * ray_d).cast<float>()).normalized();
+        const int   k = std::clamp(m_adjust_drag_index, 0, 2);
+        const Vec3f n = Vec3f::Unit(k);
+
+        if (m_adjust_drag_kind == AdjustHandle::ProjMove) {
+            // Closest approach between the cursor's ray and the axis line through the centre, which
+            // is what holds the drag to that one axis however the view is turned.
+            const Vec3f w0    = o - m_adjust_drag_start_center3;
+            const float b     = n.dot(d);
+            const float denom = 1.f - b * b;
+            if (std::abs(denom) < 1e-5f)
+                return true; // looking straight down the axis: no useful position along it
+            const float t = (n.dot(w0) - b * d.dot(w0)) / denom;
+            layer->proj_center_set = true;
+            layer->proj_center     = m_adjust_drag_start_center3 + n * (t - m_adjust_drag_start_along);
+            m_adjust_readout.clear();
+        } else {
+            // Both of these are read in the plane the handle lies in: the ring's own plane for a
+            // spin, the plane across the projection's axis for the radius.
+            const Vec3f plane_n = (m_adjust_drag_kind == AdjustHandle::ProjSpin) ? n : m_adjust_drag_start_axis;
+            const float denom   = d.dot(plane_n);
+            if (std::abs(denom) < 1e-6f)
+                return true; // edge-on to the plane the handle turns in
+            const float t = (m_adjust_drag_start_center3 - o).dot(plane_n) / denom;
+            if (t < 0.f)
+                return true;
+            const Vec3f hit = o + d * t;
+            const Vec3f rel = hit - m_adjust_drag_start_center3;
+
+            if (m_adjust_drag_kind == AdjustHandle::ProjRadius) {
+                const float r = (rel - plane_n * rel.dot(plane_n)).norm();
+                layer->proj_radius = std::max(r, 0.05f);
+                char buf[48];
+                std::snprintf(buf, sizeof(buf), "%.2f", double(2.f * layer->proj_radius));
+                m_adjust_readout = Slic3r::format(_u8L("Diameter %1% mm"), std::string(buf));
+            } else {
+                const Vec3f b1 = Vec3f::Unit((k + 1) % 3), b2 = Vec3f::Unit((k + 2) % 3);
+                if (rel.squaredNorm() < 1e-8f)
+                    return true;
+                const float ang   = std::atan2(rel.dot(b2), rel.dot(b1));
+                const float delta = ang - m_adjust_drag_start_angle;
+                // Turn the axis it started as, not the one it is now: accumulating frame to frame
+                // would drift, and a full turn would never come back to where it began.
+                layer->proj_axis = Vec3f(Eigen::AngleAxisf(delta, n) * m_adjust_drag_start_axis).normalized();
+                char buf[48];
+                std::snprintf(buf, sizeof(buf), "%.1f", double(delta * 180.f / float(M_PI)));
+                m_adjust_readout = std::string(buf) + "\u00B0";
+            }
+        }
+        m_preview_params_dirty = true;
         m_parent.set_as_dirty();
         return true;
     }
@@ -4299,6 +4737,48 @@ bool GLGizmoTextureDisplacement::on_mouse_adjust_texture(const wxMouseEvent &mou
         m_adjust_drag_start_angle  = std::atan2(rel.y(), rel.x());
         m_adjust_drag_start_mirror_u = layer->mirror_u;
         m_adjust_drag_start_mirror_v = layer->mirror_v;
+
+        // A grab on the projection's own frame records that frame instead, and where on it the
+        // cursor landed, so the drag can be measured from the grab rather than from the handle.
+        if (k == AdjustHandle::ProjMove || k == AdjustHandle::ProjSpin || k == AdjustHandle::ProjRadius) {
+            ensure_adjust_projection();
+            m_adjust_drag_start_center3 = m_adjust_patch_center;
+            m_adjust_drag_start_axis    = (m_adjust_patch_axis.norm() > 1e-8f) ?
+                                              Vec3f(m_adjust_patch_axis.normalized()) : Vec3f::UnitZ();
+            m_adjust_drag_start_along   = 0.f;
+            m_adjust_drag_start_angle   = 0.f;
+
+            Transform3d t2;
+            Vec3f       ua, va, bs;
+            if (adjust_basis(t2, ua, va, bs)) {
+                const Camera &cam = wxGetApp().plater()->get_camera();
+                Vec3d         ro, rd;
+                CameraUtils::ray_from_screen_pos(cam, mouse, ro, rd);
+                const Transform3d inv = t2.inverse();
+                const Vec3f go = (inv * ro).cast<float>();
+                const Vec3f gd = Vec3f((inv.linear() * rd).cast<float>()).normalized();
+                const int   ax = std::clamp(idx, 0, 2);
+                const Vec3f n  = Vec3f::Unit(ax);
+                if (k == AdjustHandle::ProjMove) {
+                    const Vec3f w0    = go - m_adjust_drag_start_center3;
+                    const float b     = n.dot(gd);
+                    const float denom = 1.f - b * b;
+                    if (std::abs(denom) > 1e-5f)
+                        m_adjust_drag_start_along = (n.dot(w0) - b * gd.dot(w0)) / denom;
+                } else {
+                    const Vec3f pn    = (k == AdjustHandle::ProjSpin) ? n : m_adjust_drag_start_axis;
+                    const float denom = gd.dot(pn);
+                    if (std::abs(denom) > 1e-6f) {
+                        const float t = (m_adjust_drag_start_center3 - go).dot(pn) / denom;
+                        if (t >= 0.f) {
+                            const Vec3f rel = go + gd * t - m_adjust_drag_start_center3;
+                            const Vec3f b1 = Vec3f::Unit((ax + 1) % 3), b2 = Vec3f::Unit((ax + 2) % 3);
+                            m_adjust_drag_start_angle = std::atan2(rel.dot(b2), rel.dot(b1));
+                        }
+                    }
+                }
+            }
+        }
         // Where the handle actually is, as against where the click landed inside its hit radius. The
         // scale drags read the extents straight off the cursor, so without this the tile would jump
         // by that difference the instant the button went down - and the radii are deliberately
@@ -4322,6 +4802,15 @@ bool GLGizmoTextureDisplacement::on_mouse_adjust_texture(const wxMouseEvent &mou
         m_adjust_readout.clear();
         m_parent.set_as_dirty();
         return true;
+    }
+
+    // Touching an axis reveals its orbit, and the orbit keeps itself alive while the cursor is on
+    // it - which is what lets you travel from the arrow to the ring without it vanishing on the way.
+    // Anything else puts it away.
+    const int want_spin = (k == AdjustHandle::ProjMove || k == AdjustHandle::ProjSpin) ? idx : -1;
+    if (want_spin != m_adjust_spin_axis) {
+        m_adjust_spin_axis = want_spin;
+        m_parent.set_as_dirty();
     }
 
     // Hover. Only ever one handle, and only redrawn when it actually changes - the pick runs on
@@ -8008,6 +8497,55 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                 _L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
                                                    "edge of the model."),
                                                 { { "rotation.gif" } });
+
+            // The axis a cylinder or a sphere wraps about. Fitted to the paint by default, which
+            // needs the paint to show the shape: a narrow stripe along a cylinder says nothing about
+            // where its axis runs. These name it outright, by the plane it is perpendicular to.
+            if (layer.projection_method == TextureProjectionMethod::Cylindrical ||
+                layer.projection_method == TextureProjectionMethod::Spherical) {
+                slider_label(_L("Wrap around"));
+                const Vec3f axes[3] = { Vec3f::UnitZ(), Vec3f::UnitY(), Vec3f::UnitX() };
+                // The plane the ring of the texture lies in; the axis is its normal.
+                const wxString names[3] = { _L("XY"), _L("XZ"), _L("YZ") };
+                const bool     automatic = layer.proj_axis.squaredNorm() <= 1e-12f;
+                const float    btn_h     = ImGui::GetFrameHeight();
+                const auto     axis_btn  = [&](const wxString &label, bool active, float w) {
+                    ImGui::PushStyleColor(ImGuiCol_Button, active ? ImVec4(orca.x, orca.y, orca.z, 0.22f) :
+                                                                    ImVec4(0.f, 0.f, 0.f, 0.f));
+                    const bool hit = ImGui::Button(label.ToUTF8().data(), ImVec2(w, btn_h));
+                    ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+                                                        ImGui::GetColorU32(active ? orca : col_frame),
+                                                        ImGui::GetStyle().FrameRounding);
+                    ImGui::PopStyleColor();
+                    return hit;
+                };
+                const float avail = content_rx - ImGui::GetCursorScreenPos().x - card_pad;
+                const float bw    = std::max((avail - 3.f * gap_s) / 4.f, m_imgui->scaled(2.f));
+                const bool all_auto = automatic && !layer.proj_center_set && layer.proj_radius <= 0.f;
+                if (axis_btn(_L("Auto"), all_auto, bw)) {
+                    // Everything the handles can set, back to being fitted: the axis, where it runs
+                    // through, and how wide it wraps. One button, because they are one answer.
+                    layer.proj_axis        = Vec3f::Zero();
+                    layer.proj_center_set  = false;
+                    layer.proj_radius      = -1.f;
+                    m_preview_params_dirty = true;
+                }
+                hover_tip(_u8L("Work the axis, the centre and the diameter out from the painted area itself, "
+                               "undoing anything set by dragging the handles on the model. Paint right around "
+                               "the shape for the best result: a narrow stripe does not show which way the "
+                               "axis runs."));
+                for (int a = 0; a < 3; ++a) {
+                    ImGui::SameLine(0.f, gap_s);
+                    if (axis_btn(names[a], !automatic && layer.proj_axis.isApprox(axes[a]), bw)) {
+                        layer.proj_axis        = axes[a];
+                        m_preview_params_dirty = true;
+                    }
+                    hover_tip(Slic3r::format(_u8L("Wrap the texture around the %1% plane, whatever the painted "
+                                                  "area suggests."),
+                                             into_u8(names[a])));
+                }
+
+            }
 
             if (m_layer_expanded[size_t(layer.slot)]) {
                 {

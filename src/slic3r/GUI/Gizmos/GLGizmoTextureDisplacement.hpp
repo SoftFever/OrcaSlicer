@@ -526,7 +526,13 @@ private:
     // The arrows and the bars share the same four rays out of the tile, so they are kept apart by
     // distance rather than direction: the bar hugs its edge, then a clear gap, then the arrow well
     // outside it. adjust_pick() leans on that - see the order it tests them in.
-    enum class AdjustHandle { None, Move, AxisMove, EdgeScale, CornerScale, Rotate };
+    // The first six place the *tile*. The last three place the *projection* a wrapped mapping wraps
+    // about - where its axis runs, where it sits and how wide it is - which until now could only be
+    // guessed from the painted area. Drawn only for Cylindrical and Spherical, and the axis only for
+    // Cylindrical: a spherical projection takes longitude and latitude from the world axes, so it
+    // has no axis of its own to point anywhere.
+    enum class AdjustHandle { None, Move, AxisMove, EdgeScale, CornerScale, Rotate,
+                              ProjMove, ProjSpin, ProjRadius };
 
     // The gizmo's geometry for one frame, in screen pixels. Worked out once and shared by the
     // drawing and the hit test, so the two cannot disagree about where a handle is. Everything
@@ -537,6 +543,12 @@ private:
     {
         bool  valid  = false;
         Vec2d center = Vec2d::Zero();
+        // The tile's outline on the surface, as a closed screen-space polyline. For Box mapping it is
+        // the four corners and nothing more; for the wrapped mappings it is sampled along the tile's
+        // uv border and bent back onto the model, so the frame lies on the shape instead of floating
+        // flat over it. Drawing and the interior hit test both read this, so they cannot disagree.
+        std::vector<Vec2d> border;
+        bool               curved = false;
         // +u+v, +u-v, -u-v, -u+v. A scale grip sits on each.
         std::array<Vec2d, 4> corner{};
         // +u, -u, +v, -v: the middle of each edge, and the two ends of the bar that sits just
@@ -556,6 +568,23 @@ private:
         // it does not simply track the nearest.
         std::array<Vec2d, 4> rotate_at{};
         int                  rotate_shown = 0;
+        // The projection's own handles, in screen pixels. `proj` is false for the mappings that have
+        // no projection frame to speak of, and proj_has_axis false for a sphere, whose longitude and
+        // latitude come from the world axes rather than from one of its own.
+        bool                 proj           = false;
+        bool                 proj_has_axis  = false;
+        Vec2d                proj_center    = Vec2d::Zero();
+        // A proper 3D manipulator rather than one handle dragged across the camera's plane: three
+        // rings to turn the axis about world X, Y and Z, and three arrows to slide the centre along
+        // them. A camera-plane drag cannot be aimed - the same gesture means something different from
+        // every viewpoint - and it can never put the axis exactly on an axis.
+        int                               proj_spin_axis = -1; // which orbit is shown, -1 for none
+        std::array<std::vector<Vec2d>, 3> proj_spin;      // the rings, as closed polylines
+        std::array<Vec2d, 3>              proj_spin_grip{};
+        std::array<Vec2d, 3>              proj_move_tip{}; // the arrows' tips
+        std::vector<Vec2d>                proj_ring;       // the radius, around the projection's own axis
+        Vec2d                             proj_ring_grip = Vec2d::Zero();
+        Vec3f                             proj_axis_dir  = Vec3f::UnitZ(); // the axis the frame was drawn with
         // The tile projects to less than ADJUST_MIN_TILE_PX across, so the frame was drawn at that
         // floor instead. It is dashed to say so, and the readout still gives the true millimetres.
         bool clamped = false;
@@ -576,6 +605,23 @@ private:
     // stored copy would quietly describe the shape it used to be. The expensive part - finding the
     // paint patch's centroid - stays cached in the local members.
     bool adjust_anchor_in_frame(Vec3f &pos, Vec3f &normal) const;
+    // Brings the wrapped projections' cached frame up to date with the active layer, recomputing it
+    // only when the mapping has actually changed - it walks the painted patch and the mesh's normals,
+    // which is far too much for every frame.
+    void ensure_adjust_projection() const;
+    // The radius the projection measures arc length at: the layer's own when it has been set by hand,
+    // otherwise -1 for "each point's own distance", which is what the formula does by default.
+    float layer_for_projection_radius() const;
+    // The planar coordinate that lands on `uv`. adjust_handle_planar() is this at the tile's middle;
+    // the frame's outline needs it all round the tile's border.
+    static Vec2f adjust_planar_at_uv(const TextureDisplacementLayer &layer, float aspect, const Vec2f &uv);
+    // ...and the point of the surface that planar coordinate came from, in the bake frame. Flat for
+    // Box mapping, on the cylinder or the sphere for the wrapped ones, which is what bends the frame.
+    // `base_planar` is where the drag plane itself projects to. project_planar() is absolute, so a
+    // flat reconstruction has to measure from it rather than treating the plane's own point as the
+    // origin; it only looked right while the painted patch happened to sit over the volume's origin.
+    Vec3f adjust_point_at_planar(const Vec2f &planar, const Vec3f &base, const Vec2f &base_planar,
+                                 const Vec3f &u_axis, const Vec3f &v_axis) const;
     // Drops every scrap of live gizmo state. Called from each of the several ways out of the mode -
     // the panel's toggle, collapsing the card, switching to seam marking, closing the gizmo - so a
     // stale hover highlight or a half-finished drag cannot survive into the next time it is opened.
@@ -1210,6 +1256,11 @@ private:
     float m_panel_body_h   = 0.f;
     float m_panel_footer_h = 0.f;
 
+    // Which axis has its orbit shown, or -1 for none. The arrows, the centre and the diameter ring
+    // are always there; the three rings around the whole shape are not, because they are a great deal
+    // to have in the way of a texture you are only trying to position. One appears once its own axis
+    // is touched, which is also the only way to reach it - and the only way it needs to be reached.
+    int   m_adjust_spin_axis         = -1;
     // See the "Adjust Texture" block of private methods above.
     bool  m_adjust_texture_mode      = false;
     bool  m_adjust_anchor_valid      = false;
@@ -1221,6 +1272,27 @@ private:
     // differ from the rendered one by exactly that scale.
     Vec3f m_adjust_anchor_pos        = Vec3f::Zero();
     Vec3f m_adjust_anchor_normal     = Vec3f::UnitZ();
+    // The wrapped projections' own frame, cached beside the anchor and refreshed with it: working it
+    // out means walking the painted patch and the mesh's normals, which is far too much to redo every
+    // frame. 0 planar, 1 cylindrical, 2 spherical, matching layer_projection_frame().
+    //
+    // The radius is the anchor's own, and it is an approximation on purpose: both projections scale
+    // by each point's *own* distance from the axis or centre, so there is no single cylinder to
+    // invert onto. The anchor's radius is the one that is right where the gizmo is, which is where it
+    // matters, and the projection itself is documented as a fit for roughly cylindrical selections
+    // rather than an exact map.
+    // Refreshed lazily, by ensure_adjust_projection(), rather than only when the anchor is: changing
+    // the Mapping row does not touch the anchor, and nor does an undo, so a cache that waited for one
+    // kept describing the projection the layer used to have. The gizmo then drew a flat tile from
+    // cylindrical coordinates, which lands nowhere near the model.
+    mutable int   m_adjust_cached_method  = -1; // TextureProjectionMethod the cache below was built for
+    mutable Vec3f m_adjust_cached_axis    = Vec3f::Zero(); // ...and the hand-set axis it was built for
+    mutable Vec3f m_adjust_cached_center  = Vec3f::Zero();
+    mutable float m_adjust_cached_radius  = -1.f;
+    mutable int   m_adjust_projection_mode = 0;
+    mutable Vec3f m_adjust_patch_center    = Vec3f::Zero();
+    mutable Vec3f m_adjust_patch_axis      = Vec3f::UnitZ();
+    mutable float m_adjust_patch_radius    = 1.f;
 
     // What the cursor is over, and what is being dragged. `index` picks the arm or the corner
     // (0..3, in AdjustFrame's order); it is -1 for Move and Rotate, which have only one of each.
@@ -1245,6 +1317,12 @@ private:
     float m_adjust_drag_start_rot    = 0.f;
     Vec2f m_adjust_drag_start_tile   = Vec2f::Ones(); // (u, v) extents as stored
     float m_adjust_drag_start_angle  = 0.f;           // planar angle of the grab, radians
+    // The projection frame as it stood when one of its own handles was grabbed. Every frame of the
+    // drag is measured from these rather than from the live values: a spin accumulated frame to
+    // frame drifts, and a full turn would never come back to where it started.
+    Vec3f m_adjust_drag_start_center3 = Vec3f::Zero(); // the projection's centre, bake frame
+    Vec3f m_adjust_drag_start_axis    = Vec3f::UnitZ();
+    float m_adjust_drag_start_along   = 0.f;           // where along the axis the grab landed
     // The mirroring the layer had when the drag began. A width or height handle dragged back through
     // the tile's middle toggles its axis against this, rather than against whatever the last frame
     // left behind, so dragging back and forth across the middle cannot ratchet the flag.
