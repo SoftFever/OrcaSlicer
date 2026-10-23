@@ -1805,8 +1805,8 @@ void TabPresetComboBox::update()
         wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
-        const wxString name  = from_u8(preset.name); 
-        preset_aliases[name] = get_preset_name(preset).utf8_string();             
+        const wxString name = from_u8(preset.name);
+        preset_aliases[name] = get_preset_name(preset).utf8_string();
         if (preset.is_system)
             preset_descriptions.emplace(name, from_u8(preset.description));
 
