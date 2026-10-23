@@ -45,8 +45,8 @@
 #include "SVG.hpp"
 
 // #define EXTRA_PERIM_DEBUG_FILES
-// #define PERIMETERS_DEBUG
-// #define BLOCKS_TO_DELETE
+#define PERIMETERS_DEBUG
+#define BLOCKS_TO_DELETE
 
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
@@ -1796,7 +1796,8 @@ void PerimeterGenerator::process_classic()
                         
                         if (should_enable_top_one_wall(infill_contour_by_one_wall, to_expolygons(upper_polygons_series_clipped))) {
                             // get the real top surface
-                            ExPolygons top_polygons_temp = offset_ex(diff_ex(last, upper_polygons_series_clipped, ApplySafetyOffset::Yes), perimeter_spacing); // offset_top_surface
+                            double top_surface_expansion = scale_(this->config->top_surface_expansion.value);
+                            ExPolygons top_polygons_temp = offset_ex(diff_ex(last, upper_polygons_series_clipped, ApplySafetyOffset::Yes), perimeter_spacing + top_surface_expansion); // offset_top_surface
                          
                             // get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
                             ExPolygons inner_polygons = diff_ex(last, offset_ex(top_polygons_temp, -ext_perimeter_half_width), ApplySafetyOffset::Yes);
@@ -1823,6 +1824,25 @@ void PerimeterGenerator::process_classic()
 
                             // store new infill polygon
                             last = intersection_ex(inner_polygons, last, ApplySafetyOffset::Yes);
+
+                            if (top_expolygons.size())
+                                apply_one_wall_top = true;
+
+                            
+                            // BBS: refer to superslicer
+                            // store surface for top infill if only_one_wall_top
+                            /*
+                            if (i != loop_number && !surface.is_bridge() && this->upper_slices != NULL) {
+                                if (top_fill_replaces_inner_walls(*this->config)) {
+                                    // ORCA: take the top fill and the keep-out region but leave `last` as the real geometry,
+                                    // so the onion follows it and the walls over the top are reduced in one step below.
+                                    if (top_expolygons.size()) {
+                                        apply_one_wall_top = !top_expolygons.empty();
+                                        one_wall_top_region = infill_contour_by_one_wall;
+                                    }
+                                }
+                            }
+                            */
 
                             //if (has_gap_fill)
                             //    last = union_ex(last,temp_gap);
@@ -2186,7 +2206,7 @@ void PerimeterGenerator::process_classic()
             coord_t solid_infill_spacing                   = this->solid_infill_flow.scaled_spacing();
             const double min_perimeter_infill_half_spacing = solid_infill_spacing * (1. - INSET_OVERLAP_TOLERANCE) * 0.5;
             double insert                                  = get_inset(loop_number, perimeter_spacing, ext_perimeter_spacing);
-            add_infill_contour(infill_contour, top_expolygons, insert, min_perimeter_infill_half_spacing);
+            add_infill_contour(infill_contour, top_expolygons, infill_contour_by_one_wall, insert, min_perimeter_infill_half_spacing);
 
         } else { // for each loop of an island
 
@@ -2210,10 +2230,11 @@ void PerimeterGenerator::process_classic()
     }
 
     for (const auto& sc : *this->fill_surfaces) { // final separated infill surfaces
-        svg.draw(sc.expolygon.contour.lines(), "dodgerblue", 0.1 * perimeter_width);
-        svg.draw(sc.expolygon, "dodgerblue", 0.5f); // offsetted surface
+        std::string sc_color = sc.is_solid() ? "orchid" : "dodgerblue";
+        svg.draw(sc.expolygon.contour.lines(), sc_color, 0.1 * perimeter_width);
+        svg.draw(sc.expolygon, sc_color, 0.5f); // offsetted surface
         for (const auto& hl : sc.expolygon.holes)
-            svg.draw(hl.lines(), "dodgerblue", 0.1 * perimeter_width);
+            svg.draw(hl.lines(), sc_color, 0.1 * perimeter_width);
     }
 
     svg.Close();
@@ -2272,6 +2293,7 @@ void PerimeterGenerator::add_gap_filling(ExPolygons& gaps) {
 // It is important that 'infill_contour' and 'top_expolygons' do not overlap each over to better identify the insert zones.
 void PerimeterGenerator::add_infill_contour(ExPolygons&   infill_contour,
                                             ExPolygons&   top_expolygons,
+                                            ExPolygons&   infill_contour_by_one_wall,
                                             double        insert,
                                             double        min_spacing)
 {   
@@ -2321,9 +2343,10 @@ void PerimeterGenerator::add_infill_contour(ExPolygons&   infill_contour,
         
         if (this->upper_slices != nullptr) {
             
-            double offset_top_surface = this->config->one_wall_top_surface_inset.value * 0.01 * perimeter_spacing;
+            double top_surface_expansion = scale_(this->config->top_surface_expansion.value);
+            double offset_top_surface = this->config->top_surface_inset.value * 0.01 * perimeter_spacing;
 
-            ExPolygons separator = offset_ex(*this->upper_slices, -offset_top_surface);
+            ExPolygons separator     = offset_ex(*this->upper_slices, -offset_top_surface - top_surface_expansion);
             ExPolygons top_to_offset = intersection_ex(top_expolygons, separator, ApplySafetyOffset::Yes);
             top_expolygons = diff_ex(offset_ex(top_expolygons, top_insert), separator, ApplySafetyOffset::Yes);
             
@@ -3334,41 +3357,41 @@ void PerimeterGenerator::process_arachne()
     //double insert                                  = get_inset(loop_number, perimeter_spacing, ext_perimeter_spacing);
     //add_infill_contour(infill_contour, top_expolygons, insert, min_perimeter_infill_half_spacing);
 
-#ifdef PERIMETERS_DEBUG
-    for (int i = 0; i < this->loops->size(); ++i) {
-        auto& e = this->loops->entities[i];
-        svg.draw(e->as_polylines(), e->inset_idx == 0 ? "orange" : "yellow", 0.6 * perimeter_width); // new external / internal
-    }
-
-    if (this->lower_slices != nullptr) // upper contours
-        for (const auto& sl : *this->lower_slices) {
-            svg.draw(sl.contour.lines(), "springgreen", 0.2 * perimeter_width);
-            for (const auto& hl : sl.holes)
-                svg.draw(hl.lines(), "mediumseagreen", 0.2 * perimeter_width);
-        }
-
-    if (this->upper_slices != nullptr) // upper contours
-        for (const auto& sl : *this->upper_slices) {
-            svg.draw(sl.contour.lines(), "red", 0.2 * perimeter_width);
-            for (const auto& hl : sl.holes)
-                svg.draw(hl.lines(), "darkred", 0.2 * perimeter_width);
-        }
-
-    for (const auto& expg : *this->fill_no_overlap) {
-        svg.draw(expg, "lime", 0.5f);
-        svg.draw(expg.contour.lines(), "lime", 0.1 * perimeter_width);
-        for (const auto& hl : expg.holes)
-            svg.draw(hl.lines(), "lime", 0.1 * perimeter_width);
-    }
-
-    for (const auto& sc : *this->fill_surfaces) { 
-        svg.draw(sc.expolygon, "dodgerblue", 0.5f);
-        svg.draw(sc.expolygon.contour.lines(), "dodgerblue", 0.1 * perimeter_width);
-        for (const auto& hl : sc.expolygon.holes)
-            svg.draw(hl.lines(), "dodgerblue", 0.1 * perimeter_width);
-      }
-    svg.Close();
-#endif
+//#ifdef PERIMETERS_DEBUG
+//    for (int i = 0; i < this->loops->size(); ++i) {
+//        auto& e = this->loops->entities[i];
+//        svg.draw(e->as_polylines(), e->inset_idx == 0 ? "orange" : "yellow", 0.6 * perimeter_width); // new external / internal
+//    }
+//
+//    if (this->lower_slices != nullptr) // upper contours
+//        for (const auto& sl : *this->lower_slices) {
+//            svg.draw(sl.contour.lines(), "springgreen", 0.2 * perimeter_width);
+//            for (const auto& hl : sl.holes)
+//                svg.draw(hl.lines(), "mediumseagreen", 0.2 * perimeter_width);
+//        }
+//
+//    if (this->upper_slices != nullptr) // upper contours
+//        for (const auto& sl : *this->upper_slices) {
+//            svg.draw(sl.contour.lines(), "red", 0.2 * perimeter_width);
+//            for (const auto& hl : sl.holes)
+//                svg.draw(hl.lines(), "darkred", 0.2 * perimeter_width);
+//        }
+//
+//    for (const auto& expg : *this->fill_no_overlap) {
+//        svg.draw(expg, "lime", 0.5f);
+//        svg.draw(expg.contour.lines(), "lime", 0.1 * perimeter_width);
+//        for (const auto& hl : expg.holes)
+//            svg.draw(hl.lines(), "lime", 0.1 * perimeter_width);
+//    }
+//
+//    for (const auto& sc : *this->fill_surfaces) { 
+//        svg.draw(sc.expolygon, "dodgerblue", 0.5f);
+//        svg.draw(sc.expolygon.contour.lines(), "dodgerblue", 0.1 * perimeter_width);
+//        for (const auto& hl : sc.expolygon.holes)
+//            svg.draw(hl.lines(), "dodgerblue", 0.1 * perimeter_width);
+//      }
+//    svg.Close();
+//#endif
 } // process_arachne()
 
 // ORCA: expand the top expoly and determine whether to enable top one wall feature

@@ -186,7 +186,7 @@ bool Layer::is_perimeter_compatible(const Print& print, const PrintRegion& a, co
         && config.only_one_wall_first_layer == other_config.only_one_wall_first_layer
         && config.top_one_wall_type         == other_config.top_one_wall_type
         && config.min_width_top_surface     == other_config.min_width_top_surface
-        && config.one_wall_top_surface_inset == other_config.one_wall_top_surface_inset
+        && config.top_surface_inset == other_config.top_surface_inset
         && config.seam_slope_type         == other_config.seam_slope_type
         && config.seam_slope_conditional == other_config.seam_slope_conditional
         && config.scarf_angle_threshold  == other_config.scarf_angle_threshold

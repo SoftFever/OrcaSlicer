@@ -1376,7 +1376,7 @@ static std::vector<std::string> s_Preset_print_options{
     "travel_acceleration",
     "inner_wall_acceleration",
     "min_width_top_surface",
-    "one_wall_top_surface_inset",
+    "top_surface_inset",
     "default_jerk",
     "outer_wall_jerk",
     "inner_wall_jerk",

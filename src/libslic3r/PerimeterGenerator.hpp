@@ -157,7 +157,7 @@ public:
     inline double get_inset(int loop_number, double perimeter_spacing, double ext_perimeter_spacing);
 
     void        add_gap_filling(ExPolygons& gaps); 
-    void        add_infill_contour(ExPolygons& infill_contour, ExPolygons& top_expolygons, double insert, double min_spacing);
+    void        add_infill_contour(ExPolygons& infill_contour, ExPolygons& top_expolygons, ExPolygons& infill_contour_by_one_wall, double insert, double min_spacing);
     void        add_infill_zero_contour(ExPolygons& infill_contour); 
     double      ext_mm3_per_mm()        const { return m_ext_mm3_per_mm; }
     double      mm3_per_mm()            const { return m_mm3_per_mm; }
