@@ -90,9 +90,8 @@ PaletteWithAlpha convert_filament_colors(const std::vector<std::string>& colors_
             ret.push_back({ DUMMY_COLOR[0], DUMMY_COLOR[1], DUMMY_COLOR[2], 255 });
             continue;
         }
-        // An almost clear filament is drawn as in the 3D view, see adjust_color_for_rendering().
-        if (color_rgba.a() < FullyTransparentMaterialThreshold)
-            color_rgba = { 1.0f, 1.0f, 1.0f, FullTransparentModdifiedToFixAlpha };
+        // as the 3D view draws it: a clear color kept at the least opacity, black lifted
+        color_rgba = adjust_color_for_rendering(color_rgba);
         const Color color = convert(color_rgba);
         ret.push_back({ color[0], color[1], color[2], static_cast<uint8_t>(std::lround(255.0f * color_rgba.a())) });
     }

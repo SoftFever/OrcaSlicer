@@ -37,18 +37,37 @@ TEST_CASE("Filament colors keep their opacity for the G-code preview", "[GCodePr
     CHECK(palette[2] == dummy);
 }
 
-TEST_CASE("An almost clear filament is previewed as the 3D view draws it", "[GCodePreviewColors]")
+TEST_CASE("An almost clear filament keeps its color at the least opacity", "[GCodePreviewColors]")
 {
     Slic3r::ColorRGBA clear;
     REQUIRE(Slic3r::decode_color("#3366CC10", clear));
     REQUIRE(clear.a() < FullyTransparentMaterialThreshold);
     const Slic3r::ColorRGBA drawn = adjust_color_for_rendering(clear);
+    CHECK(drawn.r() == clear.r());
+    CHECK(drawn.g() == clear.g());
+    CHECK(drawn.b() == clear.b());
+    CHECK(drawn.a() == FullyTransparentMaterialThreshold);
 
     const libvgcode::PaletteWithAlpha palette = libvgcode::convert_filament_colors({ "#3366CC10" });
     REQUIRE(palette.size() == 1);
     for (int i = 0; i < 3; ++i)
         CHECK(palette[0][i] == std::lround(255.0f * drawn[i]));
     CHECK(palette[0][3] == std::lround(255.0f * drawn.a()));
+}
+
+TEST_CASE("A translucent black filament is lifted to a grey that rises with its transparency", "[GCodePreviewColors]")
+{
+    const libvgcode::PaletteWithAlpha palette = libvgcode::convert_filament_colors({ "#000000", "#00000080", "#00000020" });
+    REQUIRE(palette.size() == 3);
+    for (const libvgcode::ColorWithAlpha& color : palette) {
+        CHECK(color[1] == color[0]);
+        CHECK(color[2] == color[0]);
+    }
+    CHECK(palette[0][3] == 255);
+    CHECK(palette[1][3] == 0x80);
+    CHECK(palette[0][0] < palette[1][0]);
+    CHECK(palette[1][0] < palette[2][0]);
+    CHECK(palette[2][0] < 160);
 }
 
 TEST_CASE("Preview filament colors convert back with their opacity", "[GCodePreviewColors]")

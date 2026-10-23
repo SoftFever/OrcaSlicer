@@ -111,14 +111,15 @@ static constexpr int OUTLINE_DEPTH_TEX_UNIT = 5;
 
 Slic3r::ColorRGBA adjust_color_for_rendering(const Slic3r::ColorRGBA &colors)
 {
-    if (colors.a() < FullyTransparentMaterialThreshold) { // completely transparent
-        return {1, 1, 1, FullTransparentModdifiedToFixAlpha};
+    // a clear color keeps its hue, at the least opacity that still shows it
+    const float alpha = std::max(colors.a(), FullyTransparentMaterialThreshold);
+    if (colors.r() < FULL_BLACK_THRESHOLD && colors.g() < FULL_BLACK_THRESHOLD && colors.b() < FULL_BLACK_THRESHOLD) {
+        // black, lifted so that the shading shows, the more the more translucent: a dark translucent
+        // surface shows nothing through itself
+        const float grey = FULL_BLACK_THRESHOLD + 0.3f * (1.0f - alpha);
+        return {grey, grey, grey, alpha};
     }
-    else if(colors.r() < FULL_BLACK_THRESHOLD && colors.g() < FULL_BLACK_THRESHOLD && colors.b() < FULL_BLACK_THRESHOLD) { // black
-        return {FULL_BLACK_THRESHOLD, FULL_BLACK_THRESHOLD, FULL_BLACK_THRESHOLD, colors.a()};
-    }
-    else
-        return colors;
+    return {colors.r(), colors.g(), colors.b(), alpha};
 }
 
 namespace Slic3r {

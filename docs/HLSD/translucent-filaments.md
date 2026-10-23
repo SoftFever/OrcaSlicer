@@ -13,8 +13,10 @@ opacity of the plastic the view ray crosses, matte without realistic view and gl
   color by feature or by a value, and stay opaque.
 - Only extrusions. Travels, wipes and option markers stay opaque, and so do the layers that hold a
   pause or a custom G-code, which these views draw grey.
-- A filament with less than 10% opacity is drawn as white at 30%, as `adjust_color_for_rendering()`
-  does in Prepare. Otherwise a fully clear filament would not be drawn at all.
+- A filament keeps its color down to 10% opacity, the floor `adjust_color_for_rendering()` gives it in
+  Prepare too, so that a fully clear filament is still drawn. A near-black filament is lifted to a grey
+  that rises with its transparency: a dark translucent surface shows nothing through itself, so without
+  the lift its layers blend into one flat black.
 - The "Translucent filaments" preference (`preview_translucent_filaments`, on by default) turns all
   of it off: every filament is then drawn opaque, the legend swatches included. It applies to the
   loaded preview at once, through `Viewer::set_translucent_filaments()`.
