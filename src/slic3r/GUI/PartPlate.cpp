@@ -1747,7 +1747,7 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, GLModel& logo_buffe
 		if (shader != nullptr) {
 			shader->start_using();
             const Camera &camera = wxGetApp().plater()->get_camera();
-            shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+            shader->set_uniform("view_model_matrix", preview_view_matrix(camera.get_view_matrix()));
             shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 			shader->set_uniform("transparent_background", 0);
 			shader->set_uniform("svg_source", 0);
@@ -1915,7 +1915,7 @@ void PartPlate::render_grid(bool bottom) {
 
     const Camera& camera = wxGetApp().plater()->get_camera();
     const std::array<int, 4>& viewport = camera.get_viewport();
-    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d view_matrix = preview_view_matrix(camera.get_view_matrix());
     const Transform3d& projection_matrix = camera.get_projection_matrix();
 
     shader->set_uniform("view_model_matrix", view_matrix);
@@ -2046,7 +2046,7 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 	if (shader != nullptr) {
 		shader->start_using();
         const Camera &camera = wxGetApp().plater()->get_camera();
-        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("view_model_matrix", preview_view_matrix(camera.get_view_matrix()));
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 		shader->set_uniform("transparent_background", bottom);
 		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
@@ -2232,7 +2232,7 @@ void PartPlate::render_only_numbers(bool bottom)
 	if (shader != nullptr) {
 		shader->start_using();
         const Camera &camera = wxGetApp().plater()->get_camera();
-        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("view_model_matrix", preview_view_matrix(camera.get_view_matrix()));
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 		shader->set_uniform("transparent_background", bottom);
 		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
@@ -4556,7 +4556,7 @@ void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projec
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("view_model_matrix", preview_view_matrix(view_matrix));
         shader->set_uniform("projection_matrix", projection_matrix);
 
         if (!bottom) {
@@ -4616,6 +4616,11 @@ void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projec
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
+}
+
+Transform3d PartPlate::preview_view_matrix(const Transform3d& view_matrix) const
+{
+	return m_preview_offset.isZero() ? view_matrix : Transform3d(view_matrix * Geometry::translation_transform(m_preview_offset));
 }
 
 void PartPlate::set_selected() {
