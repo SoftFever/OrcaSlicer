@@ -1200,6 +1200,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     add_change_filament_624 = true;
                 }
                 end_filament_gcode_str += gcodegen.placeholder_parser_process("filament_end_gcode", filament_end_gcode, old_filament_id, &config);
+                gcodegen.check_gcode_pos_valid("filament_end_gcode", filament_end_gcode, old_filament_id, &config);
                 check_add_eol(end_filament_gcode_str);
             }
         }
@@ -1453,6 +1454,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 }
             }
             toolchange_gcode_str = gcodegen.placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_filament_id, &config);
+            gcodegen.check_gcode_pos_valid("change_filament_gcode", change_filament_gcode, new_filament_id, &config);
 
             check_add_eol(toolchange_gcode_str);
             // Type1 wipe tower path (every BBL printer): bracket the same way set_extruder() does,
@@ -1588,6 +1590,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             config.set_key_value("layer_z", new ConfigOptionFloat(tcr.print_z));
             config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
             start_filament_gcode_str = gcodegen.placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
+            gcodegen.check_gcode_pos_valid("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
             if (add_change_filament_624) {
                 start_filament_gcode_str += "M625\n";
                 add_change_filament_624 = false;
@@ -1612,6 +1615,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         config.set_key_value("change_filament_gcode", new ConfigOptionString(toolchange_gcode_str));
         config.set_key_value("filament_start_gcode", new ConfigOptionString(start_filament_gcode_str));
         std::string tcr_gcode, tcr_escaped_gcode = gcodegen.placeholder_parser_process("tcr_rotated_gcode", tcr_rotated_gcode, new_filament_id, &config);
+        gcodegen.check_gcode_pos_valid("tcr_rotated_gcode", tcr_rotated_gcode, new_filament_id, &config);
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
         gcode += tower_height_tag(gcodegen, tcr, tcr_gcode);
         gcode += tcr_gcode;
@@ -1916,6 +1920,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         std::string tcr_gcode,
             tcr_escaped_gcode = gcodegen.placeholder_parser_process("tcr_rotated_gcode", tcr_rotated_gcode, new_extruder_id, &config);
+        gcodegen.check_gcode_pos_valid("tcr_rotated_gcode", tcr_rotated_gcode, new_extruder_id, &config);
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
         gcode += tower_height_tag(gcodegen, tcr, tcr_gcode);
         gcode += tcr_gcode;
@@ -3396,6 +3401,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
     // init as filament map
     update_layer_related_config(0);
+    make_gcode_position_limits(&print);
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled,
@@ -4194,12 +4200,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // The processed result is buffered here and written to the file after temp setup below.
     std::string imex_processed_gcode;
     if (!imex_active_mode_gcode.empty())
+    {
         imex_processed_gcode = this->placeholder_parser_process(
             "imex_mode_gcode", imex_active_mode_gcode, initial_extruder_id);
+        check_gcode_pos_valid("imex_mode_gcode", imex_active_mode_gcode, initial_extruder_id);
+    }
     // Expand the file header only after the start-up placeholders and writer state are ready.
     // Use the regular custom G-code path so invalid placeholders report the template name.
     if (!print.config().file_start_gcode.value.empty())
+    {
         file.writeln(this->placeholder_parser_process("file_start_gcode", print.config().file_start_gcode.value, initial_extruder_id));
+        check_gcode_pos_valid("file_start_gcode", print.config().file_start_gcode.value, initial_extruder_id);
+
+    }
 
     // Orca: Don't output Header block if BTT thumbnail is identified in the list
     // Get the thumbnails value as a string
@@ -4350,6 +4363,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
+    check_gcode_pos_valid("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
+    
     if (print.config().gcode_flavor != gcfKlipper) {
         // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
         this->_print_first_layer_bed_temperature(file, print, machine_start_gcode, initial_extruder_id, true);
@@ -4400,6 +4415,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             config.set_key_value("layer_z", new ConfigOptionFloat(m_writer.get_position().z() - m_config.z_offset.value));
             config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
             std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.get_at(initial_non_support_extruder_id), initial_non_support_extruder_id,&config);
+            check_gcode_pos_valid("filament_start_gcode", print.config().filament_start_gcode.get_at(initial_non_support_extruder_id),initial_non_support_extruder_id, &config);
             file.writeln(filament_start_gcode);
             // Mark the first filament used in print. Multi-nozzle printers (H2C) get ";VT%d H%d" where
             // H = dynamic ? nozzle_id : -1; existing single-nozzle printers keep the bare ";VT%d" so their
@@ -4664,6 +4680,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     // is triggered, so machine has more time to reach such temperatures.
                     this->placeholder_parser().set("current_object_idx", int(finished_objects));
                     std::string printing_by_object_gcode = this->placeholder_parser_process("printing_by_object_gcode", print.config().printing_by_object_gcode.value, initial_extruder_id);
+                    check_gcode_pos_valid("printing_by_object_gcode", print.config().printing_by_object_gcode.value, initial_extruder_id);
                     // Set first layer bed and extruder temperatures, don't wait for it to reach the temperature.
                     this->_print_first_layer_bed_temperature(file, print, printing_by_object_gcode, initial_extruder_id, false);
                     this->_print_first_layer_extruder_temperatures(file, print, printing_by_object_gcode, initial_extruder_id, false);
@@ -4833,6 +4850,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             config.set_key_value("current_extruder_id", new ConfigOptionInt((int) get_extruder_id(extruder_id)));
             config.set_key_value("current_nozzle_id", new ConfigOptionInt(nozzle_id_for_gcode_placeholder(group_result, extruder_id, (int) get_extruder_id(extruder_id), m_layer_index)));
             file.writeln(this->placeholder_parser_process("filament_end_gcode", print.config().filament_end_gcode.get_at(extruder_id), extruder_id, &config));
+            check_gcode_pos_valid("filament_end_gcode", print.config().filament_end_gcode.get_at(extruder_id), extruder_id, &config);
         } else {
             for (const std::string &end_gcode : print.config().filament_end_gcode.values) {
                 int extruder_id = (unsigned int)(&end_gcode - &print.config().filament_end_gcode.values.front());
@@ -4841,9 +4859,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 config.set_key_value("current_extruder_id", new ConfigOptionInt((int) get_extruder_id(extruder_id)));
                 config.set_key_value("current_nozzle_id", new ConfigOptionInt(nozzle_id_for_gcode_placeholder(group_result, extruder_id, (int) get_extruder_id(extruder_id), m_layer_index)));
                 file.writeln(this->placeholder_parser_process("filament_end_gcode", end_gcode, extruder_id, &config));
+                check_gcode_pos_valid("filament_end_gcode", print.config().filament_end_gcode.get_at(extruder_id), extruder_id, &config);
             }
         }
         file.writeln(this->placeholder_parser_process("machine_end_gcode", print.config().machine_end_gcode, m_writer.filament()->id(), &config));
+        check_gcode_pos_valid("machine_end_gcode", print.config().machine_end_gcode, m_writer.filament()->id(), &config);
     }
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
@@ -5055,6 +5075,31 @@ size_t GCode::get_nozzle_config_index(int filament_id) const
                                         [&] { return m_print->get_nozzle_config_index(filament_id, m_cur_layer_idx); });
     // Orca: same reasoning; degenerate to the filament's extruder column.
     return get_extruder_id(filament_id);
+}
+
+void GCode::make_gcode_position_limits(const Print* print) 
+{
+    GCodePositionLimits limits;
+
+    limits.m_printable_area.contour = Slic3r::Polygon::new_scale(print->config().printable_area.values);
+    limits.m_printable_area.holes.emplace_back(Slic3r::Polygon::new_scale(print->config().bed_exclude_area.values));
+
+    limits.m_printable_height = print->config().printable_height.value;
+
+    for (const auto& poly : effective_extruder_move_areas(print->config())) {
+        Slic3r::Polygon extruder_area = Slic3r::Polygon::new_scale(poly);
+        limits.m_extruder_movable_areas.emplace_back(std::move(extruder_area));
+    }
+
+    limits.m_extruder_printable_heights = print->config().extruder_printable_height.values;
+
+    // limits.m_extruder_offsets = print->config().extruder_offset;
+    auto& extruder_offsets = print->config().extruder_offset.values;
+    for (const auto& offset : extruder_offsets) {
+        limits.m_extruder_offsets.emplace_back(Slic3r::Vec2d(offset.x(), offset.y()));
+    }
+
+    m_position_limits = limits;
 }
 
 namespace {
@@ -5397,6 +5442,48 @@ PlaceholderParserIntegration &ppi = m_placeholder_parser_integration;
     }
 }
 
+void GCode::check_gcode_pos_valid(const std::string& name,
+                                  const std::string& templ,
+                                  unsigned int current_filament_id,
+                                  const DynamicConfig* config_override)
+{ 
+    std::string gcode          = this->placeholder_parser_process(name, templ, current_filament_id, config_override);
+
+    if (!m_position_limits)
+        return;
+    if (this->m_processor.get_result().moves.empty())
+        return;
+
+    GCodePositionLimits& limits = *m_position_limits;
+
+    auto extruder_id      = m_print->get_extruder_id(current_filament_id);
+    auto& curr_pos    = limits.m_curr_pos;
+
+    GCodeReader reader;
+    reader.parse_buffer(gcode, [&](GCodeReader& parser, const GCodeReader::GCodeLine& gline) {
+        float x = gline.has_x() ? gline.x() : parser.x();
+        float y = gline.has_y() ? gline.y() : parser.y();
+
+        const bool is_motion = gline.cmd_is("G0") || gline.cmd_is("G1") || gline.cmd_is("G2") || gline.cmd_is("G3");
+        if (!is_motion || !(gline.has_x() || gline.has_y()))
+            return;
+
+        curr_pos = Vec2d{x + limits.m_extruder_offsets[extruder_id].x(), y + limits.m_extruder_offsets[extruder_id].y()};
+        const bool outside_extruder_area = extruder_id >= limits.m_extruder_movable_areas.size() ||
+                                           !limits.m_extruder_movable_areas[extruder_id].contains(Point::new_scale(curr_pos));
+        if (outside_extruder_area) {
+            const std::string error_message = "Move Pos : " + Slic3r::float_to_string_decimal_point(curr_pos.x(), 2) + " " + 
+                                                Slic3r::float_to_string_decimal_point(curr_pos.y(), 2)
+                                                + " out of Movable Area in G-Code : " + gline.raw() +
+                                              " with preset " + name;
+
+            m_print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, error_message,
+                                          PrintStateBase::SlicingNotificationType::SlicingGcodePositionError);
+            parser.quit_parsing();
+        }
+    });
+}
+
 
 // Print the machine envelope G-code for the Marlin firmware based on the "machine_max_xxx" parameters.
 // Do not process this piece of G-code by the time estimator, it already knows the values through another sources.
@@ -5727,12 +5814,16 @@ namespace ProcessLayer
                     //if (!pause_print_msg.empty())
                     //    gcode += "M117 " + pause_print_msg + "\n";
                     gcode += gcodegen.placeholder_parser_process("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id) + "\n";
+                    gcodegen.check_gcode_pos_valid("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id);
                 }
                 else {
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Custom_Code) + "\n";
                     if (gcode_type == CustomGCode::Template)    // Template Custom Gcode
+                    {
                         gcode += gcodegen.placeholder_parser_process("template_custom_gcode", config.template_custom_gcode, current_extruder_id);
+                        gcodegen.check_gcode_pos_valid("template_custom_gcode", config.template_custom_gcode, current_extruder_id);
+                    }
                     else                                        // custom Gcode
                         gcode += custom_gcode->extra;
 
@@ -6100,6 +6191,7 @@ std::string GCode::process_layer_change_gcode(const Print &print, coordf_t print
     config.set_key_value("curr_accumulated_mass", new ConfigOptionFloat(curr_accumulated_mass));
     config.set_key_value("curr_layer_mass", new ConfigOptionFloat(curr_layer_mass));
 
+    check_gcode_pos_valid("layer_change_gcode", print.config().layer_change_gcode.value, m_writer.filament()->id(), &config);
     return this->placeholder_parser_process("layer_change_gcode",
         print.config().layer_change_gcode.value, m_writer.filament()->id(), &config)
         + "\n";
@@ -6189,6 +6281,7 @@ LayerResult GCode::process_belt_brim_layer(
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
         gcode += this->placeholder_parser_process("before_layer_change_gcode",
             print.config().before_layer_change_gcode.value, m_writer.filament()->id(), &config) + "\n";
+        check_gcode_pos_valid("before_layer_change_gcode", print.config().before_layer_change_gcode.value, m_writer.filament()->id(), &config);
     }
 
     gcode += this->change_layer(print_z);
@@ -6466,6 +6559,7 @@ std::string GCode::generate_timelapse_gcode(const Print &print, coordf_t print_z
     if (!print.config().time_lapse_gcode.value.empty()) {
         const DynamicConfig config = timelapse_gcode_config(print, print_z, most_used_extruder, printed_objects, skip_pos_pick);
         timelapse_gcode = this->placeholder_parser_process("time_lapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
+        check_gcode_pos_valid("time_lapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config);
     }
 
     if (!timelapse_gcode.empty()) {
@@ -6661,6 +6755,7 @@ LayerResult GCode::process_layer(
         gcode += this->placeholder_parser_process("before_layer_change_gcode",
             print.config().before_layer_change_gcode.value, m_writer.filament()->id(), &config)
             + "\n";
+        check_gcode_pos_valid("before_layer_change_gcode", print.config().before_layer_change_gcode.value, m_writer.filament()->id(), &config);
     }
 
     PrinterStructure printer_structure           = m_config.printer_structure.value;
@@ -6703,6 +6798,7 @@ LayerResult GCode::process_layer(
         gcode += this->placeholder_parser_process("time_lapse_gcode",
              print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config)
              + "\n";
+        check_gcode_pos_valid("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config);
     }
 
     if (!m_config.layer_change_gcode.value.empty())
@@ -7399,6 +7495,7 @@ LayerResult GCode::process_layer(
             config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
             config.set_key_value("curr_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(m_writer.filament()->extruder_id())));
             wrapping_gcode = this->placeholder_parser_process("wrapping_detection_gcode", print.config().wrapping_detection_gcode.value, m_writer.filament()->id(), &config) +"\n";
+            check_gcode_pos_valid("wrapping_detection_gcode", print.config().wrapping_detection_gcode.value, m_writer.filament()->id(), &config);
         }
         m_writer.set_current_position_clear(false);
 
@@ -9672,9 +9769,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, const std::string &path_d
             const auto append_role_gcode = [this, current_filament_id, &config, &gcode](const std::string& key, const std::string& templ) {
                 if (templ.empty())
                     return;
+                check_gcode_pos_valid(key, templ, current_filament_id, &config);
                 gcode += this->placeholder_parser_process(key, templ, current_filament_id, &config) + "\n";
             };
-
+            
             append_role_gcode("change_extrusion_role_gcode", machine_role_change_gcode);
             append_role_gcode("filament_change_extrusion_role_gcode", filament_role_change_gcode);
             append_role_gcode("process_change_extrusion_role_gcode", process_role_change_gcode);
@@ -10872,6 +10970,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             }
 
             gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
+            check_gcode_pos_valid("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
             check_add_eol(gcode);
         }
         // In IMEX parallel modes each carriage needs an explicit tool address. In primary
@@ -10927,6 +11026,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
                 add_change_filament_624   = true;
             }
             gcode += placeholder_parser_process("filament_end_gcode", filament_end_gcode, old_filament_id, &config);
+            check_gcode_pos_valid("filament_end_gcode", filament_end_gcode, old_filament_id, &config);
             check_add_eol(gcode);
         }
     }
@@ -11194,6 +11294,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         dyn_config.set_key_value("toolchange_z", new ConfigOptionFloat(print_z));
 
         toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_filament_id, &dyn_config);
+        check_gcode_pos_valid("change_filament_gcode", change_filament_gcode, new_filament_id, &dyn_config);
         check_add_eol(toolchange_gcode_parsed);
         // toolchange_gcode_parsed is still read below (get_last_z_from_gcode, custom_gcode_changes_tool).
         gcode += wrap_custom_gcode_for_fan_mover(m_config, toolchange_gcode_parsed);
@@ -11292,6 +11393,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             config.set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts(first_layer_temps));
         }
         gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
+        check_gcode_pos_valid("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
         if (add_change_filament_624) {
             gcode += "M625\n";
             add_change_filament_624 = false;
