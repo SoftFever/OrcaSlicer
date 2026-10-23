@@ -287,7 +287,7 @@ void ComboBox::DoDeleteOneItem(unsigned int pos)
 
 void ComboBox::ForceDropdownOpen()
 {
-    if (!IsEnabled())
+    if (!IsEnabled() || items.empty())
         return;
 
     if (!drop_down) {
@@ -426,7 +426,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
         case WXK_SPACE:
             if (drop_down) {
                 drop.DismissAndNotify();
-            } else if (drop.HasDismissLongTime()) {
+            } else if (!items.empty() && drop.HasDismissLongTime()) {
                 drop.autoPosition();
                 drop_down = true;
                 drop.Popup();
