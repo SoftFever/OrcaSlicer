@@ -1275,6 +1275,8 @@ public:
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
     void on_key(wxKeyEvent& evt);
+    // Sends a key-up for each modifier still held, whose own key-up is sent to the window that takes the focus.
+    void release_held_modifiers();
     // Runs the Plater/Preview shortcut bound to chord, swallowing auto-repeats of one-shot
     // shortcuts; false when nothing is bound.
     bool handle_shortcut(const KeyChord& chord);
