@@ -5,6 +5,9 @@
 #include <cstddef>
 #include <string>
 #include <ios>
+#include <cstdlib>
+#include <utility>
+#include <vector>
 
 #include <charconv>
 #include <iomanip>
@@ -140,5 +143,65 @@ std::string float_to_string_decimal_point(double value, int precision/* = -1*/)
 }
 
 
-} // namespace Slic3r
+#if !defined(_WIN32) && !defined(__APPLE__)
+std::vector<std::pair<std::string, std::string>> unloadable_locale_variables()
+{
+    std::vector<std::pair<std::string, std::string>> missing;
+    auto loadable = [](int mask, const char *name) {
+        locale_t loc = newlocale(mask, name, locale_t(0));
+        if (loc == locale_t(0))
+            return false;
+        freelocale(loc);
+        return true;
+    };
+    if (loadable(LC_ALL_MASK, ""))
+        return missing;
 
+    auto value_of = [](const char *var) -> const char * {
+        const char *value = std::getenv(var);
+        return (value != nullptr && *value != '\0') ? value : nullptr;
+    };
+    // LC_ALL overrides every other variable.
+    if (const char *lc_all = value_of("LC_ALL"); lc_all != nullptr) {
+        if (!loadable(LC_ALL_MASK, lc_all))
+            missing.emplace_back("LC_ALL", lc_all);
+        return missing;
+    }
+
+    static const std::pair<int, const char *> categories[] = {
+        {LC_CTYPE_MASK, "LC_CTYPE"},
+        {LC_NUMERIC_MASK, "LC_NUMERIC"},
+        {LC_TIME_MASK, "LC_TIME"},
+        {LC_COLLATE_MASK, "LC_COLLATE"},
+        {LC_MONETARY_MASK, "LC_MONETARY"},
+        {LC_MESSAGES_MASK, "LC_MESSAGES"},
+#ifdef LC_PAPER_MASK
+        {LC_PAPER_MASK, "LC_PAPER"},
+        {LC_NAME_MASK, "LC_NAME"},
+        {LC_ADDRESS_MASK, "LC_ADDRESS"},
+        {LC_TELEPHONE_MASK, "LC_TELEPHONE"},
+        {LC_MEASUREMENT_MASK, "LC_MEASUREMENT"},
+        {LC_IDENTIFICATION_MASK, "LC_IDENTIFICATION"},
+#endif
+    };
+    // A category variable covers one category, so only LANG can fail more than once.
+    bool lang_reported = false;
+    for (const auto &[mask, category_var] : categories) {
+        const char *var   = category_var;
+        const char *value = value_of(var);
+        if (value == nullptr) {
+            if (lang_reported)
+                continue;
+            var   = "LANG";
+            value = value_of(var);
+        }
+        if (value == nullptr || loadable(mask, value))
+            continue;
+        lang_reported = lang_reported || var == std::string("LANG");
+        missing.emplace_back(var, value);
+    }
+    return missing;
+}
+#endif
+
+} // namespace Slic3r

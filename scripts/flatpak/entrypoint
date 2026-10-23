@@ -8,4 +8,44 @@
 # while preserving the user's language/locale for translations.
 export LC_NUMERIC=C
 
+# The runtime's locale extension only carries the languages Flatpak derives
+# from the host's system locale, while the desktop may point an LC_* variable
+# at another one (KDE's per-category regional formats). glibc rejects an
+# environment with a locale it cannot load, and so does OrcaSlicer's start-up.
+# Compile what is missing from the runtime's own locale sources into the app
+# data directory, once per glibc version, and let glibc find it through LOCPATH.
+locale_dir="${XDG_DATA_HOME:-$HOME/.local/share}/locale/$(getconf GNU_LIBC_VERSION | tr ' ' '-')"
+for var in LC_ALL LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES \
+           LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT LC_IDENTIFICATION; do
+    eval "value=\${$var}"
+    case "$value" in
+        ""|C|C.*|POSIX|*/*) continue ;;
+    esac
+    [ -d "$locale_dir/$value" ] && continue
+    # The runtime can load it: nothing to do.
+    [ -z "$(LC_ALL=$value locale 2>&1 >/dev/null)" ] && continue
+    source=$(printf '%s' "$value" | sed 's/\.[^@]*//')
+    case "$value" in
+        *.*) charmap=${value#*.}; charmap=${charmap%%@*} ;;
+        *)   charmap=UTF-8 ;;
+    esac
+    # localedef wants the charmap's file name; "utf8" is the common spelling in locale names.
+    case "$(printf '%s' "$charmap" | tr 'A-Z' 'a-z' | tr -d -)" in
+        utf8) charmap=UTF-8 ;;
+    esac
+    echo "entrypoint: compiling locale $value, which the runtime does not carry, into $locale_dir" >&2
+    mkdir -p "$locale_dir"
+    # Build in a private directory and move it into place, so a start-up killed
+    # half-way, or two instances starting together, never leave a partial locale.
+    tmp=$(mktemp -d "$locale_dir/.$value.XXXXXX") || continue
+    if ! output=$(localedef -i "$source" -f "$charmap" "$tmp" 2>&1) && [ ! -f "$tmp/LC_CTYPE" ]; then
+        echo "entrypoint: localedef failed for $value:" >&2
+        printf '%s\n' "$output" | tail -n 3 >&2
+        rm -rf "$tmp"
+        continue
+    fi
+    mv "$tmp" "$locale_dir/$value" 2>/dev/null || rm -rf "$tmp"
+done
+[ -d "$locale_dir" ] && export LOCPATH="$locale_dir${LOCPATH:+:$LOCPATH}:/usr/lib/locale"
+
 exec /app/bin/orca-slicer "$@"

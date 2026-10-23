@@ -82,6 +82,7 @@
 #include "nlohmann/json.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/args.hpp>
 #include <boost/nowide/cstdlib.hpp>
@@ -1257,6 +1258,33 @@ int CLI::run(int argc, char **argv)
         }
     }
 #endif // __WXGTK__
+
+#if !defined(_WIN32) && !defined(__APPLE__)
+    // Boost.Filesystem builds std::locale("") the first time path::imbue() runs,
+    // and libstdc++ throws when an LC_* variable names a locale glibc cannot
+    // load. Say which one and how to install it instead of failing on the throw.
+    if (const auto missing = unloadable_locale_variables(); !missing.empty()) {
+        std::string text = SLIC3R_APP_FULL_NAME " cannot start: the environment names a locale this system cannot load.\n";
+        // Locale identifiers for the Flatpak hint: the failing values without codeset and modifier.
+        std::set<std::string> locales;
+        for (const auto &[var, value] : missing) {
+            text += "    " + var + "=" + value + "\n";
+            locales.insert(value.substr(0, std::strcspn(value.c_str(), ".@")));
+        }
+        if (std::getenv("FLATPAK_ID") != nullptr) {
+            text += "The Flatpak runtime only carries the languages Flatpak was told to install. On the host, run\n"
+                    "    flatpak config --set extra-languages \"" + boost::algorithm::join(locales, ";") + "\"\n"
+                    "    flatpak update\n"
+                    "(when \"flatpak config --get languages\" is set, add the language to that list instead).\n";
+        } else {
+            text += "Install the locale (for example with locale-gen or your distribution's language pack), "
+                    "or set the variable to an installed locale.\n";
+        }
+        text += "Starting with LC_ALL=C.UTF-8 avoids this at the cost of regional formats.";
+        boost::nowide::cerr << text << std::endl;
+        return CLI_ENVIRONMENT_ERROR;
+    }
+#endif
 
 	// Switch boost::filesystem to utf8.
     try {

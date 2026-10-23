@@ -7,6 +7,8 @@
 #include <iomanip>
 #include <cassert>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #ifdef __APPLE__
 #include <xlocale.h>
@@ -51,6 +53,14 @@ double string_to_double_decimal_point(const std::string_view str, size_t* pos = 
 // Parses like atof in the C locale, skipping leading whitespace and a '+',
 // without the C runtime's per-call locale lookup.
 double atof_decimal_point(std::string_view str);
+
+#if !defined(_WIN32) && !defined(__APPLE__)
+// The locale environment variables naming a locale this system cannot load, as
+// (variable, value) pairs in glibc precedence: LC_ALL alone when it is set, else
+// each LC_* category variable, or LANG where the category has none. Empty when
+// std::locale("") can be built.
+std::vector<std::pair<std::string, std::string>> unloadable_locale_variables();
+#endif
 
 } // namespace Slic3r
 
