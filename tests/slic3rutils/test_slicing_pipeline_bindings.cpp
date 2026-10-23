@@ -615,12 +615,19 @@ TEST_CASE("orca.host: SurfaceCollection.set mutates geometry; lslices via make_s
                     .attr("expolygon").attr("contour").attr("as_array")().cast<py::array>();
     CHECK(c.shape(0) == 4);
 
-    // lslices are derived: make_slices() re-derives them + refreshes the bbox cache.
+    // lslices are derived: make_slices() re-derives them from the region slices and refreshes the
+    // bbox cache.
     TestLayer layer;
+    layer.add_region(nullptr);
     py::object ly = py::cast(static_cast<Slic3r::Layer*>(&layer), py::return_value_policy::reference);
-    // (A hand-built layer has no regions, so make_slices() yields empty lslices — still null-safe.)
+    ly.attr("regions")().cast<py::list>()[0].attr("slices").attr("set")(expolys, ST.attr("stInternalSolid"));
+    REQUIRE(layer.lslices.empty());
     ly.attr("make_slices")();
-    CHECK(layer.lslices_bboxes.size() == layer.lslices.size());
+    REQUIRE(layer.lslices.size() == 1);
+    CHECK_THAT(layer.lslices.front().area(), WithinRel((double) s * (double) s, 1e-9));
+    REQUIRE(layer.lslices_bboxes.size() == 1);
+    CHECK(layer.lslices_bboxes.front().min == Point(0, 0));
+    CHECK(layer.lslices_bboxes.front().max == Point(s, s));
 }
 
 TEST_CASE("orca.host ExPolygon in-place transforms + SurfaceCollection.append (sample ops)", "[slicing_pipeline]") {

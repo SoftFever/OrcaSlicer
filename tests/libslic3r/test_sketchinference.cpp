@@ -33,8 +33,9 @@ TEST_CASE("inference: cursor near a line endpoint snaps Coincident-able to it", 
 TEST_CASE("inference: endpoint beats midpoint when both are in range", "[inference]")
 {
     std::vector<SketchEntity> ents = { line({0, 0}, {2, 0}) };
-    // Query equidistant-ish but closer to the endpoint: endpoint tier wins regardless.
-    auto s = infer_point_snap(ents, {1.9, 0.0}, 5.0);
+    // Query 0.2 from the midpoint (1,0) and 0.8 from the endpoint (2,0): the endpoint tier
+    // wins even though the midpoint is nearer.
+    auto s = infer_point_snap(ents, {1.2, 0.0}, 5.0, /*include_origin=*/false);
     CHECK(s.kind == K::Endpoint);
     CHECK(s.role == SketchPointRole::P1);
 }

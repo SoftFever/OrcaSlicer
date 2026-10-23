@@ -113,14 +113,11 @@ TEST_CASE("profile: offsetting a closed rectangle keeps it closed", "[SketchProf
     REQUIRE(closed_wires(out) == 1);
 }
 
-TEST_CASE("profile: offset outward grows the enclosed area by the right amount", "[SketchProfile]")
+TEST_CASE("profile: offsetting a closed rectangle outward keeps it one closed loop", "[SketchProfile]")
 {
-    // A rectangle offset outward by d is (w+2d) x (h+2d) with the corners rounded at r=d,
-    // so its area is w*h + 2d(w+h) + pi*d^2 whichever way the corners are healed... except
-    // for a sharp-corner offset, which is exactly (w+2d)*(h+2d). Either healing is defensible;
-    // a set of four disconnected segments is not, and that is what this measures.
-    const double w = 40, h = 20, d = 5;
-    const auto out = SketchEngine::offset_entities(rect(w, h), d);
+    // Outward is -d for a CCW loop. The miter join reconnects the corners, so the result is one
+    // closed wire, not four disconnected segments. Its area is checked by the sign test below.
+    const auto out = SketchEngine::offset_entities(rect(40, 20), -5.0);
     const auto ws  = SketchEngine::entities_to_wires(out, xy_plane());
     REQUIRE(ws.size() == 1);
     REQUIRE(ws[0].Closed());

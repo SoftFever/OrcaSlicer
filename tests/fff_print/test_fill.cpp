@@ -86,10 +86,9 @@ TEST_CASE("Pattern path length", "[Fill]") {
             Slic3r::Polylines paths = test(Slic3r::ExPolygon(test_set));
             REQUIRE(paths.size() == 1); // one continuous path
 
-            // TODO: determine what the "Expected length" should be for rectilinear fill of a 100x100 polygon. 
-            // This check only checks that it's above scale(3*100 + 2*50) + scaled_epsilon.
-            // ok abs($paths->[0]->length - scale(3*100 + 2*50)) - scaled_epsilon, 'path has expected length';
-            REQUIRE(std::abs(paths[0].length() - static_cast<double>(scale_(3*100 + 2*50))) - SCALED_EPSILON > 0); // path has expected length
+            // Lines are 50 mm apart and the square is inset by half a spacing, so the lines on its edges drop out
+            // and a single line crosses the middle, ending within half a spacing of the edges.
+            CHECK_THAT(unscale<double>(paths[0].length()), Catch::Matchers::WithinAbs(100., filler->spacing / 2.));
 
             test_set.clear();
         }
@@ -148,10 +147,9 @@ TEST_CASE("Pattern path length", "[Fill]") {
         Slic3r::Polylines paths = test(Slic3r::ExPolygon(points));
         REQUIRE(paths.size() == 1); // one continuous path
 
-        // TODO: determine what the "Expected length" should be for rectilinear fill of a 100x100 polygon. 
-        // This check only checks that it's above scale(3*100 + 2*50) + scaled_epsilon.
-        // ok abs($paths->[0]->length - scale(3*100 + 2*50)) - scaled_epsilon, 'path has expected length';
-        REQUIRE(std::abs(paths[0].length() - static_cast<double>(scale_(3*100 + 2*50))) - SCALED_EPSILON > 0); // path has expected length
+        // A solid fill covers the area with lines one spacing apart, so a missing segment shortens the path.
+        const double expected_length = unscale<double>(unscale<double>(Slic3r::ExPolygon(points).area())) / filler->spacing;
+        CHECK_THAT(unscale<double>(paths[0].length()), Catch::Matchers::WithinRel(expected_length, 0.01));
     }
 
     SECTION("Rotated Square") {
@@ -168,8 +166,9 @@ TEST_CASE("Pattern path length", "[Fill]") {
 		fill_params.density = 1.0;
 		filler->spacing = flow.spacing();
 
-        for (auto angle : { 0.0, 45.0}) {
+        for (auto angle : { 0.0, PI / 4.0 }) {
             surface.expolygon.rotate(angle, Point(0,0));
+            filler->bounding_box = get_extents(surface.expolygon.contour);
             Polylines paths = filler->fill_surface(&surface, fill_params);
             REQUIRE(paths.size() == 1);
         }
@@ -222,7 +221,7 @@ TEST_CASE("Pattern path length", "[Fill]") {
         };
         Slic3r::ExPolygon expolygon(points);
          
-        REQUIRE(test_if_solid_surface_filled(expolygon, 0.5, 45.0, 0.99) == true);
+        REQUIRE(test_if_solid_surface_filled(expolygon, 0.5, PI / 4.0, 0.99) == true);
     }
 }
 

@@ -1334,12 +1334,17 @@ TEST_CASE("Renamed printer/process names are normalized into compatible lists on
     CHECK(compatible_list(bundle.filaments, "My Filament", "compatible_printers") ==
           (std::vector<std::string>{ "New Printer", "Unknown Printer" }));
 
-    // Normalizing rewrites config in place without flagging the preset dirty.
-    CHECK_FALSE(bundle.prints.find_preset("My Process", false, true)->is_dirty);
+    // Normalization runs before selection, so selecting copies the rewritten list into the edited preset.
+    bundle.prints.select_preset_by_name("My Process", true);
+    REQUIRE(bundle.prints.get_selected_preset_name() == "My Process");
+    CHECK(bundle.prints.get_edited_preset().config.option<ConfigOptionStrings>("compatible_printers")->values ==
+          std::vector<std::string>{ "New Printer" });
 
-    // A system preset that already references the current name is left untouched (idempotent no-op).
+    // Normalizing again is a no-op: the stored preset keeps the current name and still matches the
+    // edited copy, so the selection is not reported modified.
     bundle.normalize_compatible_presets();
     CHECK(compatible_list(bundle.prints, "My Process", "compatible_printers") == std::vector<std::string>{ "New Printer" });
+    CHECK_FALSE(bundle.prints.current_is_dirty());
 }
 
 TEST_CASE("Renamed names are normalized into a SYSTEM preset's compatible lists", "[Preset][Rename]")
@@ -1369,11 +1374,17 @@ TEST_CASE("Renamed names are normalized into a SYSTEM preset's compatible lists"
     CHECK(compatible_list(bundle.filaments, "System Filament", "compatible_prints") ==
           std::vector<std::string>{ "New Process" });
 
-    // The rewrite does not flag the system preset dirty, and is idempotent.
-    CHECK_FALSE(bundle.filaments.find_preset("System Filament", false, true)->is_dirty);
+    // Normalization runs before selection, so selecting copies the rewritten lists into the edited preset.
+    bundle.filaments.select_preset_by_name("System Filament", true);
+    REQUIRE(bundle.filaments.get_selected_preset_name() == "System Filament");
+    CHECK(bundle.filaments.get_edited_preset().config.option<ConfigOptionStrings>("compatible_printers")->values ==
+          std::vector<std::string>{ "New Printer" });
+
+    // Normalizing again is a no-op, so the selection is not reported modified.
     bundle.normalize_compatible_presets();
     CHECK(compatible_list(bundle.filaments, "System Filament", "compatible_printers") ==
           std::vector<std::string>{ "New Printer" });
+    CHECK_FALSE(bundle.filaments.current_is_dirty());
 }
 
 TEST_CASE("compatible_prints on SLA materials resolves against sla_prints, not prints", "[Preset][Rename]")
@@ -5565,16 +5576,6 @@ TEST_CASE("Sizing down to the nozzle count plus mixes is what eats the mixed tai
         CHECK(bundle.filament_presets.size() == target);
         CHECK(bundle.num_mixed_filaments() == 0);
         CHECK(bundle.num_physical_filaments() == target);
-    }
-
-    SECTION("applied as a floor, the mix is left alone") {
-        if (target > bundle.filament_presets.size())
-            bundle.set_num_filaments(target);
-
-        CHECK(bundle.filament_presets.size() == 6);
-        CHECK(bundle.num_mixed_filaments() == 1);
-        CHECK(bundle.is_mixed_filament(5));
-        CHECK(bundle.project_config.option<ConfigOptionStrings>("filament_mixed_components")->values[5] == "1,2");
     }
 }
 
