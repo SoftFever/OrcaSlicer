@@ -3691,11 +3691,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     ensure_nozzle_group_result(static_cast<int>(m_result.filaments_count));
 }
 
-void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
-{
-    m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].enabled = enabled;
-}
-
 void GCodeProcessor::reset()
 {
     m_units = EUnits::Millimeters;
