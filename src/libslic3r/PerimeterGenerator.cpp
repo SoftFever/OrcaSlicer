@@ -1496,8 +1496,7 @@ void PerimeterGenerator::process_classic()
     this->fill_no_overlap->clear();
 
     process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
-    // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
-    double surface_simplify_resolution = (print_config->enable_arc_fitting.value == ArcFittingMode::Enabled && !this->has_fuzzy_skin) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
+    
     //BBS: reorder the surface to reduce the travel time
     ExPolygons surface_exp;
     for (const Surface &surface : all_surfaces)
@@ -1554,7 +1553,7 @@ void PerimeterGenerator::process_classic()
         */
 
         // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
-        double surface_simplify_resolution = (print_config->enable_arc_fitting && !this->has_fuzzy_skin) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
+        double surface_simplify_resolution = (print_config->enable_arc_fitting.value == ArcFittingMode::Enabled && !this->has_fuzzy_skin) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
 
 
         // 'infill_contour' - precise definition of the infill surface. Initially, this is the outer contour of the surface.
@@ -2251,7 +2250,7 @@ void PerimeterGenerator::add_gap_filling(ExPolygons& gaps) {
     const double gap_fill_min_width = 0.2 * std::min(perimeter_width, ext_perimeter_width) * (1 - INSET_OVERLAP_TOLERANCE);
 
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
-    double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
+    double surface_simplify_resolution = (print_config->enable_arc_fitting.value == ArcFittingMode::Enabled && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
     double min                         = gap_fill_min_width;
     double max                         = 2. * perimeter_spacing;
     ExPolygons gaps_ex                 = diff_ex(opening_ex(gaps, min / 2.), offset2_ex(gaps, -perimeter_spacing, perimeter_spacing + ClipperSafetyOffset));
