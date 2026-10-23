@@ -73,6 +73,10 @@ Contents: [Rules](#rules) · [1. Choosing the window kind](#1-choosing-the-windo
 27. Build `MenuFactory` menus once. Pass `parent` to `append_menu_item` only for items that persist. (§16)
 28. macOS: bind `wxID_EXIT` on `OSXGetAppleMenu()` to `Close()`, only insert into the Apple menu, and always
     `Skip()` a frame's `wxEVT_ACTIVATE`. (§15)
+29. On Wayland, a popup that can open while a GTK tooltip is shown hides every visible tooltip window before
+    it maps. `PopupWindow::Show` does it for every Orca popup; a popup outside `PopupWindow` opened from a
+    widget with a GTK tooltip must do it itself. Only a popup that cannot map while a GTK tooltip is visible,
+    such as one opened from the GL canvas (whose tooltips are ImGui), needs nothing. (§9)
 
 ## 1. Choosing the window kind
 
@@ -439,6 +443,9 @@ class PopupWindow : public wxPopupTransientWindow {
 public:
     PopupWindow(wxWindow* parent, int style = wxBORDER_NONE);
     bool Create(wxWindow* parent, int flags = wxBORDER_NONE);
+#ifdef __WXGTK__
+    bool Show(bool show = true) override;                                 // hides GTK tooltips first on Wayland (§9)
+#endif
 #ifdef __WXMSW__
     void BindUnfocusEvent();                                              // opt-in
 #endif
@@ -451,7 +458,7 @@ What it adds per platform:
 
 | Port | Behaviour |
 |---|---|
-| GTK | `Create` binds `wxEVT_ACTIVATE` on `GetTopParent(parent)`. `topWindowActiavate` calls `event.Skip()`, then `DismissAndNotify()` if the toplevel deactivated, the popup is shown and `ShouldDismissOnTopWindowDeactivate()` returns true. This supplies the app/toplevel deactivation dismissal that stock wxGTK lacks. |
+| GTK | `Create` binds `wxEVT_ACTIVATE` on `GetTopParent(parent)`. `topWindowActiavate` calls `event.Skip()`, then `DismissAndNotify()` if the toplevel deactivated, the popup is shown and `ShouldDismissOnTopWindowDeactivate()` returns true. This supplies the app/toplevel deactivation dismissal that stock wxGTK lacks. Under Wayland, `Show(true)` on a hidden popup first hides every visible GTK tooltip window (§9). |
 | MSW | Nothing automatic. `BindUnfocusEvent()` binds the toplevel's `wxEVT_ACTIVATE`/`wxEVT_ICONIZE`/`wxEVT_SHOW` to `Dismiss()` (no `OnDismiss`). It is for default-style popups: they are desktop children that Windows does not hide with the frame, and stock wx closes them on deactivation or minimizing only if a focus message reaches a wx window (§4, §5). `topWindowActivate` does **not** `Skip()`, so while the popup lives it swallows the frame's `wxEVT_ACTIVATE`, and with it `wxTopLevelWindowMSW::OnActivate`'s focus save and restore (`src/msw/toplevel.cpp:1326-1360`). |
 | macOS | Only with `wxPU_CONTAINS_CONTROLS`: `OnMouseEvent2`, bound on the popup for `LEFT_DOWN/UP/DCLICK`, `MOTION` and `MOUSEWHEEL`, hit-tests the children (static `HitTest`) and re-dispatches the event to the deepest child under the cursor with `ProcessEventLocally`. On `MOTION` it synthesizes `ENTER`/`LEAVE` for the hovered target. This compensates for the capture rerouting in §5. |
 
@@ -721,6 +728,38 @@ fights the grab and focus model (§10). Two more [source] facts:
   `DropDown::Popup`, applied when `!mainDropDown && m_widget`).
 - **Rule:** Don't open a grabbing popup on hover on Linux if the opener must stay clickable.
   Cite: `MainFrame` slice-button hover handlers (`#ifndef __linux__`).
+- **Rule:** On Wayland, hide every visible GTK tooltip window right before mapping a popup that can open
+  while one is shown.
+  **Why:** A GTK3 tooltip is a `GTK_WINDOW_POPUP` with the `tooltip` type hint, placed with
+  `gdk_window_move_to_rect` (`gtktooltip.c:974-983`), so GDK Wayland maps it as an `xdg_popup` of the
+  hovered widget's toplevel (`should_map_as_popup`, `gdkwindow-wayland.c:3198-3199`). GDK refuses to map a
+  popup whose parent is not the last popup it mapped, warning "Tried to map a popup with a non-top most
+  parent" (`gdkwindow-wayland.c:3040-3046`), and the window stays invisible while wx believes it is shown.
+  GTK hides the tooltip on a button or key press, but only after the event has been propagated to the
+  widgets (`gtkmain.c:1949-1961`, `_gtk_tooltip_handle_event`). A dropdown opened from the click is therefore
+  mapped while the opener's tooltip is still up, and the click that opens it after the tooltip delay does
+  nothing. The same holds for a sub-dropdown opened on hover while the main dropdown shows an item tooltip.
+  GTK hides the current tooltip the same way before mapping its own menus (`gtk_menu_popup_internal`,
+  `gtkmenu.c:1837`), but through the private `_gtk_tooltip_hide_in_display` (`gtktooltip.c:1297`); apps have
+  no public call, so hide the window: `gtk_widget_hide` unmaps the `xdg_popup` at once, and GtkTooltip treats
+  the tooltip as no longer visible (`GTK_TOOLTIP_VISIBLE`, `gtktooltip.c:135`). Its own hide on the press
+  then returns early, before it times out browse mode (`gtk_tooltip_hide_tooltip`, `gtktooltip.c:1078`,
+  1092), so the next tooltip shows after the 60 ms browse delay instead of 500 ms. A tooltip GTK tries to
+  show while a popup is open fails to map with the same warning and stays hidden, unless its widget is in
+  the topmost popup (a dropdown's own item tooltip maps as that popup's child); that happens with or without
+  this step and is harmless. X11 has no popup stacking rule, so the step is gated on
+  `is_running_on_wayland()`. (Line numbers are GTK 3.24.52.)
+  ```cpp
+  // Wrong: map the popup with the opener's tooltip still on top
+  drop.Popup(&drop);
+  // Right (wxGTK, Wayland): PopupWindow::Show does this before every map
+  GList* toplevels = gtk_window_list_toplevels();
+  for (GList* l = toplevels; l; l = l->next)
+      if (gtk_window_get_type_hint(GTK_WINDOW(l->data)) == GDK_WINDOW_TYPE_HINT_TOOLTIP && gtk_widget_get_visible(GTK_WIDGET(l->data)))
+          gtk_widget_hide(GTK_WIDGET(l->data));
+  g_list_free(toplevels);
+  ```
+  Cite: `PopupWindow::Show` (#16595).
 
 ## 10. Frameless dialog instead of a popup
 
