@@ -717,9 +717,7 @@ class IMEXModesCtrl;
 class TabPrinter : public Tab
 {
 private:
-	bool		m_use_silent_mode = false;
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key, const std::string& label_path = "");
-	bool		m_rebuild_kinematics_page = false;
 	void        update_input_shaper_menu(GCodeFlavor flavor);
 
 	// R8: track the belt->non-belt transition so update_fff() only clears the belt-derived

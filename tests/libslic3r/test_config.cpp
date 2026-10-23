@@ -1535,6 +1535,19 @@ TEST_CASE("handle_legacy migrates the adaptive TPMS keys", "[Config]") {
     CHECK(ctxt.substitutions.empty());
 }
 
+TEST_CASE("silent_mode is no longer saved and is dropped on load", "[Config]") {
+    DynamicPrintConfig full;
+    full.apply(FullPrintConfig::defaults());
+    CHECK_FALSE(full.has("silent_mode"));
+
+    // Projects saved before its removal still carry it.
+    ConfigSubstitutionContext ctxt(ForwardCompatibilitySubstitutionRule::Enable);
+    DynamicPrintConfig        config;
+    config.set_deserialize("silent_mode", "0", ctxt);
+    CHECK_FALSE(config.has("silent_mode"));
+    CHECK(ctxt.unrecogized_keys == std::vector<std::string>{"silent_mode"});
+}
+
 TEST_CASE("handle_legacy migrates every IDEX/IQEX key testers already have", "[Config]") {
     // Three eras of saved profiles: the feature shipped as iXex (is_ixex + ixex_*), the clearance
     // pair was renamed to say what it measures, then the whole prefix became imex_. Driven from the
