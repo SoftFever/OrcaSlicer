@@ -4564,6 +4564,25 @@ void PresetBundle::get_ams_cobox_infos(AMSComboInfo& combox_info)
     }
 }
 
+std::string PresetBundle::normalize_ams_color(const std::string &color)
+{
+    std::string hex;
+    for (char c : color)
+        if (std::isxdigit(static_cast<unsigned char>(c)))
+            hex += static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+    // Drop a "0x" prefix and any alpha channel: keep RRGGBB only.
+    if (boost::algorithm::starts_with(color, "0x") || boost::algorithm::starts_with(color, "0X"))
+        hex = hex.substr(1);
+    return hex.substr(0, 6);
+}
+
+std::string PresetBundle::ams_override_key(const std::string &printer_model, const std::string &filament_type, const std::string &color)
+{
+    if (filament_type.empty())
+        return {};
+    return printer_model + "|" + boost::to_upper_copy(filament_type) + "|" + normalize_ams_color(color);
+}
+
 unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfig *,std::string>> &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps, bool enable_append, MergeFilamentInfo &merge_info, bool color_only)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "use_map:" << use_map << " enable_append:" << enable_append;
@@ -4572,6 +4591,8 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     std::vector<std::string> ams_filament_color_types;
     std::vector<AMSMapInfo>  ams_array_maps;
     ams_multi_color_filment.clear();
+    last_ams_sync_slot_keys.clear();
+    const std::string ams_override_printer_model = printers.get_edited_preset().config.opt_string("printer_model");
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_ams_list size: %1%") % filament_ams_list.size();
     struct AmsInfo
     {
@@ -4596,6 +4617,16 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         auto ams_id     = ams.opt_string("ams_id", 0u);
         auto slot_id    = ams.opt_string("slot_id", 0u);
         auto is_placeholder = ams.has("filament_slot_placeholder") && ams.opt_bool("filament_slot_placeholder", 0u);
+        // Orca: record which AMS filament produced each output slot, however this iteration ends.
+        struct SlotKeyRecorder {
+            std::vector<std::pair<std::string, std::string>> &keys;
+            const std::vector<std::string>                   &presets;
+            std::string key, color;
+            ~SlotKeyRecorder() { while (keys.size() < presets.size()) keys.emplace_back(key, color); }
+        } slot_key_recorder{last_ams_sync_slot_keys, ams_filament_presets,
+                            filament_id.empty() ? std::string() :
+                                ams_override_key(ams_override_printer_model, ams.opt_string("filament_type", 0u), filament_color),
+                            normalize_ams_color(filament_color)};
         ams_infos.push_back({filament_id.empty() ? false : true, false, is_placeholder, filament_color});
         AMSMapInfo temp = {ams_id, slot_id};
         ams_array_maps.push_back(temp);
@@ -4630,6 +4661,20 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             ams_filament_color_types.push_back(filament_color_type);
             ams_multi_color_filment.push_back(filament_multi_color);
             continue;
+        }
+        // Orca: reuse the preset the user picked last time for this filament type + colour.
+        if (!slot_key_recorder.key.empty()) {
+            auto ov = ams_preset_overrides.find(slot_key_recorder.key);
+            if (ov != ams_preset_overrides.end()) {
+                const Preset *chosen = filaments.find_preset(ov->second, false);
+                if (chosen && chosen->is_compatible) {
+                    ams_filament_presets.push_back(chosen->name);
+                    ams_filament_colors.push_back(filament_color);
+                    ams_filament_color_types.push_back(filament_color_type);
+                    ams_multi_color_filment.push_back(filament_multi_color);
+                    continue;
+                }
+            }
         }
         bool has_type = false;
         auto filament_type = ams.opt_string("filament_type", 0u);

@@ -6388,6 +6388,10 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     std::vector<std::pair<DynamicPrintConfig *,std::string>> unknowns;
     auto enable_append  = wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams");
     auto sync_color_only = wxGetApp().app_config->get("sync_ams_filament_mode") == "1";
+    // Orca: let the sync reuse the presets the user picked for these filaments before.
+    wxGetApp().preset_bundle->ams_preset_overrides.clear();
+    if (wxGetApp().app_config->has_section("ams_preset_overrides"))
+        wxGetApp().preset_bundle->ams_preset_overrides = wxGetApp().app_config->get_section("ams_preset_overrides");
     auto n              = wxGetApp().preset_bundle->sync_ams_list(unknowns, !sync_result.direct_sync, sync_result.sync_maps, enable_append, merge_info, sync_color_only);
     wxString detail;
     for (auto & uk : unknowns) {
@@ -12976,6 +12980,18 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     }
 
     if (preset_type == Preset::TYPE_FILAMENT) {
+        // Orca: remember the user's choice for a slot that came from the last AMS/Box sync.
+        {
+            PresetBundle &bundle = *wxGetApp().preset_bundle;
+            auto *colors = bundle.project_config.option<ConfigOptionStrings>("filament_colour");
+            if (idx >= 0 && idx < (int) bundle.last_ams_sync_slot_keys.size() && colors && idx < (int) colors->values.size()) {
+                const auto &slot = bundle.last_ams_sync_slot_keys[idx];
+                if (!slot.first.empty() && PresetBundle::normalize_ams_color(colors->values[idx]) == slot.second) {
+                    wxGetApp().app_config->set("ams_preset_overrides", slot.first, preset_name);
+                    bundle.ams_preset_overrides[slot.first] = preset_name;
+                }
+            }
+        }
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
         wxGetApp().plater()->update_project_dirty_from_presets();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
