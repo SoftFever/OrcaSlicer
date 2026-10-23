@@ -46,6 +46,7 @@
 #include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
 #include <deque>
 #include <exception>
+#include <stdexcept>
 #include "libslic3r/LifecycleEvents.hpp"
 #include "libslic3r/Point.hpp"
 #include "slic3r/GUI/SettingsIndex.hpp"
@@ -81,6 +82,7 @@
 #include "wxExtensions.hpp"
 #include "PresetComboBoxes.hpp"
 #include <wx/wupdlock.h>
+#include <limits>
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -1645,6 +1647,138 @@ void Tab::load_config(const DynamicPrintConfig& config)
     }
 }
 
+// The option keys a preset of `type` may hold. The tab's config shares the global
+// print_config_def with every other preset type, so membership has to be checked against the
+// preset type's own key list instead of the config definition, or a printer setting could be
+// written into the process preset.
+static const std::vector<std::string>& preset_type_options(Preset::Type type)
+{
+    static const std::vector<std::string> none;
+    switch (type) {
+    case Preset::TYPE_PRINT:    return Preset::print_options();
+    case Preset::TYPE_FILAMENT: return Preset::filament_options();
+    case Preset::TYPE_PRINTER:  return Preset::printer_options();
+    default:                    return none;
+    }
+}
+
+static const char* preset_type_name(Preset::Type type)
+{
+    switch (type) {
+    case Preset::TYPE_PRINT:    return "process";
+    case Preset::TYPE_FILAMENT: return "filament";
+    case Preset::TYPE_PRINTER:  return "printer";
+    default:                    return "preset";
+    }
+}
+
+// Commit one option whose new value already sits in m_config through the same path a hand edit
+// runs. The key-specific behaviour (ConfigOptionsGroup::on_change_OG, including the printer_agent
+// canonicalization, the group's pre-checks and Tab::on_value_change()) runs exactly as for a hand
+// edit. A built field supplies the field's typed/clamped value; otherwise the owning
+// ConfigOptionsGroup builds the value from the config it edits and dispatches the same
+// on_change_OG(). The option's page is reloaded from the config just committed first, so a built
+// field reports the committed value rather than a stale one. No tab-wide refresh happens here: the
+// caller does it once for the whole batch.
+bool Tab::commit_preset_config_value(const std::string& opt_key)
+{
+    if (Page* field_page = nullptr; Field* field = get_field(opt_key, &field_page)) {
+        field_page->reload_config();
+        field->field_changed();
+        return true;
+    }
+    for (const PageShp& page : m_pages)
+        for (const ConfigOptionsGroupShp& group : page->m_optgroups)
+            if (group->commit_config_value(opt_key))
+                return true;
+    return false;
+}
+
+// Set one option of the currently edited preset from its serialized string form, then run the
+// same update path a hand edit runs. The edited preset is not saved: it only becomes dirty,
+// exactly as if the field had been edited by hand.
+void Tab::apply_preset_config_value(const std::string& opt_key, const std::string& value)
+{
+    apply_preset_config_values({{opt_key, value}});
+}
+
+// Apply a batch of settings as one transaction: parse and validate the whole batch first, then
+// commit it through the same per-setting path apply_preset_config_value() uses, restoring the edited
+// preset and the state derived from it if a setting fails. See the header for the contract and its
+// limits.
+void Tab::apply_preset_config_values(const std::vector<std::pair<std::string, std::string>>& values)
+{
+    if (m_config == nullptr)
+        throw std::runtime_error("The preset configuration is not available");
+    if (wxGetApp().plater() == nullptr)
+        throw std::runtime_error("OrcaSlicer main window is not available");
+
+    if (values.empty())
+        return;
+
+    const std::vector<std::string>& options = preset_type_options(m_type);
+
+    // Preparation: reject every batch that cannot be applied before touching the edited preset, so a
+    // bad key or value fails without a partial write. The key must belong to this preset type, it must
+    // not repeat, and each value is strict-parsed into a scratch copy (the strict deserializer can
+    // already have mutated an option when it rejects a bad value, so the check has to run somewhere
+    // the edited preset is not affected). Callback failures cannot be prepared this way: a setting's
+    // on_change callback is a GUI method, not a pure function of the config, so whether it throws is
+    // only known by running it. That residual case is handled by the rollback below.
+    std::set<std::string>   seen;
+    DynamicPrintConfig      scratch(*m_config);
+    for (const auto& kv : values) {
+        const std::string& opt_key = kv.first;
+        if (std::find(options.begin(), options.end(), opt_key) == options.end())
+            throw std::invalid_argument(format("Unknown %1% preset setting \"%2%\"", preset_type_name(m_type), opt_key));
+        if (!seen.insert(opt_key).second)
+            throw std::invalid_argument(format("%1% preset setting \"%2%\" is set more than once in the same update",
+                                               preset_type_name(m_type), opt_key));
+        try {
+            scratch.set_deserialize_strict(opt_key, kv.second);
+        } catch (const ConfigurationError& err) {
+            throw std::invalid_argument(err.what());
+        }
+    }
+
+    // Rollback boundary: snapshot the whole edited config, not just the keys the batch names, because a
+    // key-specific callback can adjust related settings of the edited preset (mutually exclusive
+    // options, compatibility, and so on). A failure restores this config and then recomputes the state
+    // derived from it.
+    DynamicPrintConfig before(*m_config);
+    try {
+        for (const auto& kv : values) {
+            m_config->set_deserialize_strict(kv.first, kv.second);
+            if (!commit_preset_config_value(kv.first))
+                // The GUI edits this setting through a custom widget rather than a group (e.g.
+                // compatible_printers), so take the same shared no-field commit path the widget uses.
+                // The value was written above, so saved mode skips the write and keeps the path's
+                // compatibility recompute, dirty flag, preset-combo and plater updates.
+                load_key_value(kv.first, boost::any(), /*saved_value=*/true);
+        }
+    } catch (...) {
+        *m_config = before;
+        // A callback can rewrite state derived from the config (compatibility marks, the preset
+        // selector, dependent tabs, the Plater and, on the printer tab, the printer agent) before it
+        // throws. Recompute that derived state from the restored config so none of it is left
+        // reflecting the failed batch. Effects that are not a function of the config (a dialog the
+        // user already accepted, an undo snapshot, a command already sent to a device, the target
+        // selection) cannot be reversed here; see the header.
+        m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+        reload_config();
+        update_dirty();
+        update();
+        throw;
+    }
+
+    // Apply the batch's final state once. The commit paths above already maintained the dirty flag,
+    // preset combo and, on the printer tab, the printer-agent switch; this reloads the visible page
+    // and pushes the config to the Plater.
+    reload_config();
+    update_dirty();
+    update();
+}
+
 // Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 void Tab::reload_config()
 {
@@ -1944,6 +2078,36 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         return;
     }
 
+    // The bed-area point option cannot store collision-volume syntax. Offer to
+    // copy it to the volume setting while retaining the area's previous value.
+    if (opt_key == "bed_exclude_area" && m_type == Preset::TYPE_PRINTER) {
+        const std::string *definition = boost::any_cast<std::string>(&value);
+        if (definition != nullptr && is_bed_exclusion_volume_syntax(*definition)) {
+            const double printable_height = m_config->opt_float("printable_height");
+            if (!is_valid_bed_exclude_volumes_string(*definition, printable_height)) {
+                show_error(wxGetApp().plater(), _L("Invalid collision volume format. Use XxY, XxY, ... or ZMIN..ZMAX;XxY, XxY, ... and separate multiple volumes with |."));
+                reload_config();
+                return;
+            }
+
+            MessageDialog dialog(
+                wxGetApp().plater(),
+                _L("This definition contains collision-volume syntax. Add it to the toolhead collision volumes for G-code checking and travel avoidance? The existing excluded bed area will be preserved."),
+                _L("Add collision volumes"), wxICON_QUESTION | wxYES | wxNO);
+            if (dialog.ShowModal() == wxID_YES) {
+                DynamicPrintConfig converted = *m_config;
+                append_bed_exclude_volumes(converted, *definition);
+                load_config(converted);
+                reload_config();
+                on_presets_changed();
+                wxGetApp().plater()->update();
+            } else {
+                reload_config();
+            }
+            return;
+        }
+    }
+
     // Keep this preset's "plugins" manifest in sync when a plugin picker changes, so full_config() and
     // save_to_json() always find resolved "name;uuid;capability" references and rebuild it nowhere else.
     // Also drop any plugin config override entries for a capability the change just stopped
@@ -1964,6 +2128,25 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "gcode_flavor" && m_type == Preset::TYPE_PRINTER) {
         if (auto printer_tab = dynamic_cast<TabPrinter*>(this))
             printer_tab->on_gcode_flavor_changed();
+    }
+
+    if (opt_key == "bed_exclude_volume_mode" && m_type == Preset::TYPE_PRINTER &&
+        m_config->opt_enum<BedExcludeVolumeMode>("bed_exclude_volume_mode") == BedExcludeVolumeMode::PerExtruder) {
+        auto *per_extruder = m_config->option<ConfigOptionStrings>("extruder_bed_exclude_volumes");
+        const auto *shared = m_config->option<ConfigOptionString>("bed_exclude_volumes");
+        const size_t extruder_count = m_config->option<ConfigOptionFloats>("nozzle_diameter")->size();
+        const bool definitions_empty = per_extruder == nullptr ||
+            std::all_of(per_extruder->values.begin(), per_extruder->values.end(), [](const std::string &entry) { return entry.empty(); });
+
+        if (definitions_empty && shared != nullptr && extruder_count > 0) {
+            const std::string serialized = shared->value;
+            const bool valid_shared_definition =
+                is_valid_bed_exclude_volumes_string(serialized, std::numeric_limits<double>::max());
+            DynamicPrintConfig new_conf = *m_config;
+            new_conf.set_key_value("extruder_bed_exclude_volumes",
+                new ConfigOptionStrings(std::vector<std::string>(extruder_count, valid_shared_definition ? serialized : std::string{})));
+            m_config_manipulation.apply(m_config, &new_conf);
+        }
     }
 
     if (opt_key == "compatible_prints")
@@ -5251,11 +5434,15 @@ void TabPrinter::build_fff()
         Option option = optgroup->get_option("bed_exclude_area");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option, "printer_basic_information_printable_space#excluded-bed-area");
-        // optgroup->append_single_option_line("printable_area");
+
+        option = optgroup->get_option("bed_exclude_volumes");
+        option.opt.full_width = true;
+        optgroup->append_single_option_line(option, "printer_basic_information_printable_space#toolhead-collision-volumes");
+        optgroup->append_single_option_line("bed_exclude_volume_mode", "printer_basic_information_printable_space#toolhead-collision-volumes");
+
         optgroup->append_single_option_line("printable_height", "printer_basic_information_printable_space#printable-height");
-        optgroup->append_single_option_line("support_multi_bed_types","printer_basic_information_printable_space#support-multi-bed-types");
+        optgroup->append_single_option_line("support_multi_bed_types", "printer_basic_information_printable_space#support-multi-bed-types");
         optgroup->append_single_option_line("best_object_pos", "printer_basic_information_printable_space#best-object-position");
-        // todo: for multi_extruder test
         optgroup->append_single_option_line("z_offset", "printer_basic_information_printable_space#z-offset");
         optgroup->append_single_option_line("preferred_orientation", "printer_basic_information_printable_space#preferred-orientation");
 
@@ -6069,6 +6256,10 @@ if (is_marlin_flavor)
             option.opt.full_width = true;
             optgroup->append_single_option_line(option, "printer_extruder_basic_information#extruder-printable-area");
 
+            Option exclusion_option = optgroup->get_option("extruder_bed_exclude_volumes", extruder_idx);
+            exclusion_option.opt.full_width = true;
+            optgroup->append_single_option_line(exclusion_option, "printer_basic_information_printable_space#toolhead-collision-volumes");
+
             optgroup->m_on_change = [this](const t_config_option_key& opt_key, boost::any value)
             {
                 // The page edits the extruder selected on the variant switch.
@@ -6550,6 +6741,16 @@ void TabPrinter::toggle_options()
         const bool support_parallel_printheads = printer_cfg.opt_bool("support_parallel_printheads");
         toggle_line("parallel_printheads_count", support_parallel_printheads);
 
+        const size_t exclusion_extruder_count = m_preset_bundle->get_printer_extruder_count();
+        // UI visibility follows the selected mode even before any volumes are
+        // entered. The runtime resolver still ignores empty configurations.
+        const BedExcludeVolumeMode exclusion_mode = m_config->opt_enum<BedExcludeVolumeMode>("bed_exclude_volume_mode");
+        // Legacy areas and collision volumes are additive. Keep the established
+        // material keep-out editable while the opt-in motion constraints exist.
+        toggle_option("bed_exclude_area", true);
+        toggle_line("bed_exclude_volume_mode", exclusion_extruder_count > 1);
+        toggle_line("bed_exclude_volumes", exclusion_extruder_count <= 1 || exclusion_mode != BedExcludeVolumeMode::PerExtruder);
+
         toggle_line("fan_direction", m_config->opt_bool("auxiliary_fan"));
 
         // The cooling filter and air filtration are alternative accessories: show only the one the printer supports.
@@ -6666,6 +6867,9 @@ void TabPrinter::toggle_options()
 
         toggle_option("extruder_printable_area", false, i);          // disable
         toggle_line("extruder_printable_area", m_preset_bundle->get_printer_extruder_count() == 2, i);  //hide
+        const bool per_extruder_exclusions =
+            m_config->opt_enum<BedExcludeVolumeMode>("bed_exclude_volume_mode") == BedExcludeVolumeMode::PerExtruder;
+        toggle_line("extruder_bed_exclude_volumes", m_preset_bundle->get_printer_extruder_count() > 1 && per_extruder_exclusions, i);
         toggle_option("extruder_printable_height", false, i);
         toggle_line("extruder_printable_height", m_preset_bundle->get_printer_extruder_count() == 2, i);
 
