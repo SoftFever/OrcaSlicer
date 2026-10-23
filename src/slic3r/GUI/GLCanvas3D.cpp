@@ -9858,9 +9858,6 @@ void GLCanvas3D::_render_wireframe_overlay()
     shader->set_uniform("projection_matrix", proj_matrix);
 
     glsafe(::glEnable(GL_DEPTH_TEST));
-    // Solid lines, also on the parts of a translucent filament.
-    const bool curr_blend = ::glIsEnabled(GL_BLEND);
-    glsafe(::glDisable(GL_BLEND));
 #if !SLIC3R_OPENGL_ES
     if (!OpenGLManager::get_gl_info().is_core_profile())
         glsafe(::glLineWidth(1.0f));
@@ -9874,8 +9871,6 @@ void GLCanvas3D::_render_wireframe_overlay()
 #if !SLIC3R_OPENGL_ES
     glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 #endif
-    if (curr_blend)
-        glsafe(::glEnable(GL_BLEND));
     shader->stop_using();
 }
 

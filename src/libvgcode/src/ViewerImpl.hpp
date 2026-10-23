@@ -453,8 +453,8 @@ private:
         void set_positions(const std::vector<Vec4>& positions);
         void set_heights_widths_angles(const std::vector<Vec4>& heights_widths_angles);
         void set_colors(const std::vector<ColorWithAlpha>& colors);
-        // ORCA: with colors, each texture lists its opaque segments first, then its translucent ones.
-        void set_enabled_segments(const std::vector<uint32_t>& enabled_segments, const std::vector<ColorWithAlpha>* colors);
+        // ORCA: sorted by opacity, each texture lists its opaque segments first, then its translucent ones.
+        void set_enabled_segments(const std::vector<uint32_t>& enabled_segments, const std::vector<ColorWithAlpha>& colors, bool sort_by_opacity);
         void set_enabled_options(const std::vector<uint32_t>& enabled_options);
         void reset();
         size_t get_count() const { return m_count; }

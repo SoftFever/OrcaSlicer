@@ -540,7 +540,7 @@ void ViewerImpl::TextureData::set_colors(const std::vector<ColorWithAlpha>& colo
     glsafe(glPixelStorei(GL_UNPACK_ALIGNMENT, curr_unpack_alignment));
 }
 
-void ViewerImpl::TextureData::set_enabled_segments(const std::vector<uint32_t>& enabled_segments, const std::vector<ColorWithAlpha>* colors)
+void ViewerImpl::TextureData::set_enabled_segments(const std::vector<uint32_t>& enabled_segments, const std::vector<ColorWithAlpha>& colors, bool sort_by_opacity)
 {
     if (m_count == 0)
         return;
@@ -572,10 +572,10 @@ void ViewerImpl::TextureData::set_enabled_segments(const std::vector<uint32_t>& 
         if (!new_tex)
             curr_segments.push_back(seg - static_cast<uint32_t>(curr_tex_id * tex_capacity));
         if (i + 1 == enabled_segments.size() || new_tex) {
-            if (colors != nullptr) {
+            if (sort_by_opacity) {
                 const size_t offset = curr_tex_id * tex_capacity;
                 const auto translucent_begin = std::stable_partition(curr_segments.begin(), curr_segments.end(),
-                    [colors, offset](uint32_t s) { return (*colors)[offset + s][3] == 255; });
+                    [&colors, offset](uint32_t s) { return colors[offset + s][3] == 255; });
                 m_tex_ids[curr_tex_id].enabled_translucent_segments = static_cast<size_t>(std::distance(translucent_begin, curr_segments.end()));
             }
             const auto [w, h] = width_height(curr_segments.size());
@@ -1355,15 +1355,14 @@ void ViewerImpl::update_enabled_entities()
 
     // ORCA: so that each pass of render() draws only its own segments, in print order
     m_enabled_translucent_segments_count = 0;
-    const auto is_opaque = [this](uint32_t id) { return m_vertices_colors[id][3] == 255; };
 #ifdef ENABLE_OPENGL_ES
-    if (m_has_translucent_colors)
-        m_enabled_translucent_segments_count = static_cast<size_t>(std::count_if(enabled_segments.begin(), enabled_segments.end(),
-            [&is_opaque](uint32_t id) { return !is_opaque(id); }));
-    m_texture_data.set_enabled_segments(enabled_segments, m_has_translucent_colors ? &m_vertices_colors : nullptr);
+    m_texture_data.set_enabled_segments(enabled_segments, m_vertices_colors, m_has_translucent_colors);
+    for (size_t i = 0; i < m_texture_data.get_count(); ++i)
+        m_enabled_translucent_segments_count += m_texture_data.get_enabled_translucent_segments_count(i);
     m_texture_data.set_enabled_options(enabled_options);
 #else
     if (m_has_translucent_colors) {
+        const auto is_opaque = [this](uint32_t id) { return m_vertices_colors[id][3] == 255; };
         const auto translucent_begin = std::stable_partition(enabled_segments.begin(), enabled_segments.end(), is_opaque);
         m_enabled_translucent_segments_count = static_cast<size_t>(std::distance(translucent_begin, enabled_segments.end()));
     }
