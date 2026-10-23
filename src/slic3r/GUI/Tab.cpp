@@ -46,6 +46,7 @@
 #include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
 #include <deque>
 #include <exception>
+#include <stdexcept>
 #include "libslic3r/LifecycleEvents.hpp"
 #include "libslic3r/Point.hpp"
 #include "slic3r/GUI/SettingsIndex.hpp"
@@ -1644,6 +1645,138 @@ void Tab::load_config(const DynamicPrintConfig& config)
         reload_config();
         update();
     }
+}
+
+// The option keys a preset of `type` may hold. The tab's config shares the global
+// print_config_def with every other preset type, so membership has to be checked against the
+// preset type's own key list instead of the config definition, or a printer setting could be
+// written into the process preset.
+static const std::vector<std::string>& preset_type_options(Preset::Type type)
+{
+    static const std::vector<std::string> none;
+    switch (type) {
+    case Preset::TYPE_PRINT:    return Preset::print_options();
+    case Preset::TYPE_FILAMENT: return Preset::filament_options();
+    case Preset::TYPE_PRINTER:  return Preset::printer_options();
+    default:                    return none;
+    }
+}
+
+static const char* preset_type_name(Preset::Type type)
+{
+    switch (type) {
+    case Preset::TYPE_PRINT:    return "process";
+    case Preset::TYPE_FILAMENT: return "filament";
+    case Preset::TYPE_PRINTER:  return "printer";
+    default:                    return "preset";
+    }
+}
+
+// Commit one option whose new value already sits in m_config through the same path a hand edit
+// runs. The key-specific behaviour (ConfigOptionsGroup::on_change_OG, including the printer_agent
+// canonicalization, the group's pre-checks and Tab::on_value_change()) runs exactly as for a hand
+// edit. A built field supplies the field's typed/clamped value; otherwise the owning
+// ConfigOptionsGroup builds the value from the config it edits and dispatches the same
+// on_change_OG(). The option's page is reloaded from the config just committed first, so a built
+// field reports the committed value rather than a stale one. No tab-wide refresh happens here: the
+// caller does it once for the whole batch.
+bool Tab::commit_preset_config_value(const std::string& opt_key)
+{
+    if (Page* field_page = nullptr; Field* field = get_field(opt_key, &field_page)) {
+        field_page->reload_config();
+        field->field_changed();
+        return true;
+    }
+    for (const PageShp& page : m_pages)
+        for (const ConfigOptionsGroupShp& group : page->m_optgroups)
+            if (group->commit_config_value(opt_key))
+                return true;
+    return false;
+}
+
+// Set one option of the currently edited preset from its serialized string form, then run the
+// same update path a hand edit runs. The edited preset is not saved: it only becomes dirty,
+// exactly as if the field had been edited by hand.
+void Tab::apply_preset_config_value(const std::string& opt_key, const std::string& value)
+{
+    apply_preset_config_values({{opt_key, value}});
+}
+
+// Apply a batch of settings as one transaction: parse and validate the whole batch first, then
+// commit it through the same per-setting path apply_preset_config_value() uses, restoring the edited
+// preset and the state derived from it if a setting fails. See the header for the contract and its
+// limits.
+void Tab::apply_preset_config_values(const std::vector<std::pair<std::string, std::string>>& values)
+{
+    if (m_config == nullptr)
+        throw std::runtime_error("The preset configuration is not available");
+    if (wxGetApp().plater() == nullptr)
+        throw std::runtime_error("OrcaSlicer main window is not available");
+
+    if (values.empty())
+        return;
+
+    const std::vector<std::string>& options = preset_type_options(m_type);
+
+    // Preparation: reject every batch that cannot be applied before touching the edited preset, so a
+    // bad key or value fails without a partial write. The key must belong to this preset type, it must
+    // not repeat, and each value is strict-parsed into a scratch copy (the strict deserializer can
+    // already have mutated an option when it rejects a bad value, so the check has to run somewhere
+    // the edited preset is not affected). Callback failures cannot be prepared this way: a setting's
+    // on_change callback is a GUI method, not a pure function of the config, so whether it throws is
+    // only known by running it. That residual case is handled by the rollback below.
+    std::set<std::string>   seen;
+    DynamicPrintConfig      scratch(*m_config);
+    for (const auto& kv : values) {
+        const std::string& opt_key = kv.first;
+        if (std::find(options.begin(), options.end(), opt_key) == options.end())
+            throw std::invalid_argument(format("Unknown %1% preset setting \"%2%\"", preset_type_name(m_type), opt_key));
+        if (!seen.insert(opt_key).second)
+            throw std::invalid_argument(format("%1% preset setting \"%2%\" is set more than once in the same update",
+                                               preset_type_name(m_type), opt_key));
+        try {
+            scratch.set_deserialize_strict(opt_key, kv.second);
+        } catch (const ConfigurationError& err) {
+            throw std::invalid_argument(err.what());
+        }
+    }
+
+    // Rollback boundary: snapshot the whole edited config, not just the keys the batch names, because a
+    // key-specific callback can adjust related settings of the edited preset (mutually exclusive
+    // options, compatibility, and so on). A failure restores this config and then recomputes the state
+    // derived from it.
+    DynamicPrintConfig before(*m_config);
+    try {
+        for (const auto& kv : values) {
+            m_config->set_deserialize_strict(kv.first, kv.second);
+            if (!commit_preset_config_value(kv.first))
+                // The GUI edits this setting through a custom widget rather than a group (e.g.
+                // compatible_printers), so take the same shared no-field commit path the widget uses.
+                // The value was written above, so saved mode skips the write and keeps the path's
+                // compatibility recompute, dirty flag, preset-combo and plater updates.
+                load_key_value(kv.first, boost::any(), /*saved_value=*/true);
+        }
+    } catch (...) {
+        *m_config = before;
+        // A callback can rewrite state derived from the config (compatibility marks, the preset
+        // selector, dependent tabs, the Plater and, on the printer tab, the printer agent) before it
+        // throws. Recompute that derived state from the restored config so none of it is left
+        // reflecting the failed batch. Effects that are not a function of the config (a dialog the
+        // user already accepted, an undo snapshot, a command already sent to a device, the target
+        // selection) cannot be reversed here; see the header.
+        m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+        reload_config();
+        update_dirty();
+        update();
+        throw;
+    }
+
+    // Apply the batch's final state once. The commit paths above already maintained the dirty flag,
+    // preset combo and, on the printer tab, the printer-agent switch; this reloads the visible page
+    // and pushes the config to the Plater.
+    reload_config();
+    update_dirty();
+    update();
 }
 
 // Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
@@ -5755,9 +5888,7 @@ void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::s
     auto line = Line{ option.opt.full_label, "" };
     line.label_path = label_path;
     line.append_option(option);
-    if (m_use_silent_mode
-        || m_printer_technology == ptSLA // just for first build, if SLA printer preset is selected
-        )
+    if (m_printer_technology == ptSLA) // just for first build, if SLA printer preset is selected
         line.append_option(optgroup->get_option(opt_key, 1));
     optgroup->append_line(line);
 }
@@ -5766,29 +5897,6 @@ PageShp TabPrinter::build_kinematics_page()
 {
     auto page = add_options_page(L("Motion ability"), "custom-gcode_motion", true); // ORCA: icon only visible on placeholders
 
-    if (m_use_silent_mode) {
-        // Legend for OptionsGroups
-        auto optgroup = page->new_optgroup("");
-        auto line = Line{ "", "" };
-
-        ConfigOptionDef def;
-        def.type = coString;
-        def.width = Field::def_width();
-        def.gui_type = ConfigOptionDef::GUIType::legend;
-        def.mode = comDevelop;
-        //def.tooltip = L("Values in this column are for Normal mode");
-        def.set_default_value(new ConfigOptionString{ _(L("Normal")).ToUTF8().data() });
-
-        auto option = Option(def, "full_power_legend");
-        line.append_option(option);
-
-        //def.tooltip = L("Values in this column are for Stealth mode");
-        def.set_default_value(new ConfigOptionString{ _(L("Silent")).ToUTF8().data() });
-        option = Option(def, "silent_legend");
-        line.append_option(option);
-
-        optgroup->append_line(line);
-    }
     auto optgroup = page->new_optgroup(L("Advanced"), "param_advanced");
     optgroup->append_single_option_line("emit_machine_limits_to_gcode", "printer_motion_ability#emit-limits-to-g-code");
 
@@ -5888,13 +5996,9 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     size_t existed_page = 0;
     for (size_t i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
         if (m_pages[i]->title().find(L("Motion ability")) != std::string::npos) {
-            if (m_rebuild_kinematics_page)
-                m_pages.erase(m_pages.begin() + i);
-            else
-                existed_page = i;
+            existed_page = i;
             break;
         }
-    m_rebuild_kinematics_page = false;
 
     if (existed_page < n_before_extruders && (is_marlin_flavor || from_initial_build)) {
         auto page = build_kinematics_page();
@@ -6912,14 +7016,10 @@ void TabPrinter::toggle_options()
         const bool gcf_is_klipper = gcf == GCodeFlavor::gcfKlipper;
         const bool gcf_is_reprap_firmware = gcf == GCodeFlavor::gcfRepRapFirmware;
 
-        bool silent_mode = m_config->opt_bool("silent_mode");
-        int  max_field   = silent_mode ? 2 : 1;
         const wxString travel_acceleration_reason = _L("Travel acceleration limits are unavailable for the Marlin legacy and Klipper G-code flavors.");
         // Keep unsupported motion limits visible so their disabled tooltips explain the firmware requirement.
-        for (int i = 0; i < max_field; ++i)
-            toggle_option("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, i, travel_acceleration_reason);
-        for (int i = 0; i < max_field; ++i)
-            toggle_option("machine_max_junction_deviation", gcf_is_marlin_firmware, i, marlin_firmware_reason);
+        toggle_option("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, 0, travel_acceleration_reason);
+        toggle_option("machine_max_junction_deviation", gcf_is_marlin_firmware, 0, marlin_firmware_reason);
 
         // Check if junction deviation value is non-zero and firmware is Marlin
         bool enable_jerk = !gcf_is_marlin_firmware;
@@ -6933,12 +7033,10 @@ void TabPrinter::toggle_options()
                 enable_jerk = true;
             }
         }
-        for (int i = 0; i < max_field; ++i) {
-            toggle_option("machine_max_jerk_x", enable_jerk, i, junction_deviation_jerk_reason);
-            toggle_option("machine_max_jerk_y", enable_jerk, i, junction_deviation_jerk_reason);
-            toggle_option("machine_max_jerk_z", enable_jerk, i, junction_deviation_jerk_reason);
-            toggle_option("machine_max_jerk_e", enable_jerk, i, junction_deviation_jerk_reason);
-        }
+        toggle_option("machine_max_jerk_x", enable_jerk, 0, junction_deviation_jerk_reason);
+        toggle_option("machine_max_jerk_y", enable_jerk, 0, junction_deviation_jerk_reason);
+        toggle_option("machine_max_jerk_z", enable_jerk, 0, junction_deviation_jerk_reason);
+        toggle_option("machine_max_jerk_e", enable_jerk, 0, junction_deviation_jerk_reason);
 
         bool emittable_limits = gcf_is_marlin_legacy || gcf_is_marlin_firmware || gcf_is_reprap_firmware;
         toggle_option("emit_machine_limits_to_gcode", emittable_limits, -1,
@@ -7047,11 +7145,6 @@ void TabPrinter::update()
 
 void TabPrinter::update_fff()
 {
-    if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
-        m_rebuild_kinematics_page = true;
-        m_use_silent_mode = m_config->opt_bool("silent_mode");
-    }
-
     // Sync IDEX/IQEX tool grid whenever carriage configuration changes.
     // set_grid_size() is a no-op when dimensions and layout are unchanged.
     // load_from_config() is gated on matches_config() — without that guard,
