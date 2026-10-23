@@ -10,9 +10,11 @@
 #include <nlohmann/json.hpp>
 #include <pybind11/embed.h>
 
+#include <libslic3r/LifecycleEvents.hpp>
+
 namespace Slic3r {
 
-enum class PluginCapabilityType { PrinterConnection = 0, Automation, Analysis, Importer, Exporter, Visualization, Script, SlicingPipeline, Unknown };
+enum class PluginCapabilityType { PrinterConnection = 0, Pages, Analysis, Importer, Exporter, Visualization, Script, SlicingPipeline, ResourceTexture, Unknown };
 
 struct PluginCapabilityId
 {
@@ -39,13 +41,14 @@ inline std::string plugin_capability_type_to_string(PluginCapabilityType type)
 {
     switch (type) {
     case PluginCapabilityType::PrinterConnection: return "printer-connection";
-    case PluginCapabilityType::Automation: return "automation";
+    case PluginCapabilityType::Pages: return "pages";
     case PluginCapabilityType::Analysis: return "analysis";
     case PluginCapabilityType::Importer: return "importer";
     case PluginCapabilityType::Exporter: return "exporter";
     case PluginCapabilityType::Visualization: return "visualization";
     case PluginCapabilityType::Script: return "script";
     case PluginCapabilityType::SlicingPipeline: return "slicing-pipeline";
+    case PluginCapabilityType::ResourceTexture: return "resource-texture";
     default: return "unknown";
     }
 }
@@ -54,13 +57,14 @@ inline std::string plugin_capability_type_display_name(PluginCapabilityType type
 {
     switch (type) {
     case PluginCapabilityType::PrinterConnection: return "Printer connection";
-    case PluginCapabilityType::Automation: return "Automation";
+    case PluginCapabilityType::Pages: return "Pages";
     case PluginCapabilityType::Analysis: return "Analysis";
     case PluginCapabilityType::Importer: return "Importer";
     case PluginCapabilityType::Exporter: return "Exporter";
     case PluginCapabilityType::Visualization: return "Visualization";
     case PluginCapabilityType::Script: return "Script";
     case PluginCapabilityType::SlicingPipeline: return "Slicing Pipeline";
+    case PluginCapabilityType::ResourceTexture: return "Resource Texture";
     default: return "Unknown";
     }
 }
@@ -76,8 +80,8 @@ inline PluginCapabilityType plugin_capability_type_from_string(std::string_view 
 
     if (lowered == "printer-connection")
         return PluginCapabilityType::PrinterConnection;
-    if (lowered == "automation")
-        return PluginCapabilityType::Automation;
+    if (lowered == "pages")
+        return PluginCapabilityType::Pages;
     if (lowered == "analysis")
         return PluginCapabilityType::Analysis;
     if (lowered == "importer")
@@ -90,6 +94,8 @@ inline PluginCapabilityType plugin_capability_type_from_string(std::string_view 
         return PluginCapabilityType::Script;
     if (lowered == "slicing-pipeline")
         return PluginCapabilityType::SlicingPipeline;
+    if (lowered == "resource-texture")
+        return PluginCapabilityType::ResourceTexture;
     return PluginCapabilityType::Unknown;
 }
 
@@ -166,6 +172,8 @@ public:
     virtual void on_load() {}
     virtual void on_unload() {}
     virtual void on_cancelled() {}
+
+    virtual void on_lifecycle_event(LifecycleEvent event, const LifecycleEventContext& ctx) { (void) event; (void) ctx; }
 
     // ── C++-only host state, never exposed to Python. Set by the loader at materialization. ──
     //

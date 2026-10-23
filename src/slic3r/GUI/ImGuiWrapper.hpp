@@ -1,12 +1,18 @@
 #ifndef slic3r_ImGuiWrapper_hpp_
 #define slic3r_ImGuiWrapper_hpp_
 
+#include "libslic3r/Technologies.hpp"
+#include <optional>
 #include <string>
 #include <map>
+#include <string_view>
+#include <tuple>
+#include <vector>
 #include <cstdlib>
 
 #include <imgui/imgui.h>
 
+#include <wx/colour.h>
 #include <wx/string.h>
 
 #include "libslic3r/Point.hpp"
@@ -29,6 +35,7 @@ struct ImRect;
 namespace Slic3r {
 namespace GUI {
 
+struct KeyChord;
 
 bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data);
 
@@ -66,6 +73,10 @@ class ImGuiWrapper
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     std::map<wchar_t, int> m_custom_glyph_rects_ids;
     std::string m_clipboard_text;
+    // Keys held down, each with whether ImGui claimed its press.
+    std::map<int, bool> m_key_claims;
+    // Whether ImGui claimed the last key-down, for the char event that follows it.
+    std::optional<bool> m_char_claim;
 
 public:
     struct LastSliderStatus {
@@ -96,7 +107,11 @@ public:
     const ImWchar *get_glyph_ranges() const { return m_glyph_ranges; } // language specific
 
     void new_frame();
-    void render();
+    // Ends the frame and returns its draw data without drawing it.
+    ImDrawData* end_frame();
+    void render(ImDrawData* draw_data);
+    // Hash of every draw list's vertices, indices and commands.
+    static ImGuiID draw_data_signature(const ImDrawData* draw_data);
 
     float scaled(float x) const { return x * m_font_size; }
     ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size, y * m_font_size); }
@@ -209,6 +224,25 @@ public:
     bool want_keyboard() const;
     bool want_text_input() const;
     bool want_any_input() const;
+    // True while an ImGui InputText is active, without the one-frame lag of want_text_input().
+    bool text_input_active() const;
+    // True while an ImGui modal popup is on screen.
+    bool modal_popup_open() const;
+    // True while any ImGui popup is on screen, modal or not.
+    bool popup_open() const;
+    // Closes the topmost popup on screen unless it is a modal, which handles Esc itself.
+    void close_top_popup();
+    // True for every key while a modal is open, and for text-editing keys while an InputText is active.
+    bool owns_key(const KeyChord& chord) const;
+    // True while the left mouse button holds an ImGui item, such as a slider being dragged.
+    bool item_held() const;
+    // True while a popup is open, an item is held or an InputText is active.
+    bool owns_keyboard() const;
+    // Returns owns_keyboard() as of the key's key-down, so its repeats, char event and release get the
+    // same answer. Call it once per event.
+    bool claim_key_event(const wxKeyEvent& evt);
+    // Drops the record of held keys, whose key-ups are sent to the window that takes the focus.
+    void forget_key_claims();
 
     // Optional inputs are used for set up value inside of an optional, with default value
     // 
@@ -298,6 +332,20 @@ public:
                                 ImU32         color        = ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, .75f)),
                                 int           num_segments = 0,
                                 float         thickness    = 4.f);
+
+    /// <summary>
+    /// Fill a rect with a filament gradient ramp, one band per pixel row, ramp.front() along
+    /// the bottom edge. Bands rather than one interpolated rect, because the ramp follows the
+    /// slot's gradient curve and ImGui's corner interpolation could only draw a straight fade.
+    /// </summary>
+    /// <param name="draw_list">Define where to draw it</param>
+    /// <param name="top_left">Upper left corner of the rect</param>
+    /// <param name="bottom_right">Lower right corner of the rect</param>
+    /// <param name="ramp">Colours printed, bottom of the model first</param>
+    static void draw_gradient_ramp(ImDrawList *          draw_list,
+                                   const ImVec2 &        top_left,
+                                   const ImVec2 &        bottom_right,
+                                   const std::vector<wxColour> &ramp);
 
     /// <summary>
     /// Check that font ranges contain all chars in string

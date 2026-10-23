@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PluginDescriptor.hpp"
+#include <pybind11/pytypes.h>
 
 #include <nlohmann/json.hpp>
 #include <pybind11/pybind11.h>
@@ -9,9 +10,12 @@
 
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
+#include <pybind11/cast.h>
 
 #define PLUGIN_SUBSCRIBED_DIR "_subscribed"
+#define PLUGIN_DATA_DIR "plugin_data"
 
 namespace Slic3r {
 
@@ -21,10 +25,18 @@ extern const char* const INSTALL_STATE_FILE;
 // Plugin config and orca.host.ui payloads both cross the boundary as plain JSON-compatible
 // values, so both go through these.
 
-inline pybind11::object json_to_py(const nlohmann::json& j)
+// Maximum nesting depth for JSON <-> Python conversion. A self-referential or pathologically
+// deep value would otherwise recurse until the native C stack overflows, an uncatchable crash;
+// past this bound we raise instead. 200 is far beyond any legitimate plugin config or UI payload.
+inline constexpr int kMaxJsonConversionDepth = 200;
+
+inline pybind11::object json_to_py(const nlohmann::json& j, int depth = 0)
 {
     namespace py = pybind11;
     using json   = nlohmann::json;
+
+    if (depth > kMaxJsonConversionDepth)
+        throw py::value_error("Plugin JSON value nested too deeply");
 
     switch (j.type()) {
     case json::value_t::null:            return py::none();
@@ -36,23 +48,26 @@ inline pybind11::object json_to_py(const nlohmann::json& j)
     case json::value_t::array: {
         py::list lst;
         for (const auto& e : j)
-            lst.append(json_to_py(e));
+            lst.append(json_to_py(e, depth + 1));
         return lst;
     }
     case json::value_t::object: {
         py::dict d;
         for (auto it = j.begin(); it != j.end(); ++it)
-            d[py::str(it.key())] = json_to_py(it.value());
+            d[py::str(it.key())] = json_to_py(it.value(), depth + 1);
         return d;
     }
     default: return py::none();
     }
 }
 
-inline nlohmann::json py_to_json(const pybind11::handle& o)
+inline nlohmann::json py_to_json(const pybind11::handle& o, int depth = 0)
 {
     namespace py = pybind11;
     using json   = nlohmann::json;
+
+    if (depth > kMaxJsonConversionDepth)
+        throw py::value_error("Plugin value nested too deeply (possible cycle)");
 
     if (o.is_none())
         return json(nullptr);
@@ -69,23 +84,38 @@ inline nlohmann::json py_to_json(const pybind11::handle& o)
     if (py::isinstance<py::dict>(o)) {
         json obj = json::object();
         for (auto item : py::reinterpret_borrow<py::dict>(o))
-            obj[py::str(item.first).cast<std::string>()] = py_to_json(item.second);
+            obj[py::str(item.first).cast<std::string>()] = py_to_json(item.second, depth + 1);
         return obj;
     }
     if (py::isinstance<py::list>(o) || py::isinstance<py::tuple>(o)) {
         json arr = json::array();
         for (auto e : o)
-            arr.push_back(py_to_json(e));
+            arr.push_back(py_to_json(e, depth + 1));
         return arr;
     }
     return py::str(o).cast<std::string>(); // fallback: str()
 }
+
+struct PluginPermissions
+{
+    std::vector<std::string> fs_read;
+    std::vector<std::string> fs_readwrite;
+    std::vector<std::string> network_http;
+    std::vector<std::string> network_socket;
+    std::vector<std::string> process;
+    std::vector<std::string> threading;
+    // Grants for audit events that expose no target, keyed "<category>:<event>" (e.g. "Socket:socket.__new__").
+    std::vector<std::string> events;
+};
 
 struct PluginInstallState {
     std::string installed_from;      // "local" | "cloud"
     std::string installed_version;
     std::string plugin_name;
     std::string cloud_uuid;          // empty for local
+
+    PluginPermissions permissions;
+
     bool enabled = true;
     std::vector<std::pair<std::string, bool>> capabilities; // name -> enabled, ordered
 };
@@ -147,6 +177,12 @@ bool read_wheel_plugin_metadata(const boost::filesystem::path& whl_path, PluginD
 // Ignores __whl_extracted__ and hidden files/dirs.
 // Returns the path to the entry file, or an empty path with error set if zero or multiple candidates.
 boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::path& plugin_dir, std::string& error);
+
+// Validated non-recursive .png/.jpg/.jpeg/.bmp files directly inside `dir`, every one contained in
+// `plugin_root`. Empty with `error` set on failure.
+std::vector<std::string> collect_resource_texture_files(const std::string& dir,
+                                                        const std::string& plugin_root,
+                                                        std::string& error);
 
 // Canonical writer: emits the .install_state.json schema for the given state.
 bool write_install_state(const boost::filesystem::path& plugin_dir, const PluginInstallState& state);
