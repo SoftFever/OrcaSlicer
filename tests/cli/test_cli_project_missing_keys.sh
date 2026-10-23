@@ -9,8 +9,8 @@
 # without being listed, one process key and the first filament's density are changed and listed, and it
 # is sliced again: as is, with --uptodate, and with --load-filaments replacing only the second filament.
 # Without any entry in different_settings_to_system the project does not say which values it changed:
-# a plain run then keeps every stored value and takes only the removed keys, while --uptodate still
-# refreshes the unlisted ones.
+# a plain run then keeps every stored value and takes only the removed keys, three filament keys among
+# them, from the system presets, while --uptodate still refreshes the unlisted ones.
 #
 # usage: test_cli_project_missing_keys.sh <orca-slicer binary> <python3> <resources/profiles/BBL>
 set -u
@@ -118,8 +118,9 @@ check uptodate
 slice partial "$WORK/old.3mf" --load-filaments ";$PROFILES/filament/Bambu PLA Basic @BBL P1S 0.4 nozzle.json"
 check partial
 
-# The same project with no list and with an empty entry for every preset. A plain run keeps the stored
-# values; --uptodate refreshes them all, and the listed keys have no system value to expect.
+# The same project with no list and with an empty entry for every preset, and without two per-variant
+# filament keys and one filament_dev key. A plain run keeps the stored values; --uptodate refreshes them
+# all, and the listed keys have no system value to expect.
 "$PY" - "$WORK/old.3mf" "$WORK/old.3mf.expected.json" "$WORK" <<'EOF' || exit $?
 import json, sys, zipfile
 
@@ -132,6 +133,12 @@ with zipfile.ZipFile(src) as zin:
 config = json.loads(next(data for item, data in items if item.filename == "Metadata/project_settings.config"))
 stored = {key: config.get(key, want) for key, want in expected.items()}
 refreshed = {key: want for key, want in expected.items() if key not in ("wall_loops", "filament_density")}
+# The removed filament keys, with their option defaults from PrintConfig.cpp.
+for key, default in (("nozzle_temperature", "200"), ("filament_flow_ratio", "1"), ("filament_dev_ams_drying_time", "0")):
+    if default in config[key]:
+        print("SKIP: %s is %s in the system preset, the option default, so the test cannot tell them apart" % (key, default))
+        sys.exit(77)
+    stored[key] = refreshed[key] = config.pop(key)
 for name, different in (("unlisted", None), ("empty_list", [""] * len(config["different_settings_to_system"]))):
     if different is None:
         config.pop("different_settings_to_system")
