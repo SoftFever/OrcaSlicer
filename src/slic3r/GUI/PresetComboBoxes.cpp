@@ -140,6 +140,7 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
         break;
     }
     case Preset::TYPE_FILAMENT: {
+        EnableTypeToFilter();
         m_collection = &m_preset_bundle->filaments;
         m_main_bitmap_name = "spool";
         break;
