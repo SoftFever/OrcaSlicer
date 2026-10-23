@@ -1001,8 +1001,8 @@ TEST_CASE("A freshly approved operation covers its nested events", "[audit][Pyth
         {"tempfile.mkdtemp", "tempfile.mkdtemp(dir=OUTSIDE)"},
         {"tempfile.mkstemp", "os.close(tempfile.mkstemp(dir=OUTSIDE)[0])"},
         {"shutil.rmtree", "shutil.rmtree(os.path.join(OUTSIDE, 'copy'))"},
-        // send() runs after connect() has returned, so its own grant is asked once.
-        {"http.client.connect\nhttp.client.send",
+        // The host grant from connect() also authorizes targetless send() events.
+        {"http.client.connect",
          "connection = http.client.HTTPConnection('127.0.0.1', PORT)\n"
          "connection.request('GET', '/a')\n"
          "connection.getresponse().read()\n"
