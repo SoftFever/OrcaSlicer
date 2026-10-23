@@ -174,6 +174,12 @@ public:
     using PermissionPrompt = std::function<bool(const std::string& event_name, const std::vector<std::string>& targets)>;
     static void set_permission_prompt_for_testing(PermissionPrompt prompt);
 
+    // Drops runtime audit prompts that have not been shown yet. Called when the application shuts
+    // down so a queued prompt cannot open after the GUI is gone, and when a plugin is unloaded so
+    // its prompts cannot outlive it. An already displayed prompt is unaffected.
+    static void discard_pending_permission_prompts();
+    static void discard_pending_permission_prompts_for(const std::string& plugin_key);
+
     bool verbose_events = true;
 
 private:
