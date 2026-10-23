@@ -1342,6 +1342,100 @@ TEST_CASE("A tree grant compares canonical paths on both sides", "[audit][Python
     CHECK(describe(harness.prompts).empty());
 }
 
+TEST_CASE("A write through a dangling symlink inside a granted tree is denied", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+
+    // Two links inside TREE whose targets do not exist yet, so both dangle:
+    //  - "dangling" points outside the tree, the reported escape;
+    //  - "dangling-inside" points at a not-yet-created file that would be inside the tree, to pin
+    //    the fail-closed choice: a dangling link is rejected whatever its target.
+    const fs::path tree          = python.str("TREE");
+    const fs::path outside_file  = harness.outside.path() / "written-through-link.txt";
+    const fs::path link          = tree / "dangling";
+    const fs::path inside_target = tree / "not-created.txt";
+    const fs::path inside_link   = tree / "dangling-inside";
+    boost::system::error_code ec;
+    fs::create_symlink(outside_file, link, ec);
+    if (ec)
+        SKIP("Cannot create a file symlink here: " + ec.message());
+    fs::create_symlink(inside_target, inside_link, ec);
+    if (ec)
+        SKIP("Cannot create a file symlink here: " + ec.message());
+
+    PluginPermissions permissions;
+    permissions.fs_readwrite = {tree.string() + "/*"};
+    harness.save_permissions(PLUGIN, permissions);
+
+    python.globals["DANGLING_LINK"]        = link.string();
+    python.globals["DANGLING_INSIDE_LINK"] = inside_link.string();
+    python.run_as(PLUGIN, R"PY(
+inside_outcome = attempt(lambda: open(os.path.join(TREE, "inside.txt"), "w").close())
+outcome = attempt(lambda: open(DANGLING_LINK, "w").close())
+inside_link_outcome = attempt(lambda: open(DANGLING_INSIDE_LINK, "w").close())
+)PY");
+
+    // The wildcard still covers an ordinary new file in the tree. A dangling final symlink is not
+    // covered: the grant describes the path the plugin spelled, while a write through the link
+    // would land at its target, so the prompt is refused and neither destination is created.
+    CHECK(python.str("inside_outcome") == "ok");
+    CHECK(python.str("outcome") == "denied");
+    CHECK(python.str("inside_link_outcome") == "denied");
+    CHECK(describe(harness.prompts) == "open: " + link.string() + "\nopen: " + inside_link.string() + "\n");
+    CHECK_FALSE(fs::exists(outside_file));
+    CHECK_FALSE(fs::exists(inside_target));
+}
+
+TEST_CASE("A relative wildcard permission request is shown and stored as an absolute grant", "[audit][Python]")
+{
+    AuditHarness harness;
+    if (!harness.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    harness.add_plugin(PLUGIN);
+    py::gil_scoped_acquire gil;
+    PythonSide python(harness);
+    PluginAuditManager& mgr = PluginAuditManager::instance();
+
+    // The plugin declares the grant relative to the working directory of the request, while the
+    // audit hook reports absolute targets. Resolve against the directory the request is made in.
+    const std::string relative_grant = "tree/*";
+    PluginPermissions requested;
+    requested.fs_readwrite = {relative_grant};
+
+    const fs::path original_cwd = fs::current_path();
+    boost::system::error_code ec;
+    fs::current_path(harness.outside.path(), ec);
+    REQUIRE_FALSE(ec);
+    const fs::path request_dir = fs::current_path();
+
+    std::string shown;
+    PluginAuditManager::set_permission_message_prompt_for_testing(
+        [&shown](const std::string& message) { shown = message; return true; });
+    const bool granted = mgr.request_permissions(PLUGIN, requested);
+    PluginAuditManager::set_permission_message_prompt_for_testing(nullptr);
+    fs::current_path(original_cwd, ec);
+
+    const std::string absolute_grant = (request_dir / "tree" / "*").string();
+
+    REQUIRE(granted);
+    // The prompt names the resolved scope, not the relative declaration.
+    CHECK(shown.find(absolute_grant) != std::string::npos);
+    CHECK(shown.find("\n" + relative_grant + "\n") == std::string::npos);
+    CHECK(harness.saved_permissions(PLUGIN).fs_readwrite == std::vector<std::string>{absolute_grant});
+
+    // The saved absolute grant is the effective one: an absolute target below the resolved
+    // directory is covered, so the write is not asked about again.
+    python.globals["RESOLVED_FILE"] = (harness.outside.path() / "tree" / "written.txt").string();
+    python.run_as(PLUGIN, "outcome = attempt(lambda: open(RESOLVED_FILE, 'w').close())");
+    CHECK(python.str("outcome") == "ok");
+    CHECK(describe(harness.prompts).empty());
+}
+
 TEST_CASE("A filesystem wildcard keeps read and write grants separate", "[audit][Python]")
 {
     AuditHarness harness;
