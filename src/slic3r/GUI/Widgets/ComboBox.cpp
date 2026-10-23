@@ -398,7 +398,7 @@ void ComboBox::mouseDown(wxMouseEvent &event)
     SetFocus();
     if (drop_down) {
         drop.Hide();
-    } else if (!items.empty() && drop.HasDismissLongTime()) { // DropDown paints nothing for an empty list
+    } else if (drop.HasDismissLongTime()) {
         drop.autoPosition();
         drop_down = true;
         drop.Popup(&drop);
