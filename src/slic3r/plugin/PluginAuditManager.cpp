@@ -6,6 +6,7 @@
 #include "libslic3r_version.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
