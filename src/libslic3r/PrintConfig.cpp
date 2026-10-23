@@ -1541,6 +1541,17 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
 
+    def = this->add("bottom_color_penetration_layers", coInt);
+    def->label = L("Bottom paint penetration layers");
+    def->category = L("Strength");
+    def->sidetext = L("layers");
+    def->tooltip = L("The number of layers, including the bottom surface layer, that take the color painted on a bottom surface. "
+                     "Set to 0 to use the bottom shell layers. A value larger than the bottom shell also colors the sparse "
+                     "infill above the painted area.");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
     def = this->add("gap_fill_target", coEnum);
     def->label = L("Apply gap fill");
     def->category = L("Strength");
@@ -8133,6 +8144,17 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");	// millimeters, CIS languages need translation
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.6));
+
+    def = this->add("top_color_penetration_layers", coInt);
+    def->label = L("Top paint penetration layers");
+    def->category = L("Strength");
+    def->sidetext = L("layers");
+    def->tooltip = L("The number of layers, including the top surface layer, that take the color painted on a top surface. "
+                     "Set to 0 to use the top shell layers. A value larger than the top shell also colors the sparse "
+                     "infill below the painted area.");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
 
     def           = this->add("separated_infills", coBool);
     def->label    = L("Separated infills");
