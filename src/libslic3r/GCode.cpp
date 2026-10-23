@@ -3092,11 +3092,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
 // free functions called by GCode::_do_export()
 namespace DoExport {
-    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor, bool& silent_time_estimator_enabled,
+    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor,
                                      const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase>& nozzle_group_result = nullptr)
     {
-        silent_time_estimator_enabled = (config.gcode_flavor == gcfMarlinLegacy || config.gcode_flavor == gcfMarlinFirmware)
-                                        && config.silent_mode;
         processor.reset();
         // Slot-resolution context for the streaming replay (reset() just cleared it). This is NOT
         // the post-stream result-field handover at the end of do_export, which gates the richer
@@ -3105,7 +3103,6 @@ namespace DoExport {
         processor.initialize_result_moves();
         processor.apply_config(config);
         processor.configure_exclusion_volume_path_check(config);
-        processor.enable_stealth_time_estimator(silent_time_estimator_enabled);
     }
 
 #if 0
@@ -3397,9 +3394,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // init as filament map
     update_layer_related_config(0);
 
-    // modifies m_silent_time_estimator_enabled
-    DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled,
-                                   print.get_layered_nozzle_group_result());
+    DoExport::init_gcode_processor(print.config(), m_processor, print.get_layered_nozzle_group_result());
     set_mass_locator(m_processor, print);
     const bool is_bbl_printers = print.is_BBL_printer();
     const bool skip_config_block = print.config().gcode_skip_config_block;

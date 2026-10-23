@@ -5696,9 +5696,7 @@ void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::s
     auto line = Line{ option.opt.full_label, "" };
     line.label_path = label_path;
     line.append_option(option);
-    if (m_use_silent_mode
-        || m_printer_technology == ptSLA // just for first build, if SLA printer preset is selected
-        )
+    if (m_printer_technology == ptSLA) // just for first build, if SLA printer preset is selected
         line.append_option(optgroup->get_option(opt_key, 1));
     optgroup->append_line(line);
 }
@@ -5707,29 +5705,6 @@ PageShp TabPrinter::build_kinematics_page()
 {
     auto page = add_options_page(L("Motion ability"), "custom-gcode_motion", true); // ORCA: icon only visible on placeholders
 
-    if (m_use_silent_mode) {
-        // Legend for OptionsGroups
-        auto optgroup = page->new_optgroup("");
-        auto line = Line{ "", "" };
-
-        ConfigOptionDef def;
-        def.type = coString;
-        def.width = Field::def_width();
-        def.gui_type = ConfigOptionDef::GUIType::legend;
-        def.mode = comDevelop;
-        //def.tooltip = L("Values in this column are for Normal mode");
-        def.set_default_value(new ConfigOptionString{ _(L("Normal")).ToUTF8().data() });
-
-        auto option = Option(def, "full_power_legend");
-        line.append_option(option);
-
-        //def.tooltip = L("Values in this column are for Stealth mode");
-        def.set_default_value(new ConfigOptionString{ _(L("Silent")).ToUTF8().data() });
-        option = Option(def, "silent_legend");
-        line.append_option(option);
-
-        optgroup->append_line(line);
-    }
     auto optgroup = page->new_optgroup(L("Advanced"), "param_advanced");
     optgroup->append_single_option_line("emit_machine_limits_to_gcode", "printer_motion_ability#emit-limits-to-g-code");
 
@@ -5829,13 +5804,9 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     size_t existed_page = 0;
     for (size_t i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
         if (m_pages[i]->title().find(L("Motion ability")) != std::string::npos) {
-            if (m_rebuild_kinematics_page)
-                m_pages.erase(m_pages.begin() + i);
-            else
-                existed_page = i;
+            existed_page = i;
             break;
         }
-    m_rebuild_kinematics_page = false;
 
     if (existed_page < n_before_extruders && (is_marlin_flavor || from_initial_build)) {
         auto page = build_kinematics_page();
@@ -6824,13 +6795,9 @@ void TabPrinter::toggle_options()
         const bool gcf_is_klipper = gcf == GCodeFlavor::gcfKlipper;
         const bool gcf_is_reprap_firmware = gcf == GCodeFlavor::gcfRepRapFirmware;
 
-        bool silent_mode = m_config->opt_bool("silent_mode");
-        int  max_field   = silent_mode ? 2 : 1;
-        for (int i = 0; i < max_field; ++i)
-            toggle_option("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, i);
+        toggle_option("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper, 0);
         toggle_line("machine_max_acceleration_travel", !gcf_is_marlin_legacy && !gcf_is_klipper);
-        for (int i = 0; i < max_field; ++i)
-            toggle_option("machine_max_junction_deviation", gcf_is_marlin_firmware, i);
+        toggle_option("machine_max_junction_deviation", gcf_is_marlin_firmware, 0);
         toggle_line("machine_max_junction_deviation", gcf_is_marlin_firmware);
 
         // Check if junction deviation value is non-zero and firmware is Marlin
@@ -6844,12 +6811,10 @@ void TabPrinter::toggle_options()
                 enable_jerk = true;
             }
         }
-        for (int i = 0; i < max_field; ++i) {
-            toggle_option("machine_max_jerk_x", enable_jerk, i);
-            toggle_option("machine_max_jerk_y", enable_jerk, i);
-            toggle_option("machine_max_jerk_z", enable_jerk, i);
-            toggle_option("machine_max_jerk_e", enable_jerk, i);
-        }
+        toggle_option("machine_max_jerk_x", enable_jerk, 0);
+        toggle_option("machine_max_jerk_y", enable_jerk, 0);
+        toggle_option("machine_max_jerk_z", enable_jerk, 0);
+        toggle_option("machine_max_jerk_e", enable_jerk, 0);
 
         bool emittable_limits = gcf_is_marlin_legacy || gcf_is_marlin_firmware || gcf_is_reprap_firmware;
         toggle_option("emit_machine_limits_to_gcode", emittable_limits);
@@ -6954,11 +6919,6 @@ void TabPrinter::update()
 
 void TabPrinter::update_fff()
 {
-    if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
-        m_rebuild_kinematics_page = true;
-        m_use_silent_mode = m_config->opt_bool("silent_mode");
-    }
-
     // Sync IDEX/IQEX tool grid whenever carriage configuration changes.
     // set_grid_size() is a no-op when dimensions and layout are unchanged.
     // load_from_config() is gated on matches_config() — without that guard,
