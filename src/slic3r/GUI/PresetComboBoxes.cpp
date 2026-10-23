@@ -274,10 +274,8 @@ void PresetComboBox::update_selection()
 
 void PresetComboBox::update_source_arrow()
 {
-    auto set_default_icon = [this]() { this->SetIcon("drop_down"); };
-
     if (!wxGetApp().app_config->get_bool("show_preset_source_indicators") || !m_collection || m_last_selected < 0 || m_last_selected >= static_cast<int>(GetCount())) {
-        set_default_icon();
+        this->SetIcon("drop_down");
         return;
     }
 
