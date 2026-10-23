@@ -9283,12 +9283,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             if (config_substitutions.unrecogized_keys.size() > 0) {
                                 wxString text  = wxString::Format(_L("The 3MF file version %s is newer than %s's version %s, found the following unrecognized keys:"),
                                                                  file_version.to_string_sf(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string_sf());
-                                text += "\n";
-                                wxString context = text;
-                                wxString append = _L("You should update your software.\n");
-                                context += "\n\n";
-                                context += append;
-                                log_and_show_3mf_info(context, newer_3mf_title);
+                                text += "\n" + from_u8(boost::algorithm::join(config_substitutions.unrecogized_keys, ", ")) + "\n\n";
+                                text += _L("You should update your software.\n");
+                                log_and_show_3mf_info(text, newer_3mf_title);
                             }
                             else {
                                 //if the minor version is not matched
@@ -9346,9 +9343,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             }
                             else if (load_config) {
                                 // Logged, not shown: it is the same for every BambuStudio project and needs no action.
-                                std::string unrecognized;
-                                for (const std::string& key : config_substitutions.unrecogized_keys)
-                                    unrecognized += (unrecognized.empty() ? "" : ", ") + key;
+                                const std::string unrecognized = boost::algorithm::join(config_substitutions.unrecogized_keys, ", ");
                                 BOOST_LOG_TRIVIAL(info) << "BambuStudio " << file_version.to_string() << " project " << path.string()
                                                         << ", unrecognized settings: " << (unrecognized.empty() ? "none" : unrecognized);
                             }

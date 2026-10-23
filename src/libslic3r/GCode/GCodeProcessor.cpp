@@ -3652,14 +3652,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
                                                                                                   DEFAULT_TRAVEL_ACCELERATION;
     }
 
-    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
-        const ConfigOptionBool* silent_mode = config.option<ConfigOptionBool>("silent_mode");
-        if (silent_mode != nullptr) {
-            if (silent_mode->value && m_time_processor.machine_limits.machine_max_acceleration_x.values.size() > 1)
-                enable_stealth_time_estimator(true);
-        }
-    }
-
     const ConfigOptionFloat* initial_layer_print_height = config.option<ConfigOptionFloat>("initial_layer_print_height");
     if (initial_layer_print_height != nullptr)
         m_first_layer_height = std::abs(initial_layer_print_height->value);
@@ -3697,11 +3689,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     // streaming export uses the PrintConfig overload and hands the live grouping over separately, so
     // it is intentionally not touched here.
     ensure_nozzle_group_result(static_cast<int>(m_result.filaments_count));
-}
-
-void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
-{
-    m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].enabled = enabled;
 }
 
 void GCodeProcessor::reset()
