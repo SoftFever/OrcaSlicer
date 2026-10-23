@@ -1219,6 +1219,24 @@ TEST_CASE("find_preset2 auto-matches removed Generic vendor profiles to the libr
     CHECK(bundle.filaments.find_preset2("BrandX Generic PETG", /*auto_match=*/true) == nullptr);
 }
 
+TEST_CASE("The selected preset is its own base when its parent is not loaded", "[Preset]")
+{
+    PresetCollection printers(Preset::TYPE_PRINTER, Preset::printer_options(),
+                              static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()));
+    add_inmemory_preset(printers, "Printer");
+    add_inmemory_preset(printers, "User Printer", "Printer");
+    add_inmemory_preset(printers, "Orphan Printer", "Uninstalled Vendor Printer");
+
+    printers.select_preset_by_name("User Printer", true);
+    REQUIRE(printers.get_selected_preset_name() == "User Printer");
+    CHECK(printers.get_selected_preset_base().name == "Printer");
+
+    printers.select_preset_by_name("Orphan Printer", true);
+    REQUIRE(printers.get_selected_preset_name() == "Orphan Printer");
+    REQUIRE(printers.get_preset_base(printers.get_selected_preset()) == nullptr);
+    CHECK(printers.get_selected_preset_base().name == "Orphan Printer");
+}
+
 TEST_CASE("Renamed parent is normalized into a loaded preset's inherits", "[Preset][Rename]")
 {
     ScopedTemporaryDir   temp_dir;
@@ -8398,4 +8416,59 @@ TEST_CASE("An empty choice list in a G-code's settings keeps the value it had be
 
     CHECK(config.opt_serialize("nozzle_volume_type") == "High Flow");
     CHECK(config.option<ConfigOptionStrings>("filament_multi_colour")->values.empty());
+}
+
+TEST_CASE("A disabled filament override is saved and reloaded column by column", "[Preset][Bundle]")
+{
+    ScopedPresetDataDir data_dir;
+    PresetBundle        bundle;
+
+    Preset &parent = add_inmemory_preset(bundle.filaments, "Parent PLA @System");
+    parent.config.option<ConfigOptionStrings>("filament_extruder_variant", true)->values = { "Direct Drive Standard", "Direct Drive High Flow" };
+    parent.config.option<ConfigOptionPercentsNullable>("filament_retract_before_wipe", true)->values = { 100., 100. };
+    parent.config.option<ConfigOptionFloatsNullable>("filament_flow_ratio", true)->values = { 1., 1. };
+
+    // The child turns the override off on the first variant and changes a plain option on the second.
+    const fs::path file = data_dir.tmp.path() / PRESET_FILAMENT_NAME / "Child PLA.json";
+    Preset         child(Preset::TYPE_FILAMENT, "Child PLA");
+    child.file    = file.string();
+    child.version = *Semver::parse("1.0.0");
+    child.config  = parent.config;
+    child.config.option<ConfigOptionString>(BBL_JSON_KEY_INHERITS, true)->value = parent.name;
+    child.config.option<ConfigOptionPercentsNullable>("filament_retract_before_wipe")->set_at_to_nil(0);
+    child.config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->values = { 1., 1.1 };
+    REQUIRE(child.save(&parent.config));
+
+    // On disk the override keeps every column, so its nil can only mean "off"; a plain
+    // option still stores nil for the columns that match the parent.
+    DynamicPrintConfig                 saved;
+    std::map<std::string, std::string> key_values;
+    std::string                        reason;
+    saved.load_from_json(file.string(), ForwardCompatibilitySubstitutionRule::EnableSilent, key_values, reason);
+    REQUIRE(reason.empty());
+    CHECK(saved.opt_serialize("filament_retract_before_wipe") == "nil,100%");
+    CHECK(saved.opt_serialize("filament_flow_ratio") == "nil,1.1");
+
+    PresetsConfigSubstitutions substitutions;
+    bundle.filaments.load_presets(data_dir.tmp.path().string(), PRESET_FILAMENT_NAME, substitutions,
+                                  ForwardCompatibilitySubstitutionRule::EnableSilent);
+    const Preset *loaded = bundle.filaments.find_preset("Child PLA");
+    REQUIRE(loaded != nullptr);
+    CHECK(loaded->config.opt_serialize("filament_retract_before_wipe") == "nil,100%");
+    CHECK(loaded->config.opt_serialize("filament_flow_ratio") == "1,1.1");
+}
+
+TEST_CASE("The cloud diff force-emits a disabled override only where the cloud would fill a value in", "[Preset][Bundle]")
+{
+    PresetBundle bundle;
+    add_inmemory_preset(bundle.filaments, "Parent PLA @System");
+    Preset &child = add_inmemory_preset(bundle.filaments, "Child PLA", "Parent PLA @System");
+    // Every override is nil in both parent and child, so none is in the plain diff.
+    std::map<std::string, std::string> key_values;
+    REQUIRE(bundle.filaments.get_differed_values_to_update(child, key_values) >= 0);
+    // Retract Before Wipe defaults to 100%: an absent key would come back as 100%, so nil is sent.
+    CHECK(key_values.count("filament_retract_before_wipe") == 1);
+    CHECK(key_values["filament_retract_before_wipe"] == "nil");
+    // An ironing override defaults to nil: an absent key stays nil, so it is not sent.
+    CHECK(key_values.count("filament_ironing_flow") == 0);
 }

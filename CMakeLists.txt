@@ -321,6 +321,14 @@ if (IS_CROSS_COMPILE)
     set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 endif ()
 
+# With a precompiled header, clang-cl can omit an exception type's copy constructor from its throw info,
+# so copies of the exception share and double-free their data: https://github.com/llvm/llvm-project/issues/53486
+if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message(STATUS "clang-cl: building without the precompiled header (llvm/llvm-project#53486)")
+    set_property(CACHE SLIC3R_PCH PROPERTY HELPSTRING "Use precompiled headers (ignored with clang-cl, llvm/llvm-project#53486)")
+    set(SLIC3R_PCH OFF)
+endif ()
+
 # Print out the SLIC3R_* cache options
 get_cmake_property(_cache_vars CACHE_VARIABLES)
 list (SORT _cache_vars)
