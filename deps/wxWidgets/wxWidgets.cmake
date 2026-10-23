@@ -15,93 +15,18 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif ()
 endif()
 
-if (MSVC)
-    set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=ON")
-else ()
-    set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
-endif ()
-
-# With a precompiled header, clang-cl can omit an exception type's copy constructor from its throw info,
-# so copies of the exception share and double-free their data: https://github.com/llvm/llvm-project/issues/53486
-if (MSVC AND CMAKE_C_COMPILER_ID STREQUAL "Clang")
-    set(_wx_precomp OFF)
-else ()
-    set(_wx_precomp ON)
-endif ()
-
-set(_wx_patch_command "")
-if (APPLE)
-    set(_wx_patch_command
-        ${GIT_EXECUTABLE} checkout -f -- src/osx/cocoa/colour.mm
-        COMMAND ${GIT_EXECUTABLE} apply --verbose
-                ${CMAKE_CURRENT_LIST_DIR}/0001-macos-use-srgb-colour-components.patch
-    )
-elseif (MSVC)
-    set(_wx_patch_command
-        ${GIT_EXECUTABLE} checkout -f -- src/msw/webview_edge.cpp
-        COMMAND ${GIT_EXECUTABLE} apply --verbose
-                ${CMAKE_CURRENT_LIST_DIR}/0002-msw-webview2-monitor-dpi-rasterization.patch
-    )
-endif ()
-
+# Build options and patches live in the Orca-deps-wxWidgets fork (v3.3.2 plus the OrcaSlicer patches).
 orcaslicer_add_cmake_project(
     wxWidgets
     GIT_REPOSITORY "https://github.com/OrcaSlicer/Orca-deps-wxWidgets"
-    GIT_TAG v3.3.2
+    GIT_TAG ac8811d6531bf1b11ad3f990c07701a59c3bf741
     GIT_SHALLOW ON
     GIT_SUBMODULES 3rdparty/catch 3rdparty/pcre 3rdparty/libwebp
-    PATCH_COMMAND ${_wx_patch_command}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${JPEG_PKG}
     CMAKE_ARGS
-        -DwxBUILD_PRECOMP=${_wx_precomp}
         ${_wx_toolkit}
         "-DCMAKE_DEBUG_POSTFIX:STRING=${_wx_debug_postfix}"
-        -DwxBUILD_DEBUG_LEVEL=0
-        -DwxBUILD_SAMPLES=OFF
         ${_wx_shared}
-        -DwxUSE_MEDIACTRL=ON
-        -DwxUSE_DETECT_SM=OFF
-        -DwxUSE_PRIVATE_FONTS=ON
-        -DwxUSE_OPENGL=ON
-        -DwxUSE_GLCANVAS_EGL=ON
-        -DwxUSE_WEBREQUEST=ON
-        -DwxUSE_WEBVIEW=ON
-        ${_wx_edge}
-        -DwxUSE_WEBVIEW_IE=OFF
-        -DwxUSE_REGEX=builtin
-        -DwxUSE_LIBSDL=OFF
-        -DwxUSE_XTEST=OFF
-        -DwxUSE_STC=OFF
-        -DwxUSE_AUI=ON
-        -DwxUSE_LIBPNG=sys
-        -DwxUSE_ZLIB=sys
-        -DwxUSE_LIBJPEG=sys
-        -DwxUSE_LIBTIFF=OFF
-        -DwxUSE_LIBWEBP=builtin
-        -DwxUSE_EXPAT=sys
-        -DwxUSE_NANOSVG=OFF
-)
-
-# wxWidgets 3.3 cmake install doesn't include private headers.
-# OrcaSlicer uses some of the private headers (for accessibility support).
-# Copy the private headers directory after install.
-if(MSVC)
-    set(_wx_inc_dest ${DESTDIR}/include/wx)
-else()
-    set(_wx_inc_dest ${DESTDIR}/include/wx-3.3/wx)
-endif()
-ExternalProject_Add_Step(dep_wxWidgets copy_private_headers
-    DEPENDEES install
-    COMMENT "Copying wxWidgets private headers"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        <SOURCE_DIR>/include/wx/private
-        ${_wx_inc_dest}/private
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        <SOURCE_DIR>/include/wx/generic/private
-        ${_wx_inc_dest}/generic/private
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        <SOURCE_DIR>/include/wx/gtk/private
-        ${_wx_inc_dest}/gtk/private
 )
 
 if (MSVC)
