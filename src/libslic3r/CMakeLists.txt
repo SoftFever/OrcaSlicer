@@ -119,6 +119,8 @@ set(lisbslic3r_sources
     CustomGCode.hpp
     CutUtils.cpp
     CutUtils.hpp
+    DistanceTransform.cpp
+    DistanceTransform.hpp
     EdgeGrid.cpp
     EdgeGrid.hpp
     ElephantFootCompensation.cpp
