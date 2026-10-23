@@ -1823,11 +1823,8 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     m_img_help->SetBitmap(diagram_bmp);
 
 
-    auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
-    auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
-    // ORCA enabling / disabling buttons with conditions enough to change its style
-    m_button_ok->Enable(isValidEndpoint(str_ip.ToStdString()) &&
-                        (str_access_code.IsEmpty() || str_access_code.Length() >= 8));
+    wxCommandEvent dummy;
+    on_text(dummy); // same button state as after user input
 
     Layout();
     Fit();
