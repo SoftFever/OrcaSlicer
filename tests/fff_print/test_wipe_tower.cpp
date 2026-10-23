@@ -241,6 +241,40 @@ TEST_CASE("The wipe tower's G-code moves keep a decimal point in a comma-decimal
             FAIL_CHECK(line);
 }
 
+TEST_CASE("The wipe tower's flow tags keep a decimal point in a comma-decimal locale", "[WipeTower]")
+{
+    // GCodeProcessor parses these values with the C locale: a comma makes it log an error and
+    // ignore the tag, leaving the extrusion width and height it assumes to its own defaults.
+    CommaNumericLocale comma;
+    CNumericLocalesSetter restore;
+    if (! comma.apply())
+        SKIP("no locale with a comma decimal separator is installed");
+    DynamicPrintConfig config = wipe_tower_toolchange_config("klipper");
+    config.set_deserialize_strict({ { "wipe_tower_type", "type1" } });
+    const std::string gcode = slice_with_prime_tower(config);
+    // Every ;HEIGHT: and ;WIDTH: line, wherever it lands: the writer's constructor emits both
+    // before the tower's own start tag, so a scan of the tower regions alone would miss them.
+    const std::string height_tag = ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height);
+    const std::string width_tag  = ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width);
+    size_t heights = 0;
+    size_t widths  = 0;
+    std::istringstream lines(gcode);
+    for (std::string line; std::getline(lines, line);) {
+        const bool is_height = line.compare(0, height_tag.size(), height_tag) == 0;
+        const bool is_width  = line.compare(0, width_tag.size(), width_tag) == 0;
+        if (! is_height && ! is_width)
+            continue;
+        if (is_height)
+            ++heights;
+        else
+            ++widths;
+        if (line.find(',') != std::string::npos)
+            FAIL_CHECK(line);
+    }
+    CHECK(heights > 0);
+    CHECK(widths > 0);
+}
+
 // What Print feeds the shared estimate. The libslic3r WipeTowerEstimate cases cannot see this:
 // they call the estimator directly. The estimate counts the filaments the print really uses,
 // so the two-filament shape gives the outer wall the second one.
