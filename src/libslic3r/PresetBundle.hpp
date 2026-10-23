@@ -459,7 +459,8 @@ public:
     // Orca: (key, normalized colour) of every slot the last sync_ams_list() produced, index-aligned with its output.
     std::vector<std::pair<std::string, std::string>> last_ams_sync_slot_keys;
     static std::string normalize_ams_color(const std::string &color);
-    static std::string ams_override_key(const std::string &printer_model, const std::string &filament_type, const std::string &color);
+    static std::string ams_override_key(const std::string &printer_model, const std::string &filament_type, const std::string &color,
+                                        const std::string &material_name = {});
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 

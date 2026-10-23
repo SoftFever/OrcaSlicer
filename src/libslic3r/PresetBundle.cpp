@@ -4576,11 +4576,15 @@ std::string PresetBundle::normalize_ams_color(const std::string &color)
     return hex.substr(0, 6);
 }
 
-std::string PresetBundle::ams_override_key(const std::string &printer_model, const std::string &filament_type, const std::string &color)
+std::string PresetBundle::ams_override_key(const std::string &printer_model, const std::string &filament_type, const std::string &color,
+                                           const std::string &material_name)
 {
     if (filament_type.empty())
         return {};
-    return printer_model + "|" + boost::to_upper_copy(filament_type) + "|" + normalize_ams_color(color);
+    std::string key = printer_model + "|" + boost::to_upper_copy(filament_type) + "|" + normalize_ams_color(color);
+    // The material name (e.g. "PLA Matte") tells apart rolls of the same type and colour.
+    const std::string material = boost::to_upper_copy(boost::trim_copy(material_name));
+    return material.empty() ? key : key + "|" + material;
 }
 
 unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfig *,std::string>> &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps, bool enable_append, MergeFilamentInfo &merge_info, bool color_only)
@@ -4625,7 +4629,8 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             ~SlotKeyRecorder() { while (keys.size() < presets.size()) keys.emplace_back(key, color); }
         } slot_key_recorder{last_ams_sync_slot_keys, ams_filament_presets,
                             filament_id.empty() ? std::string() :
-                                ams_override_key(ams_override_printer_model, ams.opt_string("filament_type", 0u), filament_color),
+                                ams_override_key(ams_override_printer_model, ams.opt_string("filament_type", 0u), filament_color,
+                                                 ams.has("tray_sub_brands") ? ams.opt_string("tray_sub_brands", 0u) : std::string()),
                             normalize_ams_color(filament_color)};
         ams_infos.push_back({filament_id.empty() ? false : true, false, is_placeholder, filament_color});
         AMSMapInfo temp = {ams_id, slot_id};
@@ -4662,9 +4667,12 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             ams_multi_color_filment.push_back(filament_multi_color);
             continue;
         }
-        // Orca: reuse the preset the user picked last time for this filament type + colour.
+        // Orca: reuse the preset the user picked last time for this filament (type + colour + material name),
+        // else the one picked for its type + colour alone.
         if (!slot_key_recorder.key.empty()) {
             auto ov = ams_preset_overrides.find(slot_key_recorder.key);
+            if (ov == ams_preset_overrides.end())
+                ov = ams_preset_overrides.find(ams_override_key(ams_override_printer_model, ams.opt_string("filament_type", 0u), filament_color));
             if (ov != ams_preset_overrides.end()) {
                 const Preset *chosen = filaments.find_preset(ov->second, false);
                 if (chosen && chosen->is_compatible) {
