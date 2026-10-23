@@ -8,8 +8,17 @@
  *	 and local config (overrides options on sidebar)
  * */
 
-#include "libslic3r/PrintConfig.hpp"
-#include "Field.hpp"
+#include <functional>
+#include <string>
+#include <wx/string.h>
+#include <boost/any.hpp>
+#include "libslic3r/Config.hpp"
+#include <vector>
+#include <map>
+
+class wxWindow;
+namespace Slic3r { class DynamicPrintConfig; }
+namespace boost { class any; }
 
 namespace Slic3r {
 
@@ -71,6 +80,8 @@ public:
     t_config_option_keys const &applying_keys() const;
     void    toggle_field(const std::string& field_key, const bool toggle, int opt_index = -1);
     void    toggle_line(const std::string& field_key, const bool toggle, int opt_index = -1);
+    // Renames an option's row. `label` is the untranslated English msgid (an L("...") string); the
+    // row translates it for display.
     void    set_option_label(const std::string& field_key, const wxString& label, int opt_index = -1);
 
     // FFF print
@@ -79,11 +90,12 @@ public:
     void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase*, ModelConfig*> const & configs);
 
     //BBS: FFF filament nozzle temperature range
-    void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config);
-    void    check_nozzle_temperature_range(DynamicPrintConfig* config);
-    void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
+    void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config, unsigned int variant_index);
+    void    check_nozzle_temperature_range(DynamicPrintConfig* config, unsigned int variant_index);
+    void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config, unsigned int variant_index);
     void    check_adaptive_pressure_advance_model(DynamicPrintConfig* config);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
+    void    check_filament_ironing_spacing(DynamicPrintConfig *config);
     void    check_chamber_temperature(DynamicPrintConfig* config);
     void    check_chamber_minimal_temperature(DynamicPrintConfig* config);
     bool    check_layer_height(DynamicPrintConfig* config);
@@ -104,7 +116,7 @@ public:
     int    show_spiral_mode_settings_dialog(bool is_object_config = false);
 
 private:
-    bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
+    bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high, unsigned int variant_index);
 };
 
 } // GUI
