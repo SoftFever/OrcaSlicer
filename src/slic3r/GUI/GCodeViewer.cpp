@@ -5188,28 +5188,55 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
         char buf[64];
 
-        // filament within the layers shown on the vertical slider: model, support, wipe tower and flush
-        // of every used extruder, listed above the sum of all rows
+        // filament within the layers shown on the vertical slider, listed above the sum of all rows: one row
+        // per extruder in the columns of the table above, parts that used nothing in these layers left blank
         if (const std::vector<VisibleLayersUsage> layers_usage = visible_layers_usage(); !layers_usage.empty()) {
-            const auto text_line = [&](const std::string& line) {
+            const bool multiple_columns = (displayed_columns & ~ColumnData::Model) > 0;
+            const auto cell = [&](const std::optional<std::pair<double, double>>& usage, const std::string& column,
+                                  std::vector<std::pair<std::string, float>>& columns_offsets) {
+                if (!usage || usage->first <= 0.0)
+                    return;
+                const std::string weight_text = format_compact_weight(usage->second, imperial_units);
+                ::sprintf(buf, multiple_columns ? (imperial_units ? "%.2f in\n%s" : "%.2f m\n%s") : (imperial_units ? "%.2f in    %s" : "%.2f m    %s"),
+                          usage->first, weight_text.c_str());
+                columns_offsets.push_back({ buf, color_print_offsets[column] });
+            };
+
+            std::vector<std::vector<std::pair<std::string, float>>> rows;
+            std::vector<size_t>                                    row_extruders;
+            double layers_g = 0.0;
+            for (const VisibleLayersUsage& usage : layers_usage) {
+                layers_g += usage.weight();
+                if (usage.length() <= 0.0)
+                    continue;
+                std::vector<std::pair<std::string, float>> columns_offsets;
+                columns_offsets.push_back({ std::to_string(usage.extruder_id + 1), color_print_offsets[_u8L("Filament")] });
+                if (displayed_columns & ColumnData::Model)
+                    cell(usage.model, _u8L("Model"), columns_offsets);
+                if (displayed_columns & ColumnData::Support)
+                    cell(usage.support, _u8L("Support"), columns_offsets);
+                if (displayed_columns & ColumnData::Flushed)
+                    cell(usage.flush, _u8L("Flushed"), columns_offsets);
+                if (displayed_columns & ColumnData::WipeTower)
+                    cell(usage.wipe_tower, _u8L("Tower"), columns_offsets);
+                if (multiple_columns)
+                    cell(std::pair(usage.length(), usage.weight()), _u8L("Total"), columns_offsets);
+                rows.emplace_back(std::move(columns_offsets));
+                row_extruders.push_back(usage.extruder_id);
+            }
+
+            if (!rows.empty()) {
+                // "Visible layers: [1->25] (45 %)": the share of the whole print's filament that these layers use
+                std::string title = _u8L("Visible layers") + ": " + visible_layers_range();
+                if (ps.total_weight > 0.0) {
+                    ::sprintf(buf, " (%.0f %%)", 100.0 * layers_g / ps.total_weight);
+                    title += buf;
+                }
                 ImGui::Dummy({window_padding, window_padding});
                 ImGui::SameLine();
-                imgui.text(line);
-            };
-            const auto usage_line = [&](const std::string& name, const std::pair<double, double>& usage) {
-                ::sprintf(buf, imperial_units ? "%.2f in / %s" : "%.2f m / %s", usage.first, format_compact_weight(usage.second, imperial_units).c_str());
-                text_line(name + ": " + buf);
-            };
-            text_line(_u8L("Visible layers") + ": " + visible_layers_range());
-            for (const VisibleLayersUsage& usage : layers_usage) {
-                const std::string extruder = std::to_string(usage.extruder_id + 1) + " ";
-                usage_line(extruder + _u8L("Model"), usage.model);
-                if (usage.support)
-                    usage_line(extruder + _u8L("Support"), *usage.support);
-                if (usage.wipe_tower)
-                    usage_line(extruder + _u8L("Tower"), *usage.wipe_tower);
-                if (usage.flush)
-                    usage_line(extruder + _u8L("Flushed"), *usage.flush);
+                imgui.text(title);
+                for (size_t row = 0; row < rows.size(); ++row)
+                    append_item(EItemType::Rect, libvgcode::convert(tool_colors[row_extruders[row]]), rows[row], false);
             }
         }
 
