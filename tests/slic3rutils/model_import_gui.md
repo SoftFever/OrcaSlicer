@@ -62,4 +62,3 @@ permission prompts. The host unit tests do not construct a native Plater.
 - Cancel an arrangement through its normal progress control, then arrange
   again. Check that cancellation leaves object transforms unchanged and clears
   the ongoing-arrangement notification and busy state.
-
