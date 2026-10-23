@@ -40,6 +40,9 @@ jobs:
       - name: Apt-Install Dependencies
         if: runner.os == 'Linux' && !vars.SELF_HOSTED
         uses: ./.github/actions/apt-install-deps
+      - name: Generate the comma-decimal locale the wipe tower tests slice under
+        if: runner.os == 'Linux' && !vars.SELF_HOSTED
+        run: sudo locale-gen de_DE.UTF-8
       - name: Restore Test Artifact
         uses: actions/download-artifact@v8
         with:

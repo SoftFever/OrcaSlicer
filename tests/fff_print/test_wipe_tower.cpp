@@ -252,10 +252,13 @@ TEST_CASE("The wipe tower's flow tags keep a decimal point in a comma-decimal lo
     DynamicPrintConfig config = wipe_tower_toolchange_config("klipper");
     config.set_deserialize_strict({ { "wipe_tower_type", "type1" } });
     const std::string gcode = slice_with_prime_tower(config);
-    // Every ;HEIGHT: and ;WIDTH: line, wherever it lands: the writer's constructor emits both
-    // before the tower's own start tag, so a scan of the tower regions alone would miss them.
-    const std::string height_tag = ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height);
-    const std::string width_tag  = ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width);
+    // WipeTowerWriter forces the BBL flag, so the tower writes these spellings on every printer.
+    // By the time the test asks, export has reset the flag for this Klipper config and
+    // reserved_tag() would hand back the main G-code's ";HEIGHT:" / ";WIDTH:" instead.
+    // The width and height tags are both written by the writer's constructor, before the
+    // tower's start tag, so scan the whole slice.
+    const std::string height_tag = "; LAYER_HEIGHT: ";
+    const std::string width_tag  = "; LINE_WIDTH: ";
     size_t heights = 0;
     size_t widths  = 0;
     std::istringstream lines(gcode);
