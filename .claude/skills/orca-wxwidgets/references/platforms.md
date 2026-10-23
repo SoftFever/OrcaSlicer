@@ -372,7 +372,9 @@ form a chain of parents. Window icons come from the `.desktop` file. The full li
   `references/mouse-keyboard-focus.md`;
 - GL blending must keep destination alpha at 1 (d8369e5f75);
 - GL post-init must retry until the surface is committed (d2c24fdabb) →
-  `references/webview-gl-aui-media.md`.
+  `references/webview-gl-aui-media.md`;
+- a shown GTK tooltip is the topmost `xdg_popup`, so it must be hidden before a popup maps
+  (`PopupWindow::Show`) → `references/popups-menus.md` §9.
 
 ### XWayland (GTK3 X11 backend inside a Wayland session)
 
@@ -409,7 +411,8 @@ start there when looking for prior art. The sites below are exemplars, cited by 
   (`focus_left_popup(...)`) instead of hit-testing `wxGetMousePosition()`.
 - `PopupWindow::Create`: on GTK it binds the top-level `wxEVT_ACTIVATE` to `topWindowActiavate` →
   `DismissAndNotify()`, gated by the virtual `ShouldDismissOnTopWindowDeactivate()`, which `DropDown`
-  overrides for Wayland popup chains. On `__WXOSX__` with `wxPU_CONTAINS_CONTROLS`,
+  overrides for Wayland popup chains. `PopupWindow::Show` (GTK) hides visible GTK tooltips before mapping
+  on Wayland. On `__WXOSX__` with `wxPU_CONTAINS_CONTROLS`,
   `PopupWindow::OnMouseEvent2` hit-tests children, re-dispatches mouse events and synthesises
   enter/leave.
 - `SidePopup::Popup` (`Widgets/SideMenuPopup.cpp`): on `__APPLE__` the menu is anchored flush against
