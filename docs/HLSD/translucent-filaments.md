@@ -110,22 +110,22 @@ numerous surfaces of one filament would hide the other filament's outer wall in 
    count more. Its ceiling keeps thousands of stacked surfaces within half float range, and its floor
    keeps far ones out of the subnormals. A translucent segment's opacity stays below 1, else the
    shader would take it for an opaque one and add it unweighted.
-4. When the canvas is multisampled, the color targets are too, then resolved, so that translucent
-   lines keep their antialiasing.
-5. A full screen pass draws the nearest surface over the weighted mean color of the others, with
+4. A full screen pass draws the nearest surface over the weighted mean color of the others, with
    their coverage `1 - exp(-sum)`, over the scene.
 
 Swapping the drawing order changes the result by at most 2 levels out of 255, against up to 246 in
-the direct pass. The targets take about 26 bytes per pixel, and 18 more per sample with
-multisampling. OpenGL ES, whose float targets are optional, takes the direct pass, as does a
-multisampled framebuffer object, whose depth cannot be copied into a texture.
+the direct pass. The targets are single-sampled whatever the canvas, about 26 bytes per pixel.
+Multisampled ones would take twice the time and four times the memory for edges FXAA can smooth, and
+against a single-sampled depth pass an edge sample could miss its nearest depth and count twice.
+OpenGL ES, whose float targets are optional, takes the direct pass, as does a multisampled framebuffer
+object, whose depth cannot be copied into a texture.
 
 ## Cost and side effects
 
 Without depth writes, every translucent surface on screen is shaded, so the cost of the second
 pass grows with the number of translucent surfaces stacked on screen. Order independent blending
-draws the translucent segments twice and writes 18 bytes of float data per sample instead of 4, about
-three times the cost of the direct pass.
+draws the translucent segments twice and writes 18 bytes of float data per pixel instead of 4, between
+a tenth and two fifths more than the direct pass.
 
 In realistic view, a translucent segment casts into a share of the shadow map texels as large as
 its opacity, in an ordered 4x4 pattern that the 5x5 filter of the receivers reads as a lighter

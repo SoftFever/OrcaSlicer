@@ -590,17 +590,12 @@ private:
     AABox m_extrusions_box{ Vec3{ 0.0f, 0.0f, 0.0f }, Vec3{ 0.0f, 0.0f, 0.0f } };
 #ifndef ENABLE_OPENGL_ES
     //
-    // ORCA: order independent transparency, see render_translucent_segments().
-    // The segments accumulate into ms_fbo when the canvas is multisampled, which resolves into
-    // the textures of resolve_fbo, else straight into those.
+    // ORCA: order independent transparency, see render_translucent_segments(). Single-sampled whatever
+    // the canvas, see the design doc.
     //
     struct TranslucentTargets
     {
-        unsigned int ms_fbo{ 0 };
-        unsigned int accum_rb{ 0 };
-        unsigned int reveal_rb{ 0 };
-        unsigned int front_rb{ 0 };
-        unsigned int resolve_fbo{ 0 };
+        unsigned int fbo{ 0 };
         unsigned int accum_tex{ 0 };
         unsigned int reveal_tex{ 0 };
         // the nearest translucent surface, kept out of the weighted mean of the others
@@ -611,11 +606,10 @@ private:
         unsigned int front_depth_tex{ 0 };
         unsigned int front_depth_fbo{ 0 };
         std::array<int, 2> size{ 0, 0 };
-        int samples{ 0 };
         bool unsupported{ false };
 
         // false when the targets cannot be made
-        bool update(int width, int height, int samples);
+        bool update(int width, int height);
         void release();
         size_t size_in_bytes() const;
     };
