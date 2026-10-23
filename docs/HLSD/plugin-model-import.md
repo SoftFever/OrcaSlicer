@@ -75,8 +75,9 @@ or reentrant imports are rejected before changing the scene.
 The binding raises Python's normal read-access audit event for every supplied
 path before creating a plate or importing anything. Permission denial leaves the
 scene unchanged. This audits the supplied top-level files. Materials, textures
-and buffers referenced by those files are read by the existing native loaders;
-those C++ reads do not raise separate Python audit events. The GIL is released
+and buffers referenced by those files, external STEP documents and ModelIO
+dependencies are read by the existing native loaders; those C++ reads do not
+raise separate Python audit events. The GIL is released
 during native loading and dialogs, then reacquired before converting the result
 to Python. The operation is synchronous;
 the import result is returned independently of queued arrangement.
