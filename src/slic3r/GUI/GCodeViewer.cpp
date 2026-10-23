@@ -3250,7 +3250,7 @@ ColorRGBA GCodeViewer::shown_filament_color(ColorRGBA color) const
 
 void GCodeViewer::render_translucent_toolpaths(int canvas_width, int canvas_height)
 {
-    if (m_viewer.get_extrusion_roles_count() == 0 || !m_viewer.has_translucent_toolpaths())
+    if (!m_viewer.has_translucent_toolpaths())
         return;
 
     const Camera& camera = wxGetApp().plater()->get_camera();
