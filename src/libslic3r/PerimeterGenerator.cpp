@@ -1070,7 +1070,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
     {
         BoundingBox bbox = get_extents(inset_overhang_area);
         bbox.offset(scale_(1.));
-        ::Slic3r::SVG svg(debug_out_path("inset_overhang_area").c_str(), bbox);
+        ::Slic3r::SVG svg(Slic3r::debug_out_path("inset_overhang_area").c_str(), bbox);
         for (const Line &line : to_lines(inset_anchors)) svg.draw(line, "purple", scale_(0.25));
         for (const Line &line : to_lines(inset_overhang_area)) svg.draw(line, "red", scale_(0.15));
         svg.Close();
@@ -1106,7 +1106,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
         {
             BoundingBox bbox = get_extents(anchoring_convex_hull);
             bbox.offset(scale_(1.));
-            ::Slic3r::SVG svg(debug_out_path("bridge_check").c_str(), bbox);
+            ::Slic3r::SVG svg(Slic3r::debug_out_path("bridge_check").c_str(), bbox);
             for (const Line &line : to_lines(perimeter_polygon)) svg.draw(line, "purple", scale_(0.25));
             for (const Line &line : to_lines(real_overhang)) svg.draw(line, "red", scale_(0.20));
             for (const Line &line : to_lines(anchoring_convex_hull)) svg.draw(line, "green", scale_(0.15));
@@ -1167,7 +1167,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
 #ifdef EXTRA_PERIM_DEBUG_FILES
                     BoundingBox bbox = get_extents(perimeter_polygon);
                     bbox.offset(scale_(5.));
-                    ::Slic3r::SVG svg(debug_out_path("perimeter_polygon").c_str(), bbox);
+                    ::Slic3r::SVG svg(Slic3r::debug_out_path("perimeter_polygon").c_str(), bbox);
                     for (const Line &line : to_lines(perimeter_polygon)) svg.draw(line, "blue", scale_(0.25));
                     for (const Line &line : to_lines(overhang_to_cover)) svg.draw(line, "red", scale_(0.20));
                     for (const Line &line : to_lines(real_overhang)) svg.draw(line, "green", scale_(0.15));
@@ -1185,7 +1185,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
 #ifdef EXTRA_PERIM_DEBUG_FILES
             BoundingBox bbox = get_extents(inset_overhang_area);
             bbox.offset(scale_(2.));
-            ::Slic3r::SVG svg(debug_out_path("pre_final").c_str(), bbox);
+            ::Slic3r::SVG svg(Slic3r::debug_out_path("pre_final").c_str(), bbox);
             for (const Line &line : to_lines(perimeter_polygon)) svg.draw(line, "blue", scale_(0.05));
             for (const Line &line : to_lines(anchoring)) svg.draw(line, "green", scale_(0.05));
             for (const Line &line : to_lines(overhang_to_cover)) svg.draw(line, "yellow", scale_(0.05));
@@ -1234,7 +1234,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
 #ifdef EXTRA_PERIM_DEBUG_FILES
     BoundingBox bbox = get_extents(inset_overhang_area);
     bbox.offset(scale_(2.));
-    ::Slic3r::SVG svg(debug_out_path(("final" + std::to_string(rand())).c_str()).c_str(), bbox);
+    ::Slic3r::SVG svg(Slic3r::debug_out_path(("final" + std::to_string(rand())).c_str()).c_str(), bbox);
     for (const Line &line : to_lines(inset_overhang_area_left_unfilled)) svg.draw(line, "blue", scale_(0.05));
     for (const Line &line : to_lines(inset_overhang_area)) svg.draw(line, "green", scale_(0.05));
     for (const Line &line : to_lines(diff(inset_overhang_area, inset_overhang_area_left_unfilled))) svg.draw(line, "yellow", scale_(0.05));
@@ -1413,7 +1413,7 @@ void PerimeterGenerator::process_classic()
 #ifdef PERIMETERS_DEBUG // open
     BoundingBox bbox = get_extents(this->slices->surfaces);
     bbox.offset(scale_(1.2));
-    ::Slic3r::SVG svg(debug_out_path("perimeters_classic_L%d.svg", layer_id + 1).c_str(), bbox);
+    ::Slic3r::SVG svg(Slic3r::debug_out_path("perimeters_classic_L%d.svg", layer_id + 1).c_str(), bbox);
     for (const Surface& s : this->slices->surfaces)
         svg.draw(s.expolygon, "lightgrey"); // current surfaces
 #endif
@@ -3032,7 +3032,8 @@ void PerimeterGenerator::process_arachne()
 #ifdef ARACHNE_DEBUG
             {
                 static int iRun = 0;
-                export_perimeters_to_svg(debug_out_path("arachne-perimeters-%d-%d.svg", layer_id, iRun++), to_polygons(last), perimeters,
+                export_perimeters_to_svg(Slic3r::debug_out_path("arachne-perimeters-%d-%d.svg", layer_id, iRun++), to_polygons(last),
+                                         perimeters,
                                          union_ex(wallToolPaths.getInnerContour()));
             }
 #endif
