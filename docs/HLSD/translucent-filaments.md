@@ -101,8 +101,9 @@ numerous surfaces of one filament would hide the other filament's outer wall in 
 1. The depth of the scene drawn so far is copied into a texture. The fragment shader discards a
    translucent fragment behind it, as there is no depth buffer to test against.
 2. The translucent segments are drawn once into an `R32F` target cleared to 1, keeping with `GL_MIN`
-   the `gl_FragCoord.z` of the nearest. The same program draws the next pass, so the nearest
-   fragment finds its own depth there exactly.
+   the `gl_FragCoord.z` of the nearest. The segments shaders draw it built with `DEPTH_ONLY`, the same
+   geometry and joint cut without the shading and its varyings, so the nearest fragment of the next
+   pass finds its own depth there exactly.
 3. They are drawn again. The nearest fragment of a pixel goes, premultiplied, to an `RGBA16F` target
    of its own. Every other one adds its premultiplied color, times a weight, to an `RGBA16F` target,
    and `-log(1 - alpha)` to an `R16F` target, with `GL_ONE, GL_ONE`. The weight is the opacity times

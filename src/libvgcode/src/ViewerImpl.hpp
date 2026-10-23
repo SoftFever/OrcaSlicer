@@ -623,6 +623,10 @@ private:
     int m_uni_segments_opaque_depth_id{ -1 };
     int m_uni_segments_front_depth_id{ -1 };
     int m_uni_segments_oit_depth_range_id{ -1 };
+    // the segments shaders built with DEPTH_ONLY, drawing the depth of the nearest translucent surface
+    unsigned int m_segments_depth_shader_id{ 0 };
+    SegmentsUniforms m_uni_segments_depth;
+    int m_uni_segments_depth_opaque_depth_id{ -1 };
     std::array<float, 2> m_oit_depth_range{ 0.0f, 1.0f };
 #endif // ENABLE_OPENGL_ES
     // the pass of render_translucent_segments() render_segments() draws: 1 the depth of the nearest

@@ -302,6 +302,14 @@ static void delete_buffers(unsigned int& id)
 // ORCA: the opaque depth, then the accumulated colors of the translucent segments, see render_translucent().
 // Past the units render_segments() and the shadow map take.
 static constexpr int TRANSLUCENT_TEXTURE_UNIT = 5;
+
+// ORCA: the source with a #define after its #version line
+static std::string with_define(const char* source, const char* define)
+{
+    const std::string src(source);
+    const size_t body = src.find('\n') + 1;
+    return src.substr(0, body) + "#define " + define + "\n" + src.substr(body);
+}
 #endif // ENABLE_OPENGL_ES
 
 static const std::array<Color, size_t(EGCodeExtrusionRole::COUNT)> DEFAULT_EXTRUSION_ROLES_COLORS = { {
@@ -810,6 +818,11 @@ void ViewerImpl::init(const std::string& opengl_context_version)
     m_uni_translucent_composite_reveal_tex_id = glGetUniformLocation(m_translucent_composite_shader_id, "reveal_tex");
     m_uni_translucent_composite_front_tex_id  = glGetUniformLocation(m_translucent_composite_shader_id, "front_tex");
     m_uni_translucent_composite_origin_id     = glGetUniformLocation(m_translucent_composite_shader_id, "origin");
+    const std::string depth_vs = with_define(Segments_Vertex_Shader, "DEPTH_ONLY");
+    const std::string depth_fs = with_define(Segments_Fragment_Shader, "DEPTH_ONLY");
+    m_segments_depth_shader_id = init_shader("segments_depth", depth_vs.c_str(), depth_fs.c_str(), { "fragment_color", "oit_reveal", "oit_front" });
+    m_uni_segments_depth.init(m_segments_depth_shader_id);
+    m_uni_segments_depth_opaque_depth_id = glGetUniformLocation(m_segments_depth_shader_id, "opaque_depth");
 #endif // ENABLE_OPENGL_ES
 
     m_uni_segments.init(m_segments_shader_id);
@@ -948,6 +961,10 @@ void ViewerImpl::shutdown()
     if (m_translucent_composite_shader_id != 0) {
         glsafe(glDeleteProgram(m_translucent_composite_shader_id));
         m_translucent_composite_shader_id = 0;
+    }
+    if (m_segments_depth_shader_id != 0) {
+        glsafe(glDeleteProgram(m_segments_depth_shader_id));
+        m_segments_depth_shader_id = 0;
     }
 #endif // ENABLE_OPENGL_ES
     m_initialized = false;
@@ -2201,9 +2218,16 @@ void ViewerImpl::update_heights_widths()
 
 void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projection_matrix, const Vec3& camera_position, bool translucent)
 {
-    // ORCA: realistic view. The shadow caster pass draws depth only.
+    // ORCA: realistic view. The shadow caster pass draws depth only, as does the first order independent pass.
+#ifndef ENABLE_OPENGL_ES
+    const bool depth_only = m_translucent_pass == 1;
+    const unsigned int shader_id = m_rendering_shadow_casters ? m_segments_caster_shader_id : depth_only ? m_segments_depth_shader_id : m_segments_shader_id;
+    const SegmentsUniforms& uni = m_rendering_shadow_casters ? m_uni_segments_caster : depth_only ? m_uni_segments_depth : m_uni_segments;
+#else
+    const bool depth_only = false;
     const unsigned int shader_id = m_rendering_shadow_casters ? m_segments_caster_shader_id : m_segments_shader_id;
     const SegmentsUniforms& uni = m_rendering_shadow_casters ? m_uni_segments_caster : m_uni_segments;
+#endif // ENABLE_OPENGL_ES
     if (shader_id == 0)
         return;
 
@@ -2235,7 +2259,11 @@ void ViewerImpl::render_segments(const Mat4x4& view_matrix, const Mat4x4& projec
     const bool reverse_order = (view_matrix[10] > 0.0f) != translucent;
     glsafe(glUniform1i(uni.reverse_order, reverse_order ? 1 : 0));
     glsafe(glUniform4fv(uni.clipping_plane, 1, m_clipping_plane.data()));
-    if (!m_rendering_shadow_casters) {
+#ifndef ENABLE_OPENGL_ES
+    if (depth_only)
+        glsafe(glUniform1i(m_uni_segments_depth_opaque_depth_id, TRANSLUCENT_TEXTURE_UNIT));
+#endif // ENABLE_OPENGL_ES
+    if (!m_rendering_shadow_casters && !depth_only) {
         // ORCA: realistic view
         glsafe(glUniform1i(m_uni_segments_shadow_map_id, m_shadow_map_texture_unit));
         glsafe(glUniformMatrix4fv(m_uni_segments_shadow_light_vp_id, 1, GL_FALSE, m_shadow_light_vp.data()));
