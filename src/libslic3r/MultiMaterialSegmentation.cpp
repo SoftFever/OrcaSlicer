@@ -1928,8 +1928,6 @@ static void remove_multiple_edges_in_vertices(MMU_Graph &graph, const std::vecto
 }
 
 
-// File-local: ConnectedBodies.hpp declares another Slic3r::IslandLocator. Two classes of one name in one namespace
-// share their inline member symbols, so the linker may give this class the other's destructor.
 namespace {
 // Finds the islands (layer ExPolygons) a region piece overlaps. A top or bottom region is projected from the neighbouring
 // layers and may reach past the island it belongs to, or over several islands.
