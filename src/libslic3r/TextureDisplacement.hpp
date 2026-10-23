@@ -236,6 +236,20 @@ struct TextureDisplacementLayer
     // layer written before this meant.
     bool  mirror_u = false;
     bool  mirror_v = false;
+    // The axis a Cylindrical or Spherical projection wraps about, chosen by hand. Zero - the default
+    // - means it is fitted to the painted patch instead. A fit needs the paint to show the shape: a
+    // narrow stripe along a cylinder tells you nothing about where its axis runs, and a patch that
+    // curves only slightly pins it down only slightly. This is the way out of that, and the way to
+    // say "wrap about Z" on a shape that is not really a cylinder at all.
+    Vec3f proj_axis = Vec3f::Zero();
+    // The point the axis runs through, and the radius it wraps at. Both are fitted to the painted
+    // patch when unset, and both are set by dragging the projection's own handles on the model.
+    //
+    // `proj_center_set` rather than a sentinel vector, because the origin is a position and zero is
+    // a perfectly ordinary one. `proj_radius` can use <= 0, a radius being a size.
+    bool  proj_center_set = false;
+    Vec3f proj_center     = Vec3f::Zero();
+    float proj_radius     = -1.f;
     float rotation_deg = 0.f;
     Vec2f offset       = Vec2f::Zero();
     bool  invert       = false;
@@ -373,7 +387,7 @@ struct TextureDisplacementLayer
            static_cast<int>(blend_mode), midlevel, island_padding_mm, lscm_seam_edges, view_project_right,
            view_project_up, smoothing, edge_smoothing, edge_smoothing_amount, auto_connect_islands, island_groups,
            lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled, tiling_scale_v,
-           mirror_u, mirror_v);
+           mirror_u, mirror_v, proj_axis, proj_center_set, proj_center, proj_radius);
     }
     template<class Archive> void load(Archive &ar)
     {
@@ -385,7 +399,8 @@ struct TextureDisplacementLayer
            tile_method_int, projection_method_int, lscm_seam_angle_deg, islands, blend_mode_int, midlevel,
            island_padding_mm, lscm_seam_edges, view_project_right, view_project_up, smoothing, edge_smoothing,
            edge_smoothing_amount, auto_connect_islands, island_groups, lscm_uv_overrides, view_project_projective,
-           view_project_matrix, color_enabled, tiling_scale_v, mirror_u, mirror_v);
+           view_project_matrix, color_enabled, tiling_scale_v, mirror_u, mirror_v, proj_axis, proj_center_set,
+           proj_center, proj_radius);
         image_data        = blob.empty() ? nullptr : std::make_shared<std::vector<unsigned char>>(blob.begin(), blob.end());
         tile_method       = static_cast<TextureTileMethod>(tile_method_int);
         projection_method = static_cast<TextureProjectionMethod>(projection_method_int);
@@ -690,6 +705,17 @@ void box_projection_axes(const Vec3f &normal, Vec3f &u_axis, Vec3f &v_axis);
 // can map a dragged 3D point into the exact same 2D space tiling_scale/rotation_deg/offset operate
 // in, without duplicating the axis-selection logic.
 Vec2f project_planar(const Vec3f &position, const Vec3f &normal);
+
+// The wrapped projections, exposed for the same reason project_planar() is: the placement gizmo has
+// to map a point the cursor landed on into the very same 2D space the bake measures tiling_scale,
+// rotation and offset in, and restating either formula in the GUI would be one more thing to drift.
+// `radius_override` above 0 fixes the radius the arc length is measured at, instead of using each
+// point's own distance from the axis. Per-point is the default and what every layer written before
+// the radius could be set by hand means; a fixed one is what a hand-set diameter asks for, and it
+// also keeps the scale even over a surface that is only roughly round.
+Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, const Vec3f &patch_axis,
+                          float radius_override = -1.f);
+Vec2f project_spherical(const Vec3f &position, const Vec3f &patch_center, float radius_override = -1.f);
 
 // Applies a layer's tiling_scale/rotation_deg/offset to an already-projected planar coordinate
 // (in mm, dominant-axis planar, cylindrical, spherical, or CGAL LSCM output - any of them, all
@@ -1100,9 +1126,13 @@ std::vector<Vec3f> texture_displacement_vertex_normals(const indexed_triangle_se
 // bake's projection must too, or it wraps the texture around a different centre. Corners past the end
 // of `vertex_normals` - the ones a brush stroke appended - contribute to the centroid but carry no
 // normal, exactly as the bake's own loops skip them.
+// `axis_override`, when non-zero, is used instead of fitting the axis to the patch's normals, and
+// `center_override`, when given, instead of fitting the circle. See TextureDisplacementLayer.
 void texture_displacement_patch_frame(const indexed_triangle_set &patch,
                                       const std::vector<Vec3f>   &vertex_normals,
-                                      Vec3f &center, Vec3f &axis, Vec3f &average_normal);
+                                      Vec3f &center, Vec3f &axis, Vec3f &average_normal,
+                                      const Vec3f &axis_override = Vec3f::Zero(),
+                                      const Vec3f *center_override = nullptr);
 
 // Convenience overload for main-thread callers: extracts the mesh/layers/paint data/options from
 // `volume` and forwards to the overload above.

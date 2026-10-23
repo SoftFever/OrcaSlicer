@@ -814,11 +814,14 @@ Vec2f project_planar(const Vec3f &position, const Vec3f &normal)
     return box_plane_xy(position, normal.z());
 }
 
-namespace {
 // Wrapped around patch_axis, centered at patch_center. u is the arc length (mm) around the axis at
 // this point's own radius, v is the distance along the axis, measured *against* it - a reasonable
 // approximation for roughly cylindrical selections, not an exact fit for arbitrary geometry.
-Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, const Vec3f &patch_axis)
+//
+// Declared in the header, like project_planar(), so the placement gizmo can map a point into the
+// very same 2D space without restating the formula.
+Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, const Vec3f &patch_axis,
+                          float radius_override)
 {
     Vec3f up = patch_axis;
     up       = (up.norm() > 1e-8f) ? Vec3f(up.normalized()) : Vec3f::UnitZ();
@@ -833,7 +836,7 @@ Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, cons
     const float along_axis = rel.dot(up);
     const float x          = rel.dot(right);
     const float y          = rel.dot(fwd);
-    const float radius     = std::sqrt(x * x + y * y);
+    const float radius     = (radius_override > 0.f) ? radius_override : std::sqrt(x * x + y * y);
     const float angle      = std::atan2(y, x);
 
     // Negated, like every other projection's v: v = 0 is the texture's top row, so v has to grow
@@ -844,7 +847,7 @@ Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, cons
 // Longitude/latitude around patch_center. u/v are scaled by this point's own distance from the
 // center so the result is in roughly the same mm-ish units tiling_scale expects, rather than bare
 // radians - again an approximation, not an exact geodesic parametrization.
-Vec2f project_spherical(const Vec3f &position, const Vec3f &patch_center)
+Vec2f project_spherical(const Vec3f &position, const Vec3f &patch_center, float radius_override)
 {
     const Vec3f rel    = position - patch_center;
     const float radius = rel.norm();
@@ -855,10 +858,12 @@ Vec2f project_spherical(const Vec3f &position, const Vec3f &patch_center)
     const float longitude = std::atan2(dir.y(), dir.x());
     const float latitude  = std::asin(std::clamp(dir.z(), -1.f, 1.f));
     // Longitude already grows to the right as seen from outside; latitude grows toward the north
-    // pole, so it is negated to put the image's top row (v = 0) at the top of the model.
-    return Vec2f(longitude, -latitude) * radius;
+    // pole, so it is negated to put the image's top row (v = 0) at the top of the model. The
+    // direction still comes from the point's true distance; only the scale can be overridden.
+    return Vec2f(longitude, -latitude) * ((radius_override > 0.f) ? radius_override : radius);
 }
 
+namespace {
 // CGAL's LSCM parameterizer expects a clean mesh with no isolated (unreferenced) vertices - but
 // `patch` here (from TriangleSelector::get_facets_strict()) carries the *entire* mesh's vertex
 // array, only its `indices` filtered to the painted triangles. Build a compacted copy referencing
@@ -2334,9 +2339,9 @@ float sample_layer_height(const DecodedHeightTexture &texture, const TextureDisp
 
     switch (layer.projection_method) {
     case TextureProjectionMethod::Cylindrical:
-        return sample_at(project_cylindrical(position, patch_center, patch_axis));
+        return sample_at(project_cylindrical(position, patch_center, patch_axis, layer.proj_radius));
     case TextureProjectionMethod::Spherical:
-        return sample_at(project_spherical(position, patch_center));
+        return sample_at(project_spherical(position, patch_center, layer.proj_radius));
     case TextureProjectionMethod::ViewProjected:
         if (layer.view_project_projective) {
             // Exact projective placement written by the projection-frame overlay. Sampled directly,
@@ -2418,14 +2423,14 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
 
     switch (layer.projection_method) {
     case TextureProjectionMethod::Cylindrical: {
-        const Vec2f p = project_cylindrical(position, patch_center, patch_axis);
+        const Vec2f p = project_cylindrical(position, patch_center, patch_axis, layer.proj_radius);
         if (!covered(p))
             return false;
         out = sample_at(p);
         return true;
     }
     case TextureProjectionMethod::Spherical: {
-        const Vec2f p = project_spherical(position, patch_center);
+        const Vec2f p = project_spherical(position, patch_center, layer.proj_radius);
         if (!covered(p))
             return false;
         out = sample_at(p);
@@ -3255,7 +3260,9 @@ static indexed_triangle_set build_texture_displacement_in_place(
         // vertex's own normal and LSCM solves the patch globally. average_normal is also the fallback
         // normal the colour pass below uses for a degenerate triangle.
         Vec3f average_normal, patch_centroid, patch_axis;
-        texture_displacement_patch_frame(patch, vertex_normals, patch_centroid, patch_axis, average_normal);
+        texture_displacement_patch_frame(patch, vertex_normals, patch_centroid, patch_axis, average_normal,
+                                         layer->proj_axis,
+                                         layer->proj_center_set ? &layer->proj_center : nullptr);
 
         // A real unwrap of the whole patch, computed once here rather than per vertex - it is a
         // per-chart solve over the whole patch, not a per-point formula. Cached, so repeating this
@@ -3569,7 +3576,8 @@ indexed_triangle_set build_texture_displacement(const indexed_triangle_set      
 }
 
 void texture_displacement_patch_frame(const indexed_triangle_set &patch, const std::vector<Vec3f> &vertex_normals,
-                                      Vec3f &center, Vec3f &axis, Vec3f &average_normal)
+                                      Vec3f &center, Vec3f &axis, Vec3f &average_normal,
+                                      const Vec3f &axis_override, const Vec3f *center_override)
 {
     Vec3f normal_sum   = Vec3f::Zero();
     Vec3f centroid_sum = Vec3f::Zero();
@@ -3593,11 +3601,113 @@ void texture_displacement_patch_frame(const indexed_triangle_set &patch, const s
         return;
     }
 
-    // The world axis least aligned with the average normal - perpendicular to the outward radial
-    // normal, as a cylinder's own axis would be.
-    const Vec3f an = average_normal.cwiseAbs();
-    axis = (an.x() <= an.y() && an.x() <= an.z()) ? Vec3f::UnitX() :
-           (an.y() <= an.x() && an.y() <= an.z()) ? Vec3f::UnitY() : Vec3f::UnitZ();
+    // The axis is fitted to the patch's normals rather than guessed from their average. On a cylinder
+    // every normal points straight out from the axis, so they all lie in the plane perpendicular to
+    // it: the axis is the one direction they do *not* vary in, which is the eigenvector of the
+    // smallest eigenvalue of their covariance.
+    //
+    // What this replaces could only ever answer X, Y or Z, so a cylinder standing at any other angle
+    // had no right answer available - and for a small patch it was noisy even for an upright one,
+    // because the average normal is dominated by whichever way the brush happened to go.
+    bool fitted = false;
+    // Said by hand, so nothing to fit: the circle below is still fitted, about this axis.
+    const bool have_override = axis_override.squaredNorm() > 1e-12f;
+    if (have_override) {
+        axis   = Vec3f(axis_override.normalized());
+        fitted = true;
+    }
+
+    Matrix3f cov = Matrix3f::Zero();
+    int      normal_count = 0;
+    for (const stl_triangle_vertex_indices &tri : patch.indices)
+        for (int i = 0; i < 3; ++i) {
+            const int vi = tri[i];
+            if (vi >= int(vertex_normals.size()))
+                continue;
+            const Vec3f n = vertex_normals[size_t(vi)];
+            if (n.squaredNorm() < 1e-12f)
+                continue;
+            const Vec3f u = n.normalized();
+            cov += u * u.transpose();
+            ++normal_count;
+        }
+
+    if (!fitted && normal_count >= 3) {
+        Eigen::SelfAdjointEigenSolver<Matrix3f> solver(cov);
+        if (solver.info() == Eigen::Success) {
+            // Ascending eigenvalues, so column 0 is the direction of least variation.
+            const Vec3f values = solver.eigenvalues();
+            // A flat patch has every normal pointing the same way, which leaves *two* directions
+            // with nothing in them and the axis genuinely undetermined - the eigenvector that comes
+            // back is then arbitrary. Only trust the fit when the second-smallest is clearly larger,
+            // which is what says the normals really do sweep a plane.
+            if (values.z() > 1e-6f && values.y() > 0.08f * values.z()) {
+                axis   = Vec3f(solver.eigenvectors().col(0).normalized());
+                fitted = true;
+            }
+        }
+    }
+    if (!fitted) {
+        // Nothing cylindrical to read off the patch: fall back to the world axis least aligned with
+        // the average normal, which is what this always used to do.
+        const Vec3f an = average_normal.cwiseAbs();
+        axis = (an.x() <= an.y() && an.x() <= an.z()) ? Vec3f::UnitX() :
+               (an.y() <= an.x() && an.y() <= an.z()) ? Vec3f::UnitY() : Vec3f::UnitZ();
+        return;
+    }
+
+    if (center_override != nullptr) {
+        // Said by hand. Snapped onto the axis through it anyway: the projection measures every radius
+        // from the axis, so a centre off it would tilt the whole wrap rather than move it.
+        center = *center_override;
+        return;
+    }
+
+    // With the axis known, put the centre *on* it by fitting the circle the patch's points lie on,
+    // seen down the axis. The centroid is only the middle of the painted area: paint half a cylinder
+    // and it sits somewhere inside the solid, not on the axis at all. Every radius is then measured
+    // from the wrong place, which both shifts the texture's origin and reads a radius smaller than
+    // the body really has.
+    //
+    // Algebraic least squares (Kasa): minimising |p|^2 - 2ax - 2by - c is linear in (a, b, c), where
+    // (a, b) is the centre and r^2 = c + a^2 + b^2. Good enough here and, unlike a geometric fit, it
+    // cannot fail to converge.
+    const Vec3f e1 = (std::abs(axis.z()) < 0.9f) ? Vec3f(axis.cross(Vec3f::UnitZ()).normalized()) :
+                                                   Vec3f(axis.cross(Vec3f::UnitX()).normalized());
+    const Vec3f e2 = Vec3f(axis.cross(e1).normalized());
+
+    Eigen::Matrix3d ata = Eigen::Matrix3d::Zero();
+    Eigen::Vector3d atb = Eigen::Vector3d::Zero();
+    double          min_x = 1e30, max_x = -1e30, min_y = 1e30, max_y = -1e30;
+    int             fit_count = 0;
+    for (const stl_triangle_vertex_indices &tri : patch.indices)
+        for (int i = 0; i < 3; ++i) {
+            const Vec3f  rel = patch.vertices[size_t(tri[i])] - center;
+            const double x = double(rel.dot(e1)), y = double(rel.dot(e2));
+            const Eigen::Vector3d row(2.0 * x, 2.0 * y, 1.0);
+            ata += row * row.transpose();
+            atb += row * (x * x + y * y);
+            min_x = std::min(min_x, x); max_x = std::max(max_x, x);
+            min_y = std::min(min_y, y); max_y = std::max(max_y, y);
+            ++fit_count;
+        }
+
+    // A patch covering only a sliver of the circumference is nearly a straight line seen down the
+    // axis, and a circle through a nearly straight line is wildly unstable - it would throw the
+    // centre off into the distance. The spread in the two directions has to be comparable for the
+    // arc to pin a circle down at all; when it is not, the centroid stays, and the Mapping axis can
+    // be set by hand instead.
+    const double spread_x = max_x - min_x, spread_y = max_y - min_y;
+    const double thin     = std::min(spread_x, spread_y), wide = std::max(spread_x, spread_y);
+    if (fit_count >= 8 && wide > 1e-6 && thin > 0.08 * wide) {
+        const Eigen::Vector3d sol = ata.ldlt().solve(atb);
+        const double          r2  = sol.z() + sol.x() * sol.x() + sol.y() * sol.y();
+        if (sol.allFinite() && r2 > 1e-8) {
+            // The fitted centre, lifted back into 3D. It lands on the axis by construction, which is
+            // the whole point: distances measured from it are the body's real radii.
+            center = center + e1 * float(sol.x()) + e2 * float(sol.y());
+        }
+    }
 }
 
 Matrix3d texture_displacement_frame_rotation(const Transform3d &volume_to_world)
@@ -3843,7 +3953,8 @@ std::shared_ptr<std::vector<PreparedLayer>> prepare_sampleable_layers(
         // Patch centroid + cylinder axis, shared with build_texture_displacement() so a
         // Cylindrical/Spherical layer's detach criterion matches the geometry the bake will produce.
         Vec3f centroid, axis, average_normal;
-        texture_displacement_patch_frame(patch, vertex_normals, centroid, axis, average_normal);
+        texture_displacement_patch_frame(patch, vertex_normals, centroid, axis, average_normal, layer->proj_axis,
+                                         layer->proj_center_set ? &layer->proj_center : nullptr);
 
         std::shared_ptr<const LscmLookup> lscm;
         if (model_uv_layer || layer->projection_method == TextureProjectionMethod::LSCM) {
@@ -5846,6 +5957,12 @@ std::string texture_displacement_layers_to_json(const std::vector<TextureDisplac
         j["tiling_scale_v"] = l.tiling_scale_v;
         j["mirror_u"]       = l.mirror_u;
         j["mirror_v"]       = l.mirror_v;
+        // Zero means "fit it to the paint", which is both the default and what a project written
+        // before the axis could be set by hand meant.
+        j["proj_axis"]        = vec3_to_json(l.proj_axis);
+        j["proj_center_set"]  = l.proj_center_set;
+        j["proj_center"]      = vec3_to_json(l.proj_center);
+        j["proj_radius"]      = l.proj_radius;
         j["rotation_deg"]   = l.rotation_deg;
         j["offset"]       = vec2_to_json(l.offset);
         j["invert"]       = l.invert;
@@ -5960,6 +6077,12 @@ bool texture_displacement_layers_from_json(const std::string                    
                 read(j, "tiling_scale_v", l.tiling_scale_v);
                 read(j, "mirror_u", l.mirror_u);
                 read(j, "mirror_v", l.mirror_v);
+                if (const auto a = j.find("proj_axis"); a != j.end())
+                    l.proj_axis = vec3_from_json(*a, l.proj_axis);
+                read(j, "proj_center_set", l.proj_center_set);
+                if (const auto c = j.find("proj_center"); c != j.end())
+                    l.proj_center = vec3_from_json(*c, l.proj_center);
+                read(j, "proj_radius", l.proj_radius);
                 read(j, "rotation_deg", l.rotation_deg);
                 if (const auto o = j.find("offset"); o != j.end())
                     l.offset = vec2_from_json(*o, l.offset);
