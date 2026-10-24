@@ -897,7 +897,7 @@ public:
     static double 			nil_value() { return std::numeric_limits<double>::quiet_NaN(); }
     // A scalar is nil, or all values of a vector are nil.
     bool 					is_nil() const override { for (auto v : this->values) if (! std::isnan(v)) return false; return true; }
-    bool 					is_nil(size_t idx) const override { return std::isnan(this->values[idx]); }
+    bool 					is_nil(size_t idx) const override { return this->values.empty() || std::isnan(idx < this->values.size() ? this->values[idx] : this->values.front()); }
     virtual void set_at_to_nil(size_t i) override
     {
         assert(nullable() && (i < this->values.size()));
@@ -1081,7 +1081,7 @@ public:
     static int	 			nil_value() { return std::numeric_limits<int>::max(); }
     // A scalar is nil, or all values of a vector are nil.
     bool 					is_nil() const override { for (auto v : this->values) if (v != nil_value()) return false; return true; }
-    bool 					is_nil(size_t idx) const override { return this->values[idx] == nil_value(); }
+    bool 					is_nil(size_t idx) const override { return this->values.empty() || (idx < this->values.size() ? this->values[idx] : this->values.front()) == nil_value(); }
     virtual void set_at_to_nil(size_t i) override
     {
         assert(nullable() && (i < this->values.size()));
@@ -1422,7 +1422,7 @@ public:
     static FloatOrPercent   nil_value() { return { std::numeric_limits<double>::quiet_NaN(), false }; }
     // A scalar is nil, or all values of a vector are nil.
     bool                    is_nil() const override { for (auto v : this->values) if (! std::isnan(v.value)) return false; return true; }
-    bool                    is_nil(size_t idx) const override { return std::isnan(this->values[idx].value); }
+    bool                    is_nil(size_t idx) const override { return this->values.empty() || std::isnan((idx < this->values.size() ? this->values[idx] : this->values.front()).value); }
     virtual void set_at_to_nil(size_t i) override
     {
         assert(nullable() && (i < this->values.size()));
@@ -1974,7 +1974,7 @@ public:
     static unsigned char	nil_value() { return std::numeric_limits<unsigned char>::max(); }
     // A scalar is nil, or all values of a vector are nil.
     bool 					is_nil() const override { for (auto v : this->values) if (v != nil_value()) return false; return true; }
-    bool 					is_nil(size_t idx) const override { return this->values[idx] == nil_value(); }
+    bool 					is_nil(size_t idx) const override { return this->values.empty() || (idx < this->values.size() ? this->values[idx] : this->values.front()) == nil_value(); }
     virtual void set_at_to_nil(size_t i) override
     {
         assert(nullable() && (i < this->values.size()));
