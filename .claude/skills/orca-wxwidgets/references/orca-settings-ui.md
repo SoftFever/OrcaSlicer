@@ -541,6 +541,14 @@ Pitfall:
    `set_option_label` (rename a row at runtime, e.g. `brim_width` → "Brim ear radius").
 
 `Tab::get_config_manipulation()` builds the callbacks (variant index → `+256`, see [Variants](#per-extruder-variant-options));
+`Tab` also records each public toggle in its own `OptionStateRegistry` before looking up a field.
+The optional reason is localized text; false stores or replaces it, true removes only that kind of
+restriction. Keys are kept exactly as supplied, independently of the separate variant index. Direct
+field toggles are not recorded. The registry's `description` composes the localized restriction
+text; public toggles refresh the field tooltip, and `OG_CustomCtrl` reads the same registry for the
+row label. The label is the portable hover target for a disabled field. Markdown tips prepend this
+dynamic text to the loaded document and include it in their content-change check.
+
 `TabX::toggle_options()` calls the `toggle_*` function and adds tab-local tweaks. They run on every page activation,
 after every `update()`, and after a variant switch.
 
@@ -591,6 +599,13 @@ keys of print/printer presets get one entry per element (`key#i`), filament vari
 English and translated label/group/category, so search matches either. `UnsavedChangesDialog` and `DiffPresetDialog`
 name settings from the same index and skip a changed key the index lacks; only the extruder-transfer view
 (`UnsavedChangesDialog::update_tree(type, config, from, to)`) falls back to the def's label/category, then "Others".
+
+`get_tab_for_option` resolves the model tab when it has the key, otherwise the global tab; search
+availability descriptions and `Sidebar::jump_to_option` use that same owner. The settings search
+shows recorded restrictions below the result title and in its tooltip without changing fuzzy name
+matching. The Speed Dial retains recorded hidden settings and puts their explanations in the detail
+strip; choosing one displays the reason. Restrictions absent from the registry keep their existing
+row filter.
 
 `Sidebar::jump_to_option(key, type, category)` → (model tab if it has the key, else switch to global) →
 `Tab::activate_option`, which selects the page by translated category, focuses the field and blinks it
