@@ -5,6 +5,7 @@
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StateColor.hpp"
 
 //BBS set font size
 
@@ -22,7 +23,24 @@
 #include <wx/sizer.h>
 #include <wx/window.h>
 
+#include <algorithm>
+
 wxDEFINE_EVENT(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, wxCommandEvent);
+
+// ORCA: a tab button's fill and its keyboard focus ring, set together. The border is drawn in
+// every state, in the fill's own colour except while focused, so only focus changes what the tab
+// looks like; StateHandler repaints on focus changes. #FEFEFE matches the label and, unlike
+// #FFFFFF, is not remapped for dark mode.
+static void set_tab_colors(Button* btn, const wxColour& normal, const wxColour& hovered)
+{
+    btn->SetBackgroundColor(StateColor(std::pair{hovered, (int) StateColor::Hovered},
+                                       std::pair{normal, (int) StateColor::Normal}));
+    StateColor border(std::pair{wxColour(254, 254, 254), (int) StateColor::Focused},
+                      std::pair{hovered, (int) StateColor::Hovered},
+                      std::pair{normal, (int) StateColor::Normal});
+    border.setTakeFocusedAsHovered(false);
+    btn->SetBorderColor(border);
+}
 
 ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
     wxControl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxTAB_TRAVERSAL)
@@ -130,15 +148,17 @@ void ButtonsListCtrl::Rescale()
 
 void ButtonsListCtrl::SetSelection(int sel)
 {
+    // ORCA: consumed here, on whichever selection change the activation produced, so an
+    // Enter/Space that ends up changing nothing cannot leak into a later programmatic one.
+    const bool from_keyboard = m_activating_from_keyboard;
+    m_activating_from_keyboard = false;
+
     if (m_selection == sel && sel >= 0 && sel < static_cast<int>(m_pageButtons.size()))
         return;
     // BBS: change button color
     wxColour selected_btn_bg("#009688");    // Gradient #009688
     if (m_selection >= 0 && m_selection < static_cast<int>(m_pageButtons.size())) {
-        StateColor bg_color = StateColor(
-        std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
-        std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
-        m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
+        set_tab_colors(m_pageButtons[m_selection], wxColour(59, 68, 70), wxColour(107, 107, 107));
         StateColor text_color = StateColor(
         std::pair{wxColour(254,254, 254), (int) StateColor::Normal}
         );
@@ -153,17 +173,37 @@ void ButtonsListCtrl::SetSelection(int sel)
 
     m_selection = sel;
 
-    StateColor bg_color = StateColor(
-        std::pair{wxColour(0, 150, 136), (int) StateColor::Hovered},
-        std::pair{wxColour(0,150, 136), (int) StateColor::Normal});
-    m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
+    set_tab_colors(m_pageButtons[m_selection], wxColour(0, 150, 136), wxColour(0, 150, 136));
 
     StateColor text_color = StateColor(
         std::pair{wxColour(254, 254, 254), (int) StateColor::Normal}
         );
     m_pageButtons[m_selection]->SetTextColor(text_color);
-    
+
+    // ORCA: keyboard activation keeps focus on the tab. Enter/Space reaches the page
+    // switch as a synthetic click (Button::keyDownUp), so it shares the mouse path and
+    // inherits its hand-off of focus to the page: Notebook::SetSelection runs
+    // DoSetSelection before this call, and the page-changed handler focuses the page,
+    // which the plater then does again from a posted event - hence CallAfter rather than
+    // a direct SetFocus here. Only the keyboard sets the flag, so a click still lands the
+    // user on the page they clicked to.
+    if (from_keyboard) {
+        Button* btn = m_pageButtons[m_selection];
+        CallAfter([this, btn]() {
+            if (std::find(m_pageButtons.begin(), m_pageButtons.end(), btn) != m_pageButtons.end() &&
+                btn->IsShownOnScreen() && btn->IsEnabled())
+                btn->SetFocusFromKbd();
+        });
+    }
+
     Refresh();
+}
+
+wxWindow* ButtonsListCtrl::GetSelectedButton() const
+{
+    if (m_selection >= 0 && m_selection < int(m_pageButtons.size()))
+        return m_pageButtons[m_selection];
+    return nullptr;
 }
 
 bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /* = false*/, const std::string &bmp_name /* = ""*/, const wxBitmap &bmp /* = wxNullBitmap */)
@@ -188,11 +228,9 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     //BBS set size for button
     btn->SetMinSize({(text.empty() ? 40 : 136) * em / 10, 36 * em / 10});
 
-    StateColor bg_color = StateColor(
-        std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
-        std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
-
-    btn->SetBackgroundColor(bg_color);
+    // ORCA: wxNO_BORDER zeroed the width; the ring needs a border in every state (see set_tab_colors).
+    btn->SetBorderWidth(btn->FromDIP(2));
+    set_tab_colors(btn, wxColour(59, 68, 70), wxColour(107, 107, 107));
     StateColor text_color = StateColor(
         std::pair{wxColour(254,254, 254), (int) StateColor::Normal});
     btn->SetTextColor(text_color);
@@ -206,6 +244,35 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
             evt.SetId(sel);
             wxPostEvent(this->GetParent(), evt);
         }
+    });
+    // ORCA: WAI-ARIA tablist keyboard model. Arrow keys were dead on these
+    // buttons: Button::keyDownUp hands them to HandleAsNavigationKey, which
+    // acts only on Tab, and never calls Skip(). This handler gives them
+    // meaning - Left/Right move focus among the tab buttons and wrap at the
+    // ends (stock Tab traversal walks on into the side tools sharing this
+    // strip), Home/End jump to the first/last tab, and Up/Down stay swallowed,
+    // as a horizontal tab list should. Enter/Space still activates via
+    // Button::keyDownUp's click simulation. This dynamic handler runs before
+    // Button's static event table, so it wins for the keys it takes.
+    btn->Bind(wxEVT_KEY_DOWN, [this, btn](wxKeyEvent& evt) {
+        auto it = std::find(m_pageButtons.begin(), m_pageButtons.end(), btn);
+        if (it == m_pageButtons.end()) {
+            evt.Skip();
+            return;
+        }
+        // ORCA: Enter/Space is left to Button::keyDownUp, which activates the tab as a
+        // click; flag it so SetSelection can take focus back afterwards. Every other key
+        // clears the flag rather than leaving it set for an unrelated selection change.
+        m_activating_from_keyboard = evt.GetKeyCode() == WXK_RETURN || evt.GetKeyCode() == WXK_SPACE;
+        const int key = evt.GetKeyCode();
+        if (key == WXK_UP || key == WXK_DOWN)
+            return;
+        const int next = row_focus_target(int(it - m_pageButtons.begin()), int(m_pageButtons.size()), key);
+        if (next < 0) {
+            evt.Skip();
+            return;
+        }
+        m_pageButtons[next]->SetFocus();
     });
     Slic3r::GUI::wxGetApp().UpdateDarkUI(btn);
     m_pageButtons.insert(m_pageButtons.begin() + n, btn);
