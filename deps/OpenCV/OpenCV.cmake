@@ -25,7 +25,11 @@ orcaslicer_add_cmake_project(OpenCV
     ${_options}
     URL https://github.com/opencv/opencv/archive/refs/tags/4.6.0.tar.gz
     URL_HASH SHA256=1ec1cba65f9f20fe5a41fda1586e01c70ea0c9a6d7b67c9e13edf0cfe2239277
-    PATCH_COMMAND git apply ${OpenCV_DIRECTORY_FLAG} --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-vs.patch  ${CMAKE_CURRENT_LIST_DIR}/0002-clang19-macos.patch
+    PATCH_COMMAND git apply ${OpenCV_DIRECTORY_FLAG}
+        --verbose --ignore-space-change --whitespace=fix
+        ${CMAKE_CURRENT_LIST_DIR}/0001-vs.patch
+        ${CMAKE_CURRENT_LIST_DIR}/0002-clang19-macos.patch
+        ${CMAKE_CURRENT_LIST_DIR}/0003-apple-ld-flags.patch
     DEPENDS ${JPEG_PKG}
     CMAKE_ARGS
     -DBUILD_SHARED_LIBS=0
@@ -95,4 +99,3 @@ orcaslicer_add_cmake_project(OpenCV
        -DHAVE_WIN32UI=FALSE
        ${_disable_carotene}
 )
-
