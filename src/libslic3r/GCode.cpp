@@ -7187,30 +7187,23 @@ LayerResult GCode::process_layer(
                             }
                         };
 
+                        const auto is_inner = [](const ExtrusionEntity *entity) { return is_inner_wall(*entity); };
+                        const size_t inner_count = entity_type == ObjectByExtruder::Island::Region::PERIMETERS ?
+                            std::count_if(extrusions->entities.begin(), extrusions->entities.end(), is_inner) : 0;
                         bool split_mixed_perimeters =
-                            entity_type == ObjectByExtruder::Island::Region::PERIMETERS &&
                             region.config().outer_wall_filament_id.value != region.config().inner_wall_filament_id.value &&
-                            extrusions->role() == erMixed;
+                            inner_count > 0 && inner_count < extrusions->entities.size();
 
                         if (split_mixed_perimeters) {
                             auto outer_perimeters = std::make_unique<ExtrusionEntityCollection>();
                             auto inner_perimeters = std::make_unique<ExtrusionEntityCollection>();
-                            for (const ExtrusionEntity *entity : extrusions->entities) {
-                                const ExtrusionRole role = entity->role();
-                                if (role == erExternalPerimeter || role == erOverhangPerimeter)
-                                    outer_perimeters->append(*entity);
-                                else if (role == erPerimeter)
-                                    inner_perimeters->append(*entity);
-                            }
+                            for (const ExtrusionEntity *entity : extrusions->entities)
+                                (is_inner(entity) ? inner_perimeters : outer_perimeters)->append(*entity);
 
-                            if (!outer_perimeters->entities.empty()) {
-                                split_perimeter_storage.emplace_back(std::move(outer_perimeters));
-                                process_extrusions(split_perimeter_storage.back().get(), nullptr, false);
-                            }
-                            if (!inner_perimeters->entities.empty()) {
-                                split_perimeter_storage.emplace_back(std::move(inner_perimeters));
-                                process_extrusions(split_perimeter_storage.back().get(), nullptr, false);
-                            }
+                            split_perimeter_storage.emplace_back(std::move(outer_perimeters));
+                            process_extrusions(split_perimeter_storage.back().get(), nullptr, false);
+                            split_perimeter_storage.emplace_back(std::move(inner_perimeters));
+                            process_extrusions(split_perimeter_storage.back().get(), nullptr, false);
                         } else {
                             process_extrusions(extrusions, extrusions, true);
                         }

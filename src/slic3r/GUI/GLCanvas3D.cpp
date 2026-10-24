@@ -2902,6 +2902,11 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         m_frame_profiler.mark("ssao");
     }
 
+    if (m_canvas_type == ECanvasType::CanvasPreview && m_render_preview) {
+        _render_gcode_translucent(cnv_size.get_width(), cnv_size.get_height());
+        m_frame_profiler.mark("gcode translucent");
+    }
+
     // After the occlusion pass, which would shade it as the surface behind it.
     m_center_of_mass.render(*this);
 
@@ -9590,6 +9595,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         // Set on every use: the program is shared, so a canvas that leaves it unset would inherit
         // the last canvas's choice.
         shader->set_uniform("lighting_model", studio ? 1 : 0);
+        shader->set_uniform("translucent_gloss", realistic_mode);
         if (studio) {
             const Transform3d& view = wxGetApp().plater()->get_camera().get_view_matrix();
             shader->set_uniform("world_up_eye", Vec3f((view.matrix().block<3, 3>(0, 0) * Vec3d::UnitZ()).cast<float>()));
@@ -9858,7 +9864,9 @@ void GLCanvas3D::_render_wireframe_overlay()
     glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 #endif
 
-    m_volumes.render(GLVolumeCollection::ERenderType::Opaque, false, view_matrix, proj_matrix, sz);
+    m_volumes.render(GLVolumeCollection::ERenderType::All, false, view_matrix, proj_matrix, sz, [](const GLVolume& volume) {
+        return !volume.render_color.is_transparent() || (volume.visible && !volume.is_modifier && volume.color.is_transparent());
+    });
 
 #if !SLIC3R_OPENGL_ES
     glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
@@ -9872,13 +9880,8 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
     // Realistic view: the toolpaths receive the same depth map they were rendered into by
     // _render_shadows, which is what gives them object-on-object and self shadows. Intensity 0
     // short-circuits the lookup in the shader, so this is inert whenever the map is missing.
-    const bool receive_shadows = m_shadow_map_valid && m_shadow_map_texture_id != 0 && m_shadow_map_size != 0;
-    if (receive_shadows) {
-        glsafe(::glActiveTexture(GL_TEXTURE4));
-        glsafe(::glBindTexture(GL_TEXTURE_2D, m_shadow_map_texture_id));
-        glsafe(::glActiveTexture(GL_TEXTURE0));
+    if (_bind_gcode_shadow_map(true))
         m_gcode_viewer.set_shadow_map(4, m_shadow_light_vp, 0.35f, 1.0f / static_cast<float>(m_shadow_map_size));
-    }
     else
         m_gcode_viewer.set_shadow_map(4, Transform3d::Identity(), 0.0f, 0.0f);
 
@@ -9890,14 +9893,27 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
                               (_shadow_mode() != EShadowMode::Off || cfg->get_bool(SETTING_OPENGL_PHONG_SSAO));
     m_gcode_viewer.set_tone(lossy_passes ? 1.1f : 1.0f, 1.15f);
     m_gcode_viewer.set_light_top_dir(_static_light_dir_eye().value_or(Vec3d(-0.4574957, 0.4574957, 0.7624929)));
+    m_gcode_viewer.set_gloss(_is_realistic_view_enabled() && cfg != nullptr && cfg->get_bool(SETTING_OPENGL_REALISTIC_GLOSS));
 
     m_gcode_viewer.render_scene(canvas_width, canvas_height);
+    _bind_gcode_shadow_map(false);
+}
 
-    if (receive_shadows) {
-        glsafe(::glActiveTexture(GL_TEXTURE4));
-        glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-        glsafe(::glActiveTexture(GL_TEXTURE0));
-    }
+void GLCanvas3D::_render_gcode_translucent(int canvas_width, int canvas_height)
+{
+    _bind_gcode_shadow_map(true);
+    m_gcode_viewer.render_translucent_toolpaths(canvas_width, canvas_height);
+    _bind_gcode_shadow_map(false);
+}
+
+bool GLCanvas3D::_bind_gcode_shadow_map(bool bind) const
+{
+    if (!m_shadow_map_valid || m_shadow_map_texture_id == 0 || m_shadow_map_size == 0)
+        return false;
+    glsafe(::glActiveTexture(GL_TEXTURE4));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, bind ? m_shadow_map_texture_id : 0));
+    glsafe(::glActiveTexture(GL_TEXTURE0));
+    return true;
 }
 
 void GLCanvas3D::_render_gcode_overlay(int canvas_width, int canvas_height)

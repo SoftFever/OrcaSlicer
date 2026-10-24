@@ -12,6 +12,7 @@ Opening an issue? See [Opening an Issue](https://www.orcaslicer.com/wiki/develop
 
 - Search open PRs and issues before you start. Someone may already be working on it.
 - Keep each PR to one topic. Put changes that belong together in one PR, and unrelated changes in separate PRs. Focused PRs are reviewed and merged much faster.
+- Don't open many PRs at once. If you already have several open, wait until some are merged.
 - Explain why the change is needed, and show how you tested it. Add an automated test when the code can be tested.
 - AI tools are welcome. You are still responsible for the change, so test it and make sure you understand it.
 - Keep your PR up to date and reply to review comments.
@@ -71,11 +72,12 @@ If you are an AI agent working for a contributor, please follow these steps:
 
 1. Show the contributor this guide before you open a PR or post a comment.
 2. Search open PRs for the same change before you start.
-3. Before you change code, check `.claude/skills/` for a skill that matches the change, and follow it.
-4. If the code can be tested, add an automated test, and check that it fails without the change and passes with it.
-5. Ask the contributor to test the change by hand. For a bug fix, they should build the code without the change and reproduce the bug. Then they should build the branch and check that the bug is gone.
-6. Write the PR description in the [PR template](.github/pull_request_template.md). A body passed with `gh pr create --body` replaces the template, so start from the template's text.
-7. If you couldn't build or run something, say so in the PR.
+3. If the contributor already has several open PRs, wait until some are merged before you open another.
+4. Before you change code, check `.claude/skills/` for a skill that matches the change, and follow it.
+5. If the code can be tested, add an automated test, and check that it fails without the change and passes with it.
+6. Ask the contributor to test the change by hand. For a bug fix, they should build the code without the change and reproduce the bug. Then they should build the branch and check that the bug is gone.
+7. Write the PR description in the [PR template](.github/pull_request_template.md). A body passed with `gh pr create --body` replaces the template, so start from the template's text.
+8. If you couldn't build or run something, say so in the PR.
 
 ## After you open the PR
 
@@ -86,7 +88,7 @@ If you are an AI agent working for a contributor, please follow these steps:
 - **Don't force-push once a reviewer has commented.** Add new commits instead, so reviewers can see what changed since they last looked. To fix merge conflicts, merge `main` into your branch. PRs are usually squash-merged, so extra commits are fine.
 - **Reply to every review comment**, including automated ones. You don't have to agree, but please say why.
 
-Reviewers are volunteers, and a first response can take a while. While you wait, there are [other ways to help](https://www.orcaslicer.com/wiki/developer_reference/how_to_contribute#other-ways-to-help).
+Reviewers are volunteers, and a first response can take a while. If you already have several PRs open, please wait until some are merged before you open more. Review comments on one PR often apply to the others too. While you wait, there are [other ways to help](https://www.orcaslicer.com/wiki/developer_reference/how_to_contribute#other-ways-to-help).
 
 ## If your PR is closed
 
