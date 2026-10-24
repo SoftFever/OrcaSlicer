@@ -265,17 +265,13 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
         // click; flag it so SetSelection can take focus back afterwards. Every other key
         // clears the flag rather than leaving it set for an unrelated selection change.
         m_activating_from_keyboard = evt.GetKeyCode() == WXK_RETURN || evt.GetKeyCode() == WXK_SPACE;
-        int cur   = int(it - m_pageButtons.begin());
-        int count = int(m_pageButtons.size());
-        int next;
-        switch (evt.GetKeyCode()) {
-        case WXK_LEFT:  next = (cur + count - 1) % count; break;
-        case WXK_RIGHT: next = (cur + 1) % count; break;
-        case WXK_HOME:  next = 0; break;
-        case WXK_END:   next = count - 1; break;
-        case WXK_UP:
-        case WXK_DOWN:  return;
-        default:        evt.Skip(); return;
+        const int key = evt.GetKeyCode();
+        if (key == WXK_UP || key == WXK_DOWN)
+            return;
+        const int next = row_focus_target(int(it - m_pageButtons.begin()), int(m_pageButtons.size()), key);
+        if (next < 0) {
+            evt.Skip();
+            return;
         }
         m_pageButtons[next]->SetFocus();
     });
