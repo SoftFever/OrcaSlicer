@@ -2839,6 +2839,29 @@
       "action": "con:DistanceY",
       "icon": "design_c_dist_y",
       "hint": "Fix the vertical distance between two points"
+    },
+    {
+      "id": "sk_dim_names",
+      "name": "Dimension names",
+      "slot": "reference",
+      "key": "J",
+      "family": "Constrain",
+      "feature": "Sketch",
+      "mcp": null,
+      "mode": "sketch",
+      "accepts": [
+        "sk_none",
+        "sk_line",
+        "sk_arc",
+        "sk_point",
+        "sk_2ent"
+      ],
+      "needs": {},
+      "refusal": null,
+      "gui": true,
+      "action": "key:J",
+      "icon": null,
+      "hint": "Show the variable behind each dimension instead of its value, and back"
     }
   ],
   "chrome_only": {

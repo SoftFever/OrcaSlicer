@@ -532,6 +532,15 @@ DesignPanel::DesignPanel(wxWindow* parent)
             set_status(StatusKind::Info, _L("Normal to the sketch plane"));
         }
     };
+    m_keys_sketch['J'] = [this] {   // dimensions: number <-> the variable behind it
+        if (!m_viewport) return;
+        DesignSketchTool* t = &m_viewport->mcp_sketch_tool();
+        t->toggle_dim_names();
+        set_status(StatusKind::Info, !t->dim_names() ? _L("Dimensions show their values")
+                                   : t->has_dim_exprs() ? _L("Dimensions show their variables")
+                                                        : _L("Dimensions show their variables — none in this sketch is bound to one yet"));
+        m_viewport->request_repaint();
+    };
     m_keys_sketch['Q'] = [this] {
         // With geometry selected, Q converts THAT geometry (6zic) — the reading
         // everyone arrives with from other sketchers. With nothing selected it keeps its
@@ -10252,6 +10261,13 @@ void DesignPanel::on_edit_feature()
             if (m_viewport) {
                 m_viewport->set_display_sketches({});
                 m_viewport->edit_sketch(f.entities, f.entity_constraints, f.plane);
+                std::map<int, std::pair<std::string, double>> bound;   // the dimensions that are driven by a variable or an expression
+                for (const auto& kv : f.expr) {
+                    if (kv.first.rfind("dim:", 0) != 0 || kv.second.empty()) continue;
+                    const int k = std::atoi(kv.first.c_str() + 4);
+                    if (k >= 0 && k < int(f.entity_constraints.size())) bound[k] = {kv.second, f.entity_constraints[k].value};
+                }
+                m_viewport->mcp_sketch_tool().set_dim_exprs(std::move(bound));
             }
             set_status(StatusKind::Info, _L("Editing sketch — drag a handle or double-click a dimension to edit it"));
         } else {

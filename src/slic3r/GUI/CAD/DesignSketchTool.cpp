@@ -136,6 +136,7 @@ void DesignSketchTool::begin(const SketchPlane& plane, Mode mode)
     m_dof = -1; m_solve_ok = true; m_entity_conflict.clear();
     m_features.clear();
     m_open_feature = -1;
+    m_dim_exprs.clear();
     m_active = true;
 }
 
@@ -149,6 +150,21 @@ void DesignSketchTool::begin_edit(const std::vector<SketchEntity>& entities,
     begin(plane, Mode::Select);
     m_entities    = entities;
     m_constraints = constraints;
+    // A committed sketch keeps its dimensions as constraints only; give each driving one back its label.
+    m_dimensions.clear();
+    for (int i = 0; i < int(m_constraints.size()); ++i) {
+        const SketchEntityConstraintDef& c = m_constraints[i];
+        DimAnnot a;
+        a.con = i; a.value = c.value; a.ea = c.ea; a.ra = c.ra; a.eb = c.eb; a.rb = c.rb;
+        using T = SketchConstraintType;
+        if (c.type == T::Distance && c.ea == c.eb && c.ra == SketchPointRole::P0 && c.rb == SketchPointRole::P1) a.kind = DimType::Length;
+        else if (c.type == T::Distance || c.type == T::DistanceX || c.type == T::DistanceY)                     a.kind = DimType::Distance;
+        else if (c.type == T::Diameter)                                                                          a.kind = DimType::Diameter;
+        else if (c.type == T::Radius)                                                                            a.kind = DimType::Radius;
+        else if (c.type == T::Angle)                                                                             a.kind = DimType::Angle;
+        else continue;
+        m_dimensions.push_back(a);
+    }
     rebuild_features_from_entities();
     resolve_live();
 }
@@ -2479,6 +2495,11 @@ void DesignSketchTool::cancel_dimension_value()
 
 std::string DesignSketchTool::dim_text(const DimAnnot& a) const
 {
+    if (m_dim_names && a.con >= 0 && a.con < int(m_constraints.size())) {
+        auto it = m_dim_exprs.find(a.con);
+        if (it != m_dim_exprs.end() && std::abs(it->second.second - m_constraints[a.con].value) < 1e-6)
+            return it->second.first;
+    }
     const char* prefix = (a.kind == DimType::Diameter) ? "\xC3\x98"   // 'Ø'
                        : (a.kind == DimType::Radius)   ? "R" : "";
     // Two decimals, trailing zeros dropped: the same precision the HUD readout uses, so a label

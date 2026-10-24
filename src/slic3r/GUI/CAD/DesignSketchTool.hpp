@@ -20,6 +20,7 @@
 #include <math.h>
 #include <vector>
 #include <string>
+#include <map>
 #include <utility>
 #include <algorithm>
 
@@ -1001,6 +1002,12 @@ private:
     // a Coincident) are one dimension, so they replace each other instead of stacking.
     int upsert_dimension_constraint(const SketchEntityConstraintDef& c);
     int  place_dimension(DimAnnot a);                                       // create+drive+notify
+public:
+    void set_dim_exprs(std::map<int, std::pair<std::string, double>> e) { m_dim_exprs = std::move(e); }
+    bool dim_names() const { return m_dim_names; }
+    void toggle_dim_names() { m_dim_names = !m_dim_names; }
+    bool has_dim_exprs() const { return !m_dim_exprs.empty(); }
+private:
     std::string dim_text(const DimAnnot& a) const;                          // rendered label string
     void render_dimensions(double unit_per_px);                            // quote lines + labels
     // Draw ONE dimension's quote (extension/dimension lines, arrowheads, label) and
@@ -1325,6 +1332,10 @@ private:
     SketchPointRole     m_dim_r0{SketchPointRole::P0};
     bool                m_dim_has0{false};        // a first point is pending
     int                 m_pending_dim{-1};        // dim awaiting a value-card entry
+    // The expressions bound to the dimensions of the sketch being edited (m_constraints index -> expression, and the value it
+    // had when loaded: a dimension whose value has moved on since is no longer that expression's, and shows its number).
+    std::map<int, std::pair<std::string, double>> m_dim_exprs;
+    bool                m_dim_names{false};       // label a bound dimension with its expression instead of its value (per session)
     Mode                m_mode{Mode::Polyline};
     int                 m_sel_a{-1};   // picked segment endpoints (legacy Constrain mode)
     int                 m_sel_b{-1};
