@@ -339,7 +339,8 @@ void Field::PostInitialize()
 	case coBools:
 	case coInts:
     // BBS
-    case coEnums: {
+    case coEnums:
+    case coPointsGroups: {
 		auto tag_pos = m_opt_id.find("#");
 		if (tag_pos != std::string::npos)
 			m_opt_idx = stoi(m_opt_id.substr(tag_pos + 1, m_opt_id.size()));
@@ -833,6 +834,43 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         m_value = out_values;
         break; }
 
+    case coPointsGroups: {
+        // Edit one extruder group using the same XxY,XxY,... syntax as a
+        // single polygon. The callback stores this vector at the field index.
+        std::vector<Vec2d> out_values;
+        str.Replace(" ", wxEmptyString, true);
+        if (!str.IsEmpty()) {
+            bool invalid_val = false;
+            wxStringTokenizer thumbnails(str, ",");
+            while (thumbnails.HasMoreTokens()) {
+                wxString token = thumbnails.GetNextToken();
+                double x, y;
+                wxStringTokenizer thumbnail(token, "x");
+                if (thumbnail.HasMoreTokens()) {
+                    wxString x_str = thumbnail.GetNextToken();
+                    if (x_str.ToDouble(&x) && thumbnail.HasMoreTokens()) {
+                        wxString y_str = thumbnail.GetNextToken();
+                        if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
+                            out_values.emplace_back(x, y);
+                            continue;
+                        }
+                    }
+                }
+                invalid_val = true;
+                break;
+            }
+            if (invalid_val) {
+                wxString text_value;
+                if (!m_value.empty())
+                    text_value = get_thumbnails_string(boost::any_cast<std::vector<Vec2d>>(m_value));
+                set_value(text_value, true);
+                show_error(m_parent, format_wxstr(_L("Invalid format. Expected vector format: \"%1%\""), "XxY, XxY, ..."));
+                break;
+            }
+        }
+        m_value = out_values;
+        break; }
+
 	default:
 		break;
 	}
@@ -954,7 +992,7 @@ void free_window(wxWindow *win)
 template<class T>
 bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 {
-    if (!win || (static_cast<T*>(win)->GetValue().empty() && type != coString && type != coStrings && type != coPoints && type != coPoint))
+    if (!win || (static_cast<T*>(win)->GetValue().empty() && type != coString && type != coStrings && type != coPoints && type != coPointsGroups && type != coPoint))
         return false;
     return true;
 }
@@ -1016,6 +1054,12 @@ void TextCtrl::BUILD() {
     case coPoints:
         text_value = get_thumbnails_string(m_opt.get_default_value<ConfigOptionPoints>()->values);
         break;
+    case coPointsGroups: {
+        const auto *groups = m_opt.get_default_value<ConfigOptionPointsGroups>();
+        if (groups != nullptr && !groups->values.empty())
+            text_value = get_thumbnails_string(groups->get_at(m_opt_idx));
+        break;
+    }
 	default:
 		break;
 	}
@@ -1150,6 +1194,9 @@ bool TextCtrl::value_was_changed()
     case coFloatOrPercent:
     case coFloatsOrPercents:
         return boost::any_cast<std::string>(m_value) != boost::any_cast<std::string>(val);
+    case coPointsGroups:
+    case coPoints:
+        return boost::any_cast<std::vector<Vec2d>>(m_value) != boost::any_cast<std::vector<Vec2d>>(val);
     default:
         return true;
     }

@@ -1030,6 +1030,12 @@ void PrintConfigDef::init_common_params()
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPointsGroups{});
 
+    def = this->add("extruder_movable_area", coPointsGroups);
+    def->label = L("Extruder movable area");
+    def->mode = comAdvanced;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
+    def->set_default_value(new ConfigOptionPointsGroups{});
+
     def           = this->add("support_parallel_printheads", coBool);
     def->label    = L("Support parallel printheads");
     def->tooltip  = L("Enable printer settings for machines that can use multiple printheads in parallel.");
@@ -10209,6 +10215,7 @@ std::set<std::string> printer_extruder_options = {
     "nozzle_diameter",
     "default_nozzle_volume_type",
     "extruder_printable_area",
+    "extruder_movable_area",
     "extruder_bed_exclude_volumes",
     "extruder_printable_height",
     "min_layer_height",
@@ -10663,6 +10670,8 @@ void DynamicPrintConfig::set_num_extruders(unsigned int num_extruders)
         assert(opt != nullptr);
         assert(opt->is_vector());
         if (opt != nullptr && opt->is_vector()) {
+            if (key == "extruder_printable_area" && static_cast<ConfigOptionVectorBase*>(opt)->empty())
+                continue;
             static_cast<ConfigOptionVectorBase*>(opt)->resize(get_parameter_size(key, num_extruders), defaults.option(key));
         }
     }
@@ -13806,6 +13815,53 @@ Polygon get_shared_poly(const std::vector<Pointfs>& extruder_polys)
     }
     return result;
 }
+Pointfs default_extruder_move_area(const Pointfs &printable_area)
+{
+    if (printable_area.empty())
+        return {};
+
+    float margin = 2.0; 
+    BoundingBoxf bbox(printable_area);
+    const Vec2d min_point = bbox.min - Vec2d(margin, margin);
+    const Vec2d max_point = bbox.max + Vec2d(margin, margin);
+    return { Vec2d(min_point.x(), min_point.y()), Vec2d(max_point.x(), min_point.y()),
+             Vec2d(max_point.x(), max_point.y()), Vec2d(min_point.x(), max_point.y()) };
+}
+
+std::vector<Pointfs> effective_extruder_move_areas(const ConfigBase& config)
+{
+    const auto* printable_area = config.option<ConfigOptionPoints>("printable_area");
+
+    const auto* movable_area = config.option<ConfigOptionPointsGroups>("extruder_movable_area");
+
+    size_t extruder_count = 0;
+    const auto* extruder_types = config.option<ConfigOptionEnumsGeneric>("extruder_type");
+
+    if (extruder_types && !extruder_types->values.empty()) {
+        extruder_count = extruder_types->values.size();
+    } else if (movable_area) {
+        extruder_count = movable_area->values.size();
+    }
+
+    if (extruder_count == 0)
+        return {};
+
+    const Pointfs default_area = default_extruder_move_area( printable_area ? printable_area->values : Pointfs{} );
+
+    std::vector<Pointfs> result;
+    result.reserve(extruder_count);
+
+    for (size_t i = 0; i < extruder_count; ++i) {
+        if (movable_area && i < movable_area->values.size() && !movable_area->values[i].empty()) {
+            result.push_back(movable_area->values[i]);
+        } else {
+            result.push_back(default_area);
+        }
+    }
+
+    return result;
+}
+
 Points get_bed_shape(const DynamicPrintConfig &config, bool use_share)
 {
     const ConfigOptionPoints *bed_shape_opt = config.opt<ConfigOptionPoints>("printable_area");
@@ -13821,9 +13877,8 @@ Points get_bed_shape(const DynamicPrintConfig &config, bool use_share)
 
     Polygon bed_poly;
     if (use_share) {
-        const ConfigOptionPointsGroups *extruder_area_opt = config.opt<ConfigOptionPointsGroups>("extruder_printable_area");
-        if (extruder_area_opt && (extruder_area_opt->size() > 0)) {
-            const std::vector<Pointfs>& extruder_areas = extruder_area_opt->values;
+        const std::vector<Pointfs> extruder_areas = effective_extruder_move_areas(config);
+        if (!extruder_areas.empty()) {
             bed_poly = get_shared_poly(extruder_areas);
         }
         else
@@ -13839,7 +13894,7 @@ Points get_bed_shape(const PrintConfig &cfg, bool use_share)
 {
     Polygon bed_poly;
     if (use_share) {
-        const std::vector<Pointfs>& extruder_areas = cfg.extruder_printable_area.values;
+        const std::vector<Pointfs> extruder_areas = effective_extruder_move_areas(cfg);
         if (extruder_areas.size() > 0) {
             bed_poly = get_shared_poly(extruder_areas);
         }
