@@ -182,6 +182,7 @@ void PresetComboBox::OnSelect(wxCommandEvent& evt)
         this->SetSelection(m_last_selected);
     else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
         m_last_selected = selected_item;
+        update_source_arrow();
         on_selection_changed(selected_item);
         evt.StopPropagation();
     }
@@ -243,7 +244,7 @@ void PresetComboBox::update_selection()
     SetToolTip(NULL);
 #endif
     SetToolTip(GetString(m_last_selected));
-
+    update_source_arrow();
 // A workaround for a set of issues related to text fitting into gtk widgets:
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
   GtkWidget* widget = m_widget;
@@ -269,6 +270,38 @@ void PresetComboBox::update_selection()
         g_warning("Expected GtkEntry, but got %s", G_OBJECT_TYPE_NAME(widget));
     }
 #endif
+}
+
+void PresetComboBox::update_source_arrow()
+{
+    if (!wxGetApp().app_config->get_bool("show_preset_source_indicators") || !m_collection || m_last_selected < 0 || m_last_selected >= static_cast<int>(GetCount())) {
+        this->SetIcon("drop_down");
+        return;
+    }
+
+    std::string preset_name = GetItemAlias(m_last_selected).ToUTF8().data();
+    if (preset_name.empty())
+        preset_name = GetString(m_last_selected).ToUTF8().data();
+    preset_name = Preset::remove_suffix_modified(preset_name);
+
+    const Preset* preset = m_collection->find_preset(preset_name);
+
+    if (!preset && m_type == Preset::TYPE_PRINTER) {
+        for (const Preset& p : m_collection->get_presets()) {
+            if (p.config.has("printer_model") && p.config.opt_string("printer_model") == preset_name) {
+                preset = &p;
+                break;
+            }
+        }
+    }
+
+    if (!preset && m_collection->get_selected_idx() != size_t(-1) && m_collection->get_selected_idx() < m_collection->get_presets().size()) {
+        preset = &m_collection->get_selected_preset();
+    }
+
+    this->SetIcon(!preset ? "drop_down" :
+        "drop_down_indicator_" + std::string((preset->is_default || preset->is_system) ? "system" :
+                                             preset->is_project_embedded               ? "project" : "user"));
 }
 
 int PresetComboBox::update_ams_color()
