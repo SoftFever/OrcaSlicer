@@ -104,6 +104,8 @@ static std::map<Preset::Type, std::unordered_map<std::string, MissingPlugin>> s_
 // Installed+loaded but capability absent; not resolvable by activation. Both share s_missing_mutex.
 static std::map<Preset::Type, std::unordered_map<std::string, MissingPlugin>> s_broken;
 
+const char* plugin_manifest_key(Preset::Type type) { return type == Preset::TYPE_PRINTER ? "printer_plugins" : "plugins"; }
+
 static bool is_tracked_type(Preset::Type type)
 {
     return type == Preset::TYPE_PRINT || type == Preset::TYPE_PRINTER || type == Preset::TYPE_FILAMENT;
@@ -114,7 +116,7 @@ std::vector<PluginCapabilityRef> referenced_capabilities(Preset::Type type, cons
     if (!is_tracked_type(type))
         return {};
 
-    const auto* manifest = dynamic_cast<const ConfigOptionStrings*>(preset.config.option("plugins"));
+    const auto* manifest = dynamic_cast<const ConfigOptionStrings*>(preset.config.option(plugin_manifest_key(type)));
     if (manifest == nullptr)
         return {};
 
@@ -237,11 +239,13 @@ static std::pair<bool, bool> loaded_capability_state(const std::string& plugin_k
 
 void refresh_missing_plugins(const PresetBundle& preset_bundle)
 {
-    const auto manifest_of = [](const Preset& preset) { return dynamic_cast<const ConfigOptionStrings*>(preset.config.option("plugins")); };
+    const auto manifest_of = [](Preset::Type type, const Preset& preset) {
+        return dynamic_cast<const ConfigOptionStrings*>(preset.config.option(plugin_manifest_key(type)));
+    };
     const Preset& print_preset = preset_bundle.prints.get_edited_preset();
-    refresh_missing_plugins(Preset::TYPE_PRINT, manifest_of(print_preset), &print_preset);
+    refresh_missing_plugins(Preset::TYPE_PRINT, manifest_of(Preset::TYPE_PRINT, print_preset), &print_preset);
     const Preset& printer_preset = preset_bundle.printers.get_edited_preset();
-    refresh_missing_plugins(Preset::TYPE_PRINTER, manifest_of(printer_preset), &printer_preset);
+    refresh_missing_plugins(Preset::TYPE_PRINTER, manifest_of(Preset::TYPE_PRINTER, printer_preset), &printer_preset);
 
     // Filament plugins (if any) are the union over all selected filament presets.
     ConfigOptionStrings filament_manifest;
@@ -376,6 +380,16 @@ bool has_broken_plugins()
     for (const auto& [type, set] : s_broken)
         if (!set.empty())
             return true;
+    return false;
+}
+
+bool has_blocking_plugins()
+{
+    std::lock_guard<std::mutex> lock(s_missing_mutex);
+    for (const auto* sets : {&s_missing, &s_inactive, &s_broken})
+        for (const auto& [type, set] : *sets)
+            if (type != Preset::TYPE_PRINTER && !set.empty())
+                return true;
     return false;
 }
 
