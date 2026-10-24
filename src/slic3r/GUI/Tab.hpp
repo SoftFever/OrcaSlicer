@@ -716,6 +716,7 @@ class IMEXModesCtrl;
 
 class TabPrinter : public Tab
 {
+    friend class Tab;
 private:
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key, const std::string& label_path = "");
 	void        update_input_shaper_menu(GCodeFlavor flavor);
@@ -739,8 +740,11 @@ public:
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
 	size_t		m_cache_extruder_count = 0;
-	std::vector<std::string> m_extruder_variant_list;
-	std::string m_base_preset_name;
+    std::vector<std::string> m_extruder_variant_list;
+    std::string m_base_preset_name;
+
+    // Row under "Additional initial plate change G-code" (preset inject buttons); not in OG_CustomCtrl.
+    wxWindow*                       m_additional_initial_inject_row{nullptr};
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
@@ -795,6 +799,10 @@ protected:
 	// Orca: values of extruders added by raising the extruder count have no saved / system value to
 	// revert to; the change is shown on "extruders_count", not on each of their parameters.
 	void		update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
+
+private:
+	// When plate_change_gcode is non-empty and additional_initial is still empty, copy PrintConfig default boilerplate.
+	void		maybe_autofill_additional_initial_plate_change_gcode(bool config_only);
 };
 
 class TabSLAMaterial : public Tab

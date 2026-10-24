@@ -433,6 +433,8 @@ public:
     // BBS
     bool is_new_project_and_check_state() { return m_new_project_and_check_state; }
     wxString get_project_name();
+    // Updates internal project title and main window title (used e.g. when renaming from export / print dialogs).
+    void set_project_name(const wxString& project_name);
     void update_all_plate_thumbnails(bool force_update = false);
     void update_plate_thumbnails(int plate_idx, bool force_update);
     void update_obj_preview_thumbnail(ModelObject *, int obj_idx, int vol_idx, std::vector<Slic3r::ColorRGBA> colors, int camera_view_angle_type);
@@ -568,9 +570,15 @@ public:
     void apply_cut_object_to_model(size_t init_obj_idx, const ModelObjectPtrs& cut_objects);
     void merge(size_t obj_idx, std::vector<int> &vol_indeces);
 
-    void send_to_printer(bool isall = false);
+    void send_to_printer(bool isall = false, bool use_plate_changer_all = false);
     void export_gcode(bool prefer_removable);
-    void export_gcode_3mf(bool export_all = false);
+    void export_gcode_3mf(bool export_all = false, bool use_plate_changer_all = false,
+                          const std::vector<bool>* plate_changer_plate_included = nullptr);
+
+    // Last-used "Start/End with new plate?" — shared by print/send dialogs and PlateChangerExportOptionsDialog (plate-swap export).
+    // Export-all (plate changer) still reads these when plate_change_gcode is empty (no options dialog).
+    static void plate_changer_prefs_load_from_appconfig(bool& start_with_new_plate, bool& end_with_new_plate);
+    static void plate_changer_prefs_save_to_appconfig(bool start_with_new_plate, bool end_with_new_plate);
     void send_gcode_finish(wxString name);
     void export_core_3mf();
     // Write the project to output_path as a copy: the project's file name, dirty state and model stay
@@ -589,7 +597,8 @@ public:
     //void export_amf();
     //BBS add extra param for exporting 3mf silence
     // BBS: backup
-    int export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), SaveStrategy strategy = SaveStrategy::Default, int export_plate_idx = -1, Export3mfProgressFn proFn = nullptr);
+    int export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), SaveStrategy strategy = SaveStrategy::Default, int export_plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool use_plate_changer_all = false, bool start_with_new_plate = false, bool end_with_new_plate = false,
+                   const std::vector<bool>* plate_changer_plate_included = nullptr);
 
     //BBS
 
@@ -619,9 +628,11 @@ public:
     BackgroundSlicingProcess& background_process();
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
-    int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
-    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
-    int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
+    int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool use_plate_changer_all = false, bool start_with_new_plate = false, bool end_with_new_plate = false,
+                   const std::vector<bool>* plate_changer_plate_included = nullptr);
+    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool use_plate_changer_all = false);
+    int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool use_plate_changer_all = false, bool start_with_new_plate = false, bool end_with_new_plate = false,
+                          const std::vector<bool>* plate_changer_plate_included = nullptr);
     //BBS jump to nonitor after print job finished
     void send_calibration_job_finished(wxCommandEvent &evt);
     void print_job_finished(wxCommandEvent &evt);

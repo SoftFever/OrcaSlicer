@@ -2327,7 +2327,9 @@ void SyncAmsInfoDialog::update_show_status()
             DevPrinterConfigUtil::is_optional_printer_model_id(m_required_data_plate_data_list[m_print_plate_idx]->printer_model_id);
     }
 
-    if (!obj_->GetConfig()->SupportPrintAllPlates() && m_print_plate_idx == PLATE_ALL_IDX) {
+    // For plate changer mode we always allow "all plates" (single merged gcode),
+    // so only block classic multi-plate jobs here.
+    if (!m_use_plate_changer_all && !obj_->GetConfig()->SupportPrintAllPlates() && m_print_plate_idx == PLATE_ALL_IDX) {
         show_status(PrintDialogStatus::PrintStatusNotSupportedPrintAll);
         return;
     }

@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 #include <wx/bookctrl.h>
+#include <wx/collpane.h>
 #include <wx/gdicmn.h>
 #include <wx/event.h>
 #include <wx/numformatter.h>
@@ -539,9 +540,17 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled /* = [](){}*
         return false;
 
     try {
+        wxCollapsiblePane* collapsible_pane = nullptr;
+        wxWindow*          staticbox_parent = m_parent;
+        if (wrap_in_collapsible_pane && staticbox) {
+            const wxString pane_lbl = collapsible_pane_label.empty() ? _(title) : collapsible_pane_label;
+            collapsible_pane          = new wxCollapsiblePane(m_parent, wxID_ANY, pane_lbl);
+            staticbox_parent          = collapsible_pane->GetPane();
+        }
+
         if (staticbox) {
             // ORCA match style of wxStaticBox between platforms
-            LabeledStaticBox* stb = new LabeledStaticBox(m_parent, _(title));
+            LabeledStaticBox* stb = new LabeledStaticBox(staticbox_parent, title.IsEmpty() ? wxString() : _(title));
             // wxGetApp().UpdateDarkUI(stb);
             this->stb = stb;
             sizer     = new wxStaticBoxSizer(stb, wxVERTICAL);
@@ -588,6 +597,16 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled /* = [](){}*
         ctrl_horiz_alignment = horiz_alignment;
         if (custom_ctrl)
             custom_ctrl->init_max_win_width();
+        if (wrap_in_collapsible_pane && staticbox && collapsible_pane) {
+            wxSizer*    inner_static_sizer = sizer;
+            wxBoxSizer* pane_sz            = new wxBoxSizer(wxVERTICAL);
+            pane_sz->Add(inner_static_sizer, 0, wxEXPAND | wxALL, staticbox_parent->FromDIP(5));
+            staticbox_parent->SetSizer(pane_sz);
+            wxBoxSizer* outer = new wxBoxSizer(wxVERTICAL);
+            outer->Add(collapsible_pane, 0, wxEXPAND);
+            sizer = outer;
+            collapsible_pane->Collapse(true);
+        }
     } catch (UIBuildCanceled&) {
         auto p = sizer;
         this->clear();
@@ -1079,6 +1098,10 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
     boost::any ret;
     wxString text_value        = wxString("");
     const ConfigOptionDef* opt = config.def()->get(opt_key);
+    if (opt == nullptr) {
+        ret = wxString();
+        return ret;
+    }
 
     if (opt->nullable) {
         switch (opt->type) {
@@ -1158,7 +1181,11 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         }
         break;
     }
-    case coString: ret = from_u8(config.opt_string(opt_key)); break;
+    case coString: {
+        const auto* s = dynamic_cast<const ConfigOptionString*>(config.optptr(opt_key));
+        ret           = (s != nullptr) ? from_u8(s->value) : wxString();
+        break;
+    }
     case coStrings:
         if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
             ret = config.option<ConfigOptionStrings>(opt_key)->values;
@@ -1236,6 +1263,10 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
 
     boost::any ret;
     const ConfigOptionDef* opt = config.def()->get(opt_key);
+    if (opt == nullptr) {
+        ret = std::string();
+        return ret;
+    }
 
     if (opt->nullable) {
         switch (opt->type) {
@@ -1292,7 +1323,11 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
                                              config.option<ConfigOptionPercents>(opt_key)->get_at(idx);
         ret        = val;
     } break;
-    case coString: ret = config.opt_string(opt_key); break;
+    case coString: {
+        const auto* s = dynamic_cast<const ConfigOptionString*>(config.optptr(opt_key));
+        ret           = (s != nullptr) ? s->value : std::string();
+        break;
+    }
     case coStrings:
         if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
             ret = config.option<ConfigOptionStrings>(opt_key)->values;
