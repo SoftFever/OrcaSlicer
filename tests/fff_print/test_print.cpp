@@ -1989,3 +1989,93 @@ TEST_CASE("Height ranges and modifiers count for the filament shrinkage compensa
     });
     CHECK(mismatch_warning == ! object_on_filament_2);
 }
+
+TEST_CASE("Modifier 0-wall boundary handling", "[Print]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "layer_height",               0.2 },
+        { "initial_layer_print_height", 0.2 },
+        { "wall_loops",                 2 },
+    });
+
+    SECTION("interior 0-wall modifier gets no walls at its boundary") {
+        Model model;
+        ModelObject *object = model.add_object();
+        object->add_volume(cube(40.));
+        // Center the modifier inside the 40mm cube using the parent volume's offset
+        const Vec3d center = object->volumes.front()->get_offset();
+
+        DynamicPrintConfig mod_config;
+        mod_config.set_key_value("wall_loops", new ConfigOptionInt(0));
+        ModelVolume *modifier = object->add_volume(cube(20.), ModelVolumeType::PARAMETER_MODIFIER, false);
+        modifier->config.apply(mod_config);
+        modifier->set_offset(center);
+
+        object->add_instance()->set_offset(Vec3d(50., 50., 0.));
+        object->ensure_on_bed();
+
+        Print print;
+        print.auto_assign_extruders(object);
+        print.apply(model, config);
+        print.process();
+
+        REQUIRE(!print.objects().empty());
+        const PrintObject &print_object = *print.objects().front();
+        REQUIRE(print_object.layer_count() > 0);
+
+        // Inspect a middle layer where the modifier is active
+        const Layer *layer = print_object.get_layer(int(print_object.layer_count() / 2));
+        REQUIRE(layer != nullptr);
+
+        // Flatten ExtrusionEntityCollections into individual loops before counting
+        size_t total_perimeters = 0;
+        for (const LayerRegion *layerm : layer->regions())
+            total_perimeters += layerm->perimeters.flatten().entities.size();
+
+        // Only the outer cube walls should be present (2 loops), zero at the modifier boundary
+        CHECK(total_perimeters == 2);
+    }
+
+    SECTION("0-wall object with a walled modifier keeps walls only there") {
+        DynamicPrintConfig obj_config = config;
+        obj_config.set_key_value("wall_loops", new ConfigOptionInt(0));
+
+        Model model;
+        ModelObject *object = model.add_object();
+        object->add_volume(cube(40.));
+        object->config.set_key_value("wall_loops", new ConfigOptionInt(0));
+        const Vec3d center = object->volumes.front()->get_offset();
+
+        DynamicPrintConfig mod_config;
+        mod_config.set_key_value("wall_loops", new ConfigOptionInt(3));
+        ModelVolume *modifier = object->add_volume(cube(20.), ModelVolumeType::PARAMETER_MODIFIER, false);
+        modifier->config.apply(mod_config);
+        modifier->set_offset(center);
+
+        object->add_instance()->set_offset(Vec3d(50., 50., 0.));
+        object->ensure_on_bed();
+
+        Print print;
+        print.auto_assign_extruders(object);
+        print.apply(model, obj_config);
+        print.process();
+
+        REQUIRE(!print.objects().empty());
+        const PrintObject &print_object = *print.objects().front();
+        REQUIRE(print_object.layer_count() > 0);
+
+        const Layer *layer = print_object.get_layer(int(print_object.layer_count() / 2));
+        REQUIRE(layer != nullptr);
+        REQUIRE(layer->region_count() >= 2);
+
+        // Find regions by wall_loops config value to be order-independent
+        const LayerRegion *cube_region     = (layer->get_region(0)->region().config().wall_loops == 0) ? layer->get_region(0) : layer->get_region(1);
+        const LayerRegion *modifier_region = (layer->get_region(0)->region().config().wall_loops == 3) ? layer->get_region(0) : layer->get_region(1);
+
+        REQUIRE(cube_region     != nullptr);
+        REQUIRE(modifier_region != nullptr);
+        CHECK(cube_region->perimeters.flatten().entities.empty());
+        CHECK(modifier_region->perimeters.flatten().entities.size() == 3);
+    }
+}

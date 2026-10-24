@@ -154,14 +154,14 @@ ExPolygons Layer::merged(float offset_scaled) const
     return out;
 }
 
-bool Layer::is_perimeter_compatible(const Print& print, const PrintRegion& a, const PrintRegion& b)
+bool Layer::is_perimeter_compatible(const Print& print, const PrintRegion& a, const PrintRegion& b, bool ignore_wall_loops)
 {
     const PrintRegionConfig& config       = a.config();
     const PrintRegionConfig& other_config = b.config();
 
         return config.outer_wall_filament_id       == other_config.outer_wall_filament_id
-		&& config.inner_wall_filament_id       == other_config.inner_wall_filament_id
-		&& config.wall_loops                  == other_config.wall_loops
+		&& config.inner_wall_filament_id       == other_config.inner_wall_filament_id 
+        && (ignore_wall_loops || config.wall_loops == other_config.wall_loops)
 		&& config.wall_sequence               == other_config.wall_sequence
 		&& config.is_infill_first             == other_config.is_infill_first
 		&& config.inner_wall_speed.get_at(print.get_extruder_id(config.outer_wall_filament_id)) == other_config.inner_wall_speed.get_at(print.get_extruder_id(config.outer_wall_filament_id))
@@ -197,6 +197,22 @@ bool Layer::is_perimeter_compatible(const Print& print, const PrintRegion& a, co
         && config.seam_slope_min_length   == other_config.seam_slope_min_length
         && config.seam_slope_steps        == other_config.seam_slope_steps
         && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls;
+}
+
+static bool is_zero_wall_inside_hole(const LayerRegion* zero_layerm, const LayerRegion* walled_layerm)
+{
+    Polygons walled_holes;
+    for (const Surface& s : walled_layerm->slices.surfaces)
+        for (const Polygon& hole : s.expolygon.holes)
+            walled_holes.push_back(hole);
+
+    if (walled_holes.empty())
+        return false;
+
+    // The 0-wall region is considered interior if none of its area
+    // falls outside the walled region's holes. Use 50-micron tolerance
+    // to absorb polygon simplification differences along the shared boundary.
+    return diff(to_polygons(zero_layerm->slices.surfaces), expand(walled_holes, float(scale_(0.05)))).empty();
 }
 
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
@@ -241,7 +257,18 @@ void Layer::make_perimeters()
                     // this is a no-op for every other configuration.
                     if (this_region.gradient_volume_id() != other_region.gradient_volume_id())
                         continue;
-                    if (is_perimeter_compatible(*m_object->print(), this_region, other_region))
+                    bool compatible = false;
+                    if (is_perimeter_compatible(*m_object->print(), this_region, other_region)) {
+                        compatible = true;
+                    } else if (is_perimeter_compatible(*m_object->print(), this_region, other_region, /*ignore_wall_loops=*/true)) {
+                        // Merge only if the 0-wall region is completely inside an internal hole of the walled region
+                        if (this_region.config().wall_loops > 0 && other_region.config().wall_loops == 0)
+                            compatible = is_zero_wall_inside_hole(other_layerm, *layerm);
+                        else if (this_region.config().wall_loops == 0 && other_region.config().wall_loops > 0)
+                            compatible = is_zero_wall_inside_hole(*layerm, other_layerm);
+                    }
+
+                    if (compatible)
                     {
                         clear_generated_extrusions(other_layerm);
                         layerms.push_back(other_layerm);
@@ -261,19 +288,22 @@ void Layer::make_perimeters()
 	            SurfaceCollection new_slices;
 	            // Use the region with highest infill rate, as the make_perimeters() function below decides on the gap fill based on the infill existence.
 	            LayerRegion *layerm_config = layerms.front();
-	            {
+                {
 	                // group slices (surfaces) according to number of extra perimeters
 	                std::map<unsigned short, Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
-	                for (LayerRegion *layerm : layerms) {
-	                    for (const Surface &surface : layerm->slices.surfaces)
-	                        slices[surface.extra_perimeters].emplace_back(surface);
-	                    if (layerm->region().config().sparse_infill_density > layerm_config->region().config().sparse_infill_density)
-	                    	layerm_config = layerm;
-	                }
-	                // merge the surfaces assigned to each group
+                    for (LayerRegion *layerm : layerms) {
+                        for (const Surface &surface : layerm->slices.surfaces)
+                            slices[surface.extra_perimeters].emplace_back(surface);
+                        // Prefer the region with the most wall loops; break ties by highest infill density.
+                        const auto& cfg      = layerm->region().config();
+                        const auto& best_cfg = layerm_config->region().config();
+                        if (cfg.wall_loops > best_cfg.wall_loops || (cfg.wall_loops == best_cfg.wall_loops && cfg.sparse_infill_density > best_cfg.sparse_infill_density))
+                            layerm_config = layerm;
+                    }
+                     // merge the surfaces assigned to each group
 	                for (std::pair<const unsigned short,Surfaces> &surfaces_with_extra_perimeters : slices)
 	                    new_slices.append(offset_ex(surfaces_with_extra_perimeters.second, ClipperSafetyOffset), surfaces_with_extra_perimeters.second.front());
-	            }
+                }
 
 	            // make perimeters
 	            SurfaceCollection fill_surfaces;
