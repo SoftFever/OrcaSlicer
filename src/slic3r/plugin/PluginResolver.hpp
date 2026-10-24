@@ -23,6 +23,10 @@ struct MissingPlugin
     PluginCapabilityType type{PluginCapabilityType::Unknown};
 };
 
+// The manifest key of a preset type: printer presets keep theirs in "printer_plugins", every other
+// type in "plugins" (see ConfigBase::plugin_manifest_key).
+const char* plugin_manifest_key(Preset::Type type);
+
 // Rebuild one preset type's missing-plugin set from its "plugins" manifest, comparing each ref
 // against the live catalog and loaded/enabled capabilities. A null/empty manifest clears the set.
 // Only TYPE_PRINT, TYPE_PRINTER and TYPE_FILAMENT are tracked.
@@ -44,6 +48,11 @@ bool                     has_inactive_plugins();
 // capability at all (renamed/removed/outdated plugin). Activation cannot fix these.
 std::vector<MissingPlugin> get_broken_plugins();
 bool                     has_broken_plugins();
+
+// True while a missing, inactive or broken reference comes from the process or filament presets.
+// Printer preset plugins (printer agents, printer assets) are reported but never block slicing:
+// they do not change the sliced result.
+bool                     has_blocking_plugins();
 
 // Optional progress hook for the cloud install worker. All three callbacks fire on the worker
 // thread; implementations must only touch thread-safe state or marshal to the UI thread.

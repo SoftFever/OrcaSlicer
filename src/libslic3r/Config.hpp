@@ -2898,6 +2898,8 @@ private:
     // manifest) and update_plugin_manifest (writes them back into the "plugins" option). Order is
     // preserved and empties are dropped; returns empty without a resolver (CLI/headless).
     std::vector<std::string> collect_plugin_manifest() const;
+    // "printer_plugins" for a printer preset config, "plugins" for every other config.
+    std::string plugin_manifest_key() const;
 
     static std::function<std::string(std::string, std::string)> resolve_capability_fn;
 };
