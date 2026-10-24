@@ -3,23 +3,21 @@
 #include <algorithm>
 #include <cstdlib>
 #include <numeric>
-#include <set>
 #include <utility>
 
 namespace Slic3r::PlateLayout {
 
 namespace {
 
-using Key = std::pair<int, int>; // (row, column), so that std::set and std::map iterate in reading order
+using Key = std::pair<int, int>; // (row, column), so that std::map iterates in reading order
 
 Key key(const Cell& cell) { return {cell.y(), cell.x()}; }
 
-std::map<Key, int> occupants(const std::vector<Cell>& cells, int ignore = -1)
+std::map<Key, int> occupants(const std::vector<Cell>& cells)
 {
     std::map<Key, int> occupant;
     for (int i = 0; i < (int) cells.size(); ++i)
-        if (i != ignore)
-            occupant.emplace(key(cells[i]), i);
+        occupant.emplace(key(cells[i]), i);
     return occupant;
 }
 
@@ -94,37 +92,6 @@ Cell next_free_cell(const std::vector<Cell>& cells)
             if (occupant.count({row, col}) == 0)
                 return Cell(col, row);
     return Cell(max.x() + 1, min.y());
-}
-
-std::vector<Cell> free_cells(const std::vector<Cell>& cells, int ignore)
-{
-    const std::map<Key, int> occupant = occupants(cells, ignore);
-    if (occupant.empty())
-        return {};
-    std::set<Key> result;
-    const auto    add = [&](int col, int row) {
-        if (occupant.count({row, col}) == 0)
-            result.emplace(row, col);
-    };
-    Cell min(occupant.begin()->first.second, occupant.begin()->first.first), max = min;
-    for (const auto& [k, i] : occupant) {
-        const Cell& c = cells[i];
-        min           = min.cwiseMin(c);
-        max           = max.cwiseMax(c);
-        add(c.x() - 1, c.y());
-        add(c.x() + 1, c.y());
-        add(c.x(), c.y() - 1);
-        add(c.x(), c.y() + 1);
-    }
-    for (int row = min.y(); row <= max.y(); ++row)
-        for (int col = min.x(); col <= max.x(); ++col)
-            add(col, row);
-
-    std::vector<Cell> out;
-    out.reserve(result.size());
-    for (const auto& [row, col] : result)
-        out.emplace_back(col, row);
-    return out;
 }
 
 } // namespace Slic3r::PlateLayout

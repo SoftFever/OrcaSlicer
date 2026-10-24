@@ -27,8 +27,4 @@ std::vector<int> reading_order(const std::vector<Cell>& cells);
 // The first free cell inside the layout's bounding box by reading order, or right of the layout on its top row.
 Cell next_free_cell(const std::vector<Cell>& cells);
 
-// Free cells a plate can be dropped in without moving others: holes in the bounding box of `cells`
-// and cells next to a plate, ignoring plate `ignore`.
-std::vector<Cell> free_cells(const std::vector<Cell>& cells, int ignore = -1);
-
 } // namespace Slic3r::PlateLayout

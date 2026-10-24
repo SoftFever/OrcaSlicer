@@ -16,7 +16,6 @@
 #include <cassert>
 #include <climits>
 #include "libslic3r/BoundingBox.hpp"
-#include "libslic3r/PlateLayout.hpp"
 #include <chrono>
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/LocalesUtils.hpp"
@@ -6249,8 +6248,6 @@ void GLCanvas3D::mouse_up_cleanup()
     m_mouse.drag.move_volume_idx = -1;
     m_plate_drag.plate_idx = -1;
     m_plate_drag.target.reset();
-    m_plate_drag.free_cells.reset();
-    m_plate_drag.free_cells_built = false;
     m_mouse.set_start_position_3D_as_invalid();
     m_mouse.set_start_position_2D_as_invalid();
     m_mouse.dragging = false;
@@ -12027,8 +12024,6 @@ bool GLCanvas3D::_start_plate_drag(const Point& mouse_pos)
     m_plate_drag.cell        = plate_list.get_plate_cell(plate_idx);
     m_plate_drag.valid       = false;
     m_plate_drag.target.reset();
-    m_plate_drag.free_cells.reset();
-    m_plate_drag.free_cells_built = false;
     if (!has_mouse_capture())
         m_canvas->CaptureMouse();
     return true;
@@ -12227,18 +12222,6 @@ void GLCanvas3D::_render_plate_drag_target(const Transform3d& view_matrix, const
         make_model(m_plate_drag.outline, std::move(data), teal);
         m_plate_drag.outline_box = home_box;
     }
-    if (dragging && !m_plate_drag.free_cells_built) {
-        m_plate_drag.free_cells_built = true;
-        // Where the plate can go without moving others; red cells are left out.
-        GLModel::Geometry data = new_geometry(true);
-        for (const Vec2i32& cell : PlateLayout::free_cells(plate_list.get_plate_cells(), plate_idx))
-            if (plate_list.can_move_plate_to_cell(plate_idx, cell)) {
-                BoundingBoxf box = plate_list.compute_cell_box(cell);
-                box.offset(-0.02 * plate_list.plate_stride_x());
-                add_rect(data, box, 0.05f, true);
-            }
-        make_model(m_plate_drag.free_cells, std::move(data), ColorRGBA(teal.r(), teal.g(), teal.b(), 0.45f));
-    }
     if (dragging && !m_plate_drag.target.is_initialized() && m_plate_drag.cell != home_cell) {
         // Green where the plate can go, red where it or a plate making room for it would land on loose objects.
         GLModel::Geometry data = new_geometry(false);
@@ -12258,9 +12241,6 @@ void GLCanvas3D::_render_plate_drag_target(const Transform3d& view_matrix, const
     shader->set_uniform("projection_matrix", projection_matrix);
     shader->set_uniform("view_model_matrix", view_matrix);
     if (dragging) {
-        glsafe(::glLineWidth(1.5f));
-        if (m_plate_drag.free_cells.is_initialized())
-            m_plate_drag.free_cells.render();
         if (m_plate_drag.cell != home_cell)
             m_plate_drag.target.render();
     }

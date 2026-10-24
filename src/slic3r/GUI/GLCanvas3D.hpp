@@ -665,8 +665,6 @@ private:
         bool    valid{false};
         GLModel target;                     // highlight of that cell
         GLModel outline;                    // border of the carried plate, also drawn around a plate whose handle is hovered
-        GLModel free_cells;                 // borders of the empty cells next to the layout
-        bool    free_cells_built{false};
         BoundingBoxf outline_box;           // what the outline was built for
         bool    cancelled{false};           // the drag was cancelled; the rest of the press does nothing
         static constexpr double Lift = 2.; // mm the carried plate is raised, so it reads as picked up

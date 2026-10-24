@@ -93,12 +93,3 @@ TEST_CASE("The next free cell fills a hole before extending the top row", "[Plat
     CHECK(PlateLayout::next_free_cell({{0, 0}, {1, 0}, {1, 1}}) == Cell(0, 1));
     CHECK(PlateLayout::next_free_cell({{-1, 0}, {0, 0}}) == Cell(1, 0));
 }
-
-TEST_CASE("Free cells are the holes and the neighbors of the other plates", "[PlateLayout]")
-{
-    // Plates 0 and 1 in row 0 with a hole between them; plate 2 is being dragged.
-    const std::vector<Cell> cells{{0, 0}, {2, 0}, {5, 5}};
-    const auto              free = PlateLayout::free_cells(cells, 2);
-    const std::vector<Cell> expected{{0, -1}, {2, -1}, {-1, 0}, {1, 0}, {3, 0}, {0, 1}, {2, 1}};
-    CHECK(free == expected);
-}
