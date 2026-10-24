@@ -49,6 +49,11 @@
 #define SETTING_OPENGL_PHONG_SMOOTH_NORMALS "opengl_phong_smooth_normals"
 #define SETTING_OPENGL_REALISTIC_PREVIEW "opengl_realistic_preview"
 #define SETTING_OPENGL_REALISTIC_GLOSS "opengl_realistic_gloss"
+#define SETTING_OPENGL_PATHTRACE_MAX_SAMPLES "opengl_pathtrace_max_samples"
+#define SETTING_OPENGL_PATHTRACE_INTERACTIVE_RES "opengl_pathtrace_interactive_res"
+#define SETTING_OPENGL_PATHTRACE_BOUNCES "opengl_pathtrace_bounces"
+#define SETTING_OPENGL_PATHTRACE_LAYER_PROFILE "opengl_pathtrace_layer_profile"
+#define SETTING_OPENGL_PATHTRACE_SSS "opengl_pathtrace_sss"
 
 #define SETTING_PLUGIN_PAGES_VISIBLE_COUNT "plugin_pages_visible_count"
 #define PLUGIN_PAGES_VISIBLE_COUNT_MIN 1

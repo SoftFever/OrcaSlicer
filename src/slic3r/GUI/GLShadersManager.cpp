@@ -118,6 +118,14 @@ std::pair<bool, std::string> GLShadersManager::init()
     // painted patch, to sanity-check the unwrap.
     valid &= append_shader("texture_displacement_uvcheck", { prefix + "texture_displacement_uvcheck.vs", prefix + "texture_displacement_uvcheck.fs" });
 
+#if !SLIC3R_OPENGL_ES
+    if (GUI::OpenGLManager::get_gl_info().is_version_greater_or_equal_to(4, 3)) {
+        GLShaderProgram::ShaderFilenames compute_shader{};
+        compute_shader[static_cast<size_t>(GLShaderProgram::EShaderType::Compute)] = "430/pathtrace.comp";
+        append_shader("pathtrace_compute", compute_shader);
+    }
+#endif // !SLIC3R_OPENGL_ES
+
     return { valid, error };
 }
 

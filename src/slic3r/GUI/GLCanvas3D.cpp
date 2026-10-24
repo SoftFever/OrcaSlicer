@@ -82,6 +82,8 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Technologies.hpp"
 #include "libslic3r/Tesselate.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "3DScene.hpp"
@@ -93,6 +95,8 @@
 #include "GUI.hpp"
 #include "Tab.hpp"
 #include "GUI_Preview.hpp"
+#include "GLTexture.hpp"
+#include "GLTexture.hpp"
 #include "OpenGLManager.hpp"
 #include "Plater.hpp"
 #include "MainFrame.hpp"
@@ -1647,7 +1651,34 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
 
 GLCanvas3D::~GLCanvas3D()
 {
+    if (m_pathtrace_bvh_cancel_token)
+        m_pathtrace_bvh_cancel_token->store(true);
+    if (m_pathtrace_bvh_future.valid())
+        m_pathtrace_bvh_future.wait();
+
     if (_set_current()) {
+        if (m_pathtrace_gpu_node_buffer != 0 || m_pathtrace_gpu_triangle_buffer != 0 || m_pathtrace_gpu_shading_buffer != 0 || m_pathtrace_gpu_instance_buffer != 0) {
+            const unsigned int buffers[] = {m_pathtrace_gpu_node_buffer, m_pathtrace_gpu_triangle_buffer, m_pathtrace_gpu_shading_buffer, m_pathtrace_gpu_instance_buffer};
+            glsafe(::glDeleteBuffers(4, buffers));
+            m_pathtrace_gpu_node_buffer = 0;
+            m_pathtrace_gpu_triangle_buffer = 0;
+            m_pathtrace_gpu_shading_buffer = 0;
+            m_pathtrace_gpu_instance_buffer = 0;
+        }
+        if (m_pathtrace_gpu_accumulation_image != 0) {
+            glsafe(::glDeleteTextures(1, &m_pathtrace_gpu_accumulation_image));
+            m_pathtrace_gpu_accumulation_image = 0;
+        }
+        if (m_pathtrace_gpu_display_image != 0) {
+            glsafe(::glDeleteTextures(1, &m_pathtrace_gpu_display_image));
+            m_pathtrace_gpu_display_image = 0;
+        }
+        if (m_pathtrace_gpu_timer_queries[0] != 0 || m_pathtrace_gpu_timer_queries[1] != 0) {
+            glsafe(::glDeleteQueries(2, m_pathtrace_gpu_timer_queries.data()));
+            m_pathtrace_gpu_timer_queries = {0, 0};
+            m_pathtrace_gpu_timer_query_in_flight[0] = false;
+            m_pathtrace_gpu_timer_query_in_flight[1] = false;
+        }
         m_scene_cache.reset();
         m_frame_profiler.reset();
         if (m_fxaa_texture_id != 0) {
@@ -2817,45 +2848,108 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
             // Design tab: replace the plate's corner-origin grid with the origin-centred CAD grid.
             _render_cad_grid(camera.get_view_matrix(), camera.get_projection_matrix());
         m_frame_profiler.mark("plates");
-        //BBS: add outline logic
-        // Depth pass for object-on-object and self shadows; consumed by the gouraud shader below.
-        _render_shadows(camera.get_view_matrix(), camera.get_projection_matrix());
-        m_frame_profiler.mark("shadows");
-        _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
-        _render_below_plate_volumes();
-        m_frame_profiler.mark("objects");
-        // Collision previews follow the same visibility rule as the bed.
-        const bool show_exclusion_intersections = m_show_bed &&
-            (!m_main_toolbar.is_enabled() ||
-             (gizmo_type != GLGizmosManager::FdmSupports && gizmo_type != GLGizmosManager::Seam &&
-              gizmo_type != GLGizmosManager::MmSegmentation && gizmo_type != GLGizmosManager::FuzzySkin));
-        if (show_exclusion_intersections)
-            wxGetApp().plater()->get_partplate_list().render_exclusion_volume_intersections(
-                camera.get_view_matrix(), camera.get_projection_matrix());
-        _render_sla_slices();
-        _render_selection();
-        _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
-        _render_wireframe_overlay();
-        m_frame_profiler.mark("transparent");
+        if (_is_pathtrace_enabled() && _render_pathtraced_view(camera, cnv_size)) {
+            _render_section_view_caps();
+
+            const bool has_wireframe = wxGetApp().plater() != nullptr && wxGetApp().plater()->is_show_wireframe();
+            bool has_modifiers = false;
+            for (const GLVolume* volume : m_volumes.volumes) {
+                if (volume != nullptr && volume->is_active && volume->is_modifier) {
+                    has_modifiers = true;
+                    break;
+                }
+            }
+            const bool has_gizmo = m_gizmos.get_current_type() != GLGizmosManager::Undefined;
+            if (has_modifiers || has_wireframe || has_gizmo) {
+                glsafe(::glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
+                glsafe(::glEnable(GL_DEPTH_TEST));
+                glsafe(::glDepthMask(GL_TRUE));
+                _render_objects(GLVolumeCollection::ERenderType::Opaque, false);
+                glsafe(::glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
+
+                if (has_modifiers)
+                    _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running(), true);
+                if (has_wireframe)
+                    _render_wireframe_overlay();
+            }
+
+            const bool show_exclusion_intersections = m_show_bed &&
+                (!m_main_toolbar.is_enabled() ||
+                 (gizmo_type != GLGizmosManager::FdmSupports && gizmo_type != GLGizmosManager::Seam &&
+                  gizmo_type != GLGizmosManager::MmSegmentation && gizmo_type != GLGizmosManager::FuzzySkin));
+            if (show_exclusion_intersections)
+                wxGetApp().plater()->get_partplate_list().render_exclusion_volume_intersections(
+                    camera.get_view_matrix(), camera.get_projection_matrix());
+
+            _render_selection();
+            m_frame_profiler.mark("path tracing");
+        } else {
+            //BBS: add outline logic
+            // Depth pass for object-on-object and self shadows; consumed by the gouraud shader below.
+            _render_shadows(camera.get_view_matrix(), camera.get_projection_matrix());
+            m_frame_profiler.mark("shadows");
+            _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
+            _render_below_plate_volumes();
+            m_frame_profiler.mark("objects");
+            // Collision previews follow the same visibility rule as the bed.
+            const bool show_exclusion_intersections = m_show_bed &&
+                (!m_main_toolbar.is_enabled() ||
+                 (gizmo_type != GLGizmosManager::FdmSupports && gizmo_type != GLGizmosManager::Seam &&
+                  gizmo_type != GLGizmosManager::MmSegmentation && gizmo_type != GLGizmosManager::FuzzySkin));
+            if (show_exclusion_intersections)
+                wxGetApp().plater()->get_partplate_list().render_exclusion_volume_intersections(
+                    camera.get_view_matrix(), camera.get_projection_matrix());
+            _render_sla_slices();
+            _render_selection();
+            _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
+            _render_wireframe_overlay();
+            m_frame_profiler.mark("transparent");
+        }
     }
     /* preview render */
     else if (m_canvas_type == ECanvasType::CanvasPreview && m_render_preview) {
-        // Before the shadow pass, so the cut away part casts no shadow.
-        m_gcode_viewer.set_clipping_plane(_get_section_view_plane());
-        _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
-        _render_sla_slices();
-        _render_selection();
-        m_frame_profiler.mark("objects");
-        _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), m_show_world_axes);
-        m_frame_profiler.mark("bed");
-        _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, true, hover_id);
-        m_frame_profiler.mark("plates");
-        // Realistic view: the print casts a shadow onto the plate here as it does in View3D.
-        _render_shadows(camera.get_view_matrix(), camera.get_projection_matrix());
-        m_frame_profiler.mark("shadows");
-        // BBS: GUI refactor: add canvas size as parameters
-        _render_gcode(cnv_size.get_width(), cnv_size.get_height());
-        m_frame_profiler.mark("gcode");
+        bool pathtraced_rendered = false;
+        if (_is_pathtrace_enabled()) {
+            m_gcode_viewer.set_clipping_plane(_get_section_view_plane());
+            _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), m_show_world_axes);
+            m_frame_profiler.mark("bed");
+            _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, true, hover_id);
+            m_frame_profiler.mark("plates");
+            if (_render_pathtraced_view(camera, cnv_size)) {
+                const auto& layers_range = m_gcode_viewer.get_layers_z_range();
+                const std::vector<double> layer_zs = m_gcode_viewer.get_layers_zs();
+                const bool has_unprinted_layers = !layer_zs.empty() && (layers_range[1] + 1 < layer_zs.size());
+                if (has_unprinted_layers) {
+                    const float min_z = float(layer_zs[layers_range[1]]);
+                    m_gcode_viewer.m_shells.volumes.set_z_range(min_z, 1e6f);
+                    m_gcode_viewer.render_shells(cnv_size.get_width(), cnv_size.get_height());
+                    m_gcode_viewer.m_shells.volumes.set_z_range(-1e6f, 1e6f);
+                }
+                m_gcode_viewer.render_sequential_marker(cnv_size.get_width(), cnv_size.get_height());
+                m_frame_profiler.mark("path tracing");
+                pathtraced_rendered = true;
+            }
+        }
+        if (!pathtraced_rendered) {
+            // Before the shadow pass, so the cut away part casts no shadow.
+            m_gcode_viewer.set_clipping_plane(_get_section_view_plane());
+            _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
+            _render_sla_slices();
+            _render_selection();
+            m_frame_profiler.mark("objects");
+            if (!_is_pathtrace_enabled()) {
+                _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), m_show_world_axes);
+                m_frame_profiler.mark("bed");
+                _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, true, hover_id);
+                m_frame_profiler.mark("plates");
+            }
+            // Realistic view: the print casts a shadow onto the plate here as it does in View3D.
+            _render_shadows(camera.get_view_matrix(), camera.get_projection_matrix());
+            m_frame_profiler.mark("shadows");
+            // BBS: GUI refactor: add canvas size as parameters
+            _render_gcode(cnv_size.get_width(), cnv_size.get_height());
+            m_frame_profiler.mark("gcode");
+        }
     }
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
@@ -2897,7 +2991,8 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         m_rectangle_selection.render(*this);
     m_frame_profiler.mark("gizmos");
 
-    if (_is_ssao_enabled()) {
+    const bool pathtraced_active = _is_pathtrace_enabled();
+    if (!pathtraced_active && _is_ssao_enabled()) {
         _render_ssao_pass(static_cast<unsigned int>(cnv_size.get_width()), static_cast<unsigned int>(cnv_size.get_height()));
         m_frame_profiler.mark("ssao");
     }
@@ -2910,7 +3005,7 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
     // After the occlusion pass, which would shade it as the surface behind it.
     m_center_of_mass.render(*this);
 
-    if (_is_fxaa_enabled()) {
+    if (!pathtraced_active && _is_fxaa_enabled()) {
         _render_fxaa_pass(static_cast<unsigned int>(cnv_size.get_width()), static_cast<unsigned int>(cnv_size.get_height()));
         m_frame_profiler.mark("fxaa");
     }
@@ -2924,6 +3019,1304 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
 
     _capture_scene_cache(camera);
     m_frame_profiler.mark("cache");
+}
+
+// Above the front left of the plate.
+static const Vec3d STATIC_LIGHT_DIR = Vec3d(-0.4, -0.6, 1.0).normalized();
+
+GLCanvas3D::PathTraceSceneBuildResult GLCanvas3D::_build_pathtrace_scene_async(
+    PathTraceBvhJob job,
+    std::shared_ptr<std::atomic<bool>> cancel_token)
+{
+    PathTraceSceneBuildResult result;
+    result.geom_signature = job.geom_signature;
+
+    if (cancel_token && cancel_token->load(std::memory_order_relaxed))
+        return {};
+
+    if (job.is_preview) {
+        if (job.preview_triangles.empty())
+            return result;
+
+        result.gpu_scene = build_path_trace_gpu_scene(job.preview_triangles);
+        job.preview_triangles.clear();
+        job.preview_triangles.shrink_to_fit();
+
+        if (cancel_token && cancel_token->load(std::memory_order_relaxed))
+            return {};
+
+        if (!job.source_tri_vertex_id.empty() && !result.gpu_scene.original_indices.empty()) {
+            result.gpu_tri_vertex_id.resize(result.gpu_scene.triangles.size(), SIZE_MAX);
+            for (size_t i = 0; i < result.gpu_scene.triangles.size(); ++i) {
+                const size_t src_idx = size_t(result.gpu_scene.original_indices[i]);
+                if (src_idx < job.source_tri_vertex_id.size()) {
+                    result.gpu_tri_vertex_id[i] = job.source_tri_vertex_id[src_idx];
+                    result.gpu_scene.triangles[i].a[3] = job.source_tri_tag_z[src_idx];
+                    const uint32_t v_id = (job.source_tri_vertex_id[src_idx] == SIZE_MAX)
+                        ? UINT32_MAX
+                        : uint32_t(job.source_tri_vertex_id[src_idx]);
+                    float v_id_f;
+                    std::memcpy(&v_id_f, &v_id, sizeof(float));
+                    result.gpu_scene.triangles[i].b[3] = v_id_f;
+                    const float tri_opacity = (src_idx < job.source_tri_opacity.size()) ? job.source_tri_opacity[src_idx] : 1.0f;
+                    result.gpu_scene.triangles[i].c[3] = tri_opacity;
+                    result.gpu_scene.shadings[i].params[0] = job.source_tri_height[src_idx];
+                    result.gpu_scene.shadings[i].params[1] = job.source_tri_role[src_idx];
+                    result.gpu_scene.shadings[i].params[2] = (src_idx < job.source_tri_facet.size()) ? job.source_tri_facet[src_idx] : 0.0f;
+                    result.gpu_scene.shadings[i].params[3] = (src_idx < job.source_tri_delta_angle.size()) ? job.source_tri_delta_angle[src_idx] : 0.0f;
+                    if (job.source_tri_vertex_id[src_idx] == SIZE_MAX) {
+                        result.gpu_scene.shadings[i].albedo = {0.38f, 0.42f, 0.48f, 1.0f};
+                    } else {
+                        result.gpu_scene.shadings[i].albedo[3] = tri_opacity;
+                    }
+                }
+            }
+        }
+
+        if (!result.gpu_scene.nodes.empty()) {
+            PathTraceVolumeBlas blas;
+            blas.root_node = 0;
+            blas.node_count = uint32_t(result.gpu_scene.nodes.size());
+            blas.tri_offset = 0;
+            blas.tri_count = uint32_t(result.gpu_scene.triangles.size());
+            blas.local_bounds_min = Vec3f(result.gpu_scene.nodes[0].bounds_min[0], result.gpu_scene.nodes[0].bounds_min[1], result.gpu_scene.nodes[0].bounds_min[2]);
+            blas.local_bounds_max = Vec3f(result.gpu_scene.nodes[0].bounds_max[0], result.gpu_scene.nodes[0].bounds_max[1], result.gpu_scene.nodes[0].bounds_max[2]);
+            blas.volume = nullptr;
+            blas.plate_idx = -1;
+            result.volume_blas.push_back(blas);
+        }
+    } else {
+        for (auto& grp_data : job.volume_groups) {
+            if (cancel_token && cancel_token->load(std::memory_order_relaxed))
+                return {};
+            if (grp_data.triangles.empty())
+                continue;
+
+            PathTraceGpuScene local_scene = build_path_trace_gpu_scene(grp_data.triangles);
+            grp_data.triangles.clear();
+            grp_data.triangles.shrink_to_fit();
+            if (local_scene.nodes.empty() || local_scene.triangles.empty())
+                continue;
+
+            const uint32_t cur_node_offset = uint32_t(result.gpu_scene.nodes.size());
+            const uint32_t cur_tri_offset = uint32_t(result.gpu_scene.triangles.size());
+
+            for (auto& node : local_scene.nodes) {
+                if (node.is_leaf()) {
+                    node.left_or_first += int32_t(cur_tri_offset);
+                } else if (node.left_or_first >= 0) {
+                    node.left_or_first += int32_t(cur_node_offset);
+                }
+            }
+            for (auto& tri : local_scene.triangles) {
+                tri.a[3] = -1.0f;
+                float invalid_v_id_f;
+                const uint32_t invalid_v_id = UINT32_MAX;
+                std::memcpy(&invalid_v_id_f, &invalid_v_id, sizeof(float));
+                tri.b[3] = invalid_v_id_f;
+                tri.c[3] = std::clamp(tri.c[3], 0.0f, 1.0f); // preserve opacity from albedo
+            }
+
+            PathTraceVolumeBlas blas;
+            blas.root_node = cur_node_offset;
+            blas.node_count = uint32_t(local_scene.nodes.size());
+            blas.tri_offset = cur_tri_offset;
+            blas.tri_count = uint32_t(local_scene.triangles.size());
+            blas.local_bounds_min = Vec3f(local_scene.nodes[0].bounds_min[0], local_scene.nodes[0].bounds_min[1], local_scene.nodes[0].bounds_min[2]);
+            blas.local_bounds_max = Vec3f(local_scene.nodes[0].bounds_max[0], local_scene.nodes[0].bounds_max[1], local_scene.nodes[0].bounds_max[2]);
+            blas.volume = grp_data.representative_volume;
+            blas.plate_idx = -1;
+            blas.is_wipe_tower = grp_data.is_wipe_tower;
+            blas.wipe_tower_plate_idx = grp_data.wipe_tower_plate_idx;
+            result.volume_blas.push_back(blas);
+
+            result.gpu_scene.nodes.insert(result.gpu_scene.nodes.end(), local_scene.nodes.begin(), local_scene.nodes.end());
+            result.gpu_scene.triangles.insert(result.gpu_scene.triangles.end(), local_scene.triangles.begin(), local_scene.triangles.end());
+            result.gpu_scene.shadings.insert(result.gpu_scene.shadings.end(), local_scene.shadings.begin(), local_scene.shadings.end());
+        }
+    }
+
+    for (auto& plate_data : job.plate_groups) {
+        if (cancel_token && cancel_token->load(std::memory_order_relaxed))
+            return {};
+        if (plate_data.triangles.empty())
+            continue;
+
+        PathTraceGpuScene plate_scene = build_path_trace_gpu_scene(plate_data.triangles);
+        plate_data.triangles.clear();
+        plate_data.triangles.shrink_to_fit();
+        if (plate_scene.nodes.empty() || plate_scene.triangles.empty())
+            continue;
+
+        const uint32_t cur_node_offset = uint32_t(result.gpu_scene.nodes.size());
+        const uint32_t cur_tri_offset = uint32_t(result.gpu_scene.triangles.size());
+        for (auto& node : plate_scene.nodes) {
+            if (node.is_leaf()) {
+                node.left_or_first += int32_t(cur_tri_offset);
+            } else if (node.left_or_first >= 0) {
+                node.left_or_first += int32_t(cur_node_offset);
+            }
+        }
+        for (auto& tri : plate_scene.triangles) {
+            tri.a[3] = -2.0f;
+            float invalid_v_id_f;
+            const uint32_t invalid_v_id = UINT32_MAX;
+            std::memcpy(&invalid_v_id_f, &invalid_v_id, sizeof(float));
+            tri.b[3] = invalid_v_id_f;
+            tri.c[3] = 1.0f;
+        }
+        for (auto& sh : plate_scene.shadings) {
+            sh.albedo = {0.38f, 0.42f, 0.48f, 1.0f};
+        }
+        PathTraceVolumeBlas blas;
+        blas.root_node = cur_node_offset;
+        blas.node_count = uint32_t(plate_scene.nodes.size());
+        blas.tri_offset = cur_tri_offset;
+        blas.tri_count = uint32_t(plate_scene.triangles.size());
+        blas.local_bounds_min = Vec3f(plate_scene.nodes[0].bounds_min[0], plate_scene.nodes[0].bounds_min[1], plate_scene.nodes[0].bounds_min[2]);
+        blas.local_bounds_max = Vec3f(plate_scene.nodes[0].bounds_max[0], plate_scene.nodes[0].bounds_max[1], plate_scene.nodes[0].bounds_max[2]);
+        blas.volume = nullptr;
+        blas.plate_idx = plate_data.plate_idx;
+        result.volume_blas.push_back(blas);
+
+        result.gpu_scene.nodes.insert(result.gpu_scene.nodes.end(), plate_scene.nodes.begin(), plate_scene.nodes.end());
+        result.gpu_scene.triangles.insert(result.gpu_scene.triangles.end(), plate_scene.triangles.begin(), plate_scene.triangles.end());
+        result.gpu_scene.shadings.insert(result.gpu_scene.shadings.end(), plate_scene.shadings.begin(), plate_scene.shadings.end());
+        result.gpu_tri_vertex_id.resize(result.gpu_scene.triangles.size(), SIZE_MAX);
+    }
+
+    return result;
+}
+
+bool GLCanvas3D::_render_pathtraced_view(const Camera& source_camera, const Size& canvas_size)
+{
+    size_t geom_signature = 0;
+    const auto combine_geom = [&geom_signature](size_t value) {
+        geom_signature ^= value + size_t(0x9e3779b9) + (geom_signature << 6) + (geom_signature >> 2);
+    };
+
+    size_t transform_signature = 0;
+    const auto combine_transform = [&transform_signature](size_t value) {
+        transform_signature ^= value + size_t(0x9e3779b9) + (transform_signature << 6) + (transform_signature >> 2);
+    };
+    const auto hash_matrix_transform = [&combine_transform](const Transform3d& matrix) {
+        const auto& coefficients = matrix.matrix();
+        for (Eigen::Index i = 0; i < coefficients.size(); ++i)
+            combine_transform(std::hash<double>{}(coefficients.data()[i]));
+    };
+
+    const std::vector<ColorRGBA> extruder_colors =
+        (wxGetApp().plater() != nullptr) ? wxGetApp().plater()->get_extruders_colors() : std::vector<ColorRGBA>{};
+    const auto to_linear_albedo = [](float r, float g, float b, float a = 1.0f) -> Vec4f {
+        const auto channel = [](float c) -> float {
+            return std::clamp(c, 0.0f, 1.0f);
+        };
+        return Vec4f{channel(r), channel(g), channel(b), channel(a)};
+    };
+    const auto extruder_albedo = [&](int extruder_id, const GLVolume* vol) -> Vec4f {
+        if (vol != nullptr && !vol->printable) {
+            // Unprintable ghost appearance: translucent light grey matching rasterizer UNPRINTABLE_COLOR
+            return Vec4f{0.72f, 0.74f, 0.77f, 0.35f};
+        }
+        float alpha = 1.0f;
+        if (vol != nullptr)
+            alpha = std::min(alpha, vol->color.a());
+        if (!extruder_colors.empty() && extruder_id > 0) {
+            const int idx = std::clamp(extruder_id - 1, 0, int(extruder_colors.size()) - 1);
+            const ColorRGBA& c = extruder_colors[size_t(idx)];
+            alpha = std::min(alpha, c.a());
+            return to_linear_albedo(c.r(), c.g(), c.b(), alpha);
+        }
+        if (vol != nullptr)
+            return to_linear_albedo(vol->color.r(), vol->color.g(), vol->color.b(), alpha);
+        if (!extruder_colors.empty()) {
+            const ColorRGBA& c = extruder_colors.front();
+            alpha = std::min(alpha, c.a());
+            return to_linear_albedo(c.r(), c.g(), c.b(), alpha);
+        }
+        return Vec4f{0.75f, 0.77f, 0.80f, alpha};
+    };
+
+    int cfg_layer_profile = 0; // 0: standard, 1: rounded
+    if (const AppConfig* cfg = wxGetApp().app_config) {
+        try {
+            const std::string s_prof = cfg->get(SETTING_OPENGL_PATHTRACE_LAYER_PROFILE);
+            if (s_prof == "rounded" || s_prof == "grooves")
+                cfg_layer_profile = 1;
+            else
+                cfg_layer_profile = 0;
+        } catch (...) {}
+    }
+    combine_geom(size_t(m_canvas_type));
+    combine_geom(size_t(cfg_layer_profile));
+    float preview_z_min = -1e10f;
+    float preview_z_max = 1e10f;
+    int preview_move_min = -1;
+    int preview_move_max = -1;
+    size_t preview_color_signature = 0;
+    const auto combine_color = [&preview_color_signature](size_t value) {
+        preview_color_signature ^= value + size_t(0x9e3779b9) + (preview_color_signature << 6) + (preview_color_signature >> 2);
+    };
+    for (const ColorRGBA& c : extruder_colors) {
+        combine_color(std::hash<float>{}(c.r()));
+        combine_color(std::hash<float>{}(c.g()));
+        combine_color(std::hash<float>{}(c.b()));
+        combine_color(std::hash<float>{}(c.a()));
+    }
+    combine_color(size_t(m_gcode_viewer.is_translucent_filaments()));
+
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    PartPlate* current_plate = plate_list.get_curr_plate();
+    const bool plate_visible = is_bed_visible() && current_plate != nullptr;
+    combine_geom(size_t(plate_visible));
+    if (plate_visible) {
+        combine_geom(size_t(plate_list.get_plate_count()));
+        if (m_canvas_type == ECanvasType::CanvasView3D) {
+            for (size_t p_idx = 0; p_idx < plate_list.get_plate_count(); ++p_idx) {
+                if (const PartPlate* pl = plate_list.get_plate(int(p_idx))) {
+                    for (const Vec2d& point : pl->get_shape()) {
+                        combine_geom(std::hash<double>{}(point.x()));
+                        combine_geom(std::hash<double>{}(point.y()));
+                    }
+                }
+            }
+        } else {
+            for (const Vec2d& point : current_plate->get_shape()) {
+                combine_geom(std::hash<double>{}(point.x()));
+                combine_geom(std::hash<double>{}(point.y()));
+            }
+        }
+    }
+
+    if (m_canvas_type == ECanvasType::CanvasPreview) {
+        combine_color(size_t(m_gcode_viewer.get_view_type()));
+        combine_geom(m_gcode_viewer.get_vertices_count());
+        combine_geom(m_gcode_viewer.get_layers_count());
+        const BoundingBoxf3& gcode_bb = m_gcode_viewer.get_paths_bounding_box();
+        for (double v : {gcode_bb.min.x(), gcode_bb.min.y(), gcode_bb.min.z(), gcode_bb.max.x(), gcode_bb.max.y(), gcode_bb.max.z()})
+            combine_geom(std::hash<double>{}(v));
+        for (size_t r = 0; r < libvgcode::GCODE_EXTRUSION_ROLES_COUNT; ++r)
+            combine_geom(size_t(m_gcode_viewer.is_extrusion_role_visible(libvgcode::EGCodeExtrusionRole(r))));
+        if (m_gcode_viewer.has_data() && m_gcode_viewer.get_vertices_count() > 0) {
+            const libvgcode::Interval& visible_range = m_gcode_viewer.get_gcode_view_visible_range();
+            const libvgcode::Interval& full_range    = m_gcode_viewer.get_gcode_view_full_range();
+            const uint32_t min_v = m_gcode_viewer.is_top_layer_only_view_range()
+                ? uint32_t(full_range[0])
+                : uint32_t(visible_range[0]);
+            const uint32_t max_v = uint32_t(visible_range[1]);
+            preview_move_min = int(min_v);
+            preview_move_max = int(max_v);
+            const std::vector<double> layer_zs = m_gcode_viewer.get_layers_zs();
+            if (!layer_zs.empty()) {
+                const auto& layers_range = m_gcode_viewer.get_layers_z_range();
+                const size_t min_layer = std::min(layers_range[0], layers_range[1]);
+                const size_t max_layer = std::max(layers_range[0], layers_range[1]);
+                const size_t min_idx   = std::min<size_t>(min_layer, layer_zs.size() - 1);
+                const size_t max_idx   = std::min<size_t>(max_layer, layer_zs.size() - 1);
+                preview_z_min = (min_idx > 0) ? float(0.5 * (layer_zs[min_idx - 1] + layer_zs[min_idx])) : -1.0f;
+                preview_z_max = (max_idx + 1 < layer_zs.size())
+                    ? float(0.5 * (layer_zs[max_idx] + layer_zs[max_idx + 1]))
+                    : float(layer_zs[max_idx] + 1.0);
+            }
+        }
+    } else if (m_model != nullptr) {
+        for (const ColorRGBA& c : extruder_colors) {
+            combine_geom(std::hash<float>{}(c.r()));
+            combine_geom(std::hash<float>{}(c.g()));
+            combine_geom(std::hash<float>{}(c.b()));
+            combine_geom(std::hash<float>{}(c.a()));
+        }
+        combine_geom(m_model->objects.size());
+        for (const GLVolume* volume : m_volumes.volumes) {
+            if (volume == nullptr)
+                continue;
+            combine_geom(volume->geometry_id.first);
+            combine_geom(volume->geometry_id.second);
+            combine_geom(volume->model.vertices_count());
+            combine_geom(volume->model.indices_count());
+            combine_geom(size_t(volume->is_active));
+            combine_geom(size_t(volume->printable));
+            combine_geom(size_t(volume->extruder_id));
+            combine_geom(size_t(volume->is_wipe_tower));
+            if (volume->is_wipe_tower) {
+                const auto* wt = dynamic_cast<const GLWipeTowerVolume*>(volume);
+                if (wt != nullptr) {
+                    combine_geom(wt->model_per_colors.size());
+                    for (const auto& m : wt->model_per_colors) {
+                        combine_geom(m.vertices_count());
+                        combine_geom(m.indices_count());
+                    }
+                    for (const auto& c : wt->get_colors()) {
+                        combine_geom(std::hash<float>{}(c.r()));
+                        combine_geom(std::hash<float>{}(c.g()));
+                        combine_geom(std::hash<float>{}(c.b()));
+                        combine_geom(std::hash<float>{}(c.a()));
+                    }
+                }
+                const BoundingBoxf3& bb = volume->bounding_box();
+                combine_geom(std::hash<double>{}(bb.min.x()));
+                combine_geom(std::hash<double>{}(bb.min.y()));
+                combine_geom(std::hash<double>{}(bb.min.z()));
+                combine_geom(std::hash<double>{}(bb.max.x()));
+                combine_geom(std::hash<double>{}(bb.max.y()));
+                combine_geom(std::hash<double>{}(bb.max.z()));
+            }
+            combine_geom(std::hash<float>{}(volume->color.r()));
+            combine_geom(std::hash<float>{}(volume->color.g()));
+            combine_geom(std::hash<float>{}(volume->color.b()));
+            combine_geom(std::hash<float>{}(volume->color.a()));
+            const int object_idx = volume->object_idx();
+            const int volume_idx = volume->volume_idx();
+            if (object_idx >= 0 && object_idx < int(m_model->objects.size()) && m_model->objects[object_idx] != nullptr &&
+                volume_idx >= 0 && volume_idx < int(m_model->objects[object_idx]->volumes.size()) &&
+                m_model->objects[object_idx]->volumes[volume_idx] != nullptr) {
+                const ModelVolume* mv = m_model->objects[object_idx]->volumes[volume_idx];
+                combine_geom(size_t(mv->extruder_id()));
+                combine_geom(size_t(mv->mmu_segmentation_facets.timestamp()));
+            }
+        }
+    }
+    if (geom_signature == 0)
+        geom_signature = 1;
+    if (preview_color_signature == 0)
+        preview_color_signature = 1;
+
+    combine_transform(geom_signature);
+    if (m_model != nullptr && m_canvas_type == ECanvasType::CanvasView3D) {
+        for (const GLVolume* volume : m_volumes.volumes) {
+            if (volume == nullptr || !volume->is_active)
+                continue;
+            hash_matrix_transform(volume->world_matrix());
+        }
+    }
+    if (transform_signature == 0)
+        transform_signature = 1;
+
+    if (m_pathtrace_bvh_future.valid()) {
+        if (m_pathtrace_bvh_future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+            PathTraceSceneBuildResult result = m_pathtrace_bvh_future.get();
+            if (result.geom_signature == geom_signature) {
+                m_pathtrace_gpu_scene = std::move(result.gpu_scene);
+                m_pathtrace_volume_blas = std::move(result.volume_blas);
+                m_pathtrace_gpu_tri_vertex_id = std::move(result.gpu_tri_vertex_id);
+                m_pathtrace_geom_signature = geom_signature;
+                m_pathtrace_preview_color_signature = 0;
+                m_pathtrace_transform_signature = 0; // force instance rebuild
+            }
+            m_pathtrace_bvh_job_signature = 0;
+        } else if (m_pathtrace_bvh_job_signature == geom_signature) {
+            // Still building the BVH in background: fall back to rasterized view
+            schedule_extra_frame(16);
+            return false;
+        } else {
+            // Scene changed while previous build was running: cancel it
+            if (m_pathtrace_bvh_cancel_token)
+                m_pathtrace_bvh_cancel_token->store(true);
+            schedule_extra_frame(16);
+            return false;
+        }
+    }
+
+    if (geom_signature != m_pathtrace_geom_signature) {
+        if (m_pathtrace_bvh_future.valid()) {
+            if (m_pathtrace_bvh_cancel_token)
+                m_pathtrace_bvh_cancel_token->store(true);
+            schedule_extra_frame(16);
+            return false;
+        }
+
+        m_pathtrace_scene_triangles.clear();
+        m_pathtrace_scene_triangles.shrink_to_fit();
+        m_pathtrace_gpu_tri_vertex_id.clear();
+        m_pathtrace_gpu_tri_vertex_id.shrink_to_fit();
+        m_pathtrace_gpu_scene.triangles.clear();
+        m_pathtrace_gpu_scene.triangles.shrink_to_fit();
+        m_pathtrace_gpu_scene.shadings.clear();
+        m_pathtrace_gpu_scene.shadings.shrink_to_fit();
+        m_pathtrace_gpu_scene.nodes.clear();
+        m_pathtrace_gpu_scene.nodes.shrink_to_fit();
+        m_pathtrace_gpu_scene.original_indices.clear();
+        m_pathtrace_gpu_scene.original_indices.shrink_to_fit();
+        m_pathtrace_volume_blas.clear();
+        m_pathtrace_volume_blas.shrink_to_fit();
+
+        PathTraceBvhJob job;
+        job.geom_signature = geom_signature;
+        job.is_preview = (m_canvas_type == ECanvasType::CanvasPreview);
+
+        if (m_canvas_type == ECanvasType::CanvasPreview) {
+            if (m_gcode_viewer.has_data() && m_gcode_viewer.get_vertices_count() > 1) {
+                struct ToolpathSegment
+                {
+                    Vec3f p0;
+                    Vec3f p1;
+                    float width;
+                    float height;
+                    size_t vertex_id;
+                    libvgcode::EGCodeExtrusionRole role;
+                    uint16_t extruder_id{0};
+                };
+                const libvgcode::EViewType view_type = m_gcode_viewer.get_view_type();
+                const bool check_speed = (view_type == libvgcode::EViewType::Speed || view_type == libvgcode::EViewType::ActualSpeed);
+                const bool check_temp  = (view_type == libvgcode::EViewType::Temperature);
+                const bool check_fan   = (view_type == libvgcode::EViewType::FanSpeed);
+                std::vector<ToolpathSegment> segments;
+                const size_t total_vertices = m_gcode_viewer.get_vertices_count();
+                segments.reserve(std::min<size_t>(500000, total_vertices * 2));
+                for (size_t i = 0; i + 1 < total_vertices; ++i) {
+                    const libvgcode::PathVertex& curr = m_gcode_viewer.get_gcode_vertex_at(i);
+                    const libvgcode::PathVertex& next = m_gcode_viewer.get_gcode_vertex_at(i + 1);
+                    if (!curr.is_extrusion() || !next.is_extrusion() || next.width <= 0.0f || next.height <= 0.0f)
+                        continue;
+                    if (!m_gcode_viewer.is_extrusion_role_visible(next.role))
+                        continue;
+                    const float z_shift = 0.5f * next.height;
+                    const Vec3f p0{curr.position[0], curr.position[1], curr.position[2] - z_shift};
+                    const Vec3f p1{next.position[0], next.position[1], next.position[2] - z_shift};
+                    const Vec3f delta = p1 - p0;
+                    const float curr_len_sq = delta.squaredNorm();
+                    if (curr_len_sq < 1e-8f)
+                        continue;
+                    const float curr_len = std::sqrt(curr_len_sq);
+
+                    // Adaptive diagonal sub-splitting: 45-degree infill lines suffer severe AABB inflation,
+                    // causing large overlapping bounding boxes in the BVH. Limiting diagonal span length to 4-5mm
+                    // collapses empty AABB volume by up to 20x while leaving axis-aligned segments at up to 20mm.
+                    const float diag_factor = (curr_len_sq > 1e-6f)
+                        ? std::clamp(2.0f * std::abs(delta.x() * delta.y()) / curr_len_sq, 0.0f, 1.0f)
+                        : 0.0f;
+                    const float seg_max_len = 20.0f + (4.0f - 20.0f) * diag_factor;
+
+                    if (!segments.empty() && curr_len < seg_max_len) {
+                        ToolpathSegment& prev = segments.back();
+                        const libvgcode::PathVertex& prev_v = m_gcode_viewer.get_gcode_vertex_at(prev.vertex_id);
+                        if (prev_v.extruder_id == next.extruder_id &&
+                            prev.role == next.role &&
+                            std::abs(prev.width - next.width) < 1e-3f &&
+                            std::abs(prev.height - next.height) < 1e-3f &&
+                            (!check_speed || std::abs(prev_v.feedrate - next.feedrate) < 0.5f) &&
+                            (!check_temp || std::abs(prev_v.temperature - next.temperature) < 0.5f) &&
+                            (!check_fan || std::abs(prev_v.fan_speed - next.fan_speed) < 0.5f) &&
+                            (prev.p1 - p0).squaredNorm() < 1e-6f) {
+                            const Vec3f prev_vec = prev.p1 - prev.p0;
+                            const float prev_len = prev_vec.norm();
+                            if (prev_len > 1e-5f && (prev_len + curr_len) <= seg_max_len) {
+                                const Vec3f prev_dir = prev_vec / prev_len;
+                                const Vec3f curr_dir = delta / curr_len;
+                                if (prev_dir.dot(curr_dir) > 0.99995f) {
+                                    const Vec3f total_dir = (p1 - prev.p0).normalized();
+                                    const float perp_dist_sq = ((prev.p1 - prev.p0) - (prev.p1 - prev.p0).dot(total_dir) * total_dir).squaredNorm();
+                                    if (perp_dist_sq < 1e-6f) {
+                                        prev.p1 = p1;
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (curr_len > seg_max_len) {
+                        const int pieces = std::min(64, int(std::ceil(curr_len / seg_max_len)));
+                        const Vec3f step = delta * (1.0f / float(pieces));
+                        Vec3f sub_p0 = p0;
+                        for (int p = 0; p < pieces; ++p) {
+                            const Vec3f sub_p1 = (p + 1 == pieces) ? p1 : (p0 + step * float(p + 1));
+                            segments.push_back(ToolpathSegment{sub_p0, sub_p1, next.width, next.height, i + 1, next.role, uint16_t(curr.extruder_id)});
+                            sub_p0 = sub_p1;
+                        }
+                    } else {
+                        segments.push_back(ToolpathSegment{p0, p1, next.width, next.height, i + 1, next.role, uint16_t(curr.extruder_id)});
+                    }
+                }
+                const size_t quads_per_seg = (cfg_layer_profile == 1) ? 6 : 4;
+                job.preview_triangles.reserve(segments.size() * quads_per_seg * 2);
+                job.source_tri_vertex_id.reserve(segments.size() * quads_per_seg * 2);
+                job.source_tri_tag_z.reserve(segments.size() * quads_per_seg * 2);
+                job.source_tri_height.reserve(segments.size() * quads_per_seg * 2);
+                job.source_tri_role.reserve(segments.size() * quads_per_seg * 2);
+                job.source_tri_facet.reserve(segments.size() * quads_per_seg * 2);
+                job.source_tri_delta_angle.reserve(segments.size() * quads_per_seg * 2);
+                job.source_tri_opacity.reserve(segments.size() * quads_per_seg * 2);
+
+                const size_t num_segs = segments.size();
+                std::vector<Vec3f> seg_dirs(num_segs, Vec3f{0.0f, 1.0f, 0.0f});
+                std::vector<Vec3f> seg_rights(num_segs, Vec3f{1.0f, 0.0f, 0.0f});
+                for (size_t s = 0; s < num_segs; ++s) {
+                    Vec3f d = segments[s].p1 - segments[s].p0;
+                    const float d_len = d.norm();
+                    if (d_len > 1e-5f)
+                        d /= d_len;
+                    else
+                        d = Vec3f{0.0f, 1.0f, 0.0f};
+                    seg_dirs[s] = d;
+                    Vec3f r = d.cross(Vec3f{0.0f, 0.0f, 1.0f});
+                    const float r_len = r.norm();
+                    if (r_len > 1e-4f)
+                        r /= r_len;
+                    else
+                        r = Vec3f{1.0f, 0.0f, 0.0f};
+                    seg_rights[s] = r;
+                }
+
+                std::vector<bool> has_joint(num_segs, false);
+                std::vector<Vec3f> joint_w(num_segs, Vec3f{0.0f, 0.0f, 0.0f});
+                std::vector<float> joint_delta_angle(num_segs, 0.0f);
+
+                for (size_t s = 0; s + 1 < num_segs; ++s) {
+                    const ToolpathSegment& cur = segments[s];
+                    const ToolpathSegment& nxt = segments[s + 1];
+                    if (cur.role == nxt.role &&
+                        std::abs(cur.p1.z() - nxt.p0.z()) < 1e-3f &&
+                        (cur.p1 - nxt.p0).squaredNorm() < 1e-5f) {
+                        const float dot = seg_dirs[s].dot(seg_dirs[s + 1]);
+                        if (dot > -0.707f) {
+                            has_joint[s] = true;
+                            Vec3f miter = seg_rights[s] + seg_rights[s + 1];
+                            const float m_len = miter.norm();
+                            const float half_w = std::max(0.01f, cur.width * 0.5f);
+                            if (m_len > 1e-4f) {
+                                miter /= m_len;
+                                const float cos_half = miter.dot(seg_rights[s]);
+                                const float scale = (cos_half > 0.5f) ? std::min(1.4142f, 1.0f / cos_half) : 1.4142f;
+                                joint_w[s] = miter * (half_w * scale);
+                            } else {
+                                joint_w[s] = seg_rights[s] * half_w;
+                            }
+                            if (dot > 0.866f) { // gentle curve <= 30 deg
+                                const float cross_z = seg_dirs[s].x() * seg_dirs[s + 1].y() - seg_dirs[s].y() * seg_dirs[s + 1].x();
+                                joint_delta_angle[s] = std::atan2(cross_z, dot);
+                            }
+                        }
+                    }
+                }
+
+                for (size_t s = 0; s < num_segs; ++s) {
+                    const ToolpathSegment& seg = segments[s];
+                    const Vec3f& dir = seg_dirs[s];
+                    const Vec3f up = seg_rights[s].cross(dir);
+
+                    const float half_w = std::max(0.01f, seg.width * 0.5f);
+                    const float half_h = std::max(0.01f, seg.height * 0.5f);
+
+                    const bool conn_prev = (s > 0 && has_joint[s - 1]);
+                    const bool conn_next = (s + 1 < num_segs && has_joint[s]);
+
+                    const Vec3f w0 = conn_prev ? joint_w[s - 1] : (seg_rights[s] * half_w);
+                    const Vec3f w1 = conn_next ? joint_w[s]     : (seg_rights[s] * half_w);
+                    const Vec3f h0 = up * half_h;
+                    const Vec3f h1 = h0;
+
+                    const Vec3f r0 = seg.p0 + w0;
+                    const Vec3f r1 = seg.p1 + w1;
+                    const Vec3f l0 = seg.p0 - w0;
+                    const Vec3f l1 = seg.p1 - w1;
+                    const Vec3f t0 = seg.p0 + h0;
+                    const Vec3f t1 = seg.p1 + h1;
+                    const Vec3f b0 = seg.p0 - h0;
+                    const Vec3f b1 = seg.p1 - h1;
+
+                    const int r = int(seg.role);
+                    const bool is_visible_surface = (r != 0 && r != 4);
+                    const bool is_external = (r == 2 || r == 3 || r == 10 || r == 11 || r == 12 || r == 13 || r == 14 || r == 17 || r == 18);
+
+                    float delta_angle = 0.0f;
+                    if (is_external) {
+                        if (conn_prev && conn_next)
+                            delta_angle = 0.5f * (joint_delta_angle[s - 1] + joint_delta_angle[s]);
+                        else if (conn_prev)
+                            delta_angle = joint_delta_angle[s - 1];
+                        else if (conn_next)
+                            delta_angle = joint_delta_angle[s];
+                    }
+
+                    const bool translucent_enabled = m_gcode_viewer.is_translucent_filaments();
+                    float seg_opacity = 1.0f;
+                    if (translucent_enabled && !extruder_colors.empty() && int(seg.role) != 0) {
+                        const int ext_idx = std::clamp(int(seg.extruder_id), 0, int(extruder_colors.size()) - 1);
+                        seg_opacity = extruder_colors[size_t(ext_idx)].a();
+                    }
+
+                    const float tag_z = seg.p0.z() + half_h;
+                    const auto add_quad = [&](const Vec3f& p00, const Vec3f& p10, const Vec3f& p11, const Vec3f& p01, float facet_kind, float cur_delta_angle = 0.0f) {
+                        PathTraceTriangle t_a;
+                        t_a.a = p00; t_a.b = p10; t_a.c = p11;
+                        t_a.albedo = {0.0f, 0.0f, 0.0f, seg_opacity};
+                        job.preview_triangles.push_back(std::move(t_a));
+                        job.source_tri_vertex_id.push_back(seg.vertex_id);
+                        job.source_tri_tag_z.push_back(tag_z);
+                        job.source_tri_height.push_back(seg.height);
+                        job.source_tri_role.push_back(float(seg.role));
+                        job.source_tri_facet.push_back(facet_kind);
+                        job.source_tri_delta_angle.push_back(cur_delta_angle);
+                        job.source_tri_opacity.push_back(seg_opacity);
+
+                        PathTraceTriangle t_b;
+                        t_b.a = p00; t_b.b = p11; t_b.c = p01;
+                        t_b.albedo = {0.0f, 0.0f, 0.0f, seg_opacity};
+                        job.preview_triangles.push_back(std::move(t_b));
+                        job.source_tri_vertex_id.push_back(seg.vertex_id);
+                        job.source_tri_tag_z.push_back(tag_z);
+                        job.source_tri_height.push_back(seg.height);
+                        job.source_tri_role.push_back(float(seg.role));
+                        job.source_tri_facet.push_back(facet_kind);
+                        job.source_tri_delta_angle.push_back(cur_delta_angle);
+                        job.source_tri_opacity.push_back(seg_opacity);
+                    };
+
+                    if (is_visible_surface) {
+                        if (cfg_layer_profile == 1) {
+                            const Vec3f r_top_0 = seg.p0 + 0.7071f * w0 + 0.7071f * h0;
+                            const Vec3f r_mid_0 = seg.p0 + w0;
+                            const Vec3f r_bot_0 = seg.p0 + 0.7071f * w0 - 0.7071f * h0;
+
+                            const Vec3f r_top_1 = seg.p1 + 0.7071f * w1 + 0.7071f * h1;
+                            const Vec3f r_mid_1 = seg.p1 + w1;
+                            const Vec3f r_bot_1 = seg.p1 + 0.7071f * w1 - 0.7071f * h1;
+
+                            // Upper-outer bevel facet (1.0 for external wall, 0.0 for inner perimeter on deck)
+                            add_quad(r_top_0, r_top_1, t1, t0, is_external ? 1.0f : 0.0f, is_external ? delta_angle : 0.0f);
+                            // Outer sidewall facets
+                            add_quad(r_mid_0, r_mid_1, r_top_1, r_top_0, is_external ? 2.0f : 0.0f, is_external ? delta_angle : 0.0f);
+                            add_quad(r_bot_0, r_bot_1, r_mid_1, r_mid_0, is_external ? 2.0f : 0.0f, is_external ? delta_angle : 0.0f);
+                            add_quad(b0, b1, r_bot_1, r_bot_0, is_external ? 2.0f : 0.0f, is_external ? delta_angle : 0.0f);
+                            // Upper-inner facet is always deck (0.0f)
+                            add_quad(t0, t1, l1, l0, 0.0f);
+                            // Lower-inner facet
+                            add_quad(l0, l1, b1, b0, is_external ? 2.0f : 0.0f);
+
+                            if (!conn_prev) {
+                                add_quad(r_top_0, r_mid_0, l0, t0, is_external ? 2.0f : 0.0f);
+                                add_quad(r_mid_0, r_bot_0, b0, l0, is_external ? 2.0f : 0.0f);
+                            }
+                            if (!conn_next) {
+                                add_quad(t1, l1, r_mid_1, r_top_1, is_external ? 2.0f : 0.0f);
+                                add_quad(l1, b1, r_bot_1, r_mid_1, is_external ? 2.0f : 0.0f);
+                            }
+                        } else {
+                            // Upper-outer facet (1.0 for external perimeter bevel, 0.0 for inner perimeter deck)
+                            add_quad(r0, r1, t1, t0, is_external ? 1.0f : 0.0f, is_external ? delta_angle : 0.0f);
+                            // Upper-inner facet is always deck (0.0f)
+                            add_quad(t0, t1, l1, l0, 0.0f);
+                            if (is_external) {
+                                add_quad(l0, l1, b1, b0, 2.0f);
+                                add_quad(b0, b1, r1, r0, 2.0f, delta_angle);
+                            }
+                            if (!conn_prev) {
+                                add_quad(r0, b0, l0, t0, is_external ? 2.0f : 0.0f);
+                            }
+                            if (!conn_next) {
+                                add_quad(t1, l1, b1, r1, is_external ? 2.0f : 0.0f);
+                            }
+                        }
+                    } else {
+                        // Internal / sparse infill: flat deck ribbon (0.0f)
+                        add_quad(r0, r1, l1, l0, 0.0f);
+                    }
+                }
+            }
+
+            if (!job.preview_triangles.empty() && plate_visible) {
+                const auto add_plate_mesh = [&](PartPlate* plate) {
+                    if (plate == nullptr)
+                        return;
+                    const ExPolygon plate_polygon(Polygon::new_scale(plate->get_shape()));
+                    const std::vector<Vec3d> plate_surface = triangulate_expolygon_3d(plate_polygon, -0.03f, NORMALS_UP);
+                    const Vec4f plate_marker{-2.0f, 0.42f, 0.48f, 1.0f};
+                    std::vector<PathTraceTriangle> plate_triangles;
+                    plate_triangles.reserve(plate_surface.size() / 3);
+                    for (size_t i = 0; i + 2 < plate_surface.size(); i += 3) {
+                        PathTraceTriangle triangle;
+                        triangle.a = plate_surface[i].cast<float>();
+                        triangle.b = plate_surface[i + 1].cast<float>();
+                        triangle.c = plate_surface[i + 2].cast<float>();
+                        triangle.albedo = plate_marker;
+                        plate_triangles.push_back(std::move(triangle));
+                    }
+                    job.plate_groups.push_back({0, std::move(plate_triangles)});
+                };
+                add_plate_mesh(current_plate);
+            }
+        } else if (m_model != nullptr) {
+            struct VolumeGroup {
+                int object_idx{-1};
+                int instance_idx{-1};
+                const GLVolume* representative_volume{nullptr};
+                Transform3d instance_trafo{Transform3d::Identity()};
+                Transform3d inv_instance_trafo{Transform3d::Identity()};
+                std::vector<const GLVolume*> volumes;
+            };
+
+            std::vector<VolumeGroup> groups;
+            std::map<std::pair<int, int>, size_t> instance_to_group;
+
+            for (const GLVolume* volume : m_volumes.volumes) {
+                if (volume == nullptr || !volume->is_active || volume->is_modifier)
+                    continue;
+
+                if (volume->is_wipe_tower || volume->object_idx() < 0) {
+                    VolumeGroup grp;
+                    grp.object_idx = volume->object_idx();
+                    grp.instance_idx = volume->instance_idx();
+                    grp.representative_volume = volume;
+                    grp.instance_trafo = volume->world_matrix();
+                    grp.inv_instance_trafo = grp.instance_trafo.inverse();
+                    grp.volumes.push_back(volume);
+                    groups.push_back(std::move(grp));
+                } else {
+                    const std::pair<int, int> key{volume->object_idx(), volume->instance_idx()};
+                    auto it = instance_to_group.find(key);
+                    if (it == instance_to_group.end()) {
+                        VolumeGroup grp;
+                        grp.object_idx = key.first;
+                        grp.instance_idx = key.second;
+                        grp.representative_volume = volume;
+                        grp.instance_trafo = volume->get_instance_transformation().get_matrix();
+                        grp.inv_instance_trafo = grp.instance_trafo.inverse();
+                        grp.volumes.push_back(volume);
+                        instance_to_group[key] = groups.size();
+                        groups.push_back(std::move(grp));
+                    } else {
+                        groups[it->second].volumes.push_back(volume);
+                    }
+                }
+            }
+
+            auto extract_volume_triangles = [&](const GLVolume* volume, const VolumeGroup& grp, std::vector<PathTraceTriangle>& out_triangles) {
+                if (volume == nullptr || !volume->is_active || volume->is_modifier)
+                    return;
+                const Transform3d local_trafo = grp.inv_instance_trafo * volume->world_matrix();
+                if (volume->is_wipe_tower) {
+                    const auto* wt = dynamic_cast<const GLWipeTowerVolume*>(volume);
+                    if (wt != nullptr && !wt->model_per_colors.empty()) {
+                        const std::vector<ColorRGBA>& wt_colors = wt->get_colors();
+                        for (size_t c = 0; c < wt->model_per_colors.size(); ++c) {
+                            const indexed_triangle_set its = wt->model_per_colors[c].get_geometry().get_as_indexed_triangle_set();
+                            if (its.indices.empty())
+                                continue;
+                            Vec4f albedo{0.75f, 0.77f, 0.80f, 0.66f};
+                            if (c < wt_colors.size()) {
+                                const ColorRGBA& col = wt_colors[c];
+                                albedo = to_linear_albedo(col.r(), col.g(), col.b(), col.a());
+                            } else if (!wt_colors.empty()) {
+                                const ColorRGBA& col = wt_colors.front();
+                                albedo = to_linear_albedo(col.r(), col.g(), col.b(), col.a());
+                            }
+                            append_path_trace_triangles(out_triangles,
+                                                        its.vertices,
+                                                        its.indices,
+                                                        local_trafo,
+                                                        albedo);
+                        }
+                    } else if (volume->model.indices_count() > 0) {
+                        const indexed_triangle_set its = volume->model.get_geometry().get_as_indexed_triangle_set();
+                        if (!its.indices.empty()) {
+                            append_path_trace_triangles(out_triangles,
+                                                        its.vertices,
+                                                        its.indices,
+                                                        local_trafo,
+                                                        Vec4f{0.75f, 0.77f, 0.80f, 0.66f});
+                        }
+                    }
+                } else {
+                    const int object_idx = volume->object_idx();
+                    const int volume_idx = volume->volume_idx();
+                    if (object_idx < 0 || object_idx >= int(m_model->objects.size()))
+                        return;
+                    const ModelObject* object = m_model->objects[object_idx];
+                    if (object == nullptr || volume_idx < 0 || volume_idx >= int(object->volumes.size()))
+                        return;
+                    const ModelVolume* model_volume = object->volumes[volume_idx];
+                    if (model_volume == nullptr || model_volume->mesh().its.indices.empty())
+                        return;
+                    const int base_extruder = model_volume->extruder_id() > 0 ? model_volume->extruder_id() : volume->extruder_id;
+                    if (!model_volume->mmu_segmentation_facets.empty()) {
+                        std::vector<indexed_triangle_set> its_per_color;
+                        model_volume->mmu_segmentation_facets.get_facets(*model_volume, its_per_color);
+                        for (size_t color_idx = 0; color_idx < its_per_color.size(); ++color_idx) {
+                            if (its_per_color[color_idx].indices.empty())
+                                continue;
+                            const int ext_id = (color_idx == 0) ? base_extruder : int(color_idx);
+                            append_path_trace_triangles(out_triangles,
+                                                        its_per_color[color_idx].vertices,
+                                                        its_per_color[color_idx].indices,
+                                                        local_trafo,
+                                                        extruder_albedo(ext_id, volume));
+                        }
+                    } else {
+                        append_path_trace_triangles(out_triangles,
+                                                    model_volume->mesh().its.vertices,
+                                                    model_volume->mesh().its.indices,
+                                                    local_trafo,
+                                                    extruder_albedo(base_extruder, volume));
+                    }
+                }
+            };
+
+            for (const VolumeGroup& group : groups) {
+                std::vector<PathTraceTriangle> local_triangles;
+                if (group.volumes.size() > 16) {
+                    std::vector<std::vector<PathTraceTriangle>> per_volume_triangles(group.volumes.size());
+                    tbb::parallel_for(tbb::blocked_range<size_t>(0, group.volumes.size()),
+                        [&](const tbb::blocked_range<size_t>& range) {
+                            for (size_t v_idx = range.begin(); v_idx < range.end(); ++v_idx) {
+                                extract_volume_triangles(group.volumes[v_idx], group, per_volume_triangles[v_idx]);
+                            }
+                        });
+                    size_t total_group_triangles = 0;
+                    for (const auto& vt : per_volume_triangles)
+                        total_group_triangles += vt.size();
+                    local_triangles.reserve(total_group_triangles);
+                    for (auto& vt : per_volume_triangles) {
+                        local_triangles.insert(local_triangles.end(),
+                                               std::make_move_iterator(vt.begin()),
+                                               std::make_move_iterator(vt.end()));
+                    }
+                } else {
+                    for (const GLVolume* volume : group.volumes)
+                        extract_volume_triangles(volume, group, local_triangles);
+                }
+
+                if (!local_triangles.empty()) {
+                    const bool is_wt = group.representative_volume != nullptr && group.representative_volume->is_wipe_tower;
+                    const int wt_plate = is_wt ? (group.representative_volume->object_idx() - 1000) : -1;
+                    job.volume_groups.push_back({group.representative_volume, is_wt, wt_plate, std::move(local_triangles)});
+                }
+            }
+
+            if (!job.volume_groups.empty() && plate_visible) {
+                const auto add_plate_triangles = [&](PartPlate* plate, int p_idx) {
+                    if (plate == nullptr)
+                        return;
+                    const ExPolygon plate_polygon(Polygon::new_scale(plate->get_shape()));
+                    const std::vector<Vec3d> plate_surface = triangulate_expolygon_3d(plate_polygon, -0.03f, NORMALS_UP);
+                    if (plate_surface.empty())
+                        return;
+                    std::vector<PathTraceTriangle> plate_triangles;
+                    const Vec4f plate_marker{-2.0f, 0.42f, 0.48f, 1.0f};
+                    for (size_t i = 0; i + 2 < plate_surface.size(); i += 3) {
+                        PathTraceTriangle triangle;
+                        triangle.a = plate_surface[i].cast<float>();
+                        triangle.b = plate_surface[i + 1].cast<float>();
+                        triangle.c = plate_surface[i + 2].cast<float>();
+                        triangle.albedo = plate_marker;
+                        plate_triangles.push_back(std::move(triangle));
+                    }
+                    job.plate_groups.push_back({p_idx, std::move(plate_triangles)});
+                };
+                for (size_t p_idx = 0; p_idx < plate_list.get_plate_count(); ++p_idx)
+                    add_plate_triangles(plate_list.get_plate(int(p_idx)), int(p_idx));
+            }
+        }
+
+        auto cancel_token = std::make_shared<std::atomic<bool>>(false);
+        m_pathtrace_bvh_cancel_token = cancel_token;
+        m_pathtrace_bvh_job_signature = geom_signature;
+        m_pathtrace_bvh_future = std::async(std::launch::async, [job = std::move(job), cancel_token]() mutable {
+            return _build_pathtrace_scene_async(std::move(job), cancel_token);
+        });
+
+        schedule_extra_frame(16);
+        return false;
+    }
+
+    if (m_pathtrace_volume_blas.empty())
+        return false;
+
+    if (m_canvas_type == ECanvasType::CanvasPreview &&
+        !m_pathtrace_gpu_tri_vertex_id.empty() &&
+        m_pathtrace_preview_color_signature != preview_color_signature) {
+        const libvgcode::EViewType view_type = m_gcode_viewer.get_view_type();
+        const bool use_extruder_color =
+            view_type == libvgcode::EViewType::Summary ||
+            view_type == libvgcode::EViewType::Tool ||
+            view_type == libvgcode::EViewType::ColorPrint;
+        const bool translucent_enabled = m_gcode_viewer.is_translucent_filaments();
+        for (size_t i = 0; i < m_pathtrace_gpu_scene.triangles.size(); ++i) {
+            const size_t v_id = m_pathtrace_gpu_tri_vertex_id[i];
+            if (v_id == SIZE_MAX)
+                continue;
+            const libvgcode::PathVertex& v = m_gcode_viewer.get_gcode_vertex_at(v_id);
+            Vec4f albedo;
+            if (use_extruder_color) {
+                albedo = extruder_albedo(int(v.extruder_id) + 1, nullptr);
+                if (!translucent_enabled)
+                    albedo.w() = 1.0f;
+            } else {
+                const libvgcode::Color c = m_gcode_viewer.get_gcode_vertex_color(v);
+                albedo = to_linear_albedo(float(c[0]) / 255.0f, float(c[1]) / 255.0f, float(c[2]) / 255.0f, 1.0f);
+            }
+            m_pathtrace_gpu_scene.shadings[i].albedo = {albedo.x(), albedo.y(), albedo.z(), albedo.w()};
+        }
+        if (m_pathtrace_gpu_shading_buffer != 0 && m_pathtrace_gpu_scene_signature == m_pathtrace_geom_signature) {
+            glsafe(::glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_pathtrace_gpu_shading_buffer));
+            glsafe(::glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0,
+                                     m_pathtrace_gpu_scene.shadings.size() * sizeof(PathTraceGpuShading),
+                                     m_pathtrace_gpu_scene.shadings.data()));
+            glsafe(::glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0));
+        }
+        m_pathtrace_preview_color_signature = preview_color_signature;
+    }
+
+    size_t signature = transform_signature;
+    const auto combine = [&signature](size_t value) {
+        signature ^= value + size_t(0x9e3779b9) + (signature << 6) + (signature >> 2);
+    };
+    const auto hash_matrix = [&combine](const Transform3d& matrix) {
+        const auto& coefficients = matrix.matrix();
+        for (Eigen::Index i = 0; i < coefficients.size(); ++i)
+            combine(std::hash<double>{}(coefficients.data()[i]));
+    };
+    combine(preview_color_signature);
+    int cfg_bounces = 2;
+    uint32_t cfg_max_samples = 2048u;
+    float cfg_interactive_scale = 0.50f;
+    int cfg_sss_mode = 0; // 0: off, 1: subtle, 2: medium, 3: strong
+    if (const AppConfig* cfg = wxGetApp().app_config) {
+        try {
+            const std::string s_smp = cfg->get(SETTING_OPENGL_PATHTRACE_MAX_SAMPLES);
+            if (!s_smp.empty())
+                cfg_max_samples = std::max(64u, uint32_t(std::stoul(s_smp)));
+        } catch (...) {}
+        try {
+            const std::string s_res = cfg->get(SETTING_OPENGL_PATHTRACE_INTERACTIVE_RES);
+            if (!s_res.empty())
+                cfg_interactive_scale = std::clamp(float(std::stoi(s_res)) / 100.0f, 0.25f, 1.0f);
+        } catch (...) {}
+        try {
+            const std::string s_bnc = cfg->get(SETTING_OPENGL_PATHTRACE_BOUNCES);
+            if (!s_bnc.empty())
+                cfg_bounces = std::clamp(std::stoi(s_bnc), 1, 4);
+        } catch (...) {}
+        try {
+            const std::string s_sss = cfg->get(SETTING_OPENGL_PATHTRACE_SSS);
+            if (s_sss == "subtle")
+                cfg_sss_mode = 1;
+            else if (s_sss == "medium")
+                cfg_sss_mode = 2;
+            else if (s_sss == "strong")
+                cfg_sss_mode = 3;
+            else
+                cfg_sss_mode = 0;
+        } catch (...) {}
+    }
+    combine(size_t(cfg_bounces));
+    combine(size_t(cfg_layer_profile));
+    combine(size_t(cfg_sss_mode));
+    combine(size_t(_shadow_mode()));
+    combine(std::hash<float>{}(preview_z_min));
+    combine(std::hash<float>{}(preview_z_max));
+    combine(std::hash<int>{}(preview_move_min));
+    combine(std::hash<int>{}(preview_move_max));
+    const ClippingPlane clip_plane = _get_volumes_clipping_plane();
+    const bool clipping_active = clip_plane.is_active();
+    combine(size_t(clipping_active));
+    if (clipping_active) {
+        for (double v : clip_plane.get_data())
+            combine(std::hash<double>{}(v));
+    }
+    hash_matrix(source_camera.get_view_matrix());
+    hash_matrix(source_camera.get_projection_matrix());
+    combine(size_t(canvas_size.get_width()));
+    combine(size_t(canvas_size.get_height()));
+    if (signature == 0)
+        signature = 1;
+
+    const auto now_tp = std::chrono::steady_clock::now();
+    if (signature != m_pathtrace_requested_signature) {
+        if (m_pathtrace_requested_signature != 0)
+            m_pathtrace_last_change_time = now_tp;
+        m_pathtrace_requested_signature = signature;
+        m_pathtrace_gpu_samples = 0;
+    }
+    const bool recent_change = std::chrono::duration_cast<std::chrono::milliseconds>(now_tp - m_pathtrace_last_change_time).count() < 150;
+    const bool interactive = (m_camera_movement || m_mouse.dragging || m_gizmos.is_dragging() || recent_change) && !ImGui::GetIO().WantCaptureMouse;
+
+
+    m_pathtrace_max_samples = cfg_max_samples;
+    m_pathtrace_is_interactive = interactive;
+
+    bool can_use_gpu = false;
+    GLShaderProgram* compute_shader = nullptr;
+#if !SLIC3R_OPENGL_ES
+    if (OpenGLManager::get_gl_info().is_version_greater_or_equal_to(4, 3)) {
+        compute_shader = wxGetApp().get_shader("pathtrace_compute");
+        if (compute_shader != nullptr)
+            can_use_gpu = true;
+    }
+#endif // !SLIC3R_OPENGL_ES
+
+    if (can_use_gpu) {
+
+        if (m_pathtrace_gpu_scene_signature != m_pathtrace_geom_signature) {
+            if (m_pathtrace_gpu_node_buffer == 0)
+                glsafe(::glGenBuffers(1, &m_pathtrace_gpu_node_buffer));
+            glsafe(::glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_pathtrace_gpu_node_buffer));
+            glsafe(::glBufferData(GL_SHADER_STORAGE_BUFFER,
+                                  m_pathtrace_gpu_scene.nodes.size() * sizeof(PathTraceGpuNode),
+                                  m_pathtrace_gpu_scene.nodes.data(),
+                                  GL_STATIC_DRAW));
+
+            if (m_pathtrace_gpu_triangle_buffer == 0)
+                glsafe(::glGenBuffers(1, &m_pathtrace_gpu_triangle_buffer));
+            glsafe(::glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_pathtrace_gpu_triangle_buffer));
+            glsafe(::glBufferData(GL_SHADER_STORAGE_BUFFER,
+                                  m_pathtrace_gpu_scene.triangles.size() * sizeof(PathTraceGpuTriangle),
+                                  m_pathtrace_gpu_scene.triangles.data(),
+                                  GL_DYNAMIC_DRAW));
+
+            if (m_pathtrace_gpu_shading_buffer == 0)
+                glsafe(::glGenBuffers(1, &m_pathtrace_gpu_shading_buffer));
+            glsafe(::glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_pathtrace_gpu_shading_buffer));
+            glsafe(::glBufferData(GL_SHADER_STORAGE_BUFFER,
+                                  m_pathtrace_gpu_scene.shadings.size() * sizeof(PathTraceGpuShading),
+                                  m_pathtrace_gpu_scene.shadings.data(),
+                                  GL_DYNAMIC_DRAW));
+            glsafe(::glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0));
+
+            m_pathtrace_gpu_scene_signature = m_pathtrace_geom_signature;
+        }
+
+        if (m_pathtrace_gpu_instances.empty() || m_pathtrace_transform_signature != transform_signature) {
+            m_pathtrace_gpu_instances.clear();
+            for (PathTraceVolumeBlas& blas : m_pathtrace_volume_blas) {
+                if (blas.node_count == 0 || blas.tri_count == 0)
+                    continue;
+                PathTraceGpuInstance inst;
+                inst.data[0] = blas.root_node;
+                inst.data[1] = blas.node_count;
+                inst.data[2] = blas.tri_offset;
+                inst.data[3] = blas.tri_count;
+
+                Transform3d world_trafo = Transform3d::Identity();
+                const GLVolume* vol = blas.volume;
+                if (blas.is_wipe_tower) {
+                    vol = nullptr;
+                    for (const GLVolume* v : m_volumes.volumes) {
+                        if (v != nullptr && v->is_wipe_tower && (v->object_idx() - 1000) == blas.wipe_tower_plate_idx) {
+                            vol = v;
+                            blas.volume = v;
+                            break;
+                        }
+                    }
+                    if (vol == nullptr || !vol->is_active)
+                        continue;
+                    world_trafo = vol->world_matrix();
+                } else if (vol != nullptr) {
+                    if (!vol->is_active)
+                        continue;
+                    if (vol->object_idx() >= 0 && vol->object_idx() < int(m_model->objects.size()))
+                        world_trafo = vol->get_instance_transformation().get_matrix();
+                    else
+                        world_trafo = vol->world_matrix();
+                }
+                const Transform3d inv_trafo = world_trafo.inverse();
+                const Eigen::Matrix4f m_inv = inv_trafo.matrix().cast<float>();
+                const Eigen::Matrix3f m_norm = m_inv.block<3, 3>(0, 0).transpose();
+
+                for (int col = 0; col < 4; ++col) {
+                    for (int row = 0; row < 4; ++row) {
+                        inst.world_to_local[col * 4 + row] = m_inv(row, col);
+                    }
+                }
+                for (int col = 0; col < 3; ++col) {
+                    for (int row = 0; row < 3; ++row) {
+                        inst.normal_to_world[col * 4 + row] = m_norm(row, col);
+                    }
+                }
+                inst.normal_to_world[15] = 1.0f;
+
+                Vec3f world_min = Vec3f::Constant(std::numeric_limits<float>::max());
+                Vec3f world_max = Vec3f::Constant(std::numeric_limits<float>::lowest());
+                for (int c = 0; c < 8; ++c) {
+                    Vec3f pt(
+                        (c & 1) ? blas.local_bounds_max.x() : blas.local_bounds_min.x(),
+                        (c & 2) ? blas.local_bounds_max.y() : blas.local_bounds_min.y(),
+                        (c & 4) ? blas.local_bounds_max.z() : blas.local_bounds_min.z()
+                    );
+                    Vec3f world_pt = (world_trafo * pt.cast<double>()).cast<float>();
+                    world_min = world_min.cwiseMin(world_pt);
+                    world_max = world_max.cwiseMax(world_pt);
+                }
+                inst.bounds_min = {world_min.x(), world_min.y(), world_min.z(), 1.0f};
+                inst.bounds_max = {world_max.x(), world_max.y(), world_max.z(), 1.0f};
+                m_pathtrace_gpu_instances.push_back(inst);
+            }
+
+            if (m_pathtrace_gpu_instance_buffer == 0)
+                glsafe(::glGenBuffers(1, &m_pathtrace_gpu_instance_buffer));
+            glsafe(::glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_pathtrace_gpu_instance_buffer));
+            glsafe(::glBufferData(GL_SHADER_STORAGE_BUFFER,
+                                  m_pathtrace_gpu_instances.size() * sizeof(PathTraceGpuInstance),
+                                  m_pathtrace_gpu_instances.data(),
+                                  GL_DYNAMIC_DRAW));
+            glsafe(::glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0));
+
+            m_pathtrace_transform_signature = transform_signature;
+        }
+
+        if (m_pathtrace_gpu_instances.empty())
+            return false;
+
+        const uint32_t full_width = uint32_t(std::max(1, canvas_size.get_width()));
+        const uint32_t full_height = uint32_t(std::max(1, canvas_size.get_height()));
+        const uint32_t max_render_dim = interactive ? uint32_t(std::lround(1440.0f * cfg_interactive_scale)) : 1440u;
+        const float max_scale_cap = interactive ? cfg_interactive_scale : 1.0f;
+        const uint32_t max_full_dim = std::max(full_width, full_height);
+        const float res_scale = max_full_dim > max_render_dim
+            ? std::min(max_scale_cap, float(max_render_dim) / float(max_full_dim))
+            : max_scale_cap;
+        const uint32_t render_width = std::max(1u, uint32_t(std::lround(float(full_width) * res_scale)));
+        const uint32_t render_height = std::max(1u, uint32_t(std::lround(float(full_height) * res_scale)));
+
+        if (m_pathtrace_gpu_accumulation_image == 0 ||
+            m_pathtrace_gpu_display_image == 0 ||
+            m_pathtrace_gpu_image_size[0] != render_width ||
+            m_pathtrace_gpu_image_size[1] != render_height) {
+
+            glsafe(::glActiveTexture(GL_TEXTURE0));
+            if (m_pathtrace_gpu_accumulation_image == 0)
+                glsafe(::glGenTextures(1, &m_pathtrace_gpu_accumulation_image));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, m_pathtrace_gpu_accumulation_image));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+            glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, render_width, render_height, 0, GL_RGBA, GL_FLOAT, nullptr));
+
+            if (m_pathtrace_gpu_display_image == 0)
+                glsafe(::glGenTextures(1, &m_pathtrace_gpu_display_image));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, m_pathtrace_gpu_display_image));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+            glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, render_width, render_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+
+            m_pathtrace_gpu_image_size = {render_width, render_height};
+            m_pathtrace_gpu_samples = 0;
+        }
+
+        const uint32_t target_max_samples = interactive ? 1u : cfg_max_samples;
+        if (m_pathtrace_gpu_samples < target_max_samples) {
+            const uint32_t batch_samples = 1u;
+
+            PathTraceCamera camera;
+            camera.position = source_camera.get_position().cast<float>();
+            camera.right = source_camera.get_dir_right().cast<float>();
+            camera.up = source_camera.get_dir_up().cast<float>();
+            camera.forward = source_camera.get_dir_forward().cast<float>();
+            camera.orthographic = source_camera.get_type() == Camera::EType::Ortho;
+            if (camera.orthographic)
+                camera.orthographic_height = float(source_camera.get_near_height());
+            else
+                camera.vertical_fov_degrees = float(source_camera.get_fov());
+
+            glsafe(::glBindImageTexture(0, m_pathtrace_gpu_accumulation_image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
+            glsafe(::glBindImageTexture(1, m_pathtrace_gpu_display_image, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8));
+
+            glsafe(::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_pathtrace_gpu_node_buffer));
+            glsafe(::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_pathtrace_gpu_triangle_buffer));
+            glsafe(::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_pathtrace_gpu_instance_buffer));
+            glsafe(::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_pathtrace_gpu_shading_buffer));
+
+            const Vec3f camera_right = camera.right.normalized();
+            const Vec3f camera_up = camera.up.normalized();
+            const Vec3f camera_forward = camera.forward.normalized();
+            compute_shader->start_using();
+            compute_shader->set_uniform("image_size", std::array<int, 2>{int(render_width), int(render_height)});
+            compute_shader->set_uniform("camera_position", camera.position);
+            compute_shader->set_uniform("camera_right", camera_right);
+            compute_shader->set_uniform("camera_up", camera_up);
+            compute_shader->set_uniform("camera_forward", camera_forward);
+            compute_shader->set_uniform("camera_half_fov",
+                camera.orthographic ? 0.0f : std::tan(camera.vertical_fov_degrees * 3.14159265358979323846f / 360.0f));
+            compute_shader->set_uniform("camera_orthographic_height", camera.orthographic_height);
+            compute_shader->set_uniform("camera_orthographic", camera.orthographic);
+            compute_shader->set_uniform("sample_start", int(m_pathtrace_gpu_samples));
+            compute_shader->set_uniform("sample_count", int(batch_samples));
+            compute_shader->set_uniform("max_bounces", cfg_bounces);
+            compute_shader->set_uniform("z_min", preview_z_min);
+            compute_shader->set_uniform("z_max", preview_z_max);
+            compute_shader->set_uniform("move_min", preview_move_min);
+            compute_shader->set_uniform("move_max", preview_move_max);
+            compute_shader->set_uniform("clipping_plane", clipping_active
+                ? std::array<float, 4>{float(clip_plane.get_data()[0]), float(clip_plane.get_data()[1]),
+                                       float(clip_plane.get_data()[2]), float(clip_plane.get_data()[3])}
+                : std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f});
+            const Vec3f light_dir = Vec3f{-0.45f, -0.55f, 0.70f}.normalized();
+            const Vec3f fill_dir  = Vec3f{0.50f, 0.35f, 0.40f}.normalized();
+            compute_shader->set_uniform("light_direction_uniform", light_dir);
+            compute_shader->set_uniform("fill_direction_uniform", fill_dir);
+            compute_shader->set_uniform("shadows_enabled", _shadow_mode() != EShadowMode::Off);
+            compute_shader->set_uniform("layer_profile_mode", cfg_layer_profile);
+            compute_shader->set_uniform("sss_mode", cfg_sss_mode);
+            compute_shader->set_uniform("is_preview_canvas", m_canvas_type == ECanvasType::CanvasPreview);
+            compute_shader->set_uniform("instance_count", int(m_pathtrace_gpu_instances.size()));
+
+            if (m_pathtrace_gpu_timer_queries[0] == 0) {
+                glsafe(::glGenQueries(2, m_pathtrace_gpu_timer_queries.data()));
+                m_pathtrace_gpu_timer_query_in_flight[0] = false;
+                m_pathtrace_gpu_timer_query_in_flight[1] = false;
+            }
+
+            const int read_query_idx = 1 - m_pathtrace_gpu_timer_query_idx;
+            if (m_pathtrace_gpu_timer_query_in_flight[read_query_idx]) {
+                GLint available = 0;
+                glsafe(::glGetQueryObjectiv(m_pathtrace_gpu_timer_queries[read_query_idx], GL_QUERY_RESULT_AVAILABLE, &available));
+                if (available) {
+                    GLuint64 elapsed_ns = 0;
+                    glsafe(::glGetQueryObjectui64v(m_pathtrace_gpu_timer_queries[read_query_idx], GL_QUERY_RESULT, &elapsed_ns));
+                    const float elapsed_ms = float(double(elapsed_ns) * 1e-6);
+                    m_pathtrace_gpu_dispatch_time_ms = elapsed_ms;
+                    if (m_pathtrace_gpu_timer_is_interactive[read_query_idx]) {
+                        m_pathtrace_gpu_dispatch_interactive_ms = elapsed_ms;
+                    } else {
+                        m_pathtrace_gpu_dispatch_full_res_ms = elapsed_ms;
+                    }
+                    m_pathtrace_gpu_timer_query_in_flight[read_query_idx] = false;
+                }
+            }
+
+            const int write_query_idx = m_pathtrace_gpu_timer_query_idx;
+            m_pathtrace_gpu_timer_is_interactive[write_query_idx] = interactive;
+            m_pathtrace_gpu_timer_res[write_query_idx] = {render_width, render_height};
+            glsafe(::glBeginQuery(GL_TIME_ELAPSED, m_pathtrace_gpu_timer_queries[write_query_idx]));
+
+            const GLuint groups_x = (render_width + 7u) / 8u;
+            const GLuint groups_y = (render_height + 7u) / 8u;
+            glsafe(::glDispatchCompute(groups_x, groups_y, 1));
+            glsafe(::glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT));
+
+            glsafe(::glEndQuery(GL_TIME_ELAPSED));
+            m_pathtrace_gpu_timer_query_in_flight[write_query_idx] = true;
+            m_pathtrace_gpu_timer_query_idx = read_query_idx;
+
+            compute_shader->stop_using();
+
+            glsafe(::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0));
+            glsafe(::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, 0));
+            glsafe(::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, 0));
+            glsafe(::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, 0));
+            glsafe(::glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
+            glsafe(::glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8));
+
+            m_pathtrace_gpu_samples += batch_samples;
+        }
+
+        if (m_pathtrace_gpu_samples < target_max_samples) {
+            schedule_extra_frame(1);
+        } else if (recent_change) {
+            schedule_extra_frame(60);
+        }
+
+        if (m_pathtrace_gpu_display_image != 0) {
+            glsafe(::glDisable(GL_DEPTH_TEST));
+            GLTexture::render_texture(m_pathtrace_gpu_display_image, -1.0f, 1.0f, -1.0f, 1.0f);
+            glsafe(::glEnable(GL_DEPTH_TEST));
+            return true;
+        }
+    }
+    return false;
 }
 
 void GLCanvas3D::render_thumbnail(ThumbnailData &         thumbnail_data,
@@ -4554,10 +5947,8 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
 {
-    // no need to wake up idle
-    // right after this event, idle event is fired
-    // m_dirty = true;
-    // wxWakeUpIdle();
+    m_dirty = true;
+    wxWakeUpIdle();
 }
 
 void GLCanvas3D::on_set_color_timer(wxTimerEvent& evt)
@@ -8468,9 +9859,27 @@ bool GLCanvas3D::_is_realistic_view_enabled() const
     return m_canvas_type != ECanvasType::CanvasPreview || cfg->get_bool(SETTING_OPENGL_REALISTIC_PREVIEW);
 }
 
+bool GLCanvas3D::_is_pathtrace_enabled() const
+{
+    if (!wxGetApp().is_gl_version_greater_or_equal_to(4, 3))
+        return false;
+    const GLGizmosManager::EType gizmo = m_gizmos.get_current_type();
+    if (gizmo == GLGizmosManager::Seam ||
+        gizmo == GLGizmosManager::FdmSupports ||
+        gizmo == GLGizmosManager::FuzzySkin ||
+        gizmo == GLGizmosManager::MmSegmentation)
+        return false;
+    if (!_is_realistic_view_enabled())
+        return false;
+    const AppConfig* cfg = wxGetApp().app_config;
+    if (cfg == nullptr)
+        return false;
+    return cfg->get(SETTING_OPENGL_SHADING_MODEL) == "pathtrace";
+}
+
 bool GLCanvas3D::_is_ssao_enabled() const
 {
-    if (wxGetApp().app_config == nullptr)
+    if (_is_pathtrace_enabled() || wxGetApp().app_config == nullptr)
         return false;
     return _is_realistic_view_enabled() &&
            wxGetApp().app_config->get_bool(SETTING_OPENGL_PHONG_SSAO);
@@ -8498,9 +9907,6 @@ bool GLCanvas3D::_is_fps_overlay_enabled() const
 {
     return !m_benchmarking && wxGetApp().app_config != nullptr && wxGetApp().app_config->get_bool(SETTING_OPENGL_SHOW_FPS_OVERLAY);
 }
-
-// Above the front left of the plate.
-static const Vec3d STATIC_LIGHT_DIR = Vec3d(-0.4, -0.6, 1.0).normalized();
 
 std::optional<Vec3d> GLCanvas3D::_static_light_dir_eye() const
 {
@@ -8550,7 +9956,7 @@ bool GLCanvas3D::_is_scene_cache_enabled() const
 
 bool GLCanvas3D::_is_scene_cacheable() const
 {
-    if (!_is_scene_cache_enabled())
+    if (_is_pathtrace_enabled() || !_is_scene_cache_enabled())
         return false;
 
 #ifdef SLIC3R_CAD
@@ -8598,20 +10004,105 @@ void GLCanvas3D::_render_fps_overlay(int fps) const
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowBgAlpha(0.35f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * get_scale());
-    imgui.begin(
-        std::string("###fps_overlay"),
+    const ImGuiWindowFlags overlay_flags =
         ImGuiWindowFlags_AlwaysAutoResize |
         ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoTitleBar |
         ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoInputs);
+        (_is_pathtrace_enabled() ? 0 : ImGuiWindowFlags_NoInputs);
+    imgui.begin(std::string("###fps_overlay"), overlay_flags);
     if (show_fps) {
         imgui.text(std::string("FPS: ") + std::to_string(fps));
         ImGui::SameLine();
         // The subset of those frames that redrew the scene rather than reusing the cached one.
         imgui.text(std::string("3D: ") + std::to_string(m_render_stats.get_scene_fps()));
+        if (_is_pathtrace_enabled()) {
+            if (m_pathtrace_gpu_display_image != 0) {
+                if (m_pathtrace_gpu_samples >= m_pathtrace_max_samples) {
+                    imgui.text(std::string("PT: GPU [Converged: ") + std::to_string(m_pathtrace_gpu_samples) + " spp]");
+                } else if (m_pathtrace_is_interactive) {
+                    imgui.text(std::string("PT: GPU [Interactive: ") + std::to_string(m_pathtrace_gpu_samples) + " spp]");
+                } else {
+                    imgui.text(std::string("PT: GPU [") + std::to_string(m_pathtrace_gpu_samples) + " / " + std::to_string(m_pathtrace_max_samples) + " spp]");
+                }
+                if (m_pathtrace_gpu_dispatch_full_res_ms > 0.0f || m_pathtrace_gpu_dispatch_interactive_ms > 0.0f) {
+                    char time_buf[128];
+                    snprintf(time_buf, sizeof(time_buf), "PT GPU: Full %.2f ms | Orbit %.2f ms",
+                             m_pathtrace_gpu_dispatch_full_res_ms > 0.0f ? m_pathtrace_gpu_dispatch_full_res_ms : m_pathtrace_gpu_dispatch_time_ms,
+                             m_pathtrace_gpu_dispatch_interactive_ms);
+                    imgui.text(std::string(time_buf));
+                }
+                if (imgui.button(_L("Set Benchmark View"))) {
+                    auto* non_const_this = const_cast<GLCanvas3D*>(this);
+                    non_const_this->select_view("iso");
+                    if (m_canvas_type == ECanvasType::CanvasPreview)
+                        non_const_this->zoom_to_gcode();
+                    else
+                        non_const_this->zoom_to_volumes();
+                    // Fast-forward last_change_time so recent_change is immediately false (clean full-res benchmark)
+                    non_const_this->m_pathtrace_last_change_time = std::chrono::steady_clock::now() - std::chrono::milliseconds(300);
+                    non_const_this->m_pathtrace_gpu_samples = 0;
+                    non_const_this->schedule_extra_frame(1);
+                }
+                ImGui::SameLine();
+                if (imgui.button(_L("Copy PT Benchmark"))) {
+                    Camera& cam = wxGetApp().plater()->get_camera();
+                    const Vec3d cam_pos = cam.get_position();
+                    const Vec3d cam_target = cam.get_target();
+                    const Vec3d cam_fwd = cam.get_dir_forward();
+                    const double cam_zoom = cam.get_zoom();
+                    const double cam_fov = cam.get_fov();
+                    const std::string cam_type = cam.get_type_as_string();
+
+                    const size_t vram_bytes =
+                        m_pathtrace_gpu_scene.nodes.size() * sizeof(PathTraceGpuNode) +
+                        m_pathtrace_gpu_scene.triangles.size() * sizeof(PathTraceGpuTriangle) +
+                        m_pathtrace_gpu_scene.shadings.size() * sizeof(PathTraceGpuShading) +
+                        m_pathtrace_gpu_instances.size() * sizeof(PathTraceGpuInstance) +
+                        size_t(m_pathtrace_gpu_image_size[0]) * size_t(m_pathtrace_gpu_image_size[1]) * (sizeof(float) * 4 + 4);
+                    char report_buf[1024];
+                    const float reported_time = m_pathtrace_gpu_dispatch_full_res_ms > 0.0f
+                        ? m_pathtrace_gpu_dispatch_full_res_ms
+                        : m_pathtrace_gpu_dispatch_time_ms;
+                    snprintf(report_buf, sizeof(report_buf),
+                        "=== OrcaSlicer Path Tracer Benchmark ===\n"
+                        "Canvas: %s\n"
+                        "Resolution: %ux%u (Full Resolution)\n"
+                        "Samples: %u / %u spp\n"
+                        "GPU Dispatch Time (Full Res): %.2f ms\n"
+                        "GPU Dispatch Time (Interactive): %.2f ms\n"
+                        "Scene FPS: %d\n"
+                        "Primitives: %zu\n"
+                        "BVH Nodes: %zu\n"
+                        "Instances: %zu\n"
+                        "Estimated VRAM: %.1f MB\n"
+                        "Camera: %s | FOV: %.1f deg | Zoom: %.4f\n"
+                        "Camera Pos: [%.2f, %.2f, %.2f]\n"
+                        "Camera Target: [%.2f, %.2f, %.2f]\n"
+                        "Camera Forward: [%.4f, %.4f, %.4f]\n",
+                        m_canvas_type == ECanvasType::CanvasPreview ? "Preview (G-Code)" : "Prepare (Mesh)",
+                        m_pathtrace_gpu_image_size[0], m_pathtrace_gpu_image_size[1],
+                        m_pathtrace_gpu_samples, m_pathtrace_max_samples,
+                        reported_time,
+                        m_pathtrace_gpu_dispatch_interactive_ms,
+                        m_render_stats.get_scene_fps(),
+                        m_pathtrace_gpu_scene.triangles.size(),
+                        m_pathtrace_gpu_scene.nodes.size(),
+                        m_pathtrace_gpu_instances.size(),
+                        double(vram_bytes) / (1024.0 * 1024.0),
+                        cam_type.c_str(), cam_fov, cam_zoom,
+                        cam_pos.x(), cam_pos.y(), cam_pos.z(),
+                        cam_target.x(), cam_target.y(), cam_target.z(),
+                        cam_fwd.x(), cam_fwd.y(), cam_fwd.z()
+                    );
+                    ImGui::SetClipboardText(report_buf);
+                }
+            } else {
+                imgui.text(std::string("PT: GPU [Initializing]"));
+            }
+        }
     }
     if (show_timings && ImGui::BeginTable("frame_sections", 3, ImGuiTableFlags_SizingFixedFit)) {
         ImGui::TableSetupColumn("ms");
@@ -9501,7 +10992,7 @@ void GLCanvas3D::_render_plane() const
 }
 
 //BBS: add outline drawing logic
-void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with_outline)
+void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with_outline, bool modifiers_only)
 {
     if (m_volumes.empty())
         return;
@@ -9574,7 +11065,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     }
 
     const bool realistic_mode = _is_realistic_view_enabled();
-    const bool realistic_phong = wxGetApp().app_config != nullptr && wxGetApp().app_config->get_bool(SETTING_OPENGL_REALISTIC_PHONG);
+    const std::string shading_model = wxGetApp().app_config != nullptr ? wxGetApp().app_config->get(SETTING_OPENGL_SHADING_MODEL) : "gouraud";
+    const bool realistic_phong = (shading_model == "phong") || (shading_model.empty() && wxGetApp().app_config != nullptr && wxGetApp().app_config->get_bool(SETTING_OPENGL_REALISTIC_PHONG));
     const std::string shader_name = (m_studio_lighting || (realistic_mode && realistic_phong)) ? "phong" : "gouraud";
     GLShaderProgram* shader = wxGetApp().get_shader(shader_name);
     if (shader == nullptr && shader_name != "gouraud")
@@ -9688,9 +11180,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             }*/
             const Camera& camera = wxGetApp().plater()->get_camera();
             //BBS:add assemble view related logic
-            m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [canvas_type](const GLVolume& volume) {
+            m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [canvas_type, modifiers_only](const GLVolume& volume) {
                 if (canvas_type == ECanvasType::CanvasAssembleView) {
                     return !volume.is_modifier;
+                }
+                else if (modifiers_only) {
+                    return volume.is_modifier;
                 }
                 else {
                     return true;
@@ -9699,7 +11194,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 partly_inside_enable, printable_heights);
             // IMEX ghosts are transparent and share the same shader/camera state;
             // render them right after the main transparent pass while the shader is still bound.
-            _render_imex_ghosts();
+            if (!modifiers_only)
+                _render_imex_ghosts();
             break;
         }
         }
@@ -11162,9 +12658,12 @@ void GLCanvas3D::_render_canvas_toolbar()
         create_menu_item( _utf8(L("Realistic View")),
             true, // work on all
             cfg->get_bool(SETTING_OPENGL_REALISTIC_MODE),
-            [&cfg]{
-                cfg->set_bool(SETTING_OPENGL_REALISTIC_MODE, !cfg->get_bool(SETTING_OPENGL_REALISTIC_MODE));
+            [this, &cfg]{
+                const bool new_val = !cfg->get_bool(SETTING_OPENGL_REALISTIC_MODE);
+                cfg->set_bool(SETTING_OPENGL_REALISTIC_MODE, new_val);
                 cfg->save();
+                m_dirty = true;
+                wxWakeUpIdle();
             }
         );
 

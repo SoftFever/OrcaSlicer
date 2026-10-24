@@ -21,9 +21,13 @@
 #include "DeviceCore/DevManager.h"
 
 #include "libslic3r/Config.hpp"
+#include "libslic3r/PathTracer.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 #include <functional>
 #include <initializer_list>
+#include <limits>
 #include <libslic3r/Model.hpp>
+#include "slic3r/GUI/Jobs/Worker.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -39,6 +43,8 @@
 #include <vector>
 #include <wx/string.h>
 #include <wx/utils.h>
+#include <wx/filedlg.h>
+#include <wx/image.h>
 
 class wxWindow;
 
@@ -108,6 +114,99 @@ void go_to_layer(Plater* plater, const std::string& param)
         moves->SetHigherValue(moves->GetMaxValue());
         moves->set_as_dirty();
     }
+}
+
+AppActionRunResult render_still_image(Plater* plater)
+{
+    if (!plater || plater->model().objects.empty())
+        return {AppActionRunResult::Level::Info, _L("Add a model before rendering a still image.")};
+
+    Worker& worker = plater->get_ui_job_worker();
+    if (!worker.is_idle())
+        return {AppActionRunResult::Level::Info, _L("Wait for the current background task to finish.")};
+
+    wxFileDialog dialog(wxGetApp().mainframe, _L("Render still image"), wxEmptyString, "render.png",
+                        _L("PNG image") + " (*.png)|*.png", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (dialog.ShowModal() != wxID_OK)
+        return {AppActionRunResult::Level::Success};
+
+    ensure_3d_view(plater);
+    std::vector<PathTraceTriangle> triangles;
+    Vec3f bounds_min = Vec3f::Constant(std::numeric_limits<float>::max());
+    Vec3f bounds_max = Vec3f::Constant(std::numeric_limits<float>::lowest());
+    const Vec3f model_color{0.72f, 0.73f, 0.76f};
+
+    for (const ModelObject* object : plater->model().objects) {
+        const TriangleMesh mesh = object->raw_mesh();
+        for (const ModelInstance* instance : object->instances) {
+            const Transform3d& transform = instance->get_transformation().get_matrix();
+            const auto transformed_vertex = [&](int index) -> Vec3f {
+                return (transform * mesh.its.vertices[size_t(index)].cast<double>()).cast<float>();
+            };
+            for (const Vec3i32& face : mesh.its.indices) {
+                PathTraceTriangle triangle;
+                triangle.a = transformed_vertex(face.x());
+                triangle.b = transformed_vertex(face.y());
+                triangle.c = transformed_vertex(face.z());
+                triangle.albedo = model_color;
+                bounds_min = bounds_min.cwiseMin(triangle.a).cwiseMin(triangle.b).cwiseMin(triangle.c);
+                bounds_max = bounds_max.cwiseMax(triangle.a).cwiseMax(triangle.b).cwiseMax(triangle.c);
+                triangles.push_back(std::move(triangle));
+            }
+        }
+    }
+
+    if (triangles.empty())
+        return {AppActionRunResult::Level::Info, _L("There is no printable model geometry to render.")};
+
+    const Camera& source_camera = plater->get_camera();
+    PathTraceCamera camera;
+    camera.position = source_camera.get_position().cast<float>();
+    camera.right = source_camera.get_dir_right().cast<float>();
+    camera.up = source_camera.get_dir_up().cast<float>();
+    camera.forward = source_camera.get_dir_forward().cast<float>();
+    camera.orthographic = source_camera.get_type() == Camera::EType::Ortho;
+    if (camera.orthographic)
+        camera.orthographic_height = float(source_camera.get_near_height());
+    else
+        camera.vertical_fov_degrees = float(source_camera.get_fov());
+
+    PathTraceSettings settings;
+    settings.width = 1280;
+    settings.height = 720;
+    settings.samples_per_pixel = 12;
+    settings.max_bounces = 3;
+
+    const float floor_z = bounds_min.z() - std::max(0.02f, (bounds_max.z() - bounds_min.z()) * 0.002f);
+    const float extent = std::max(100.0f, std::max(bounds_max.x() - bounds_min.x(), bounds_max.y() - bounds_min.y()) * 8.0f);
+    const float center_x = (bounds_min.x() + bounds_max.x()) * 0.5f;
+    const float center_y = (bounds_min.y() + bounds_max.y()) * 0.5f;
+    const Vec3f floor_color{0.78f, 0.80f, 0.83f};
+    const Vec3f floor_a{center_x - extent, center_y - extent, floor_z};
+    const Vec3f floor_b{center_x + extent, center_y - extent, floor_z};
+    const Vec3f floor_c{center_x + extent, center_y + extent, floor_z};
+    const Vec3f floor_d{center_x - extent, center_y + extent, floor_z};
+    triangles.push_back({floor_a, floor_b, floor_c, floor_color});
+    triangles.push_back({floor_a, floor_c, floor_d, floor_color});
+
+    const wxString output_path = dialog.GetPath();
+    auto image = std::make_shared<PathTraceImage>();
+    const bool queued = queue_job(worker,
+        [triangles = std::move(triangles), camera, settings, image](Job::Ctl& ctl) {
+            *image = render_path_traced_image(triangles, camera, settings,
+                [&ctl] { return ctl.was_canceled(); },
+                [&ctl](float progress) { ctl.update_status(int(progress * 100.0f), _u8L("Rendering still image")); });
+        },
+        [image, output_path](bool canceled, std::exception_ptr&) {
+            if (canceled || image->canceled || image->rgb.empty())
+                return;
+            wxImage bitmap(int(image->width), int(image->height), image->rgb.data(), true);
+            if (!bitmap.SaveFile(output_path, wxBITMAP_TYPE_PNG))
+                show_error(nullptr, _L("Could not save the rendered image."));
+        });
+    if (!queued)
+        return {AppActionRunResult::Level::Info, _L("Could not start the still image render.")};
+    return {AppActionRunResult::Level::Success};
 }
 
 // Select a named camera view. Plater::select_view dispatches to the current panel.
@@ -275,6 +374,9 @@ std::vector<NativeCommand> build_command_catalog()
         if (Plater* plater = wxGetApp().plater())
             plater->export_gcode_3mf(true);
         return AppActionRunResult{AppActionRunResult::Level::Success};
+    });
+    add("render_still_image", _u8L("Render Still Image"), _u8L("Commands"), [](const std::string&) {
+        return render_still_image(wxGetApp().plater());
     });
 
     // ---- Calibration ----
