@@ -459,7 +459,9 @@ public:
         }
         if (rhs->type() == this->type()) {
             // Assign the first value of the rhs vector.
-            auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
+            auto other = dynamic_cast<const ConfigOptionVector<T>*>(rhs);
+            if (other == nullptr)
+                throw ConfigurationError("ConfigOptionVector::set_at(): Assigning an incompatible type");
             if (other->values.empty())
                 throw ConfigurationError("ConfigOptionVector::set_at(): Assigning from an empty vector");
             this->values[i] = other->get_at(j);
