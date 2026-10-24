@@ -11,8 +11,7 @@
 #include "PythonPluginBridge.hpp"
 #include "pluginTypes/resourceTexture/ResourceTexturePluginCapability.hpp"
 #include "libslic3r/Utils.hpp"
-#include "slic3r/GUI/I18N.hpp"
-#include "slic3r/GUI/format.hpp"
+#include "PluginText.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -102,7 +101,7 @@ bool read_local_plugin_package_metadata(const boost::filesystem::path& source_pa
 
     const std::string ext = plugin_package_extension(source_path);
     if (ext != ".py" && ext != ".whl") {
-        error = GUI::format(_u8L("Plugin package must be a .py or .whl file, got: %1%"), ext);
+        error = PLUGIN_FORMAT(PLUGIN_U8L("Plugin package must be a .py or .whl file, got: %1%"), ext);
         return false;
     }
 
@@ -179,14 +178,14 @@ bool add_wheel_dependencies_to_sys_path(const PluginDescriptor& descriptor,
             std::string extract_error;
             if (!extract_zip_to_directory(it->path(), dep_dir, extract_error)) {
                 // TRN %1% is the dependency file, %2% the error detail.
-                error = GUI::format(_u8L("Failed to extract plugin .whl dependency %1%: %2%"), it->path().string(), extract_error);
+                error = PLUGIN_FORMAT(PLUGIN_U8L("Failed to extract plugin .whl dependency %1%: %2%"), it->path().string(), extract_error);
                 return false;
             }
         }
 
         std::string syspath_error;
         if (!interpreter.add_plugin_sys_path(dep_dir.string(), syspath_error)) {
-            error = GUI::format(_u8L("Failed to add .whl dependency to sys.path: %1%"), syspath_error);
+            error = PLUGIN_FORMAT(PLUGIN_U8L("Failed to add .whl dependency to sys.path: %1%"), syspath_error);
             return false;
         }
         plugin_paths.push_back(dep_dir.string());
@@ -248,12 +247,12 @@ bool load(const PluginDescriptor&                          descriptor,
 
     PythonInterpreter& interpreter = PythonInterpreter::instance();
     if (!interpreter.is_initialized()) {
-        error = GUI::format(_u8L("Python interpreter not initialized: %1%"), interpreter.last_error());
+        error = PLUGIN_FORMAT(PLUGIN_U8L("Python interpreter not initialized: %1%"), interpreter.last_error());
         return false;
     }
 
     if (!descriptor.is_metadata_valid()) {
-        error = GUI::format(_u8L("Plugin manifest is invalid: %1%"), descriptor.plugin_key);
+        error = PLUGIN_FORMAT(PLUGIN_U8L("Plugin manifest is invalid: %1%"), descriptor.plugin_key);
         if (descriptor.has_error())
             error += " - " + descriptor.normalized_error();
         return false;
@@ -274,7 +273,7 @@ bool load(const PluginDescriptor&                          descriptor,
     if (!skip_deps) {
         std::string pkg_install_error;
         if (!install_packages(descriptor.dependencies, pkg_install_error)) {
-            error = GUI::format(_u8L("Failed to install plugin dependencies: %1%"), pkg_install_error);
+            error = PLUGIN_FORMAT(PLUGIN_U8L("Failed to install plugin dependencies: %1%"), pkg_install_error);
             return false;
         }
     }
@@ -293,7 +292,7 @@ bool load(const PluginDescriptor&                          descriptor,
     PyObject*   module = import_plugin_module(descriptor, plugin.plugin_sys_paths, plugin.plugin_modules, load_error);
     if (module == nullptr) {
         bridge.cancel_plugin_capture(descriptor.entry_path);
-        error = GUI::format(_u8L("Failed to load plugin module: %1%"), load_error);
+        error = PLUGIN_FORMAT(PLUGIN_U8L("Failed to load plugin module: %1%"), load_error);
         return false;
     }
 
@@ -308,13 +307,13 @@ bool load(const PluginDescriptor&                          descriptor,
     auto        capabilities_found = bridge.finalize_plugin_capture(descriptor.entry_path, descriptor.plugin_key, bridge_error);
     if (!bridge_error.empty()) {
         capabilities_found.clear();
-        error = GUI::format(_u8L("Plugin registration failed: %1%"), bridge_error);
+        error = PLUGIN_FORMAT(PLUGIN_U8L("Plugin registration failed: %1%"), bridge_error);
         if (registration_failed != nullptr)
             *registration_failed = true;
         return false;
     }
     if (capabilities_found.empty()) {
-        error = _u8L("Plugin module did not register any capabilities");
+        error = PLUGIN_U8L("Plugin module did not register any capabilities");
         return false;
     }
 
@@ -366,7 +365,7 @@ bool load(const PluginDescriptor&                          descriptor,
 
                     if (!seen_capabilities[type].insert(found.name).second) {
                         // TRN %1% is the capability name, %2% the capability type (e.g. Script).
-                        materialization_error = GUI::format(_u8L("Plugin declares duplicate capability '%1%' for type %2%"),
+                        materialization_error = PLUGIN_FORMAT(PLUGIN_U8L("Plugin declares duplicate capability '%1%' for type %2%"),
                                                             found.name, PluginConfig::capability_type_label(type));
                         break;
                     }
@@ -422,9 +421,9 @@ bool load(const PluginDescriptor&                          descriptor,
                     capabilities.push_back(std::move(instance));
                 }
             } catch (const std::exception& ex) {
-                materialization_error = GUI::format(_u8L("Plugin capability materialization failed: %1%"), ex.what());
+                materialization_error = PLUGIN_FORMAT(PLUGIN_U8L("Plugin capability materialization failed: %1%"), ex.what());
             } catch (...) {
-                materialization_error = _u8L("Plugin capability materialization failed");
+                materialization_error = PLUGIN_U8L("Plugin capability materialization failed");
             }
         }
 
@@ -466,11 +465,11 @@ bool load(const PluginDescriptor&                          descriptor,
     } catch (const std::exception& ex) {
         teardown_capabilities(plugin.capabilities, lifecycle_count);
         // TRN on_load is the name of the plugin's startup function; keep it untranslated.
-        error = GUI::format(_u8L("Plugin on_load failed: %1%"), ex.what());
+        error = PLUGIN_FORMAT(PLUGIN_U8L("Plugin on_load failed: %1%"), ex.what());
         return false;
     } catch (...) {
         teardown_capabilities(plugin.capabilities, lifecycle_count);
-        error = _u8L("Plugin on_load failed");
+        error = PLUGIN_U8L("Plugin on_load failed");
         return false;
     }
 
@@ -651,7 +650,7 @@ bool install_plugin(const boost::filesystem::path& filepath,
     bool     backup_created = false;
 
     auto fail = [&error](const std::string& message) {
-        error = GUI::format(_u8L("Plugin installation failed: %1%"), message);
+        error = PLUGIN_FORMAT(PLUGIN_U8L("Plugin installation failed: %1%"), message);
         return false;
     };
 
@@ -659,23 +658,23 @@ bool install_plugin(const boost::filesystem::path& filepath,
     const fs::path            source_path = canonical_or_absolute(filepath);
 
     if (!fs::exists(source_path, ec) || !fs::is_regular_file(source_path, ec))
-        return fail(GUI::format(_u8L("Plugin package is not a file: %1%"), filepath.string()));
+        return fail(PLUGIN_FORMAT(PLUGIN_U8L("Plugin package is not a file: %1%"), filepath.string()));
 
     const std::string ext = plugin_package_extension(source_path);
     if (ext != ".py" && ext != ".whl")
-        return fail(GUI::format(_u8L("Plugin package must be a .py or .whl file, got: %1%"), ext));
+        return fail(PLUGIN_FORMAT(PLUGIN_U8L("Plugin package must be a .py or .whl file, got: %1%"), ext));
     // The cloud UUID is concatenated into the install path (final_dir = plugin_root / cloud_uuid).
     // It comes verbatim from the server's catalog JSON, so reject anything that could escape the
     // per-user plugin root (traversal, leading dots, separators) before touching the filesystem.
     if (is_cloud_install && !is_valid_plugin_id(cloud_uuid))
-        return fail(GUI::format(_u8L("Cloud plugin UUID is not a valid identifier: %1%"), cloud_uuid));
+        return fail(PLUGIN_FORMAT(PLUGIN_U8L("Cloud plugin UUID is not a valid identifier: %1%"), cloud_uuid));
 
     const fs::path plugin_root = is_cloud_install && !cloud_user_id.empty() ? fs::path(get_cloud_plugin_dir(cloud_user_id)) :
                                                                              local_plugin_root();
     fs::create_directories(plugin_root, ec);
     if (ec)
         // TRN %1% is a folder path, %2% the system error message.
-        return fail(GUI::format(_u8L("Failed to create plugin directory %1%: %2%"), plugin_root.string(), ec.message()));
+        return fail(PLUGIN_FORMAT(PLUGIN_U8L("Failed to create plugin directory %1%: %2%"), plugin_root.string(), ec.message()));
 
     std::string meta_error;
     if (is_cloud_install) {
@@ -718,7 +717,7 @@ bool install_plugin(const boost::filesystem::path& filepath,
         fs::rename(final_dir, backup_dir, ec);
         if (ec)
             // TRN %1% is a folder path, %2% the system error message.
-            return fail(GUI::format(_u8L("Failed to back up existing plugin %1%: %2%"), final_dir.string(), ec.message()));
+            return fail(PLUGIN_FORMAT(PLUGIN_U8L("Failed to back up existing plugin %1%: %2%"), final_dir.string(), ec.message()));
         backup_created = true;
     }
 
@@ -729,7 +728,7 @@ bool install_plugin(const boost::filesystem::path& filepath,
             boost::system::error_code restore_ec;
             fs::rename(backup_dir, final_dir, restore_ec);
         }
-        return fail(GUI::format(_u8L("Failed to create plugin directory %1%: %2%"), final_dir.string(), ec.message()));
+        return fail(PLUGIN_FORMAT(PLUGIN_U8L("Failed to create plugin directory %1%: %2%"), final_dir.string(), ec.message()));
     }
 
     fs::copy_file(source_path, dest_file, ec);
@@ -740,7 +739,7 @@ bool install_plugin(const boost::filesystem::path& filepath,
             fs::rename(backup_dir, final_dir, restore_ec);
         }
         // TRN %1% is a file path, %2% the system error message.
-        return fail(GUI::format(_u8L("Failed to copy plugin file to %1%: %2%"), dest_file.string(), ec.message()));
+        return fail(PLUGIN_FORMAT(PLUGIN_U8L("Failed to copy plugin file to %1%: %2%"), dest_file.string(), ec.message()));
     }
 
     // Update entry_path to the installed location.
@@ -760,7 +759,7 @@ bool install_plugin(const boost::filesystem::path& filepath,
             fs::remove_all(final_dir, rollback_ec);
             if (backup_created)
                 fs::rename(backup_dir, final_dir, rollback_ec);
-            return fail(GUI::format(_u8L("Failed to write plugin install state: %1%"), (final_dir / INSTALL_STATE_FILE).string()));
+            return fail(PLUGIN_FORMAT(PLUGIN_U8L("Failed to write plugin install state: %1%"), (final_dir / INSTALL_STATE_FILE).string()));
         }
     }
 
