@@ -2,9 +2,21 @@
 #define BBS_3MF_hpp_
 
 #include "../GCode/ThumbnailData.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
+#include "libslic3r/Semver.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include <cstddef>
 #include <functional>
+#include <string>
+#include <set>
+#include <utility>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#include <optional>
+#include <type_traits>
+#include <istream>
 
 namespace Slic3r {
 class Model;
@@ -20,6 +32,7 @@ struct ThumbnailData;
 #define PLATE_THUMBNAIL_SMALL_HEIGHT    128
 
 #define GCODE_FILE_FORMAT               "Metadata/plate_%1%.gcode"
+#define STATISTICS_FILE_FORMAT          "Metadata/plate_%1%.statistics.json"
 #define THUMBNAIL_FILE_FORMAT           "Metadata/plate_%1%.png"
 #define NO_LIGHT_THUMBNAIL_FILE_FORMAT  "Metadata/plate_no_light_%1%.png"
 #define TOP_FILE_FORMAT                 "Metadata/top_%1%.png"
@@ -88,6 +101,8 @@ struct PlateData
     std::string     nozzle_volume_types;
     std::string     gcode_file;
     std::string     gcode_file_md5;
+    // The G-code's statistics as JSON, stored with the G-code when not empty.
+    std::string     statistics;
     std::string     thumbnail_file;
     std::string     no_light_thumbnail_file;
     ThumbnailData   plate_thumbnail;
@@ -162,6 +177,8 @@ enum class SaveStrategy
     // Keep this separate from SplitModel, which uses the 0x1000 bit as part of its
     // production-extension value.
     MinimalPublished    = 1 << 13,
+    // With WithGcode, also the G-code's statistics.
+    WithStatistics      = 1 << 14,
 
     SplitModel = 0x1000 | ProductionExt,
     Encrypted  = SecureContentExt | SplitModel,
