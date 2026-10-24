@@ -5,6 +5,7 @@
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StateColor.hpp"
 
 //BBS set font size
 
@@ -25,6 +26,21 @@
 #include <algorithm>
 
 wxDEFINE_EVENT(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, wxCommandEvent);
+
+// ORCA: a tab button's fill and its keyboard focus ring, set together. The border is drawn in
+// every state, in the fill's own colour except while focused, so only focus changes what the tab
+// looks like; StateHandler repaints on focus changes. #FEFEFE matches the label and, unlike
+// #FFFFFF, is not remapped for dark mode.
+static void set_tab_colors(Button* btn, const wxColour& normal, const wxColour& hovered)
+{
+    btn->SetBackgroundColor(StateColor(std::pair{hovered, (int) StateColor::Hovered},
+                                       std::pair{normal, (int) StateColor::Normal}));
+    StateColor border(std::pair{wxColour(254, 254, 254), (int) StateColor::Focused},
+                      std::pair{hovered, (int) StateColor::Hovered},
+                      std::pair{normal, (int) StateColor::Normal});
+    border.setTakeFocusedAsHovered(false);
+    btn->SetBorderColor(border);
+}
 
 ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
     wxControl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxTAB_TRAVERSAL)
@@ -142,10 +158,7 @@ void ButtonsListCtrl::SetSelection(int sel)
     // BBS: change button color
     wxColour selected_btn_bg("#009688");    // Gradient #009688
     if (m_selection >= 0 && m_selection < static_cast<int>(m_pageButtons.size())) {
-        StateColor bg_color = StateColor(
-        std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
-        std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
-        m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
+        set_tab_colors(m_pageButtons[m_selection], wxColour(59, 68, 70), wxColour(107, 107, 107));
         StateColor text_color = StateColor(
         std::pair{wxColour(254,254, 254), (int) StateColor::Normal}
         );
@@ -160,10 +173,7 @@ void ButtonsListCtrl::SetSelection(int sel)
 
     m_selection = sel;
 
-    StateColor bg_color = StateColor(
-        std::pair{wxColour(0, 150, 136), (int) StateColor::Hovered},
-        std::pair{wxColour(0,150, 136), (int) StateColor::Normal});
-    m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
+    set_tab_colors(m_pageButtons[m_selection], wxColour(0, 150, 136), wxColour(0, 150, 136));
 
     StateColor text_color = StateColor(
         std::pair{wxColour(254, 254, 254), (int) StateColor::Normal}
@@ -218,23 +228,12 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     //BBS set size for button
     btn->SetMinSize({(text.empty() ? 40 : 136) * em / 10, 36 * em / 10});
 
-    StateColor bg_color = StateColor(
-        std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
-        std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
-
-    btn->SetBackgroundColor(bg_color);
+    // ORCA: wxNO_BORDER zeroed the width; the ring needs a border in every state (see set_tab_colors).
+    btn->SetBorderWidth(btn->FromDIP(2));
+    set_tab_colors(btn, wxColour(59, 68, 70), wxColour(107, 107, 107));
     StateColor text_color = StateColor(
         std::pair{wxColour(254,254, 254), (int) StateColor::Normal});
     btn->SetTextColor(text_color);
-    // ORCA: keyboard focus ring, switched on by the border width because these
-    // buttons are borderless. RadioGroup's pattern (permanent border, Focused
-    // color) does not fit here: a permanent border insets the fill in every
-    // state, so its unfocused color would have to track each tab's own fill,
-    // which SetSelection swaps. #FEFEFE matches the label and, unlike #FFFFFF,
-    // is not remapped for dark mode.
-    btn->SetBorderColorNormal(wxColour(254, 254, 254));
-    btn->Bind(wxEVT_SET_FOCUS,  [btn](wxFocusEvent& evt) { btn->SetBorderWidth(btn->FromDIP(2)); evt.Skip(); });
-    btn->Bind(wxEVT_KILL_FOCUS, [btn](wxFocusEvent& evt) { btn->SetBorderWidth(0); evt.Skip(); });
     btn->Bind(wxEVT_BUTTON, [this, btn](wxCommandEvent& event) {
         if (auto it = std::find(m_pageButtons.begin(), m_pageButtons.end(), btn); it != m_pageButtons.end()) {
             auto sel = it - m_pageButtons.begin();
