@@ -2449,6 +2449,8 @@ float GLCanvas3D::get_canvas_toolbar_right() const
 #ifdef WIN32
     sc *= (float) get_dpi_for_window(wxGetApp().GetTopWindow()) / (float) DPI_DEFAULT;
 #endif // WIN32
+    if (m_design_sketch_tool != nullptr)   // Design: the corner is at the bottom-right; nothing owns the bottom-left
+        return CANVAS_TOOLBAR_MARGIN * sc;
     const float left = wxGetApp().show_3d_navigator() ? NAVIGATOR_SIZE : CANVAS_TOOLBAR_MARGIN;
     return (left + 2.f * CANVAS_TOOLBAR_PADDING + CANVAS_TOOLBAR_BUTTON) * sc;
 }
@@ -2592,7 +2594,9 @@ void GLCanvas3D::_render_frame(bool scene_dirty, bool only_init)
 
     // An overlay-only frame reuses the last scene pass. The overlay is rebuilt either way, and drawn
     // below once it is known whether the frame differs from the one on screen.
-    const bool reuse_scene = !scene_dirty && _can_reuse_cached_scene(camera);
+    // The Design canvas hosts its ImGui overlays (top bar, left panel, labels) inside the scene pass, so a frame that skips the pass
+    // would draw none of them: it never reuses the cached scene.
+    const bool reuse_scene = !scene_dirty && m_design_sketch_tool == nullptr && _can_reuse_cached_scene(camera);
     // Only frames that redraw the scene are profiled.
     if (!reuse_scene && (_is_render_timings_enabled() || m_frame_profiler.is_averaging()))
         m_frame_profiler.begin_frame();
@@ -2918,7 +2922,9 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
     // Design tab: interactive 2D sketch overlay, drawn over the scene but
     // beneath the UI overlays (toolbars, labels).
 #ifdef SLIC3R_CAD
-    if (m_design_sketch_tool != nullptr && m_design_sketch_tool->has_display())
+    // Always: the canvas's ImGui overlays (top bar, left panel) are drawn from inside it, and exist on an empty design too.
+    // render() returns early by itself when there is nothing of the tool's own to draw.
+    if (m_design_sketch_tool != nullptr)
         m_design_sketch_tool->render(*this);
 #endif
 
@@ -6781,7 +6787,9 @@ void GLCanvas3D::_render_3d_navigator()
     sc *= (float) dpi / (float) DPI_DEFAULT;
 #endif // WIN32
 
-    const float viewManipulateLeft = 0;
+    // The Design tab's left panel covers the bottom-left corner, so its navigator sits at the bottom-right.
+    const bool  design_canvas = m_design_sketch_tool != nullptr;
+    const float viewManipulateLeft = design_canvas ? io.DisplaySize.x - NAVIGATOR_SIZE * sc : 0.f;
     const float viewManipulateTop  = io.DisplaySize.y;
     const float camDistance        = 8.f;
 
@@ -10996,6 +11004,10 @@ void GLCanvas3D::_render_canvas_toolbar()
         m_canvas_toolbar_pos[0]        + margin.x,
         get_canvas_size().get_height() - margin.y
     };
+    if (m_design_sketch_tool != nullptr) {   // Design: the column stands left of the navigator at the bottom-right, clear of the panel
+        const float tb_w = btn_size.x + 2.f * padding.x;
+        pos[0] = int(float(get_canvas_size().get_width()) - tb_w - (wxGetApp().show_3d_navigator() ? NAVIGATOR_SIZE * sc : CANVAS_TOOLBAR_MARGIN * sc));
+    }
     bool          zoom_btn = wxGetApp().show_canvas_zoom_button();
 
     imgui.set_next_window_pos(pos[0], pos[1], ImGuiCond_Always, 0, 1); // pivot bottom-left
